@@ -1,0 +1,8 @@
+description: Display and Audio example on ESP32-S2-Kaluga kit
+targets:
+    - esp32s2
+
+dependencies:
+  # Required IDF version - ESP32-S2 support was introduced in IDF 4.2
+  idf: ">=4.2"
+  esp32_s2_kaluga_kit: ">=0.0.3"

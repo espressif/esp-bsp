@@ -1,0 +1,4 @@
+description: BSP ESP32-Azure-IoT-Kit rainmaker example
+dependencies:
+  espressif/esp32_azure_iot_kit:
+    version: "~0.0.6-alpha"

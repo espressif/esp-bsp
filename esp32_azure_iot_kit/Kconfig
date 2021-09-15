@@ -1,0 +1,61 @@
+menu "Board Support Package"
+    menu "I2C"
+        config BSP_I2C_NUM
+            int "I2C peripheral index"
+            default 1
+            range 0 1
+            help
+                ESP32 has two I2C peripherals, pick the one you want to use.
+
+        config BSP_I2C_FAST_MODE
+            bool "Enable I2C fast mode"
+            default n
+            help
+                I2C has two speed modes: normal (100kHz) and fast (400kHz).
+
+        config BSP_I2C_CLK_SPEED_HZ
+            int
+            default 400000 if BSP_I2C_FAST_MODE
+            default 100000
+
+    endmenu
+
+    menu "uSD card - Virtual File System"
+        config BSP_uSD_FORMAT_ON_MOUNT_FAIL
+            bool "Format uSD card if mounting fails"
+            default n
+            help
+                The SDMMC host will format (FAT) the uSD card if it fails to mount the filesystem.
+
+        config BSP_uSD_MOUNT_POINT
+            string "uSD card mount point"
+            default "/sdcard"
+            help
+                Mount point of the uSD card in the Virtual File System
+
+    endmenu
+
+    menu "Buzzer"
+        config BSP_BUZZER_FREQUENCY
+            int "Buzzer frequency [Hz]"
+            default 4000
+            range 1000 8000
+            help
+                Resonant requency of onboard buzzer is 4kHz.
+
+        config BSP_BUZZER_LEDC_TIMER_NUM
+            int "LEDC timer number for buzzer"
+            default 0
+            range 0 3
+            help
+                LEDC peripheral has 4 timers, pick one.
+
+        config BSP_BUZZER_LEDC_CHANNEL_NUM
+            int "LEDC channel number for buzzer"
+            default 0
+            range 0 7
+            help
+                LEDC peripheral has 7 high-speed channels, pick one.
+
+    endmenu
+endmenu

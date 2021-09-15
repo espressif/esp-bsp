@@ -1,0 +1,34 @@
+version: "0.0.6-alpha"
+description: Board Support Package for ESP32-Azure-IoT-Kit
+targets:
+    - esp32
+
+dependencies:
+  # Required IDF version
+  idf:
+    version: ">=4.0"
+
+  # components on the board
+  hts221:
+    version: ">=1.1.0"
+    public: true
+
+  ssd1306:
+    version: ">=1.0.3-alpha"
+    public: true
+
+  bh1750:
+    version: ">=1.0.0"
+    public: true
+
+  fbm320:
+    version: ">=1.0.0"
+    public: true
+
+  mag3110:
+    version: ">=1.0.0"
+    public: true
+
+  mpu6050:
+    version: ">=1.0.0"
+    public: true
