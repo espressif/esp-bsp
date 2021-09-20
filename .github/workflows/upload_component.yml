@@ -1,0 +1,19 @@
+name: Push components to Espressif Component Service
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  upload_components:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Upload components to component service
+        uses: espressif/github-actions/upload_components@master
+        with:
+          directories: "esp32_azure_iot_kit;esp32_s2_kaluga_kit"
+          namespace: "espressif"
+          api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
