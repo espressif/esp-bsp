@@ -1,4 +1,4 @@
-version: "0.0.6-alpha"
+version: "0.0.7-alpha"
 description: Board Support Package for ESP32-Azure-IoT-Kit
 targets:
     - esp32
@@ -10,7 +10,7 @@ dependencies:
 
   # components on the board
   hts221:
-    version: ">=1.1.0"
+    version: ">=1.1.1"
     public: true
 
   ssd1306:
