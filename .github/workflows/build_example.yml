@@ -1,0 +1,25 @@
+name: 'build'
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        idf_ver: ["v4.1", "v4.2", "v4.3"]
+        idf_target: ["esp32"]
+    runs-on: ubuntu-20.04
+    container: espressif/idf:release-${{ matrix.idf_ver }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Build ESP-BSP examples
+        env:
+          IDF_TARGET: ${{ matrix.idf_target }}
+        shell: bash
+        run: |
+          cd esp32_azure_iot_kit/examples/sensors_example
+          . ${IDF_PATH}/export.sh
+          pip install idf-component-manager
+          idf.py build
