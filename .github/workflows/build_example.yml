@@ -2,13 +2,13 @@ name: 'build'
 
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
 
 jobs:
   build:
     strategy:
       matrix:
-        idf_ver: ["v4.1", "v4.2", "v4.3"]
+        idf_ver: ["v4.3"]
         idf_target: ["esp32"]
     runs-on: ubuntu-20.04
     container: espressif/idf:release-${{ matrix.idf_ver }}
