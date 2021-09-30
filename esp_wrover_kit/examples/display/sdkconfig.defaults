@@ -1,0 +1,11 @@
+#
+# Serial flasher config
+#
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+# end of Serial flasher config
+
+#
+# LVGL configuration
+#
+CONFIG_LV_COLOR_16_SWAP=y
+# end of LVGL configuration

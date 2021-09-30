@@ -1,0 +1,27 @@
+menu "Board Support Package"
+    menu "uSD card - Virtual File System"
+        config BSP_uSD_FORMAT_ON_MOUNT_FAIL
+            bool "Format uSD card if mounting fails"
+            default n
+            help
+                The SDMMC host will format (FAT) the uSD card if it fails to mount the filesystem.
+
+        config BSP_uSD_MOUNT_POINT
+            string "uSD card mount point"
+            default "/sdcard"
+            help
+                Mount point of the uSD card in the Virtual File System
+
+    endmenu
+    choice
+        prompt "LCD type"
+        default BSP_LCD_ST7789
+        help
+            Wrover-kit is shipped with two different LCD controllers, pick the one you want to use.
+
+        config BSP_LCD_ST7789
+            bool "ST7789"
+        config BSP_LCD_ILI9341
+            bool "ILI9341"
+    endchoice
+endmenu
