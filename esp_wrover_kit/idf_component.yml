@@ -1,0 +1,10 @@
+version: "0.0.1"
+description: Board Support Package for ESP-WROVER-KIT
+targets:
+    - esp32
+
+dependencies:
+  idf: ">=4.4" # esp_lcd component was added in v4.4
+  lvgl/lvgl:
+    version: "==8.0.2"
+    public: true

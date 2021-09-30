@@ -1,0 +1,3 @@
+dependencies:
+  idf: ">=4.4"
+  esp_wrover_kit: ">=0.0.1"
