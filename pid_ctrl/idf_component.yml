@@ -1,0 +1,4 @@
+version: "0.1.0"
+description: Proportional-integral-derivative controller
+dependencies:
+  idf: ">=4.3"

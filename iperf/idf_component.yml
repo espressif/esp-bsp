@@ -1,0 +1,4 @@
+version: "0.1.0"
+description: iperf network performance tester
+dependencies:
+  idf: ">=4.3"

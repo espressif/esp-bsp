@@ -1,0 +1,4 @@
+version: "0.1.0"
+description: QR Code generator
+dependencies:
+  idf: ">=4.3"
