@@ -14,6 +14,6 @@ jobs:
       - name: Upload components to component service
         uses: espressif/github-actions/upload_components@master
         with:
-          directories: "esp32_azure_iot_kit;esp32_s2_kaluga_kit;esp_wrover_kit;iperf;pcap;pid_ctrl;qrcode"
+          directories: "esp32_azure_iot_kit;esp32_s2_kaluga_kit;esp_wrover_kit"
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
