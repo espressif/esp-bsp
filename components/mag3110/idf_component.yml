@@ -1,0 +1,5 @@
+version: "1.0.1"
+description: I2C driver for MAG3110 3-axis digital magnetometer
+url: https://github.com/espressif/esp-bsp/tree/master/components/mag3110
+dependencies:
+  idf : ">=4.0"
