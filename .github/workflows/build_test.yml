@@ -1,4 +1,4 @@
-name: Build BSP examples
+name: Build Test Application
 
 on:
   pull_request:
@@ -14,12 +14,11 @@ jobs:
     container: espressif/idf:release-${{ matrix.idf_ver }}
     steps:
       - uses: actions/checkout@master
-      - name: Build ESP-BSP examples
+      - name: Build ESP-BSP Test Application
         env:
           IDF_TARGET: ${{ matrix.idf_target }}
         shell: bash
         run: |
-          cd esp32_azure_iot_kit/examples/sensors_example
+          cd test_app
           . ${IDF_PATH}/export.sh
-          pip install idf-component-manager
           idf.py build
