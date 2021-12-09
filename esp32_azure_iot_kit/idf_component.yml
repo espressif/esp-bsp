@@ -1,5 +1,7 @@
 version: "0.0.7-alpha"
 description: Board Support Package for ESP32-Azure-IoT-Kit
+url: https://github.com/espressif/esp-bsp/tree/master/esp32_azure_iot_kit
+
 targets:
     - esp32
 
