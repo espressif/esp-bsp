@@ -1,0 +1,17 @@
+version: "0.0.1"
+description: Board Support Package for ESP-BOX
+url: https://github.com/espressif/esp-bsp/tree/master/esp-box
+
+targets:
+  - esp32s3
+
+dependencies:
+  idf: ">=4.4"
+
+  es8311:
+    version: "^1"
+    public: true
+
+  lvgl/lvgl:
+    version: "^8"
+    public: true
