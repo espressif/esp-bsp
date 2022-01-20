@@ -13,7 +13,7 @@ dependencies:
     public: true
 
   es8311:
-    version: ">=0.0.2-alpha"
+    version: ">=0.0.3-alpha"
     public: true
 
   led_strip:

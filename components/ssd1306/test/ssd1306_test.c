@@ -121,7 +121,7 @@ static void ssd1306_test_task(void *pvParameters)
         ret = ssd1306_show_time(dev);
         TEST_ASSERT_EQUAL_MESSAGE(ESP_OK, ret, "SSD1306 show time returned error");
 
-        vTaskDelay(100 / portTICK_RATE_MS);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
     ESP_LOGI(TAG, "OLED cleaning-up...");
 
@@ -141,7 +141,7 @@ TEST_CASE("Device ssd1306 test", "[ssd1306][iot][device]")
 {
     test_running = true;
     xTaskCreate(&ssd1306_test_task, "ssd1306_test_task", 2048 * 2, NULL, 5, NULL);
-    vTaskDelay(10000 / portTICK_RATE_MS); // run the test for 10 seconds
+    vTaskDelay(10000 / portTICK_PERIOD_MS); // run the test for 10 seconds
     test_running = false;                 // stop the test
-    vTaskDelay(1000 / portTICK_RATE_MS);  // give the kernel some time to clean-up
+    vTaskDelay(1000 / portTICK_PERIOD_MS);  // give the kernel some time to clean-up
 }

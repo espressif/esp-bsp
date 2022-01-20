@@ -43,7 +43,7 @@ static esp_err_t fbm320_write(fbm320_handle_t sensor, const uint8_t reg_start_ad
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
     return ret;
@@ -68,7 +68,7 @@ static esp_err_t fbm320_read(fbm320_handle_t sensor, const uint8_t reg_start_add
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
     return ret;
@@ -163,7 +163,7 @@ esp_err_t fbm320_get_data(fbm320_handle_t sensor, const fbm320_measure_mode_t me
     if (ESP_OK != ret) {
         return ret;
     }
-    vTaskDelay(10 / portTICK_RATE_MS);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     ret = fbm320_read_result(sensor, &temperature_raw);
     if (ESP_OK != ret) {
         return ret;
@@ -174,7 +174,7 @@ esp_err_t fbm320_get_data(fbm320_handle_t sensor, const fbm320_measure_mode_t me
     if (ESP_OK != ret) {
         return ret;
     }
-    vTaskDelay(10 / portTICK_RATE_MS);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     ret = fbm320_read_result(sensor, &pressure_raw);
     if (ESP_OK != ret) {
         return ret;
