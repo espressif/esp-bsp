@@ -46,7 +46,9 @@ static void IRAM_ATTR drdy_isr(void *args)
     BaseType_t xYieldRequired;
 
     vTaskNotifyGiveFromISR(sens->drdy_task_handle, &xYieldRequired);
-    portYIELD_FROM_ISR(xYieldRequired);
+    if (xYieldRequired) {
+        portYIELD_FROM_ISR();
+    }
 }
 
 static void drdy_task(void *args)
