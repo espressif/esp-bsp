@@ -1,4 +1,4 @@
-version: "0.0.3"
+version: "0.0.4"
 description: Board Support Package for ESP32-S2-Kaluga kit
 url: https://github.com/espressif/esp-bsp/tree/master/esp32_s2_kaluga_kit
 
@@ -9,17 +9,17 @@ dependencies:
   idf: ">=4.2"
 
   button:
-    version: ">=1.0.0"
+    version: "^1.0.0"
     public: true
 
   es8311:
-    version: ">=0.0.3-alpha"
+    version: "^0.0.2-alpha"
     public: true
 
   led_strip:
-    version: ">=1.1.0-alpha"
+    version: "^1.1.0-alpha"
     public: true
 
   lvgl/lvgl_esp32_drivers:
-    version: ">=0.0.3"
+    version: "^0.0.3"
     public: true

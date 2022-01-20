@@ -1,4 +1,4 @@
-version: "1.0.4-alpha"
+version: "1.0.3"
 description: I2C driver for SSD1306 OLED display
 url: https://github.com/espressif/esp-bsp/tree/master/components/ssd1306
 dependencies:
