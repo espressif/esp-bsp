@@ -43,7 +43,7 @@ extern "C" {
  *
  * After initialization of I2S, use BSP_I2S_NUM macro when reading/writing to I2S stream:
  * \code{.c}
- * i2s_write(BSP_I2S_NUM, wav_bytes, wav_bytes_len, &i2s_bytes_written, 500 / portTICK_RATE_MS);
+ * i2s_write(BSP_I2S_NUM, wav_bytes, wav_bytes_len, &i2s_bytes_written, 500 / portTICK_PERIOD_MS);
  * \endcode
  **************************************************************************************************/
 #define BSP_I2S_NUM           (I2S_NUM_0) // ESP32S2 has only 1 I2S peripheral

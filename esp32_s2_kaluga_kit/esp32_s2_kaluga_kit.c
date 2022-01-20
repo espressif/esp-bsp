@@ -183,7 +183,7 @@ void bsp_touchpad_init(intr_handler_t fn)
     ESP_ERROR_CHECK(touch_pad_fsm_start());
 
     /*!< Wait touch sensor init done and calibrate */
-    vTaskDelay(100 / portTICK_RATE_MS);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
     for (int i = 0; i < TOUCH_BUTTON_NUM; i++) {
         bsp_touchpad_calibrate(bsp_touch_button[i], 0.1f);
     }

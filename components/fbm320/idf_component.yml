@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.0.1"
 description: I2C driver for FBM320 digital barometer
 url: https://github.com/espressif/esp-bsp/tree/master/components/fbm320
 dependencies:

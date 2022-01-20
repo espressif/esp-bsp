@@ -46,7 +46,9 @@ static void IRAM_ATTR drdy_isr(void *args)
     BaseType_t xYieldRequired;
 
     vTaskNotifyGiveFromISR(sens->drdy_task_handle, &xYieldRequired);
-    portYIELD_FROM_ISR(xYieldRequired);
+    if (xYieldRequired) {
+        portYIELD_FROM_ISR();
+    }
 }
 
 static void drdy_task(void *args)
@@ -95,7 +97,7 @@ static esp_err_t hts221_write(hts221_handle_t sensor, const uint8_t reg_start_ad
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
     return ret;
@@ -125,7 +127,7 @@ static esp_err_t hts221_read(hts221_handle_t sensor, const uint8_t reg_start_add
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
     return ret;

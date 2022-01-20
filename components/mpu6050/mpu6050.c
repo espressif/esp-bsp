@@ -47,7 +47,7 @@ static esp_err_t mpu6050_write(mpu6050_handle_t sensor, const uint8_t reg_start_
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
     return ret;
@@ -73,7 +73,7 @@ static esp_err_t mpu6050_read(mpu6050_handle_t sensor, const uint8_t reg_start_a
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
     return ret;

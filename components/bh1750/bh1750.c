@@ -31,7 +31,7 @@ static esp_err_t bh1750_write_byte(const bh1750_dev_t *const sens, const uint8_t
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
     return ret;
@@ -103,7 +103,7 @@ esp_err_t bh1750_get_data(bh1750_handle_t sensor, float *const data)
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
     if (ESP_OK != ret) {
         return ret;

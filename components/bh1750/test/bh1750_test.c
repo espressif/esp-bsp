@@ -12,7 +12,7 @@
 
 #define I2C_MASTER_SCL_IO 26      /*!< gpio number for I2C master clock */
 #define I2C_MASTER_SDA_IO 25      /*!< gpio number for I2C master data  */
-#define I2C_MASTER_NUM I2C_NUM_1  /*!< I2C port number for master dev */
+#define I2C_MASTER_NUM I2C_NUM_0  /*!< I2C port number for master dev */
 #define I2C_MASTER_FREQ_HZ 100000 /*!< I2C master clock frequency */
 
 static const char *TAG = "bh1750 test";
@@ -61,7 +61,7 @@ TEST_CASE("Sensor BH1750 test", "[bh1750][iot][sensor]")
     cmd_measure = BH1750_ONETIME_4LX_RES;
     ret = bh1750_set_measure_mode(bh1750, cmd_measure);
     TEST_ASSERT_EQUAL(ESP_OK, ret);
-    vTaskDelay(30 / portTICK_RATE_MS);
+    vTaskDelay(30 / portTICK_PERIOD_MS);
 
     ret = bh1750_get_data(bh1750, &bh1750_data);
     TEST_ASSERT_EQUAL(ESP_OK, ret);
@@ -71,7 +71,7 @@ TEST_CASE("Sensor BH1750 test", "[bh1750][iot][sensor]")
     cmd_measure = BH1750_CONTINUE_4LX_RES;
     ret = bh1750_set_measure_mode(bh1750, cmd_measure);
     TEST_ASSERT_EQUAL(ESP_OK, ret);
-    vTaskDelay(30 / portTICK_RATE_MS);
+    vTaskDelay(30 / portTICK_PERIOD_MS);
 
     ret = bh1750_get_data(bh1750, &bh1750_data);
     TEST_ASSERT_EQUAL(ESP_OK, ret);
