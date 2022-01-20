@@ -47,7 +47,7 @@ static esp_err_t mag3110_write(mag3110_handle_t sensor, const uint8_t reg_start_
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
     return ret;
@@ -72,7 +72,7 @@ static esp_err_t mag3110_read(mag3110_handle_t sensor, const uint8_t reg_start_a
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
     return ret;
@@ -176,7 +176,7 @@ esp_err_t mag3110_calibrate(mag3110_handle_t sensor, const uint32_t cal_duration
     ret = mag3110_write(sensor, MAG3110_CTRL_REG1, ctrl_reg, sizeof(ctrl_reg));
     assert(ESP_OK == ret);
 
-    vTaskDelay(100 / portTICK_RATE_MS); // Wait for start-up
+    vTaskDelay(100 / portTICK_PERIOD_MS); // Wait for start-up
 
     const esp_timer_create_args_t cal_timer_config = {
         .callback = mag3110_timer_callback,
@@ -196,7 +196,7 @@ esp_err_t mag3110_calibrate(mag3110_handle_t sensor, const uint32_t cal_duration
 
     // Let the ESP_Timer collect the data
     // User must rotate the MAG3110 in all axis during this time
-    vTaskDelay(cal_duration_ms / portTICK_RATE_MS);
+    vTaskDelay(cal_duration_ms / portTICK_PERIOD_MS);
 
     ESP_LOGI("MAG3110", "Exiting calibration loop");
     ret = esp_timer_stop(cal_timer);
@@ -226,7 +226,7 @@ esp_err_t mag3110_calibrate(mag3110_handle_t sensor, const uint32_t cal_duration
 
     ESP_LOGD("MAG3110", "offset data %i %i %i", offset[0], offset[1], offset[2]);
 
-    vTaskDelay(100 / portTICK_RATE_MS); // Wait for shutdown
+    vTaskDelay(100 / portTICK_PERIOD_MS); // Wait for shutdown
 
     return ret;
 }

@@ -230,7 +230,7 @@ void ssd1306_show_task(void *pvParameters)
     ssd1306_clear_screen(ssd1306_dev, 0x00);
     ssd1306_show_signs(ssd1306_dev);
     while (1) {
-        if (xQueueReceive(q_page_num, &page_num, 1000 / portTICK_RATE_MS) == pdTRUE) {
+        if (xQueueReceive(q_page_num, &page_num, 1000 / portTICK_PERIOD_MS) == pdTRUE) {
             ssd1306_clear_screen(ssd1306_dev, 0x00);
             ssd1306_show_signs(ssd1306_dev);
         }
@@ -335,6 +335,6 @@ void app_main(void)
             bsp_buzzer_set(false);
         }
 
-        vTaskDelay(200 / portTICK_RATE_MS);
+        vTaskDelay(200 / portTICK_PERIOD_MS);
     }
 }

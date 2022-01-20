@@ -189,7 +189,7 @@ static void audio_task(void *arg)
                     size_t bytes_received_from_i2s;
 
                     ESP_ERROR_CHECK(i2s_read(BSP_I2S_NUM, recording_buffer, BUFFER_SIZE, &bytes_received_from_i2s,
-                                             5000 / portTICK_RATE_MS));
+                                             5000 / portTICK_PERIOD_MS));
 
                     /* Write WAV file data */
                     size_t data_written = fwrite(recording_buffer, 1, bytes_received_from_i2s, record_file);
@@ -242,7 +242,7 @@ static void audio_task(void *arg)
                     /* Send it to I2S */
                     size_t i2s_bytes_written;
                     ESP_ERROR_CHECK(i2s_write(BSP_I2S_NUM, wav_bytes, bytes_read_from_spiffs, &i2s_bytes_written,
-                                              500 / portTICK_RATE_MS));
+                                              500 / portTICK_PERIOD_MS));
                     bytes_send_to_i2s += i2s_bytes_written;
                 }
 

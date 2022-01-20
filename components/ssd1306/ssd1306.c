@@ -42,7 +42,7 @@ static esp_err_t ssd1306_write_data(ssd1306_handle_t dev, const uint8_t *const d
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(device->bus, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(device->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
     return ret;
@@ -64,7 +64,7 @@ static esp_err_t ssd1306_write_cmd(ssd1306_handle_t dev, const uint8_t *const da
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(device->bus, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(device->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
     return ret;

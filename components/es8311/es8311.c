@@ -159,7 +159,7 @@ static int es8311_write_reg(es8311_handle_t dev, uint8_t reg_addr, uint8_t data)
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(es->port, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(es->port, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
     return ret;
 }
@@ -184,7 +184,7 @@ int es8311_read_reg(es8311_handle_t dev, uint8_t reg_addr)
     assert(ESP_OK == ret);
     ret = i2c_master_stop(cmd);
     assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(es->port, cmd, 1000 / portTICK_RATE_MS);
+    ret = i2c_master_cmd_begin(es->port, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
     return data;
