@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2022 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -33,6 +33,25 @@ typedef enum {
     ES8311_MIC_GAIN_42DB,
     ES8311_MIC_GAIN_MAX
 } es8311_mic_gain_t;
+
+typedef enum {
+    ES8311_FADE_OFF = 0,
+    ES8311_FADE_4LRCK, // 4LRCK means ramp 0.25dB/4LRCK
+    ES8311_FADE_8LRCK,
+    ES8311_FADE_16LRCK,
+    ES8311_FADE_32LRCK,
+    ES8311_FADE_64LRCK,
+    ES8311_FADE_128LRCK,
+    ES8311_FADE_256LRCK,
+    ES8311_FADE_512LRCK,
+    ES8311_FADE_1024LRCK,
+    ES8311_FADE_2048LRCK,
+    ES8311_FADE_4096LRCK,
+    ES8311_FADE_8192LRCK,
+    ES8311_FADE_16384LRCK,
+    ES8311_FADE_32768LRCK,
+    ES8311_FADE_65536LRCK
+} es8311_fade_t;
 
 typedef enum es8311_resolution_t {
     ES8311_RESOLUTION_16 = 16,
@@ -146,6 +165,28 @@ esp_err_t es8311_microphone_config(es8311_handle_t dev, bool digital_mic);
  *     - Else I2C read/write error
  */
 esp_err_t es8311_sample_frequency_config(es8311_handle_t dev, int mclk_frequency, int sample_frequency);
+
+/**
+ * @brief Configure fade in/out for ADC: voice
+ *
+ * @param dev ES8311 handle
+ * @param[in] fade Fade ramp rate
+ * @return
+ *     - ESP_OK success
+ *     - Else I2C read/write error
+ */
+esp_err_t es8311_voice_fade(es8311_handle_t dev, const es8311_fade_t fade);
+
+/**
+ * @brief Configure fade in/out for DAC: microphone
+ *
+ * @param dev ES8311 handle
+ * @param[in] fade Fade ramp rate
+ * @return
+ *     - ESP_OK success
+ *     - Else I2C read/write error
+ */
+esp_err_t es8311_microphone_fade(es8311_handle_t dev, const es8311_fade_t fade);
 
 /**
  * @brief Create ES8311 object and return its handle

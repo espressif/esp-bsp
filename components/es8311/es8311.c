@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2022 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -21,7 +21,7 @@ typedef struct {
 } es8311_dev_t;
 
 /*
- * Clock coefficient structer
+ * Clock coefficient structure
  */
 struct _coeff_div {
     uint32_t mclk;        /* mclk frequency */
@@ -370,7 +370,7 @@ esp_err_t es8311_init(es8311_handle_t dev, const es8311_clock_config_t *const cl
     ret |= es8311_write_reg(dev, ES8311_SYSTEM_REG12, 0x00); // power-up DAC - NOT default
     ret |= es8311_write_reg(dev, ES8311_SYSTEM_REG13, 0x10); // Enable output to HP drive - NOT default
     ret |= es8311_write_reg(dev, ES8311_ADC_REG1C, 0x6A); // ADC Equalizer bypass, cancel DC offset in digital domain
-    ret |= es8311_write_reg(dev, ES8311_DAC_REG37, 0x48); // DAC ramprate and bypass DAC equalizer - NOT default
+    ret |= es8311_write_reg(dev, ES8311_DAC_REG37, 0x08); // Bypass DAC equalizer - NOT default
 
     return ret;
 }
@@ -430,6 +430,22 @@ esp_err_t es8311_voice_mute(es8311_handle_t dev, bool mute)
 esp_err_t es8311_microphone_gain_set(es8311_handle_t dev, es8311_mic_gain_t gain_db)
 {
     return es8311_write_reg(dev, ES8311_ADC_REG16, gain_db); // ADC gain scale up
+}
+
+esp_err_t es8311_voice_fade(es8311_handle_t dev, const es8311_fade_t fade)
+{
+    uint8_t reg37 = es8311_read_reg(dev, ES8311_DAC_REG37);
+    reg37 &= 0x0F;
+    reg37 |= (fade << 4);
+    return es8311_write_reg(dev, ES8311_DAC_REG37, reg37);
+}
+
+esp_err_t es8311_microphone_fade(es8311_handle_t dev, const es8311_fade_t fade)
+{
+    uint8_t reg15 = es8311_read_reg(dev, ES8311_ADC_REG15);
+    reg15 &= 0x0F;
+    reg15 |= (fade << 4);
+    return es8311_write_reg(dev, ES8311_ADC_REG15, reg15);
 }
 
 void es8311_register_dump(es8311_handle_t dev)
