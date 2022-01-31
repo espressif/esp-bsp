@@ -157,8 +157,8 @@ esp_err_t es8311_microphone_config(es8311_handle_t dev, bool digital_mic);
  * @note This function is called by es8311_init().
  *       Call this function explicitly only if you want to change sample frequency during runtime.
  * @param dev ES8311 handle
- * @param[in] mclk_frequency   MCLK frequency in Hz on MCLK or SCLK pin, depending bit register01[7].
- * @param[in] sample_frequency Required sample frequency in Hz, e.g. 44100, 22050...
+ * @param[in] mclk_frequency   MCLK frequency in [Hz] (MCLK or SCLK pin, depending on bit register01[7])
+ * @param[in] sample_frequency Required sample frequency in [Hz], e.g. 44100, 22050...
  * @return
  *     - ESP_OK success
  *     - ESP_ERR_INVALID_ARG cannot set clock dividers for given MCLK and sampling frequency
