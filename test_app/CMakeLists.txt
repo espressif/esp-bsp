@@ -4,6 +4,11 @@ cmake_minimum_required(VERSION 3.5)
 
 set(EXTRA_COMPONENT_DIRS "../components")
 
+include($ENV{IDF_PATH}/tools/cmake/version.cmake) # $ENV{IDF_VERSION} was added after v4.3...
+if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
+    set(EXCLUDE_COMPONENTS "es8311")
+endif()
+
 # Set the components to include the tests for.
 set(TEST_COMPONENTS bh1750 ssd1306 mpu6050 mag3110 hts221 fbm320 CACHE STRING "List of components to test")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
