@@ -13,9 +13,6 @@
 
 #include "es8311_reg.h"
 
-/*!< MCLK_DIV_FRE is the frequency division coefficient of LRCLK */
-#define MCLK_DIV_FRE        32u // this is valid for 16bit data resolution and MCLK from SCLK pin
-
 typedef struct {
     i2c_port_t port;
     uint16_t dev_addr;
@@ -228,14 +225,18 @@ esp_err_t es8311_sample_frequency_config(es8311_handle_t dev, int mclk_frequency
     return ESP_OK;
 }
 
-static esp_err_t es8311_clock_config(es8311_handle_t dev, const es8311_clock_config_t *const clk_cfg)
+static esp_err_t es8311_clock_config(es8311_handle_t dev, const es8311_clock_config_t *const clk_cfg, es8311_resolution_t res)
 {
     uint8_t reg06;
     uint8_t reg01 = 0x3F; // Enable all clocks
+    int mclk_hz;
 
-    /* Select clock source for internal MCLK */
-    if (!clk_cfg->mclk_from_mclk_pin) {
-        reg01 |= BIT(7); // Select BCLK pin
+    /* Select clock source for internal MCLK and determine its frequency */
+    if (clk_cfg->mclk_from_mclk_pin) {
+        mclk_hz = clk_cfg->mclk_frequency;
+    } else {
+        mclk_hz = clk_cfg->sample_frequency * (int)res * 2;
+        reg01 |= BIT(7); // Select BCLK (a.k.a. SCK) pin
     }
 
     if (clk_cfg->mclk_inverted) {
@@ -252,8 +253,7 @@ static esp_err_t es8311_clock_config(es8311_handle_t dev, const es8311_clock_con
     ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_CLK_MANAGER_REG06, reg06), TAG, "I2C read/write error");
 
     /* Configure clock dividers */
-    // 16 bit resolution and MCLK from SCLK pin is assumed here
-    return es8311_sample_frequency_config(dev, clk_cfg->sample_frequency * MCLK_DIV_FRE, clk_cfg->sample_frequency);
+    return es8311_sample_frequency_config(dev, mclk_hz, clk_cfg->sample_frequency);
 }
 
 static esp_err_t es8311_resolution_config(const es8311_resolution_t res, uint8_t *reg)
@@ -316,10 +316,14 @@ esp_err_t es8311_microphone_config(es8311_handle_t dev, bool digital_mic)
 
 esp_err_t es8311_init(es8311_handle_t dev, const es8311_clock_config_t *const clk_cfg, const es8311_resolution_t res_in, const es8311_resolution_t res_out)
 {
-    if (clk_cfg->sample_frequency <= 8000) {
-        ESP_LOGE(TAG, "ES8311 init needs frequency > 8000Hz, such as 32000Hz, 44100Hz");
-        return ESP_ERR_INVALID_ARG;
+    ESP_RETURN_ON_FALSE(
+        (clk_cfg->sample_frequency >= 8000) && (clk_cfg->sample_frequency <= 96000),
+        ESP_ERR_INVALID_ARG, TAG, "ES8311 init needs frequency in interval [8000; 96000] Hz"
+    );
+    if (!clk_cfg->mclk_from_mclk_pin) {
+        ESP_RETURN_ON_FALSE(res_out == res_in, ESP_ERR_INVALID_ARG, TAG, "Resolution IN/OUT must be equal if MCLK is taken from SCK pin");
     }
+
 
     /* Reset ES8311 to its default */
     ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_RESET_REG00, 0x1F), TAG, "I2C read/write error");
@@ -328,10 +332,10 @@ esp_err_t es8311_init(es8311_handle_t dev, const es8311_clock_config_t *const cl
     ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_RESET_REG00, 0x80), TAG, "I2C read/write error"); // Power-on command
 
     /* Setup clock: source, polarity and clock dividers */
-    ESP_RETURN_ON_ERROR(es8311_clock_config(dev, clk_cfg), TAG, "I2C read/write error");
+    ESP_RETURN_ON_ERROR(es8311_clock_config(dev, clk_cfg, res_out), TAG, "");
 
     /* Setup audio format (fmt): master/slave, resolution, I2S */
-    ESP_RETURN_ON_ERROR(es8311_fmt_config(dev, res_in, res_out), TAG, "I2C read/write error");
+    ESP_RETURN_ON_ERROR(es8311_fmt_config(dev, res_in, res_out), TAG, "");
 
     ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_SYSTEM_REG0D, 0x01), TAG, "I2C read/write error"); // Power up analog circuitry - NOT default
     ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_SYSTEM_REG0E, 0x02), TAG, "I2C read/write error"); // Enable analog PGA, enable ADC modulator - NOT default

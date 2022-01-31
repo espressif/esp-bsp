@@ -65,11 +65,22 @@ typedef struct es8311_clock_config_t {
     bool mclk_inverted;
     bool sclk_inverted;
     bool mclk_from_mclk_pin; // true: from MCLK pin (pin no. 2), false: from SCLK pin (pin no. 6)
+    int  mclk_frequency;     // This parameter is ignored if MCLK is taken from SCLK pin
     int  sample_frequency;   // in Hz
 } es8311_clock_config_t;
 
 /**
  * @brief Initialize ES8311
+ *
+ * There are two ways of providing Master Clock (MCLK) signal to ES8311 in Slave Mode:
+ * 1. From MCLK pin:
+ *    For flexible scenarios. A clock signal from I2S master is routed to MCLK pin.
+ *    Its frequency must be defined in clk_cfg->mclk_frequency parameter.
+ * 2. From SCLK pin:
+ *    For simpler scenarios. ES8311 takes its clock from SCK pin. MCLK pin does not have to be connected.
+ *    In this case, res_in must equal res_out; clk_cfg->mclk_frequency parameter is ignored
+ *    and MCLK is calculated as MCLK = clk_cfg->sample_frequency * res_out * 2.
+ *    Not all sampling frequencies are supported in this mode.
  *
  * @param dev ES8311 handle
  * @param[in] clk_cfg Clock configuration
