@@ -14,8 +14,8 @@
 
 #include <sdkconfig.h>
 #include <esp_rmaker_core.h>
-#include <esp_rmaker_standard_types.h> 
-#include <esp_rmaker_standard_params.h> 
+#include <esp_rmaker_standard_types.h>
+#include <esp_rmaker_standard_params.h>
 #include "esp_log.h"
 #include <app_reset.h>
 #include "app_priv.h"
@@ -109,14 +109,14 @@ void app_update_sensors_data(void)
 static void app_sensor_update(void *priv)
 {
     app_update_sensors_data();
-    
-    esp_rmaker_param_update_and_report(
-            esp_rmaker_device_get_param_by_type(temp_sensor_device, ESP_RMAKER_PARAM_TEMPERATURE),
-            esp_rmaker_float(s_temperature));
 
     esp_rmaker_param_update_and_report(
-            esp_rmaker_device_get_param_by_type(humid_sensor_device, ESP_RMAKER_PARAM_TEMPERATURE),
-            esp_rmaker_float(s_humidity));
+        esp_rmaker_device_get_param_by_type(temp_sensor_device, ESP_RMAKER_PARAM_TEMPERATURE),
+        esp_rmaker_float(s_temperature));
+
+    esp_rmaker_param_update_and_report(
+        esp_rmaker_device_get_param_by_type(humid_sensor_device, ESP_RMAKER_PARAM_TEMPERATURE),
+        esp_rmaker_float(s_humidity));
 }
 
 float app_get_current_temperature()
@@ -165,5 +165,5 @@ void app_driver_init()
     app_show_priv_key_msg();
 
     app_reset_button_register(app_reset_button_create(BUTTON_GPIO, BUTTON_ACTIVE_LEVEL),
-                WIFI_RESET_BUTTON_TIMEOUT, FACTORY_RESET_BUTTON_TIMEOUT);
+                              WIFI_RESET_BUTTON_TIMEOUT, FACTORY_RESET_BUTTON_TIMEOUT);
 }
