@@ -182,7 +182,7 @@ void bsp_touchpad_deinit(void);
 
 /**
  * @brief Calibrate touch threshold
- * 
+ *
  * @param[in] tch_pad       Touch pad from bsp_touchpad_button_t enum.
  * @param[in] tch_threshold Interrupt threshold ratio. Min.: 0, max.: 1.
  */

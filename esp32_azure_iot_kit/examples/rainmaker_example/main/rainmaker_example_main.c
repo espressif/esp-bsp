@@ -27,11 +27,11 @@ esp_rmaker_device_t *humid_sensor_device;
 
 /* Callback to handle commands received from the RainMaker cloud */
 static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_param_t *param,
-            const esp_rmaker_param_val_t val, void *priv_data, esp_rmaker_write_ctx_t *ctx)
+                          const esp_rmaker_param_val_t val, void *priv_data, esp_rmaker_write_ctx_t *ctx)
 {
     if (ctx) {
         ESP_LOGI(TAG, "Received write request via : %s", esp_rmaker_device_cb_src_to_str(ctx->src));
-        
+
         if (strcmp(esp_rmaker_param_get_name(param), "LED") == 0) {
             bsp_led_set(BSP_LED_AZURE, val.val.b);
         } else if (strcmp(esp_rmaker_param_get_name(param), "BUZZER") == 0) {
@@ -39,7 +39,7 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
         }
         esp_rmaker_param_update_and_report(param, val);
     }
-    
+
     return ESP_OK;
 }
 
@@ -71,7 +71,7 @@ void app_main()
     esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "ESP RainMaker Device", "Azure-Kit");
     if (!node) {
         ESP_LOGE(TAG, "Could not initialise node. Aborting!!!");
-        vTaskDelay(5000/portTICK_PERIOD_MS);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
         abort();
     }
 
@@ -110,7 +110,7 @@ void app_main()
 
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Could not start Wifi. Aborting!!!");
-        vTaskDelay(5000/portTICK_PERIOD_MS);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
         abort();
     }
 
