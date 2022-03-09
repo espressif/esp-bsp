@@ -1,35 +1,22 @@
-// Copyright 2015-2021 Espressif Systems (Shanghai) CO LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: CC0-1.0
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "esp32_s2_kaluga_kit.h"
-#include "es8311.h"
-#include "driver/i2s.h"
-#include "driver/i2c.h"
-#include "driver/gpio.h"
+#include <unistd.h>
+#include <string.h>
 #include "esp_log.h"
 #include "esp_spiffs.h"
 
-#include "string.h"
-#include <unistd.h>
-
-#include "button.h"
+#include "bsp/esp32_s2_kaluga_kit.h"
+#include "es8311.h"
 #include "led_strip.h"
 #include "lvgl.h"
-#include "lvgl_helpers.h"
+#include "disp_example.h"
 
 #define TAG "Kaluga"
 
@@ -48,11 +35,8 @@
 static button_handle_t audio_button[BSP_BUTTON_NUM] = {};
 static QueueHandle_t audio_button_q = NULL;
 static led_strip_t *rgb_led = NULL;
-static lv_obj_t *recording_checkbox = NULL;
-static lv_obj_t *playing_checkbox = NULL;
-static lv_obj_t *volume_arc = NULL;
 
-void btn_handler(void *arg)
+static void btn_handler(void *arg)
 {
     for (uint8_t i = 0; i < BSP_BUTTON_NUM; i++) {
         if ((button_handle_t)arg == audio_button[i]) {
@@ -75,7 +59,7 @@ typedef struct __attribute__((packed))
     uint8_t data[];
 } dumb_wav_header_t;
 
-esp_err_t spiffs_init(void)
+static esp_err_t spiffs_init(void)
 {
     esp_err_t ret = ESP_OK;
     ESP_LOGI(TAG, "Initializing SPIFFS");
@@ -84,7 +68,7 @@ esp_err_t spiffs_init(void)
         .base_path = "/spiffs",
         .partition_label = NULL,
         .max_files = 5,
-        .format_if_mount_failed = true
+        .format_if_mount_failed = false
     };
 
     /*!< Use settings defined above to initialize and mount SPIFFS filesystem. */
@@ -117,26 +101,8 @@ esp_err_t spiffs_init(void)
 
 static void audio_task(void *arg)
 {
-    const i2s_config_t i2s_config = {
-        .mode = I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX,
-        .sample_rate = SAMPLE_RATE,
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-        .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT, // ES8311 is a mono codec, only left is sufficient
-        .communication_format = I2S_COMM_FORMAT_STAND_I2S,
-        .dma_buf_count = 3,
-        .dma_buf_len = 1024, // 3x1024 bytes for buffering
-        .use_apll = true,
-        .tx_desc_auto_clear = true, /*!< I2S auto clear tx descriptor if there is underflow condition (helps in avoiding
-                                       noise in case of data unavailability) */
-        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL2 | ESP_INTR_FLAG_IRAM,
-    };
-
-    const es8311_clock_config_t clk_cfg = {
-        .mclk_from_mclk_pin = false,
-        .mclk_inverted = false,
-        .sclk_inverted = false,
-        .sample_frequency = SAMPLE_RATE
-    };
+    const i2s_config_t i2s_config = BSP_I2S_DUPLEX_MONO_CONFIG(SAMPLE_RATE);
+    const es8311_clock_config_t clk_cfg = BSP_ES8311_SCLK_CONFIG(SAMPLE_RATE);
 
     /* Create and configure ES8311 I2C driver */
     es8311_handle_t es8311_dev = es8311_create(BSP_I2C_NUM, ES8311_ADDRRES_0);
@@ -180,7 +146,7 @@ static void audio_task(void *arg)
                     continue;
                 }
 
-                lv_checkbox_set_checked(recording_checkbox, true);
+                disp_set_recording(true);
                 ESP_ERROR_CHECK(i2s_zero_dma_buffer(BSP_I2S_NUM)); // Reset RX buffers before i2s_read
                 ESP_LOGI(TAG, "Recording start");
 
@@ -188,8 +154,7 @@ static void audio_task(void *arg)
                 while (bytes_written_to_spiffs < RECORDING_LENGTH * BUFFER_SIZE) {
                     size_t bytes_received_from_i2s;
 
-                    ESP_ERROR_CHECK(i2s_read(BSP_I2S_NUM, recording_buffer, BUFFER_SIZE, &bytes_received_from_i2s,
-                                             5000 / portTICK_PERIOD_MS));
+                    ESP_ERROR_CHECK(i2s_read(BSP_I2S_NUM, recording_buffer, BUFFER_SIZE, &bytes_received_from_i2s, pdMS_TO_TICKS(5000)));
 
                     /* Write WAV file data */
                     size_t data_written = fwrite(recording_buffer, 1, bytes_received_from_i2s, record_file);
@@ -197,7 +162,7 @@ static void audio_task(void *arg)
                 }
 
                 ESP_LOGI(TAG, "Recording stop, length: %i bytes", bytes_written_to_spiffs);
-                lv_checkbox_set_checked(recording_checkbox, false);
+                disp_set_recording(false);
 
                 fclose(record_file);
                 free(recording_buffer);
@@ -219,20 +184,23 @@ static void audio_task(void *arg)
                 /* Open WAV file */
                 ESP_LOGI(TAG, "Playing file %s", play_filename);
                 FILE *play_file = fopen(play_filename, "rb");
-                assert(play_file != NULL);
+                if (play_file == NULL) {
+                    ESP_LOGW(TAG, "%s file does not exist!", play_filename);
+                    break;
+                }
 
                 /* Read WAV header file */
                 dumb_wav_header_t wav_header;
                 if (fread((void *)&wav_header, 1, sizeof(wav_header), play_file) != sizeof(wav_header)) {
                     ESP_LOGW(TAG, "Error in reading file");
-                    continue;
+                    break;
                 }
                 ESP_LOGI(TAG, "Number of channels: %d", wav_header.num_channels);
                 ESP_LOGI(TAG, "Bits per sample: %d", wav_header.bits_per_sample);
                 ESP_LOGI(TAG, "Sample rate: %d", wav_header.sample_rate);
                 ESP_LOGI(TAG, "Data size: %d", wav_header.data_size);
 
-                lv_checkbox_set_checked(playing_checkbox, true);
+                disp_set_playing(true);
 
                 uint32_t bytes_send_to_i2s = 0;
                 while (bytes_send_to_i2s < wav_header.data_size) {
@@ -241,12 +209,11 @@ static void audio_task(void *arg)
 
                     /* Send it to I2S */
                     size_t i2s_bytes_written;
-                    ESP_ERROR_CHECK(i2s_write(BSP_I2S_NUM, wav_bytes, bytes_read_from_spiffs, &i2s_bytes_written,
-                                              500 / portTICK_PERIOD_MS));
+                    ESP_ERROR_CHECK(i2s_write(BSP_I2S_NUM, wav_bytes, bytes_read_from_spiffs, &i2s_bytes_written, pdMS_TO_TICKS(500)));
                     bytes_send_to_i2s += i2s_bytes_written;
                 }
 
-                lv_checkbox_set_checked(playing_checkbox, false);
+                disp_set_playing(false);
                 fclose(play_file);
                 free(wav_bytes);
                 break;
@@ -269,7 +236,7 @@ static void audio_task(void *arg)
                 es8311_voice_volume_get(es8311_dev, &vol);
                 vol -= 5;
                 es8311_voice_volume_set(es8311_dev, vol, &vol_real);
-                lv_arc_set_value(volume_arc, vol);
+                disp_set_volume(vol);
                 ESP_LOGI(TAG, "Volume Down: %i", vol_real);
                 break;
             }
@@ -278,7 +245,7 @@ static void audio_task(void *arg)
                 es8311_voice_volume_get(es8311_dev, &vol);
                 vol += 5;
                 es8311_voice_volume_set(es8311_dev, vol, &vol_real);
-                lv_arc_set_value(volume_arc, vol);
+                disp_set_volume(vol);
                 ESP_LOGI(TAG, "Volume Up: %i", vol_real);
                 break;
             }
@@ -309,47 +276,14 @@ void app_main(void)
     BaseType_t ret = xTaskCreate(audio_task, "audio_task", 4096, NULL, 6, NULL);
     assert(ret == pdPASS);
 
-    TaskHandle_t bsp_display_task_handle;
-    ret = xTaskCreate(bsp_display_task, "bsp_display", 4096 * 2, xTaskGetCurrentTaskHandle(), 3, &bsp_display_task_handle);
-    assert(ret == pdPASS);
-
     /* Init audio buttons */
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        audio_button[i] = button_create(&bsp_button_config[i]);
+        audio_button[i] = iot_button_create(&bsp_button_config[i]);
         assert(audio_button[i] != NULL);
-        ESP_ERROR_CHECK(button_register_cb(audio_button[i], BUTTON_PRESS_DOWN, btn_handler));
+        ESP_ERROR_CHECK(iot_button_register_cb(audio_button[i], BUTTON_PRESS_DOWN, btn_handler));
     }
 
-    /* Wait until LVGL is ready */
-    if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1000))) {
-        vTaskSuspend(bsp_display_task_handle);
-        /*Create a window*/
-        lv_obj_t *win = lv_win_create(lv_scr_act(), NULL);
-        lv_win_set_title(win, "ESP32-S2-Kaluga-Kit:\nBoard Support Package example");
-        lv_win_set_scrollbar_mode(win, LV_SCROLLBAR_MODE_OFF);
-
-        /* Container */
-        lv_obj_t *cont = lv_cont_create(win, NULL);
-        lv_cont_set_fit(cont, LV_FIT_TIGHT);
-        lv_cont_set_layout(cont, LV_LAYOUT_COLUMN_LEFT);
-
-        /* Checkboxes */
-        recording_checkbox = lv_checkbox_create(cont, NULL);
-        lv_checkbox_set_text(recording_checkbox, "Recording");
-        playing_checkbox = lv_checkbox_create(cont, NULL);
-        lv_checkbox_set_text(playing_checkbox, "Playing");
-
-        /* Volume arc */
-        volume_arc = lv_arc_create(win, NULL);
-        lv_arc_set_end_angle(volume_arc, 200);
-        lv_obj_set_size(volume_arc, 130, 130);
-        lv_obj_align(volume_arc, NULL, LV_ALIGN_IN_TOP_RIGHT, 0, 0);
-        lv_arc_set_value(volume_arc, DEFAULT_VOLUME);
-        lv_obj_t *volume_label = lv_label_create(volume_arc, NULL);
-        lv_label_set_text_static(volume_label, "Volume");
-        lv_obj_align(volume_label, volume_arc, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
-        vTaskResume(bsp_display_task_handle);
-    } else {
-        ESP_LOGW(TAG, "LVGL init timed out");
-    }
+    bsp_display_start(); // Start LVGL and LCD driver
+    disp_init();         // Create LVGL screen and widgets
+    disp_set_volume(DEFAULT_VOLUME);
 }

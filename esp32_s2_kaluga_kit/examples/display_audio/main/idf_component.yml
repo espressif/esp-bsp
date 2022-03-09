@@ -3,6 +3,6 @@ targets:
     - esp32s2
 
 dependencies:
-  # Required IDF version - ESP32-S2 support was introduced in IDF 4.2
-  idf: ">=4.2"
-  esp32_s2_kaluga_kit: ">=0.0.3"
+  esp32_s2_kaluga_kit:
+    version: ">=1.0.0"
+    path: "../../.."
