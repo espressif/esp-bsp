@@ -3,7 +3,7 @@
 
 This Board support package consists of:
 * Smart RGB LED
-* LVGL library for TFT display
+* LVGL graphics library
 * ES8311 mono audio codec
 * Touch pad configuration
 * Buttons configuration
