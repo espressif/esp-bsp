@@ -1,5 +1,12 @@
 # BSP: ESP32-S2-Kaluga-Kit
+
+The ESP32-S2-Kaluga-1 kit v1.3 is a development kit by Espressif that is mainly created to:
+
+* Demonstrate the ESP32-S2’s human-computer interaction functionalities
+* Provide the users with the tools for development of human-computer interaction applications based on the ESP32-S2
 * [Hardware Reference](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/hw-reference/esp32s2/user-guide-esp32-s2-kaluga-1-kit.html)
+
+![](https://dl.espressif.com/dl/schematics/pictures/esp32-s2-kaluga-1-kit-v1.0-3d.png)
 
 This Board support package consists of:
 * Smart RGB LED
