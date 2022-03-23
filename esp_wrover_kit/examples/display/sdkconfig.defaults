@@ -1,11 +1,13 @@
-#
-# Serial flasher config
+# This file was generated using idf.py save-defconfig. It can be edited manually.
+# Espressif IoT Development Framework (ESP-IDF) Project Minimal Configuration
 #
 CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
-# end of Serial flasher config
-
-#
-# LVGL configuration
-#
+CONFIG_ESP32_DEFAULT_CPU_FREQ_240=y
 CONFIG_LV_COLOR_16_SWAP=y
-# end of LVGL configuration
+CONFIG_LV_MEM_CUSTOM=y
+CONFIG_LV_MEMCPY_MEMSET_STD=y
+CONFIG_LV_TICK_CUSTOM=y
+CONFIG_LV_TICK_CUSTOM_INCLUDE="esp_timer.h"
+CONFIG_LV_USE_PERF_MONITOR=y
+CONFIG_LV_SPRINTF_CUSTOM=y
+# CONFIG_LV_BUILD_EXAMPLES is not set

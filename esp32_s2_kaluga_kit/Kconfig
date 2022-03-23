@@ -23,6 +23,6 @@ menu "Board Support Package"
             int "LVGL task priority"
             default 2
             help
-                lv_timer_handler() is NOT thread safe. All tasks calling LVGL API should higher priority than this.
+                The Board Support Package will create a task that will periodically handle LVGL operation in lv_timer_handler().
     endmenu
 endmenu

@@ -13,15 +13,23 @@ menu "Board Support Package"
                 Mount point of the uSD card in the Virtual File System
 
     endmenu
-    choice
-        prompt "LCD type"
-        default BSP_LCD_ST7789
-        help
-            Wrover-kit is shipped with two different LCD controllers, pick the one you want to use.
+    menu "Display"
+        config BSP_DISPLAY_LVGL_TASK_PRIORITY
+            int "LVGL task priority"
+            default 2
+            help
+                The Board Support Package will create a task that will periodically handle LVGL operation in lv_timer_handler().
 
-        config BSP_LCD_ST7789
-            bool "ST7789"
-        config BSP_LCD_ILI9341
-            bool "ILI9341"
-    endchoice
+        choice
+            prompt "LCD type"
+            default BSP_LCD_ILI9341
+            help
+                Wrover-kit is shipped with two different LCD controllers, pick the one you want to use.
+
+            config BSP_LCD_ST7789
+                bool "ST7789"
+            config BSP_LCD_ILI9341
+                bool "ILI9341"
+        endchoice
+    endmenu
 endmenu
