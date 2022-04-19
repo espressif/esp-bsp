@@ -15,7 +15,7 @@
 #include "esp_lcd_panel_ops.h"
 
 #include "bsp/esp-box.h"
-#include "tt21xxx.h"
+#include "esp_lcd_touch_tt21100.h"
 #include "lvgl.h"
 
 static const char *TAG = "ESP-BOX";
@@ -95,28 +95,27 @@ void bsp_audio_poweramp_enable(bool enable)
 
 static void bsp_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
 {
-    tt21xxx_handle_t tp = (tt21xxx_handle_t) indev_drv->user_data;
+    esp_lcd_touch_handle_t tp = (esp_lcd_touch_handle_t) indev_drv->user_data;
+    uint16_t touchpad_x[1] = {0};
+    uint16_t touchpad_y[1] = {0};
+    uint8_t touchpad_cnt = 0;
+
     assert(tp);
 
-    uint8_t tp_num = 0;
-    uint16_t x = 0, y = 0;
-    /* Read touch point(s) via touch IC */
-    ESP_ERROR_CHECK(tt21xxx_tp_read(tp));
-    if (ESP_OK != tt21xxx_get_touch_point(tp, &tp_num, &x, &y)) {
-        data->state = LV_INDEV_STATE_REL;
-        return;
-    }
 
-    /* FT series touch IC might return 0xff before first touch. */
-    if ((0 == tp_num) || (5 < tp_num)) {
-        data->state = LV_INDEV_STATE_REL;
+    /* Read data from touch controller into memory */
+    esp_lcd_touch_read_data(tp);
+
+    /* Read data from touch controller */
+    bool touchpad_pressed = esp_lcd_touch_get_coordinates(tp, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 1);
+
+    if (touchpad_pressed && touchpad_cnt > 0) {
+        data->point.x = touchpad_x[0];
+        data->point.y = touchpad_y[0];
+        data->state = LV_INDEV_STATE_PRESSED;
     } else {
-        data->point.x = x;
-        data->point.y = y;
-        data->state = LV_INDEV_STATE_PR;
-        ESP_LOGD(TAG, "Touch (%u) : [%3u, %3u]", tp_num, x, y);
+        data->state = LV_INDEV_STATE_RELEASED;
     }
-    data->continue_reading = tt21xxx_data_avaliable(tp);
 }
 
 static bool lvgl_port_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
@@ -231,18 +230,37 @@ static void lvgl_port_indev_init(void)
 {
     static lv_indev_drv_t indev_drv_tp;
     lv_indev_t *indev_touchpad;
-    static tt21xxx_handle_t touch_device;
-    const tt21xxx_config_t tp_config = {
-        .int_pin = GPIO_NUM_3,
-        .rst_pin = GPIO_NUM_NC
+
+    /* Initialize touch */
+    esp_lcd_touch_config_t tp_cfg = {
+        .x_max = BSP_LCD_H_RES,
+        .y_max = BSP_LCD_V_RES,
+        .rst_gpio_num = GPIO_NUM_NC,
+        .int_gpio_num = GPIO_NUM_NC, //GPIO_NUM_3
+        .levels = {
+            .reset = 0,
+            .interrupt = 0,
+        },
+        .flags = {
+            .swap_xy = 0,
+            .mirror_x = 1,
+            .mirror_y = 0,
+        },
+        .device = {
+            .i2c = {
+                .port = BSP_I2C_NUM,
+            }
+        }
     };
-    ESP_ERROR_CHECK(tt21xxx_create(&touch_device, BSP_I2C_NUM, &tp_config));
+    esp_lcd_touch_handle_t tp = esp_lcd_touch_new_i2c_tt21100(&tp_cfg);
+    assert(tp);
+
 
     /* Register a touchpad input device */
     lv_indev_drv_init(&indev_drv_tp);
     indev_drv_tp.type = LV_INDEV_TYPE_POINTER;
     indev_drv_tp.read_cb = bsp_touchpad_read;
-    indev_drv_tp.user_data = touch_device;
+    indev_drv_tp.user_data = tp;
     indev_touchpad = lv_indev_drv_register(&indev_drv_tp);
     assert(indev_touchpad);
 }

@@ -8,6 +8,10 @@ targets:
 dependencies:
   idf: ">=4.4"
 
+  esp_lcd_touch_tt21100:
+    version: ">=0.0.1"
+    service_url: "https://api.staging.components.espressif.tools"
+
   es8311:
     version: "^1"
     public: true
