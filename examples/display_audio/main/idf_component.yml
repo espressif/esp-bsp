@@ -1,0 +1,5 @@
+description: BSP Display and Audio example
+
+dependencies:
+  esp32_s2_kaluga_kit: ">=1.0.0"
+  # esp-box: ">=1.0.0"

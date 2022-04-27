@@ -1,9 +1,0 @@
-description: Display example on ESP-WROVER-KIT
-targets:
-    - esp32
-
-dependencies:
-  idf: ">=4.4"
-  esp_wrover_kit:
-    version: ">=1.0.0"
-    path: "../../.."

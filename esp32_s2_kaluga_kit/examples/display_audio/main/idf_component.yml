@@ -1,8 +1,0 @@
-description: Display and Audio example on ESP32-S2-Kaluga kit
-targets:
-    - esp32s2
-
-dependencies:
-  esp32_s2_kaluga_kit:
-    version: ">=1.0.0"
-    path: "../../.."

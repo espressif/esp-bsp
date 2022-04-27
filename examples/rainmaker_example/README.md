@@ -1,24 +1,15 @@
+| Supported Boards | Azure IoT kit |
+| ---------------- | ------------- |
+
 # BSP Rainmaker Example
 
 This example shows how to use the Rainmaker to collect data about temperature, humidity as well as control the LED (Azure LED) and the buzzer.
 
 In this example, we use the temperature and humidity sensor HTS221. The OLED screen is used to show the data.
 
-## Build and Flash firmware
-
-### Rainmaker
-
-Please clone this repository alongside the ESP-IDF.
-
-```
-git clone --recursive https://github.com/espressif/esp-rainmaker.git
-```
-
-> Note the --recursive option. This is required to pull in the various dependencies into esp-rainmaker. In case you have already cloned the repository without this option, execute this to pull in the submodules: `git submodule update --init --recursive`
-
-Check the ESP RainMaker documentation [here](https://rainmaker.espressif.com/docs/get-started.html) to get started.
-
 ### Build and Flash
+
+> Don't forget to clone submodules. Rainmaker component is submodule of this example.
 
 Build the project and flash it to the board, then run the monitor tool to view the serial output:
 

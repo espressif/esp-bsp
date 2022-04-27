@@ -1,4 +1,7 @@
-# BSP Azure Sensors Example
+| Supported Boards | Azure IoT kit |
+| ---------------- | ------------- |
+
+# BSP: Sensors Example
 
 This is an example usage of Azure-IoT-Kit board.
 

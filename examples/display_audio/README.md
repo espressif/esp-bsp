@@ -1,4 +1,7 @@
-# BSP Kaluga kit: Display and audio example
+| Supported Boards | Kaluga kit |
+| ---------------- | ---------- |
+
+# BSP: Display and audio example
 
 This example demonstrates capabilities of Audio and Display board of ESP32-S2-Kaluga-Kit.
 
