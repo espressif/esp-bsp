@@ -150,8 +150,6 @@ bool bsp_button_get(const bsp_button_t btn);
 #define BSP_LCD_V_RES               (320)
 #define BSP_LCD_PIXEL_CLOCK_HZ      (40 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM             (SPI2_HOST)
-#define BSP_LCD_BACKLIGHT_ON_LEVEL  (0)
-#define BSP_LCD_BACKLIGHT_OFF_LEVEL (!BSP_LCD_BACKLIGHT_ON_LEVEL)
 
 /**
  * @brief Initialize display
@@ -174,6 +172,15 @@ bool bsp_display_lock(uint32_t timeout_ms);
  *
  */
 void bsp_display_unlock(void);
+
+/**
+ * @brief Set display's brightness
+ *
+ * Brightness is controlled with PWM signal to a pin controling backlight.
+ *
+ * @param[in] brightness_percent Brightness in [%]
+ */
+void bsp_display_brightness_set(int brightness_percent);
 
 /**
  * @brief Turn on display backlight
