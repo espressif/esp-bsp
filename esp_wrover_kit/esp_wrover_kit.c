@@ -13,6 +13,7 @@
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
 #include "driver/spi_master.h"
+#include "driver/ledc.h"
 
 #define TAG "Wrover"
 
@@ -97,17 +98,60 @@ static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, 
     esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
 }
 
-#define LCD_CMD_BITS               (8)
-#define LCD_PARAM_BITS             (8)
+#define LCD_CMD_BITS         (8)
+#define LCD_PARAM_BITS       (8)
+#define LCD_LEDC_CH          (CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH)
+#define LVGL_TICK_PERIOD_MS  (CONFIG_BSP_DISPLAY_LVGL_TICK)
+
+static void bsp_display_brightness_init(void)
+{
+    // Setup LEDC peripheral for PWM backlight control
+    const ledc_channel_config_t LCD_backlight_channel = {
+        .gpio_num = BSP_LCD_BACKLIGHT,
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .channel = LCD_LEDC_CH,
+        .intr_type = LEDC_INTR_DISABLE,
+        .timer_sel = 1,
+        .duty = 0,
+        .hpoint = 0
+    };
+    const ledc_timer_config_t LCD_backlight_timer = {
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .bit_num = LEDC_TIMER_10_BIT,
+        .timer_num = 1,
+        .freq_hz = 5000,
+        .clk_cfg = LEDC_AUTO_CLK
+    };
+
+    ESP_ERROR_CHECK(ledc_timer_config(&LCD_backlight_timer));
+    ESP_ERROR_CHECK(ledc_channel_config(&LCD_backlight_channel));
+}
+
+void bsp_display_brightness_set(int brightness_percent)
+{
+    if (brightness_percent > 100) {
+        brightness_percent = 100;
+    }
+    if (brightness_percent < 0) {
+        brightness_percent = 0;
+    }
+
+    ESP_LOGI(TAG, "Setting LCD backlight: %d%%", brightness_percent);
+    // LEDC resolution set to 10bits, thus: 100% = 1023
+    // ESP-WROVER-KIT backlight is inverted
+    uint32_t duty_cycle = (1023 * (100 - brightness_percent)) / 100;
+    ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH, duty_cycle));
+    ESP_ERROR_CHECK(ledc_update_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH));
+}
 
 void bsp_display_backlight_off(void)
 {
-    gpio_set_level(BSP_LCD_BACKLIGHT, BSP_LCD_BACKLIGHT_OFF_LEVEL);
+    bsp_display_brightness_set(0);
 }
 
 void bsp_display_backlight_on(void)
 {
-    gpio_set_level(BSP_LCD_BACKLIGHT, BSP_LCD_BACKLIGHT_ON_LEVEL);
+    bsp_display_brightness_set(100);
 }
 
 static void lvgl_port_display_init(void)
@@ -157,6 +201,7 @@ static void lvgl_port_display_init(void)
 #ifdef CONFIG_BSP_LCD_ILI9341
     esp_lcd_panel_mirror(panel_handle, true, false);
 #endif
+    esp_lcd_panel_disp_on_off(panel_handle, true);
 
     // alloc draw buffers used by LVGL
     // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
@@ -177,28 +222,44 @@ static void lvgl_port_display_init(void)
     lv_disp_drv_register(&disp_drv);
 }
 
+static void lvgl_port_tick_increment(void *arg)
+{
+    /* Tell LVGL how many milliseconds has elapsed */
+    lv_tick_inc(LVGL_TICK_PERIOD_MS);
+}
+
+static esp_err_t lvgl_port_tick_init(void)
+{
+    // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
+    const esp_timer_create_args_t lvgl_tick_timer_args = {
+        .callback = &lvgl_port_tick_increment,
+        .name = "LVGL tick"
+    };
+    esp_timer_handle_t lvgl_tick_timer = NULL;
+    ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
+    return esp_timer_start_periodic(lvgl_tick_timer, LVGL_TICK_PERIOD_MS * 1000);
+}
+
 static void lvgl_port_task(void *arg)
 {
     ESP_LOGI(TAG, "Starting LVGL task");
     while (1) {
         bsp_display_lock(0);
-        const uint32_t task_delay = lv_timer_handler();
+        uint32_t task_delay_ms = lv_timer_handler();
         bsp_display_unlock();
-        vTaskDelay(pdMS_TO_TICKS(task_delay));
+        if (task_delay_ms > 500) {
+            task_delay_ms = 500;
+        }
+        vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
     }
 }
 
 void bsp_display_start(void)
 {
-    // Display backlight pin
-    const gpio_config_t bk_gpio_config = {
-        .mode = GPIO_MODE_OUTPUT,
-        .pin_bit_mask = BIT64(BSP_LCD_BACKLIGHT)
-    };
-    ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
-
     lv_init();
+    bsp_display_brightness_init();
     lvgl_port_display_init();
+    lvgl_port_tick_init();
     lvgl_mux = xSemaphoreCreateMutex();
     assert(lvgl_mux);
     xTaskCreate(lvgl_port_task, "LVGL task", 4096, NULL, CONFIG_BSP_DISPLAY_LVGL_TASK_PRIORITY, NULL);

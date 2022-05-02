@@ -20,6 +20,21 @@ menu "Board Support Package"
             help
                 The Board Support Package will create a task that will periodically handle LVGL operation in lv_timer_handler().
 
+        config BSP_DISPLAY_LVGL_TICK
+            int "LVGL tick period"
+            default 5
+            range 1 100
+            help
+                Period of LVGL tick timer.
+
+        config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
+            int "LEDC channel index"
+            default 1
+            range 0 7
+            help
+                LEDC channel is used to generate PWM signal that controls display brightness.
+                Set LEDC index that should be used.
+
         choice
             prompt "LCD type"
             default BSP_LCD_ILI9341
