@@ -7,6 +7,10 @@ set(EXTRA_COMPONENT_DIRS "../components")
 include($ENV{IDF_PATH}/tools/cmake/version.cmake) # $ENV{IDF_VERSION} was added after v4.3...
 if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
     set(EXCLUDE_COMPONENTS "es8311")
+    set(EXCLUDE_COMPONENTS "esp_lcd_touch")
+    set(EXCLUDE_COMPONENTS "esp_lcd_touch_ft5x06")
+    set(EXCLUDE_COMPONENTS "esp_lcd_touch_gt911")
+    set(EXCLUDE_COMPONENTS "esp_lcd_touch_tt21100")
 endif()
 
 # Set the components to include the tests for.
