@@ -24,5 +24,12 @@ menu "Board Support Package"
             default 2
             help
                 The Board Support Package will create a task that will periodically handle LVGL operation in lv_timer_handler().
+
+        config BSP_DISPLAY_LVGL_TICK
+            int "LVGL tick period"
+            default 5
+            range 1 100
+            help
+                Period of LVGL tick timer.
     endmenu
 endmenu

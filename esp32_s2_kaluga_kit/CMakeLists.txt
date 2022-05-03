@@ -1,5 +1,6 @@
 idf_component_register(
     SRCS "esp32_s2_kaluga_kit.c"
     INCLUDE_DIRS "include"
-    REQUIRES "esp_lcd driver"
+    REQUIRES driver
+    PRIV_REQUIRES esp_lcd esp_timer
 )
