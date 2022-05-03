@@ -200,6 +200,7 @@ void bsp_touchpad_calibrate(bsp_touchpad_button_t tch_pad, float tch_threshold)
 // Bit number used to represent command and parameter
 #define LCD_CMD_BITS           (8)
 #define LCD_PARAM_BITS         (8)
+#define LVGL_TICK_PERIOD_MS    (CONFIG_BSP_DISPLAY_LVGL_TICK)
 
 static bool lvgl_port_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
 {
@@ -217,6 +218,24 @@ static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, 
     const int offsety2 = area->y2;
     // copy a buffer's content to a specific area of the display
     esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
+}
+
+static void lvgl_port_tick_increment(void *arg)
+{
+    /* Tell LVGL how many milliseconds have elapsed */
+    lv_tick_inc(LVGL_TICK_PERIOD_MS);
+}
+
+static esp_err_t lvgl_port_tick_init(void)
+{
+    // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
+    const esp_timer_create_args_t lvgl_tick_timer_args = {
+        .callback = &lvgl_port_tick_increment,
+        .name = "LVGL tick"
+    };
+    esp_timer_handle_t lvgl_tick_timer = NULL;
+    ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
+    return esp_timer_start_periodic(lvgl_tick_timer, LVGL_TICK_PERIOD_MS * 1000);
 }
 
 static void lvgl_port_task(void *arg)
@@ -273,6 +292,7 @@ static void lvgl_port_display_init(void)
     esp_lcd_panel_mirror(panel_handle, true, false);
     esp_lcd_panel_swap_xy(panel_handle, true);
     esp_lcd_panel_invert_color(panel_handle, false);
+    esp_lcd_panel_disp_off(panel_handle, false); // In IDF v5.0 display is not turned on automatically
 
     // alloc draw buffers used by LVGL
     // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
@@ -297,6 +317,7 @@ void bsp_display_start(void)
 {
     lv_init();
     lvgl_port_display_init();
+    lvgl_port_tick_init();
     lvgl_mux = xSemaphoreCreateMutex();
     assert(lvgl_mux);
     xTaskCreate(lvgl_port_task, "LVGL task", 4096, NULL, CONFIG_BSP_DISPLAY_LVGL_TASK_PRIORITY, NULL);
@@ -315,3 +336,9 @@ void bsp_display_unlock(void)
     assert(lvgl_mux && "bsp_display_start must be called first");
     xSemaphoreGive(lvgl_mux);
 }
+
+
+/* Backlight functions are not implemented - Kaluga board doesn't provide backlight control
+   These functions are here to provide consistent API with other Board Support Packages */
+void bsp_display_backlight_off(void) {}
+void bsp_display_backlight_on(void) {}

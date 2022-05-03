@@ -172,6 +172,11 @@ bool bsp_display_lock(uint32_t timeout_ms);
  */
 void bsp_display_unlock(void);
 
+/* Backlight functions are not implemented - Kaluga board doesn't provide backlight control
+   These functions are here to provide consistent API with other Board Support Packages */
+void bsp_display_backlight_on(void);
+void bsp_display_backlight_off(void);
+
 /**************************************************************************************************
  *
  * Audio buttons interface
