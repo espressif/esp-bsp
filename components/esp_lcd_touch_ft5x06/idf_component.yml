@@ -1,0 +1,7 @@
+version: "0.9.0"
+description: ESP LCD Touch FT5x06 - touch controller FT5x06
+url: https://github.com/espressif/esp-bsp/tree/master/components/esp_lcd_touch_ft5x06
+dependencies:
+  idf: ">=4.4"
+  esp_lcd_touch:
+    version: "^0.9"
