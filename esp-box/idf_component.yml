@@ -1,0 +1,20 @@
+version: "1.0.0"
+description: Board Support Package for ESP-BOX
+url: https://github.com/espressif/esp-bsp/tree/master/esp-box
+
+targets:
+  - esp32s3
+
+dependencies:
+  idf: ">=4.4"
+
+  esp_lcd_touch_tt21100:
+    version: "^0.9"
+
+  es8311:
+    version: "^1"
+    public: true
+
+  lvgl/lvgl:
+    version: "^8"
+    public: true
