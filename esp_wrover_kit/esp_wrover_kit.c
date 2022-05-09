@@ -201,7 +201,7 @@ static void lvgl_port_display_init(void)
 #ifdef CONFIG_BSP_LCD_ILI9341
     esp_lcd_panel_mirror(panel_handle, true, false);
 #endif
-    esp_lcd_panel_disp_on_off(panel_handle, true);
+    esp_lcd_panel_disp_off(panel_handle, false);
 
     // alloc draw buffers used by LVGL
     // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
