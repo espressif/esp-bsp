@@ -5,6 +5,10 @@
 
 This example demonstrates using ESP-BSP on ESP-BOX. There is a simple example, which changing background color by selecting on color wheel on touch screen. 
 
+|  Main screen  |
+| :----------: |
+| ![Main screen](assets/esp-box-example.png) |
+
 ## How to use the example
 
 ### Hardware Required
