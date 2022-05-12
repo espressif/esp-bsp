@@ -3,7 +3,7 @@
 
 # ESP-BOX Touch Screen Color Wheel Example
 
-This example demonstrates using ESP-BSP on ESP-BOX. There is a simple example, which changing background color by selecting on color wheel on touch screen. 
+This example demonstrates usage of ESP-BOX Board Support Package. This is a single purpose example, which is focused on display + touch applications: user can change background color by selecting it on a color wheel on the touch screen. 
 
 |  Main screen  |
 | :----------: |
