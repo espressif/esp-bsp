@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "esp_timer.h"
 #include "bsp/esp32_s2_kaluga_kit.h"
 #include "driver/spi_master.h"
 #include "esp_err.h"
