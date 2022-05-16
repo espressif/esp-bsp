@@ -10,7 +10,7 @@
 #include "sdkconfig.h"
 #include "esp_err.h"
 #include "driver/gpio.h"
-#include "esp_lcd_touch_io.h"
+#include "esp_lcd_panel_io.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,11 +47,6 @@ typedef struct {
 
     /* User callback called after get coordinates from touch controller for apply user adjusting */
     void (*process_coordinates)(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
-
-    /* Device specific structure (communication info) */
-    union {
-        esp_lcd_touch_dev_i2c_t i2c;
-    } device;
 } esp_lcd_touch_config_t;
 
 typedef struct {
@@ -205,6 +200,11 @@ struct esp_lcd_touch_s {
      * @brief Configuration structure
      */
     esp_lcd_touch_config_t config;
+
+    /**
+     * @brief Communication interface
+     */
+    esp_lcd_panel_io_handle_t io;
 
     /**
      * @brief Data structure
