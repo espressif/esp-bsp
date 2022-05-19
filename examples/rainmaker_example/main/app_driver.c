@@ -19,6 +19,7 @@
 #include "esp_log.h"
 #include <app_reset.h>
 #include "app_priv.h"
+#include "esp_timer.h"
 
 static const char *TAG = "app_driver";
 
