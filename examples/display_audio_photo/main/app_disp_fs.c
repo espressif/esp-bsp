@@ -17,9 +17,9 @@
 #include "esp_spiffs.h"
 #include "bsp/esp-box.h"
 #include "lvgl.h"
-#include "jpegd2.h"
 #include "app_disp_fs.h"
 #include "es8311.h"
+#include "jpeg_decoder.h"
 
 /* SPIFFS mount root */
 #define FS_MNT_PATH  "/root"
@@ -194,15 +194,6 @@ static void close_window_handler(lv_event_t *e)
     }
 }
 
-static bool file_bitmap_cb(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t *data)
-{
-    lv_canvas_set_buffer(fs_img, data, w, h, LV_IMG_CF_TRUE_COLOR);
-    lv_obj_center(fs_img);
-    lv_obj_invalidate(fs_img);
-
-    return true;
-}
-
 static void show_window(const char *path, app_file_type_t type)
 {
     struct stat st;
@@ -250,7 +241,22 @@ static void show_window(const char *path, app_file_type_t type)
                 } else if (fs_img) {
                     ESP_LOGI(TAG, "Decoding JPEG image...");
                     /* JPEG decode */
-                    mjpegdraw((uint8_t *)file_buf, filesize, (uint8_t *)file_buffer, file_bitmap_cb);
+                    jpeg_image_cfg_t jpeg_cfg = {
+                        .indata = (uint8_t *)file_buf,
+                        .indata_size = filesize,
+                        .outbuf = file_buffer,
+                        .outbuf_size = file_buffer_size,
+                        .scale = JPEG_IMAGE_SCALE_0,
+                        .flags = {
+                            .swap_color_bytes = 1,
+                        }
+                    };
+                    jpeg_image_output_t outimg;
+                    jpeg_decode(&jpeg_cfg, &outimg);
+
+                    lv_canvas_set_buffer(fs_img, file_buffer, outimg.width, outimg.height, LV_IMG_CF_TRUE_COLOR);
+                    lv_obj_center(fs_img);
+                    lv_obj_invalidate(fs_img);
                 }
 
                 close(f);
