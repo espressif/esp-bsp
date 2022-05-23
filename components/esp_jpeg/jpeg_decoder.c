@@ -156,8 +156,8 @@ static unsigned int jpeg_decode_out_cb(JDEC *dec, void *bitmap, JRECT *rect)
     uint8_t *dst = (uint8_t *)cfg->outbuf;
     for (int y = rect->top; y <= rect->bottom; y++) {
         for (int x = rect->left; x <= rect->right; x++) {
-            if ( (JD_FORMAT == 0 && cfg->out_format == JPEG_IMAGE_OUT_FORMAT_RGB888) ||
-                    (JD_FORMAT == 1 && cfg->out_format == JPEG_IMAGE_OUT_FORMAT_RGB565) ) {
+            if ( (JD_FORMAT == 0 && cfg->out_format == JPEG_IMAGE_FORMAT_RGB888) ||
+                    (JD_FORMAT == 1 && cfg->out_format == JPEG_IMAGE_FORMAT_RGB565) ) {
                 /* Output image format is same as set in TJPGD */
                 for (int b = 0; b < ESP_JPEG_COLOR_BYTES; b++) {
                     if (JD_FORMAT == 1 && cfg->flags.swap_color_bytes) {
@@ -166,7 +166,7 @@ static unsigned int jpeg_decode_out_cb(JDEC *dec, void *bitmap, JRECT *rect)
                         dst[(y * line * out_color_bytes) + x * out_color_bytes + b] = in[b];
                     }
                 }
-            } else if (JD_FORMAT == 0 && cfg->out_format == JPEG_IMAGE_OUT_FORMAT_RGB565) {
+            } else if (JD_FORMAT == 0 && cfg->out_format == JPEG_IMAGE_FORMAT_RGB565) {
                 /* Output image format is not same as set in TJPGD */
                 /* We need to convert the 3 bytes in `in` to a rgb565 value */
                 color = ((in[0] & 0xF8) << 8);
