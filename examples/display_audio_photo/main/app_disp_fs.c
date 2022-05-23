@@ -246,7 +246,7 @@ static void show_window(const char *path, app_file_type_t type)
                         .indata_size = filesize,
                         .outbuf = file_buffer,
                         .outbuf_size = file_buffer_size,
-                        .out_format = JPEG_IMAGE_OUT_FORMAT_RGB565,
+                        .out_format = JPEG_IMAGE_FORMAT_RGB565,
                         .out_scale = JPEG_IMAGE_SCALE_0,
                         .flags = {
                             .swap_color_bytes = 1,
