@@ -241,18 +241,19 @@ static void show_window(const char *path, app_file_type_t type)
                 } else if (fs_img) {
                     ESP_LOGI(TAG, "Decoding JPEG image...");
                     /* JPEG decode */
-                    jpeg_image_cfg_t jpeg_cfg = {
+                    esp_jpeg_image_cfg_t jpeg_cfg = {
                         .indata = (uint8_t *)file_buf,
                         .indata_size = filesize,
                         .outbuf = file_buffer,
                         .outbuf_size = file_buffer_size,
-                        .scale = JPEG_IMAGE_SCALE_0,
+                        .out_format = JPEG_IMAGE_OUT_FORMAT_RGB565,
+                        .out_scale = JPEG_IMAGE_SCALE_0,
                         .flags = {
                             .swap_color_bytes = 1,
                         }
                     };
-                    jpeg_image_output_t outimg;
-                    jpeg_decode(&jpeg_cfg, &outimg);
+                    esp_jpeg_image_output_t outimg;
+                    esp_jpeg_decode(&jpeg_cfg, &outimg);
 
                     lv_canvas_set_buffer(fs_img, file_buffer, outimg.width, outimg.height, LV_IMG_CF_TRUE_COLOR);
                     lv_obj_center(fs_img);
