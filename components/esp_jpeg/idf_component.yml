@@ -2,4 +2,4 @@ version: "0.9.0"
 description: TJpgDec - Tiny JPEG Decompressor
 url: https://github.com/espressif/esp-bsp/tree/master/components/esp_jpeg/
 dependencies:
-  idf: ">=4"
+  idf: ">=4.4"
