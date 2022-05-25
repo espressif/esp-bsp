@@ -1,9 +1,12 @@
 menu "JPEG Decoder"
 
     config JD_USE_EXT
-        #depends on (IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32C2 || IDF_TARGET_ESP32C3)
         bool "Use external TinyJPG Decoder instead of ROM code."
-        default n
+        default n if IDF_TARGET_ESP32
+        default n if IDF_TARGET_ESP32S3
+        default n if IDF_TARGET_ESP32C2
+        default n if IDF_TARGET_ESP32C3
+        default n if IDF_TARGET_ESP32H2
         default y if IDF_TARGET_ESP32S2
 
     config JD_SZBUF
