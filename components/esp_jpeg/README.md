@@ -2,7 +2,7 @@
 
 TJpgDec is a generic JPEG image decompressor module that highly optimized for small embedded systems. It works with very low memory consumption.
 
-Some microcontrollers have tjpg decoder in ROM, it is used, if there is. [^1]
+Some microcontrollers have tjpg decoder in ROM, it is used, if there is. [^1] Using ROM code can be disabled in menuconfig.
 
 [^1]: **_NOTE:_** When there is used ROM decoder, there cannot be changed configuration. 
 
