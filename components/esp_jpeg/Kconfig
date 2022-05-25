@@ -1,65 +1,73 @@
 menu "JPEG Decoder"
 
-    config JD_USE_EXT
-        bool "Use external TinyJPG Decoder instead of ROM code."
-        default n if IDF_TARGET_ESP32
-        default n if IDF_TARGET_ESP32S3
-        default n if IDF_TARGET_ESP32C2
-        default n if IDF_TARGET_ESP32C3
-        default n if IDF_TARGET_ESP32H2
-        default y if IDF_TARGET_ESP32S2
+    config JD_USE_ROM
+        bool "Use TinyJPG Decoder from ROM"
+        default y if IDF_TARGET_ESP32
+        default y if IDF_TARGET_ESP32S3
+        default y if IDF_TARGET_ESP32C2
+        default y if IDF_TARGET_ESP32C3
+        default y if IDF_TARGET_ESP32H2
+        default n if IDF_TARGET_ESP32S2
+        help
+            Some microcontrollers have TJpg decoder in ROM. It is used as default, but it can be disabled here.
+            Then there will be used code saved in this component. When this choice will be selected and MCU has not
+            TJpg decoder in ROM code, there will be compilation error.
 
     config JD_SZBUF
-        int "Specifies size of stream input buffer."
-        depends on JD_USE_EXT
+        int "Size of stream input buffer"
+        depends on !JD_USE_ROM
         default 512
 
     config JD_FORMAT
         int
-        depends on JD_USE_EXT
+        depends on !JD_USE_ROM
         default 0 if JD_FORMAT_RGB888
-        default 1 if JD_FORMAT_RGB565   
-        default 2 if JD_FORMAT_GREYSCALE   
-        
-        choice 
-            prompt "Selection of output pixel format"
-            depends on JD_USE_EXT
-            default JD_FORMAT_RGB565
+        default 1 if JD_FORMAT_RGB565
+
+        choice
+            prompt "Output pixel format"
+            depends on !JD_USE_ROM
+            default JD_FORMAT_RGB888
+            help
+                Output format of the TJpg decoder. The component can select the output format in runtime,
+                but it depends on this choice.
 
         config JD_FORMAT_RGB888
             bool "RGB888 (24-bit/pix)"
         config JD_FORMAT_RGB565
             bool "RGB565 (16-bit/pix)"
-        config JD_FORMAT_GREYSCALE
-            bool "Grayscale (8-bit/pix)"
         endchoice
 
     config JD_USE_SCALE
-        bool "Switches output descaling feature."
-        depends on JD_USE_EXT
+        bool "Switches output descaling feature"
+        depends on !JD_USE_ROM
         default y
-        
+        help
+            If this choice is enabled, then can be used scaling output image in runtime.
+
     config JD_TBLCLIP
-        bool "Use table conversion for saturation arithmetic. A bit faster, but increases 1 KB of code size."
-        depends on JD_USE_EXT
+        bool "Use table conversion for saturation arithmetic"
+        depends on !JD_USE_ROM
         default y
+        help
+            Use table conversion for saturation arithmetic. A bit faster, but increases 1 KB of code size.
 
     config JD_FASTDECODE
         int
-        depends on JD_USE_EXT
+        depends on !JD_USE_ROM
         default 0 if JD_FASTDECODE_BASIC
-        default 1 if JD_FASTDECODE_32BIT   
-        default 2 if JD_FASTDECODE_TABLE   
-        
-        choice 
-            prompt "Optimization level."
-            depends on JD_USE_EXT
-            default JD_FASTDECODE_32BIT
+        default 1 if JD_FASTDECODE_32BIT
+        default 2 if JD_FASTDECODE_TABLE
+
+        choice
+            prompt "Optimization level"
+            depends on !JD_USE_ROM
+            default JD_FASTDECODE_BASIC
 
         config JD_FASTDECODE_BASIC
-            bool "Basic optimization. Suitable for 8/16-bit MCUs."
+            bool "Basic optimization. Suitable for 8/16-bit MCUs"
         config JD_FASTDECODE_32BIT
-            bool "+ 32-bit barrel shifter. Suitable for 32-bit MCUs."
+            bool "+ 32-bit barrel shifter. Suitable for 32-bit MCUs"
         config JD_FASTDECODE_TABLE
             bool "+ Table conversion for huffman decoding (wants 6 << HUFF_BIT bytes of RAM)"
         endchoice

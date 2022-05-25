@@ -13,24 +13,16 @@
 #include "esp_check.h"
 #include "jpeg_decoder.h"
 
-#if CONFIG_JD_USE_EXT
-/* When Tiny JPG Decoder is not in ROM or selected external code */
-#include "tjpgd.h"
-#else
+#if CONFIG_JD_USE_ROM
 /* When supported in ROM, use ROM functions */
-#if CONFIG_IDF_TARGET_ESP32
-#include "esp32/rom/tjpgd.h"
-#elif CONFIG_IDF_TARGET_ESP32S3
-#include "esp32s3/rom/tjpgd.h"
-#elif CONFIG_IDF_TARGET_ESP32C2
-#include "esp32c2/rom/tjpgd.h"
-#elif CONFIG_IDF_TARGET_ESP32C3
-#include "esp32c3/rom/tjpgd.h"
-#elif CONFIG_IDF_TARGET_ESP32H2
-#include "esp32h2/rom/tjpgd.h"
+#if (CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32H2)
+#include "rom/tjpgd.h"
 #else
 #error Using JPEG decoder from ROM is not supported for selected target. Please select external code in menuconfig.
 #endif
+#else
+/* When Tiny JPG Decoder is not in ROM or selected external code */
+#include "tjpgd.h"
 #endif
 
 static const char *TAG = "JPEG";
@@ -38,7 +30,11 @@ static const char *TAG = "JPEG";
 #define LOBYTE(u16)     ((uint8_t)(((uint16_t)(u16)) & 0xff))
 #define HIBYTE(u16)     ((uint8_t)((((uint16_t)(u16))>>8) & 0xff))
 
+#if defined(JD_FASTDECODE) && (JD_FASTDECODE == 2)
+#define JPEG_WORK_BUF_SIZE  65472
+#else
 #define JPEG_WORK_BUF_SIZE  5000
+#endif
 
 /* If not set JD_FORMAT, it is set in ROM to RGB888, otherwise, it can be set in config */
 #ifndef JD_FORMAT

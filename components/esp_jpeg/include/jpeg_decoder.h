@@ -63,7 +63,7 @@ typedef struct esp_jpeg_image_output_s {
 /**
  * @brief Decode JPEG image
  *
- * @note This function is usually blocking.
+ * @note This function is blocking.
  *
  * @param cfg: Configuration structure
  * @param img: Output image info
