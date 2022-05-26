@@ -15,7 +15,7 @@
 
 #if CONFIG_JD_USE_ROM
 /* When supported in ROM, use ROM functions */
-#if (CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32H2)
+#if defined(ESP_ROM_HAS_JPEG_DECODE)
 #include "rom/tjpgd.h"
 #else
 #error Using JPEG decoder from ROM is not supported for selected target. Please select external code in menuconfig.
@@ -33,7 +33,7 @@ static const char *TAG = "JPEG";
 #if defined(JD_FASTDECODE) && (JD_FASTDECODE == 2)
 #define JPEG_WORK_BUF_SIZE  65472
 #else
-#define JPEG_WORK_BUF_SIZE  5000
+#define JPEG_WORK_BUF_SIZE  3100    /* Recommended buffer size; Independent on the size of the image */
 #endif
 
 /* If not set JD_FORMAT, it is set in ROM to RGB888, otherwise, it can be set in config */
@@ -176,6 +176,9 @@ static unsigned int jpeg_decode_out_cb(JDEC *dec, void *bitmap, JRECT *rect)
                     dst[(y * line * out_color_bytes) + (x * out_color_bytes) + 1] = HIBYTE(color);
                     dst[(y * line * out_color_bytes) + (x * out_color_bytes)] = LOBYTE(color);
                 }
+            } else {
+                ESP_LOGE(TAG, "Selected output format is not supported!");
+                assert(0);
             }
             in += ESP_JPEG_COLOR_BYTES;
         }

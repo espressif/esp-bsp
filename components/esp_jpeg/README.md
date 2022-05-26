@@ -36,7 +36,7 @@ Some microcontrollers have TJpg decoder in ROM. It is used as default, but it ca
 - Output pixel format: RGB888
 - Descaling feature for output: Enabled
 - Table for saturation: Enabled
-- Optimization level: Basic
+- Optimization level: Basic (JD_FASTDECODE = 0)
 
 ### Pros and cons using ROM code
 
@@ -49,17 +49,27 @@ Some microcontrollers have TJpg decoder in ROM. It is used as default, but it ca
 
 ## Speed comparison
 
-In this table are examples of speed decoding JPEG image in size 320x180 px on ESP32-S3 to output RGB565.
+In this table are examples of speed decoding JPEG image with this configuration:
+* Image size: 320 x 180 px
+* Output format: RGB565
+* CPU: ESP32-S3
+* CPU frequency: 240 MHz
+* SPI mode: DIO
+* Internal RAM used
+* Measured in 1000 retries
 
 | ROM used | JD_SZBUF | JD_FORMAT | JD_USE_SCALE | JD_TBLCLIP | JD_FASTDECODE | RAM buffer | Flash size | Approx. time |
 | :------: | :------: | :-------: | :----------: | :--------: | :-----------: | :--------: | :--------: | :----------: |
-|   YES    |    512   |   RGB888  |      1       |      1     |       0       |    5 kB    |    0 kB    |     51 ms    |    
-|   NO     |    512   |   RGB888  |      1       |      1     |       0       |    5 kB    |    5 kB    |     50 ms    |     
-|   NO     |    512   |   RGB888  |      1       |      1     |       1       |    5 kB    |    5 kB    |     49 ms    |    
-|   NO     |    512   |   RGB888  |      1       |      1     |       2       |   66 kB    |   5.5 kB   |     46 ms    |  
+|   YES    |    512   |   RGB888  |      1       |      1     |       0       |    3.1 kB  |    0 kB    |     52 ms    |    
+|   NO     |    512   |   RGB888  |      1       |      1     |       0       |    3.1 kB  |    5 kB    |     50 ms    |    
+|   NO     |    512   |   RGB888  |      1       |      0     |       0       |    3.1 kB  |    4 kB    |     68 ms    |     
+|   NO     |    512   |   RGB888  |      1       |      1     |       1       |    3.1 kB  |    5 kB    |     50 ms    |      
+|   NO     |    512   |   RGB888  |      1       |      0     |       1       |    3.1 kB  |    4 kB    |     62 ms    |   
+|   NO     |    512   |   RGB888  |      1       |      1     |       2       |   65.5 kB  |   5.5 kB   |     46 ms    |  
+|   NO     |    512   |   RGB888  |      1       |      0     |       2       |   65.5 kB  |   4.5 kB   |     59 ms    |  
 |   NO     |    512   |   RGB565  |      1       |      1     |       0       |    5 kB    |    5 kB    |     60 ms    |     
 |   NO     |    512   |   RGB565  |      1       |      1     |       1       |    5 kB    |    5 kB    |     59 ms    |     
-|   NO     |    512   |   RGB565  |      1       |      1     |       2       |   66 kB    |   5.5 kB   |     56 ms    |     
+|   NO     |    512   |   RGB565  |      1       |      1     |       2       |   65.5 kB  |   5.5 kB   |     56 ms    |     
 
 ## Add to project
 

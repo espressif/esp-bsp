@@ -2,16 +2,12 @@ menu "JPEG Decoder"
 
     config JD_USE_ROM
         bool "Use TinyJPG Decoder from ROM"
-        default y if IDF_TARGET_ESP32
-        default y if IDF_TARGET_ESP32S3
-        default y if IDF_TARGET_ESP32C2
-        default y if IDF_TARGET_ESP32C3
-        default y if IDF_TARGET_ESP32H2
-        default n if IDF_TARGET_ESP32S2
+        depends on !IDF_TARGET_ESP32S2
+        default y
         help
-            Some microcontrollers have TJpg decoder in ROM. It is used as default, but it can be disabled here.
-            Then there will be used code saved in this component. When this choice will be selected and MCU has not
-            TJpg decoder in ROM code, there will be compilation error.
+            By default, Espressif SoCs use TJpg decoder implemented in ROM code. 
+            If this feature is disabled, new configuration of TJpg decoder can be used.
+            Refer to REAME.md for more details.
 
     config JD_SZBUF
         int "Size of stream input buffer"
@@ -39,11 +35,11 @@ menu "JPEG Decoder"
         endchoice
 
     config JD_USE_SCALE
-        bool "Switches output descaling feature"
+        bool "Enable descaling"
         depends on !JD_USE_ROM
         default y
         help
-            If this choice is enabled, then can be used scaling output image in runtime.
+            If scaling is enabled, size of output image can be lowered during decoding.
 
     config JD_TBLCLIP
         bool "Use table conversion for saturation arithmetic"
@@ -62,7 +58,7 @@ menu "JPEG Decoder"
         choice
             prompt "Optimization level"
             depends on !JD_USE_ROM
-            default JD_FASTDECODE_BASIC
+            default JD_FASTDECODE_32BIT
 
         config JD_FASTDECODE_BASIC
             bool "Basic optimization. Suitable for 8/16-bit MCUs"
