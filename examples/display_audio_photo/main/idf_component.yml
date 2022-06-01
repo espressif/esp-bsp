@@ -4,3 +4,4 @@ targets:
 dependencies:
   idf: ">=4.4"
   esp-box: "^1.0"
+  esp_jpeg: "^1.0"
