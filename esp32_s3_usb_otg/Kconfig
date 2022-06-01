@@ -1,0 +1,38 @@
+menu "Board Support Package"
+    menu "uSD card - Virtual File System"
+        config BSP_uSD_FORMAT_ON_MOUNT_FAIL
+            bool "Format uSD card if mounting fails"
+            default n
+            help
+                The SDMMC host will format (FAT) the uSD card if it fails to mount the filesystem.
+
+        config BSP_uSD_MOUNT_POINT
+            string "uSD card mount point"
+            default "/sdcard"
+            help
+                Mount point of the uSD card in the Virtual File System
+
+    endmenu
+    menu "Display"
+        config BSP_DISPLAY_LVGL_TASK_PRIORITY
+            int "LVGL task priority"
+            default 2
+            help
+                The Board Support Package will create a task that will periodically handle LVGL operation in lv_timer_handler().
+
+        config BSP_DISPLAY_LVGL_TICK
+            int "LVGL tick period"
+            default 5
+            range 1 100
+            help
+                Period of LVGL tick timer.
+
+        config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
+            int "LEDC channel index"
+            default 1
+            range 0 7
+            help
+                LEDC channel is used to generate PWM signal that controls display brightness.
+                Set LEDC index that should be used.
+    endmenu
+endmenu
