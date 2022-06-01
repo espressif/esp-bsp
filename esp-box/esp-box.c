@@ -286,7 +286,7 @@ static void bsp_display_brightness_init(void)
     };
     const ledc_timer_config_t LCD_backlight_timer = {
         .speed_mode = LEDC_LOW_SPEED_MODE,
-        .bit_num = LEDC_TIMER_10_BIT,
+        .duty_resolution = LEDC_TIMER_10_BIT,
         .timer_num = 1,
         .freq_hz = 5000,
         .clk_cfg = LEDC_AUTO_CLK

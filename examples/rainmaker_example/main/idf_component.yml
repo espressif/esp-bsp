@@ -1,3 +1,5 @@
 description: BSP ESP32-Azure-IoT-Kit rainmaker example
 dependencies:
-  esp32_azure_iot_kit: "0.0.7"
+  esp32_azure_iot_kit:
+    version: "0.0.7"
+    override_path: "../../../esp32_azure_iot_kit"
