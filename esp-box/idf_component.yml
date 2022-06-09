@@ -1,4 +1,4 @@
-version: "1.0.1"
+version: "1.0.2"
 description: Board Support Package for ESP-BOX
 url: https://github.com/espressif/esp-bsp/tree/master/esp-box
 

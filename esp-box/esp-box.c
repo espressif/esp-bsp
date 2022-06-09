@@ -22,6 +22,7 @@ static const char *TAG = "ESP-BOX";
 
 static lv_disp_draw_buf_t disp_buf; // Contains internal graphic buffer(s) called draw buffer(s)
 static lv_disp_drv_t disp_drv;      // Contains callback functions
+static esp_lcd_touch_handle_t tp;   // LCD touch handle
 static SemaphoreHandle_t lvgl_mux;  // LVGL mutex
 
 void bsp_i2c_init(void)
@@ -136,6 +137,46 @@ static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, 
     esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
 }
 
+static void lvgl_port_update_callback(lv_disp_drv_t *drv)
+{
+    esp_lcd_panel_handle_t panel_handle = (esp_lcd_panel_handle_t) drv->user_data;
+
+    switch (drv->rotated) {
+    case LV_DISP_ROT_NONE:
+        // Rotate LCD display
+        esp_lcd_panel_swap_xy(panel_handle, false);
+        esp_lcd_panel_mirror(panel_handle, true, true);
+        // Rotate LCD touch
+        esp_lcd_touch_set_mirror_y(tp, false);
+        esp_lcd_touch_set_mirror_x(tp, true);
+        break;
+    case LV_DISP_ROT_90:
+        // Rotate LCD display
+        esp_lcd_panel_swap_xy(panel_handle, true);
+        esp_lcd_panel_mirror(panel_handle, false, true);
+        // Rotate LCD touch
+        esp_lcd_touch_set_mirror_y(tp, true);
+        esp_lcd_touch_set_mirror_x(tp, false);
+        break;
+    case LV_DISP_ROT_180:
+        // Rotate LCD display
+        esp_lcd_panel_swap_xy(panel_handle, false);
+        esp_lcd_panel_mirror(panel_handle, false, false);
+        // Rotate LCD touch
+        esp_lcd_touch_set_mirror_y(tp, false);
+        esp_lcd_touch_set_mirror_x(tp, true);
+        break;
+    case LV_DISP_ROT_270:
+        // Rotate LCD display
+        esp_lcd_panel_swap_xy(panel_handle, true);
+        esp_lcd_panel_mirror(panel_handle, true, false);
+        // Rotate LCD touch
+        esp_lcd_touch_set_mirror_y(tp, true);
+        esp_lcd_touch_set_mirror_x(tp, false);
+        break;
+    }
+}
+
 static void lvgl_port_tick_increment(void *arg)
 {
     /* Tell LVGL how many milliseconds have elapsed */
@@ -168,7 +209,7 @@ static void lvgl_port_task(void *arg)
     }
 }
 
-static void lvgl_port_display_init(void)
+static lv_disp_t *lvgl_port_display_init(void)
 {
     ESP_LOGD(TAG, "Initialize SPI bus");
     const spi_bus_config_t buscfg = {
@@ -227,9 +268,10 @@ static void lvgl_port_display_init(void)
     disp_drv.hor_res = BSP_LCD_H_RES;
     disp_drv.ver_res = BSP_LCD_V_RES;
     disp_drv.flush_cb = lvgl_port_flush_callback;
+    disp_drv.drv_update_cb = lvgl_port_update_callback;
     disp_drv.draw_buf = &disp_buf;
     disp_drv.user_data = panel_handle;
-    lv_disp_drv_register(&disp_drv);
+    return lv_disp_drv_register(&disp_drv);
 }
 
 static void lvgl_port_indev_init(void)
@@ -258,7 +300,6 @@ static void lvgl_port_indev_init(void)
             }
         }
     };
-    esp_lcd_touch_handle_t tp = NULL;
     ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_tt21100(&tp_cfg, &tp));
     assert(tp);
 
@@ -321,16 +362,22 @@ void bsp_display_backlight_on(void)
     bsp_display_brightness_set(100);
 }
 
-void bsp_display_start(void)
+lv_disp_t *bsp_display_start(void)
 {
     lv_init();
     bsp_display_brightness_init();
-    lvgl_port_display_init();
+    lv_disp_t *disp = lvgl_port_display_init();
     lvgl_port_indev_init();
     lvgl_port_tick_init();
     lvgl_mux = xSemaphoreCreateMutex();
     assert(lvgl_mux);
     xTaskCreate(lvgl_port_task, "LVGL task", 4096, NULL, CONFIG_BSP_DISPLAY_LVGL_TASK_PRIORITY, NULL);
+    return disp;
+}
+
+void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
+{
+    lv_disp_set_rotation(disp, rotation);
 }
 
 bool bsp_display_lock(uint32_t timeout_ms)
