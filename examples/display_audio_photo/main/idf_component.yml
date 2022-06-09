@@ -1,4 +1,4 @@
-description: Display and Camera example on ESP-BOX
+description: ESP-BOX Display Audio Photo Example
 targets:
     - esp32s3
 dependencies:
