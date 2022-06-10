@@ -255,6 +255,9 @@ void bsp_display_backlight_off(void);
  * @brief Rotate screen
  *
  * Display must be already initialized by calling bsp_display_start()
+ *
+ * @param[in] disp Pointer to LVGL display
+ * @param[in] rotation Angle of the display rotation
  */
 void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
 /**************************************************************************************************

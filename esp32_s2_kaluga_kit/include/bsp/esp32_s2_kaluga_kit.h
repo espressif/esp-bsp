@@ -12,6 +12,7 @@
 #include "driver/i2s.h"
 #include "driver/touch_pad.h"
 #include "iot_button.h"
+#include "lvgl.h"
 
 /**************************************************************************************************
  * ESP32-S2 Kaluga Kit pinout
@@ -154,8 +155,10 @@ void bsp_i2c_deinit(void);
  * @brief Initialize display
  *
  * This function initializes SPI, display controller and starts LVGL handling task.
+ *
+ * @return Pointer to LVGL display
  */
-void bsp_display_start(void);
+lv_disp_t *bsp_display_start(void);
 
 /**
  * @brief Take LVGL mutex
@@ -176,6 +179,16 @@ void bsp_display_unlock(void);
    These functions are here to provide consistent API with other Board Support Packages */
 void bsp_display_backlight_on(void);
 void bsp_display_backlight_off(void);
+
+/**
+ * @brief Rotate screen
+ *
+ * Display must be already initialized by calling bsp_display_start()
+ *
+ * @param[in] disp Pointer to LVGL display
+ * @param[in] rotation Angle of the display rotation
+ */
+void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
 
 /**************************************************************************************************
  *
