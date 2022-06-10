@@ -12,6 +12,7 @@
 #include "driver/i2s.h"
 #include "driver/touch_pad.h"
 #include "iot_button.h"
+#include "lvgl.h"
 
 /**************************************************************************************************
  * ESP32-S2 Kaluga Kit pinout
@@ -35,8 +36,34 @@
 #define BSP_LCD_DC            (GPIO_NUM_13)
 #define BSP_LCD_RST           (GPIO_NUM_16)
 
+/* Touch pad */
+/* Make sure that microswitches at the bottom of the Kaluga board are in ON position */
+#define BSP_TOUCH_BUTTON_PLAY     (GPIO_NUM_2)
+#define BSP_TOUCH_BUTTON_PHOTO    (GPIO_NUM_6)
+#define BSP_TOUCH_BUTTON_NETWORK  (GPIO_NUM_11)
+#define BSP_TOUCH_BUTTON_RECORD   (GPIO_NUM_5)
+#define BSP_TOUCH_BUTTON_VOLUP    (GPIO_NUM_1)
+#define BSP_TOUCH_BUTTON_VOLDOWN  (GPIO_NUM_3)
+#define BSP_TOUCH_BUTTON_GUARD    (GPIO_NUM_4)
+#define BSP_TOUCH_SHELED_ELECT    (GPIO_NUM_14)
+
+/* Camera */
+#define BSP_CAMERA_XCLK      (GPIO_NUM_1)
+#define BSP_CAMERA_PCLK      (GPIO_NUM_33)
+#define BSP_CAMERA_VSYNC     (GPIO_NUM_2)
+#define BSP_CAMERA_HSYNC     (GPIO_NUM_3)
+#define BSP_CAMERA_D0        (GPIO_NUM_36) /*!< Labeled as: D2 */
+#define BSP_CAMERA_D1        (GPIO_NUM_37) /*!< Labeled as: D3 */
+#define BSP_CAMERA_D2        (GPIO_NUM_41) /*!< Labeled as: D4 */
+#define BSP_CAMERA_D3        (GPIO_NUM_42) /*!< Labeled as: D5 */
+#define BSP_CAMERA_D4        (GPIO_NUM_39) /*!< Labeled as: D6 */
+#define BSP_CAMERA_D5        (GPIO_NUM_40) /*!< Labeled as: D7 */
+#define BSP_CAMERA_D6        (GPIO_NUM_21) /*!< Labeled as: D8 */
+#define BSP_CAMERA_D7        (GPIO_NUM_38) /*!< Labeled as: D9 */
+
 /* Others */
-#define BSP_LEDSTRIP_IO       (GPIO_NUM_45)
+#define BSP_LEDSTRIP_IO      (GPIO_NUM_45)
+#define BSP_BUTTONS_IO       (GPIO_NUM_6) // Push buttons on audio board, all mapped to this GPIO
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,8 +138,9 @@ void bsp_audio_poweramp_enable(bool enable);
  *
  * I2C interface
  *
- * There is one device connected to I2C peripheral:
+ * There are two devices connected to I2C peripheral:
  *  - Codec ES8311 (configuration only)
+ *  - External camera module
  *
  * After initialization of I2C, use BSP_I2C_NUM macro when creating I2C devices drivers ie.:
  * \code{.c}
@@ -135,6 +163,53 @@ void bsp_i2c_deinit(void);
 
 /**************************************************************************************************
  *
+ * Camera interface
+ *
+ * ESP32-S2-Kaluga-Kit is shipped with OV2640 camera module.
+ * As a camera driver, esp32-camera component is used.
+ *
+ * Example configuration:
+ * \code{.c}
+ * const camera_config_t camera_config = BSP_CAMERA_DEFAULT_CONFIG;
+ * esp_err_t err = esp_camera_init(&camera_config);
+ * \endcode
+ **************************************************************************************************/
+/**
+ * @brief Kaluga camera default configuration
+ *
+ * In this configuration we select RGB565 color format and 320x240 image size,
+ * we place the frame buffer to internal DRAM so we can sent it to LCD display without any changes.
+ */
+#define BSP_CAMERA_DEFAULT_CONFIG         \
+    {                                     \
+        .pin_pwdn = GPIO_NUM_NC,          \
+        .pin_reset = GPIO_NUM_NC,         \
+        .pin_xclk = BSP_CAMERA_XCLK,      \
+        .pin_sscb_sda = GPIO_NUM_NC,      \
+        .pin_sscb_scl = GPIO_NUM_NC,      \
+        .pin_d7 = BSP_CAMERA_D7,          \
+        .pin_d6 = BSP_CAMERA_D6,          \
+        .pin_d5 = BSP_CAMERA_D5,          \
+        .pin_d4 = BSP_CAMERA_D4,          \
+        .pin_d3 = BSP_CAMERA_D3,          \
+        .pin_d2 = BSP_CAMERA_D2,          \
+        .pin_d1 = BSP_CAMERA_D1,          \
+        .pin_d0 = BSP_CAMERA_D0,          \
+        .pin_vsync = BSP_CAMERA_VSYNC,    \
+        .pin_href = BSP_CAMERA_HSYNC,     \
+        .pin_pclk = BSP_CAMERA_PCLK,      \
+        .xclk_freq_hz = 20000000,         \
+        .ledc_timer = LEDC_TIMER_0,       \
+        .ledc_channel = LEDC_CHANNEL_0,   \
+        .pixel_format = PIXFORMAT_RGB565, \
+        .frame_size = FRAMESIZE_QVGA,     \
+        .jpeg_quality = 12,               \
+        .fb_count = 1,                    \
+        .fb_location = CAMERA_FB_IN_PSRAM \
+    }
+
+/**************************************************************************************************
+ *
  * LCD interface
  *
  * ESP32-S2-Kaluga-Kit is shipped with 3.2inch ST7789 display controller.
@@ -147,15 +222,17 @@ void bsp_i2c_deinit(void);
  **************************************************************************************************/
 #define BSP_LCD_H_RES              (320)
 #define BSP_LCD_V_RES              (240)
-#define BSP_LCD_PIXEL_CLOCK_HZ     (20 * 1000 * 1000)
+#define BSP_LCD_PIXEL_CLOCK_HZ     (80 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
 
 /**
- * @brief Initialize display
+ * @brief Initialize display and graphics library
  *
  * This function initializes SPI, display controller and starts LVGL handling task.
+ *
+ * @return Pointer to LVGL display
  */
-void bsp_display_start(void);
+lv_disp_t *bsp_display_start(void);
 
 /**
  * @brief Take LVGL mutex
@@ -213,6 +290,8 @@ extern const button_config_t bsp_button_config[BSP_BUTTON_NUM];
  *            Thus Photo button and buttons on audio board cannot be used at the same time.
  * @attention 'Network' button on touch pad has a conflict with LCD chip select pin, they share the same IO no. 11.
  *            Thus Network button and LCD cannot be used at the same time.
+ * @attention 'Play', 'Volume up' and 'Volume down' have a conflict with external camera interface.
+ *            Thus, these touchpads can't be used at the same time with camera.
  * @note      It is useful to grant touchpad exclusive access to its pins.
  *            In order to achieve this, turn off switches T1-6, T11 and T14 on the bottom side of Kaluga board.
  **************************************************************************************************/
