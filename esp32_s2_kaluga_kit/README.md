@@ -14,6 +14,7 @@ This Board support package consists of:
 * ES8311 mono audio codec
 * Touch pad configuration
 * Buttons configuration
+* Camera driver
 
 ## Examples
 Please refer to README.md in examples folder.
