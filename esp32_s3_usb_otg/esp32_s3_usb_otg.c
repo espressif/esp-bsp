@@ -131,21 +131,25 @@ static void lvgl_port_update_callback(lv_disp_drv_t *drv)
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, false);
         esp_lcd_panel_mirror(panel_handle, false, false);
+        esp_lcd_panel_set_gap(panel_handle, 0, 0);
         break;
     case LV_DISP_ROT_90:
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, true);
-        esp_lcd_panel_mirror(panel_handle, true, false);
+        esp_lcd_panel_mirror(panel_handle, false, true);
+        esp_lcd_panel_set_gap(panel_handle, 80, 0);
         break;
     case LV_DISP_ROT_180:
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, false);
         esp_lcd_panel_mirror(panel_handle, true, true);
+        esp_lcd_panel_set_gap(panel_handle, 0, 80);
         break;
     case LV_DISP_ROT_270:
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, true);
-        esp_lcd_panel_mirror(panel_handle, false, true);
+        esp_lcd_panel_mirror(panel_handle, true, false);
+        esp_lcd_panel_set_gap(panel_handle, 0, 0);
         break;
     }
 }

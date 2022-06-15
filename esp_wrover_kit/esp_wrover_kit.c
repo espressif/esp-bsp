@@ -111,7 +111,6 @@ static void lvgl_port_update_callback(lv_disp_drv_t *drv)
 #else
         esp_lcd_panel_mirror(panel_handle, false, false);
 #endif
-        esp_lcd_panel_mirror(panel_handle, true, true);
         break;
     case LV_DISP_ROT_90:
         // Rotate LCD display
