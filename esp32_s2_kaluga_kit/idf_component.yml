@@ -24,7 +24,6 @@ dependencies:
     version: "^8"
     public: true
 
-# @todo esp32-camera is not compatible with IDF 5.0
-# esp32-camera:
-#   version: "^2"
-#   public: true
+  esp32-camera:
+    version: "^2"
+    public: true

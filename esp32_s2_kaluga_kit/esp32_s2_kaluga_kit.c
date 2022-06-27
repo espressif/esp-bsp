@@ -12,7 +12,6 @@
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
-#include "lvgl.h"
 
 static const char *TAG = "Kaluga";
 
@@ -202,6 +201,7 @@ void bsp_touchpad_calibrate(bsp_touchpad_button_t tch_pad, float tch_threshold)
 #define LCD_CMD_BITS           (8)
 #define LCD_PARAM_BITS         (8)
 #define LVGL_TICK_PERIOD_MS    (CONFIG_BSP_DISPLAY_LVGL_TICK)
+#define LVGL_BUFF_SIZE_PIX     (BSP_LCD_H_RES * BSP_LCD_V_RES)
 
 static bool lvgl_port_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
 {
@@ -282,12 +282,12 @@ static lv_disp_t *lvgl_port_display_init(void)
 {
     ESP_LOGD(TAG, "Initialize SPI bus");
     const spi_bus_config_t buscfg = {
-        .sclk_io_num = BSP_LCD_SPI_CLK,
-        .mosi_io_num = BSP_LCD_SPI_MOSI,
-        .miso_io_num = -1,
-        .quadwp_io_num = -1,
-        .quadhd_io_num = -1,
-        .max_transfer_sz = BSP_LCD_H_RES * 80 * sizeof(uint16_t),
+        .sclk_io_num     = BSP_LCD_SPI_CLK,
+        .mosi_io_num     = BSP_LCD_SPI_MOSI,
+        .miso_io_num     = GPIO_NUM_NC,
+        .quadwp_io_num   = GPIO_NUM_NC,
+        .quadhd_io_num   = GPIO_NUM_NC,
+        .max_transfer_sz = LVGL_BUFF_SIZE_PIX * sizeof(lv_color_t),
     };
     ESP_ERROR_CHECK(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO));
 
@@ -323,14 +323,12 @@ static lv_disp_t *lvgl_port_display_init(void)
     esp_lcd_panel_invert_color(panel_handle, false);
     esp_lcd_panel_disp_off(panel_handle, false); // In IDF v5.0 display is not turned on automatically
 
-    // alloc draw buffers used by LVGL
-    // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
-    lv_color_t *buf1 = heap_caps_malloc(BSP_LCD_H_RES * 20 * sizeof(lv_color_t), MALLOC_CAP_DMA);
+    // Alloc draw buffers used by LVGL
+    // It's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
+    // but we allocate one full frame buffer for best performance
+    lv_color_t *buf1 = heap_caps_malloc(LVGL_BUFF_SIZE_PIX * sizeof(lv_color_t), MALLOC_CAP_DMA);
     assert(buf1);
-    lv_color_t *buf2 = heap_caps_malloc(BSP_LCD_H_RES * 20 * sizeof(lv_color_t), MALLOC_CAP_DMA);
-    assert(buf2);
-    // initialize LVGL draw buffers
-    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, BSP_LCD_H_RES * 20);
+    lv_disp_draw_buf_init(&disp_buf, buf1, NULL, LVGL_BUFF_SIZE_PIX);
 
     ESP_LOGI(TAG, "Registering display driver to LVGL");
     lv_disp_drv_init(&disp_drv);
