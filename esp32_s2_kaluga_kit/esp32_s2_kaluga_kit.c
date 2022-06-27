@@ -234,7 +234,7 @@ static void lvgl_port_update_callback(lv_disp_drv_t *drv)
     case LV_DISP_ROT_90:
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, false);
-        esp_lcd_panel_mirror(panel_handle, false, false);
+        esp_lcd_panel_mirror(panel_handle, true, true);
         break;
     case LV_DISP_ROT_180:
         // Rotate LCD display
@@ -244,7 +244,7 @@ static void lvgl_port_update_callback(lv_disp_drv_t *drv)
     case LV_DISP_ROT_270:
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, false);
-        esp_lcd_panel_mirror(panel_handle, true, true);
+        esp_lcd_panel_mirror(panel_handle, false, false);
         break;
     }
 }

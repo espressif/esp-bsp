@@ -116,9 +116,9 @@ static void lvgl_port_update_callback(lv_disp_drv_t *drv)
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, true);
 #ifdef CONFIG_BSP_LCD_ILI9341
-        esp_lcd_panel_mirror(panel_handle, false, false);
+        esp_lcd_panel_mirror(panel_handle, true, true);
 #else
-        esp_lcd_panel_mirror(panel_handle, true, false);
+        esp_lcd_panel_mirror(panel_handle, false, true);
 #endif
         break;
     case LV_DISP_ROT_180:
@@ -134,9 +134,9 @@ static void lvgl_port_update_callback(lv_disp_drv_t *drv)
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, true);
 #ifdef CONFIG_BSP_LCD_ILI9341
-        esp_lcd_panel_mirror(panel_handle, true, true);
+        esp_lcd_panel_mirror(panel_handle, false, false);
 #else
-        esp_lcd_panel_mirror(panel_handle, false, true);
+        esp_lcd_panel_mirror(panel_handle, true, false);
 #endif
         break;
     }

@@ -38,7 +38,7 @@ static uint16_t app_lvgl_get_rotation_degrees(lv_disp_rot_t rotation)
     return 0;
 }
 
-static void app_lvgl_btn_left_cb(lv_event_t *e)
+static void app_lvgl_btn_right_cb(lv_event_t *e)
 {
     if (rotation == LV_DISP_ROT_270) {
         rotation = LV_DISP_ROT_NONE;
@@ -52,7 +52,7 @@ static void app_lvgl_btn_left_cb(lv_event_t *e)
 
 }
 
-static void app_lvgl_btn_right_cb(lv_event_t *e)
+static void app_lvgl_btn_left_cb(lv_event_t *e)
 {
     if (rotation == LV_DISP_ROT_NONE) {
         rotation = LV_DISP_ROT_270;
