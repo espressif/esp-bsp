@@ -1,0 +1,8 @@
+description: Sensor example on ESP-BOX
+targets:
+    - esp32s3
+dependencies:
+  idf: ">=4.4"
+  esp-box:
+    version: ">=1.1.0"
+    override_path: "../../../esp-box"

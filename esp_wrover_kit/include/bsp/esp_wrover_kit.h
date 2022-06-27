@@ -9,6 +9,7 @@
 #include "driver/gpio.h"
 #include "driver/sdmmc_host.h"
 #include "sdkconfig.h"
+#include "lvgl.h"
 
 /**************************************************************************************************
  * ESP-WROVER-KIT pinout
@@ -155,8 +156,10 @@ bool bsp_button_get(const bsp_button_t btn);
  * @brief Initialize display
  *
  * This function initializes SPI, display controller and starts LVGL handling task.
+ *
+ * @return Pointer to LVGL display
  */
-void bsp_display_start(void);
+lv_disp_t *bsp_display_start(void);
 
 /**
  * @brief Take LVGL mutex
@@ -195,6 +198,16 @@ void bsp_display_backlight_on(void);
  * Display must be already initialized by calling bsp_display_start()
  */
 void bsp_display_backlight_off(void);
+
+/**
+ * @brief Rotate screen
+ *
+ * Display must be already initialized by calling bsp_display_start()
+ *
+ * @param[in] disp Pointer to LVGL display
+ * @param[in] rotation Angle of the display rotation
+ */
+void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
 
 #ifdef __cplusplus
 }
