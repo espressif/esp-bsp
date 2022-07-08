@@ -280,7 +280,7 @@ void app_main(void)
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
         audio_button[i] = iot_button_create(&bsp_button_config[i]);
         assert(audio_button[i] != NULL);
-        ESP_ERROR_CHECK(iot_button_register_cb(audio_button[i], BUTTON_PRESS_DOWN, btn_handler));
+        ESP_ERROR_CHECK(iot_button_register_cb(audio_button[i], BUTTON_PRESS_DOWN, btn_handler, NULL));
     }
 
     bsp_display_start(); // Start LVGL and LCD driver
