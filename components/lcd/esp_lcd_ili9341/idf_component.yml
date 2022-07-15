@@ -1,0 +1,5 @@
+version: "1.0.0"
+description: ESP LCD ILI9341
+url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_ili9341
+dependencies:
+  idf: ">=4.4"
