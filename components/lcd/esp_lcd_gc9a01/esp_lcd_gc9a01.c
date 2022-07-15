@@ -93,7 +93,11 @@ esp_err_t esp_lcd_new_panel_gc9a01(const esp_lcd_panel_io_handle_t io, const esp
     gc9a01->base.set_gap = panel_gc9a01_set_gap;
     gc9a01->base.mirror = panel_gc9a01_mirror;
     gc9a01->base.swap_xy = panel_gc9a01_swap_xy;
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+    gc9a01->base.disp_off = panel_gc9a01_disp_on_off;
+#else
     gc9a01->base.disp_on_off = panel_gc9a01_disp_on_off;
+#endif
     *ret_panel = &(gc9a01->base);
     ESP_LOGD(TAG, "new gc9a01 panel @%p", gc9a01);
 
@@ -313,6 +317,11 @@ static esp_err_t panel_gc9a01_disp_on_off(esp_lcd_panel_t *panel, bool on_off)
     gc9a01_panel_t *gc9a01 = __containerof(panel, gc9a01_panel_t, base);
     esp_lcd_panel_io_handle_t io = gc9a01->io;
     int command = 0;
+
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+    on_off = !on_off;
+#endif
+
     if (on_off) {
         command = LCD_CMD_DISPON;
     } else {
