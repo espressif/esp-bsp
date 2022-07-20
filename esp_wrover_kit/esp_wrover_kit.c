@@ -157,7 +157,8 @@ static void bsp_display_brightness_init(void)
         .intr_type = LEDC_INTR_DISABLE,
         .timer_sel = 1,
         .duty = 0,
-        .hpoint = 0
+        .hpoint = 0,
+        .flags.output_invert = true
     };
     const ledc_timer_config_t LCD_backlight_timer = {
         .speed_mode = LEDC_LOW_SPEED_MODE,
@@ -182,8 +183,7 @@ void bsp_display_brightness_set(int brightness_percent)
 
     ESP_LOGI(TAG, "Setting LCD backlight: %d%%", brightness_percent);
     // LEDC resolution set to 10bits, thus: 100% = 1023
-    // ESP-WROVER-KIT backlight is inverted
-    uint32_t duty_cycle = (1023 * (100 - brightness_percent)) / 100;
+    uint32_t duty_cycle = (1023 * brightness_percent) / 100;
     ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH, duty_cycle));
     ESP_ERROR_CHECK(ledc_update_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH));
 }
