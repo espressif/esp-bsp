@@ -24,6 +24,7 @@ void app_main(void)
 {
     bsp_i2c_init();
     bsp_display_start();
+    bsp_display_backlight_on(); // Set display brightness to 100%
 
     // Initialize the camera
     const camera_config_t camera_config = BSP_CAMERA_DEFAULT_CONFIG;
@@ -37,21 +38,19 @@ void app_main(void)
     ESP_LOGI(TAG, "Camera Init done");
 
     // Create LVGL canvas for camera image
+    bsp_display_lock(0);
     lv_obj_t *camera_canvas = lv_canvas_create(lv_scr_act());
     assert(camera_canvas);
     lv_obj_center(camera_canvas);
+    bsp_display_unlock();
 
-    // Get first frame and initialize the canvas with it
-    camera_fb_t *pic = esp_camera_fb_get();
-    assert(pic && pic->buf);
-    lv_canvas_set_buffer(camera_canvas, pic->buf, BSP_LCD_H_RES, BSP_LCD_V_RES, LV_IMG_CF_TRUE_COLOR);
-    esp_camera_fb_return(pic);
-
+    camera_fb_t *pic;
     while (1) {
         pic = esp_camera_fb_get();
         if (pic) {
-            ESP_LOGI(TAG, "picture: %d x %d %dbyte", pic->width, pic->height, pic->len);
-            lv_obj_invalidate(camera_canvas); // This will force rewrite of the canvas
+            bsp_display_lock(0);
+            lv_canvas_set_buffer(camera_canvas, pic->buf, pic->width, pic->height, LV_IMG_CF_TRUE_COLOR);
+            bsp_display_unlock();
             esp_camera_fb_return(pic);
         } else {
             ESP_LOGE(TAG, "Get frame failed");
