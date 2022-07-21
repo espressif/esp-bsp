@@ -21,6 +21,8 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
 Initialization of the touch component.
 
 ```
+    esp_lcd_panel_io_i2c_config_t io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
+
     esp_lcd_touch_config_t tp_cfg = {
         .x_max = CONFIG_LCD_HRES,
         .y_max = CONFIG_LCD_VRES,
@@ -35,15 +37,10 @@ Initialization of the touch component.
             .mirror_x = 0,
             .mirror_y = 0,
         },
-        .device = {
-            .i2c = {
-                .port = CONFIG_I2C_NUM,
-            }
-        }
     };
     
     esp_lcd_touch_handle_t tp;
-    esp_lcd_touch_new_i2c_gt911(&tp_cfg, &tp);
+    esp_lcd_touch_new_i2c_gt911(io_handle, &tp_cfg, &tp);
 ```
 
 Read data from the touch controller and store it in RAM memory. It should be called regularly in poll.

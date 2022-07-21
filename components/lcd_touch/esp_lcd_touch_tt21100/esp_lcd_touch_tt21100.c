@@ -18,11 +18,6 @@
 
 static const char *TAG = "TT21100";
 
-/* I2C timeout for read/write */
-#define ESP_LCD_TOUCH_TT21100_I2C_TIMEOUT_MS 10
-/* I2C address of the TT21100 controller */
-#define ESP_LCD_TOUCH_TT21100_I2C_ADDRESS (0x24)
-
 #define ESP_LCD_TOUCH_TT21100_MAX_DATA_LEN  (7+CONFIG_ESP_LCD_TOUCH_MAX_POINTS*10) /* 7 Header + (Points * 10 data bytes) */
 
 /*******************************************************************************
@@ -45,7 +40,7 @@ static esp_err_t touch_tt21100_reset(esp_lcd_touch_handle_t tp);
 * Public API functions
 *******************************************************************************/
 
-esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *out_touch)
+esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *out_touch)
 {
     esp_err_t ret = ESP_OK;
 
@@ -55,6 +50,9 @@ esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_touch_config_t *config, es
     /* Prepare main structure */
     esp_lcd_touch_handle_t esp_lcd_touch_tt21100 = heap_caps_calloc(1, sizeof(esp_lcd_touch_t), MALLOC_CAP_DEFAULT);
     ESP_GOTO_ON_FALSE(esp_lcd_touch_tt21100, ESP_ERR_NO_MEM, err, TAG, "no mem for TT21100 controller");
+
+    /* Communication interface */
+    esp_lcd_touch_tt21100->io = io;
 
     /* Only supported callbacks are set */
     esp_lcd_touch_tt21100->read_data = esp_lcd_touch_tt21100_read_data;
@@ -69,13 +67,6 @@ esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_touch_config_t *config, es
 
     /* Save config */
     memcpy(&esp_lcd_touch_tt21100->config, config, sizeof(esp_lcd_touch_config_t));
-
-    /* Check I2C number */
-    if (esp_lcd_touch_tt21100->config.device.i2c.port < 0 || esp_lcd_touch_tt21100->config.device.i2c.port >= SOC_I2C_NUM) {
-        ESP_LOGE(TAG, "Bad I2C number!");
-        ret = ESP_ERR_INVALID_ARG;
-        goto err;
-    }
 
     /* Prepare pin for touch interrupt */
     if (esp_lcd_touch_tt21100->config.int_gpio_num != GPIO_NUM_NC) {
@@ -314,14 +305,9 @@ static esp_err_t touch_tt21100_reset(esp_lcd_touch_handle_t tp)
 
 static esp_err_t touch_tt21100_i2c_read(esp_lcd_touch_handle_t tp, uint8_t *data, uint8_t len)
 {
-    esp_lcd_touch_dev_i2c_t *tt21100_dev = NULL;
-
     assert(tp != NULL);
     assert(data != NULL);
 
-    tt21100_dev = &tp->config.device.i2c;
-    assert(tt21100_dev->port >= 0 && tt21100_dev->port < SOC_I2C_NUM);
-
     /* Read data */
-    return i2c_master_read_from_device(tt21100_dev->port, ESP_LCD_TOUCH_TT21100_I2C_ADDRESS, data, len, ESP_LCD_TOUCH_TT21100_I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
+    return esp_lcd_panel_io_rx_param(tp->io, -1, data, len);
 }

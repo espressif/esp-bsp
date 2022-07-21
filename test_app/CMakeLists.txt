@@ -14,7 +14,7 @@ if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "4.4")
     list(APPEND EXTRA_COMPONENT_DIRS "../components/lcd")
 endif()
 if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
-    set(EXCLUDE_COMPONENTS "es8311" "esp_jpeg" "esp_lcd_touch_ft5x06" "esp_lcd_touch_gt911" "esp_lcd_touch_tt21100")
+    set(EXCLUDE_COMPONENTS "es8311" "esp_jpeg")
 endif()
 
 

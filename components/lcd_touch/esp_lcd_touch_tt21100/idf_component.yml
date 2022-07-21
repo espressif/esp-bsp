@@ -1,0 +1,7 @@
+version: "1.0.0"
+description: ESP LCD Touch TT21100 - touch controller TT21100
+url: https://github.com/espressif/esp-bsp/tree/master/components/lcd_touch/esp_lcd_touch_tt21100
+dependencies:
+  idf: ">=5.0"
+  esp_lcd_touch:
+    version: "^1.0"
