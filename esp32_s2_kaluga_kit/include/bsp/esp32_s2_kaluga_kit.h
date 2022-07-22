@@ -177,8 +177,10 @@ void bsp_i2c_deinit(void);
 /**
  * @brief Kaluga camera default configuration
  *
- * In this configuration we select RGB565 color format and 320x240 image size,
- * we place the frame buffer to internal DRAM so we can sent it to LCD display without any changes.
+ * In this configuration we select RGB565 color format and 320x240 image size - matching the display.
+ * We use double-buffering for the best performance.
+ * Since ESP32-S2 has only 320kB of internal SRAM, we allocate the framebuffers in external PSRAM.
+ * By setting XCLK to 16MHz, we configure the esp32-camera driver to use EDMA when accessing the PSRAM.
  */
 #define BSP_CAMERA_DEFAULT_CONFIG         \
     {                                     \
@@ -198,13 +200,13 @@ void bsp_i2c_deinit(void);
         .pin_vsync = BSP_CAMERA_VSYNC,    \
         .pin_href = BSP_CAMERA_HSYNC,     \
         .pin_pclk = BSP_CAMERA_PCLK,      \
-        .xclk_freq_hz = 20000000,         \
+        .xclk_freq_hz = 16000000,         \
         .ledc_timer = LEDC_TIMER_0,       \
         .ledc_channel = LEDC_CHANNEL_0,   \
         .pixel_format = PIXFORMAT_RGB565, \
         .frame_size = FRAMESIZE_QVGA,     \
         .jpeg_quality = 12,               \
-        .fb_count = 1,                    \
+        .fb_count = 2,                    \
         .fb_location = CAMERA_FB_IN_PSRAM \
     }
 
