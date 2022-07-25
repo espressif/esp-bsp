@@ -14,14 +14,11 @@
 #include "esp_check.h"
 #include "driver/gpio.h"
 #include "driver/i2c.h"
+#include "esp_lcd_panel_io.h"
 #include "esp_lcd_touch.h"
 
 static const char *TAG = "GT911";
 
-/* I2C timeout for read/write */
-#define ESP_LCD_TOUCH_GT911_I2C_TIMEOUT_MS 10
-/* I2C address of the GT911 controller */
-#define ESP_LCD_TOUCH_GT911_I2C_ADDRESS (0x5D)
 /* GT911 registers */
 #define ESP_LCD_TOUCH_GT911_READ_XY_REG (0x814E)
 #define ESP_LCD_TOUCH_GT911_CONFIG_REG  (0x8047)
@@ -47,16 +44,20 @@ static void touch_gt911_read_cfg(esp_lcd_touch_handle_t tp);
 * Public API functions
 *******************************************************************************/
 
-esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *out_touch)
+esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *out_touch)
 {
     esp_err_t ret = ESP_OK;
 
+    assert(io != NULL);
     assert(config != NULL);
     assert(out_touch != NULL);
 
     /* Prepare main structure */
     esp_lcd_touch_handle_t esp_lcd_touch_gt911 = heap_caps_calloc(1, sizeof(esp_lcd_touch_t), MALLOC_CAP_DEFAULT);
     ESP_GOTO_ON_FALSE(esp_lcd_touch_gt911, ESP_ERR_NO_MEM, err, TAG, "no mem for GT911 controller");
+
+    /* Communication interface */
+    esp_lcd_touch_gt911->io = io;
 
     /* Only supported callbacks are set */
     esp_lcd_touch_gt911->read_data = esp_lcd_touch_gt911_read_data;
@@ -68,13 +69,6 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_touch_config_t *config, esp_
 
     /* Save config */
     memcpy(&esp_lcd_touch_gt911->config, config, sizeof(esp_lcd_touch_config_t));
-
-    /* Check I2C number */
-    if (esp_lcd_touch_gt911->config.device.i2c.port < 0 || esp_lcd_touch_gt911->config.device.i2c.port >= SOC_I2C_NUM) {
-        ESP_LOGE(TAG, "Bad I2C number!");
-        ret = ESP_ERR_INVALID_ARG;
-        goto err;
-    }
 
     /* Prepare pin for touch interrupt */
     if (esp_lcd_touch_gt911->config.int_gpio_num != GPIO_NUM_NC) {
@@ -250,31 +244,19 @@ static void touch_gt911_read_cfg(esp_lcd_touch_handle_t tp)
 
 static esp_err_t touch_gt911_i2c_read(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint8_t len)
 {
-    esp_lcd_touch_dev_i2c_t *gt911_dev = NULL;
-    uint8_t reg_buf[2] = {(uint8_t)((reg >> 8) & 0xFF), (uint8_t)(reg & 0xFF)};
-
     assert(tp != NULL);
     assert(data != NULL);
 
-    gt911_dev = &tp->config.device.i2c;
-    assert(gt911_dev->port >= 0 && gt911_dev->port < SOC_I2C_NUM);
-
-    /* Write register number */
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(gt911_dev->port, ESP_LCD_TOUCH_GT911_I2C_ADDRESS, reg_buf, sizeof(reg_buf), ESP_LCD_TOUCH_GT911_I2C_TIMEOUT_MS / portTICK_PERIOD_MS), TAG, "I2C write error!");
-
     /* Read data */
-    return i2c_master_read_from_device(gt911_dev->port, ESP_LCD_TOUCH_GT911_I2C_ADDRESS, data, len, ESP_LCD_TOUCH_GT911_I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
+    return esp_lcd_panel_io_rx_param(tp->io, reg, data, len);
 }
 
 static esp_err_t touch_gt911_i2c_write(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t data)
 {
-    esp_lcd_touch_dev_i2c_t *gt911_dev = NULL;
-    uint8_t reg_buf[3] = {(uint8_t)((reg >> 8) & 0xFF), (uint8_t)(reg & 0xFF), data};
-
     assert(tp != NULL);
 
-    gt911_dev = &tp->config.device.i2c;
-    assert(gt911_dev->port >= 0 && gt911_dev->port < SOC_I2C_NUM);
-
-    return i2c_master_write_to_device(gt911_dev->port, ESP_LCD_TOUCH_GT911_I2C_ADDRESS, reg_buf, sizeof(reg_buf), ESP_LCD_TOUCH_GT911_I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
+    // *INDENT-OFF*
+    /* Write data */
+    return esp_lcd_panel_io_tx_param(tp->io, reg, (uint8_t[]){data}, 1);
+    // *INDENT-ON*
 }

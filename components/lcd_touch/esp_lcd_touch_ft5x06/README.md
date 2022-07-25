@@ -4,7 +4,9 @@ Implementation of the FT5x06 touch controller with esp_lcd_touch component.
 
 | Touch controller | Communication interface | Component name | Link to datasheet |
 | :--------------: | :---------------------: | :------------: | :---------------: |
-| FT5x06           | I2C                     | esp_lcd_touch_ft5x06 | [PDF](https://www.displayfuture.com/Display/datasheet/controller/FT5x06.pdf) |
+| FT5x06           | I2C (SPI [^1])               | esp_lcd_touch_ft5x06 | [PDF](https://www.displayfuture.com/Display/datasheet/controller/FT5x06.pdf) |
+
+[^1]: **NOTE:** This controller should work via I2C or SPI communication interface. But it was tested on HW only via I2C communication interface.
 
 ## Add to project
 
@@ -18,9 +20,11 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
 
 ## Example use
 
-Initialization of the touch component.
+I2C initialization of the touch component.
 
 ```
+    esp_lcd_panel_io_i2c_config_t io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
+
     esp_lcd_touch_config_t tp_cfg = {
         .x_max = CONFIG_LCD_HRES,
         .y_max = CONFIG_LCD_VRES,
@@ -35,15 +39,10 @@ Initialization of the touch component.
             .mirror_x = 0,
             .mirror_y = 0,
         },
-        .device = {
-            .i2c = {
-                .port = CONFIG_I2C_NUM,
-            }
-        }
     };
     
     esp_lcd_touch_handle_t tp;
-    esp_lcd_touch_new_i2c_ft5x06(&tp_cfg, &tp);
+    esp_lcd_touch_new_i2c_ft5x06(io_handle, &tp_cfg, &tp);
 ```
 
 Read data from the touch controller and store it in RAM memory. It should be called regularly in poll.
