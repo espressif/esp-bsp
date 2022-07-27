@@ -12,24 +12,27 @@
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_log.h"
-#include "esp_adc_cal.h"
+
+#include "esp_adc/adc_oneshot.h"
+#include "esp_adc/adc_cali.h"
+#include "esp_adc/adc_cali_scheme.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 #include "driver/spi_master.h"
 #include "driver/ledc.h"
-#include "driver/adc.h"
 
 #include "usb/usb_host.h"
 
-#define TAG "USB-OTG"
+static const char *TAG = "USB-OTG";
 
 static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
 static lv_disp_drv_t disp_drv;      // contains callback functions
 static SemaphoreHandle_t lvgl_mux;  // LVGL mutex
 static TaskHandle_t usb_host_task;  // USB Host Library task
-static esp_adc_cal_characteristics_t adc1_chars; // ADC1 calibration data
+static adc_oneshot_unit_handle_t adc1_handle; // ADC1 handle; for USB voltage measurement
+static adc_cali_handle_t adc1_cali_handle; // ADC1 calibration handle
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 
 void bsp_leds_init(void)
@@ -249,7 +252,7 @@ static lv_disp_t *lvgl_port_display_init(void)
     esp_lcd_panel_reset(panel_handle);
     esp_lcd_panel_init(panel_handle);
     esp_lcd_panel_invert_color(panel_handle, true);
-    esp_lcd_panel_disp_off(panel_handle, false);
+    esp_lcd_panel_disp_on_off(panel_handle, true);
 
     // alloc draw buffers used by LVGL
     // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
@@ -441,27 +444,46 @@ void bsp_usb_host_stop(void)
 
 bool bsp_voltage_init(void)
 {
-    // Calibration
-    ESP_ERROR_CHECK(esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP_FIT));
-    esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_DEFAULT, 0, &adc1_chars);
+    // Init ADC1
+    const adc_oneshot_unit_init_cfg_t init_config1 = {
+        .unit_id = ADC_UNIT_1,
+    };
+    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
 
-    //ADC1 config
-    ESP_ERROR_CHECK(adc1_config_width(ADC_WIDTH_BIT_DEFAULT));
-    ESP_ERROR_CHECK(adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11));
-    ESP_ERROR_CHECK(adc1_config_channel_atten(ADC1_CHANNEL_1, ADC_ATTEN_DB_11));
+    // Init ADC1 channels
+    const adc_oneshot_chan_cfg_t config = {
+        .bitwidth = ADC_BITWIDTH_DEFAULT,
+        .atten = ADC_ATTEN_DB_11,
+    };
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, ADC_CHANNEL_0, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, ADC_CHANNEL_1, &config));
+
+    // ESP32-S3 supports Curve Fitting calibration scheme
+    const adc_cali_curve_fitting_config_t cali_config = {
+        .unit_id = ADC_UNIT_1,
+        .atten = ADC_ATTEN_DB_11,
+        .bitwidth = ADC_BITWIDTH_DEFAULT,
+    };
+    ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali_config, &adc1_cali_handle));
     return true;
 }
 
-uint32_t bsp_voltage_battery_get(void)
+int bsp_voltage_battery_get(void)
 {
-    uint32_t voltage;
-    esp_adc_cal_get_voltage(ADC1_CHANNEL_1, &adc1_chars, &voltage);
+    int voltage, adc_raw;
+
+    assert(adc1_handle);
+    ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, ADC_CHANNEL_1, &adc_raw));
+    ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali_handle, adc_raw, &voltage));
     return voltage * BSP_BATTERY_VOLTAGE_DIV;
 }
 
-uint32_t bsp_voltage_usb_get(void)
+int bsp_voltage_usb_get(void)
 {
-    uint32_t voltage;
-    esp_adc_cal_get_voltage(ADC1_CHANNEL_0, &adc1_chars, &voltage);
+    int voltage, adc_raw;
+
+    assert(adc1_handle);
+    ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, ADC_CHANNEL_0, &adc_raw));
+    ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali_handle, adc_raw, &voltage));
     return (float)voltage * BSP_USB_HOST_VOLTAGE_DIV;
 }
