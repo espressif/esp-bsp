@@ -241,7 +241,7 @@ static lv_disp_t *lvgl_port_display_init(void)
     ESP_LOGD(TAG, "Install LCD driver of st7789");
     esp_lcd_panel_handle_t panel_handle = NULL;
     const esp_lcd_panel_dev_config_t panel_config = {
-        .reset_gpio_num = BSP_LCD_RST,
+        .reset_gpio_num = BSP_LCD_RST, // Shared with Touch reset
         .color_space = ESP_LCD_COLOR_SPACE_BGR,
         .bits_per_pixel = 16,
     };
@@ -250,9 +250,7 @@ static lv_disp_t *lvgl_port_display_init(void)
     esp_lcd_panel_reset(panel_handle);
     esp_lcd_panel_init(panel_handle);
     esp_lcd_panel_mirror(panel_handle, true, true);
-    /* In IDF v5.0 esp_lcd_panel_disp_on_off() must be called to turn on the display (display is not turned on automatically in IDF v5.0).
-       However, a function with same behaviour - esp_lcd_panel_disp_off() is called here for compatibility with IDF v4.4 */
-    esp_lcd_panel_disp_off(panel_handle, false);
+    esp_lcd_panel_disp_on_off(panel_handle, true);
 
     // alloc draw buffers used by LVGL
     // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
@@ -280,11 +278,11 @@ static void lvgl_port_indev_init(void)
     lv_indev_t *indev_touchpad;
 
     /* Initialize touch */
-    esp_lcd_touch_config_t tp_cfg = {
+    const esp_lcd_touch_config_t tp_cfg = {
         .x_max = BSP_LCD_H_RES,
         .y_max = BSP_LCD_V_RES,
-        .rst_gpio_num = GPIO_NUM_NC,
-        .int_gpio_num = GPIO_NUM_NC, //GPIO_NUM_3
+        .rst_gpio_num = GPIO_NUM_NC, // Shared with LCD reset
+        .int_gpio_num = BSP_LCD_TOUCH_INT,
         .levels = {
             .reset = 0,
             .interrupt = 0,
@@ -294,15 +292,12 @@ static void lvgl_port_indev_init(void)
             .mirror_x = 1,
             .mirror_y = 0,
         },
-        .device = {
-            .i2c = {
-                .port = BSP_I2C_NUM,
-            }
-        }
     };
-    ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_tt21100(&tp_cfg, &tp));
+    esp_lcd_panel_io_handle_t tp_io_handle = NULL;
+    const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle));
+    ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, &tp));
     assert(tp);
-
 
     /* Register a touchpad input device */
     lv_indev_drv_init(&indev_drv_tp);
