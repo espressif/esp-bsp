@@ -44,19 +44,28 @@ void bsp_i2c_deinit(void)
     ESP_ERROR_CHECK_WITHOUT_ABORT(i2c_driver_delete(BSP_I2C_NUM));
 }
 
-void bsp_audio_init(const i2s_config_t *i2s_config)
+void bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel)
 {
     /* Setup I2S peripheral */
-    const i2s_pin_config_t i2s_pin_config = {
-        .mck_io_num = BSP_I2S_MCLK,
-        .bck_io_num = BSP_I2S_SCLK,
-        .ws_io_num = BSP_I2S_LCLK,
-        .data_out_num = BSP_I2S_DOUT,
-        .data_in_num = BSP_I2S_DSIN
-    };
+    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(CONFIG_BSP_I2S_NUM, I2S_ROLE_MASTER);
+    chan_cfg.auto_clear = true; // Auto clear the legacy data in the DMA buffer
+    ESP_ERROR_CHECK(i2s_new_channel(&chan_cfg, tx_channel, rx_channel));
 
-    ESP_ERROR_CHECK(i2s_driver_install(BSP_I2S_NUM, i2s_config, 0, NULL));
-    ESP_ERROR_CHECK(i2s_set_pin(BSP_I2S_NUM, &i2s_pin_config));
+    /* Setup I2S channels */
+    const i2s_std_config_t std_cfg_default = BSP_I2S_DUPLEX_MONO_CFG(22050);
+    const i2s_std_config_t *p_i2s_cfg = &std_cfg_default;
+    if (i2s_config != NULL) {
+        p_i2s_cfg = i2s_config;
+    }
+
+    if (tx_channel != NULL) {
+        ESP_ERROR_CHECK(i2s_channel_init_std_mode(*tx_channel, p_i2s_cfg));
+        ESP_ERROR_CHECK(i2s_channel_enable(*tx_channel));
+    }
+    if (rx_channel != NULL) {
+        ESP_ERROR_CHECK(i2s_channel_init_std_mode(*rx_channel, p_i2s_cfg));
+        ESP_ERROR_CHECK(i2s_channel_enable(*rx_channel));
+    }
 
     /* Setup power amplifier pin */
     const gpio_config_t io_conf = {
@@ -67,20 +76,6 @@ void bsp_audio_init(const i2s_config_t *i2s_config)
         .pull_up_en = GPIO_PULLDOWN_DISABLE,
     };
     ESP_ERROR_CHECK(gpio_config(&io_conf));
-}
-
-void bsp_audio_deinit(void)
-{
-    ESP_ERROR_CHECK_WITHOUT_ABORT(i2s_driver_uninstall(BSP_I2S_NUM));
-    const gpio_config_t io_conf = {
-        .intr_type = GPIO_INTR_DISABLE,
-        .mode = GPIO_MODE_INPUT,
-        .pin_bit_mask = BIT64(BSP_POWER_AMP_IO),
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .pull_up_en = GPIO_PULLDOWN_DISABLE,
-    };
-
-    ESP_ERROR_CHECK_WITHOUT_ABORT(gpio_config(&io_conf));
 }
 
 void bsp_audio_poweramp_enable(bool enable)

@@ -3,7 +3,7 @@
 
 # ESP-BOX Display Audio Photo Example
 
-This example demonstrates usage of ESP-BOX Board Support Package. This is a single purpose example, which is focused on display + touch applications: user can see list of files saved on SPIFFS. There can be opened some file types like JPG images, WAV music files and TXT text files. 
+This example demonstrates usage of ESP-BOX Board Support Package. This is a single purpose example, which is focused on display + touch applications: you can see list of files saved on SPIFFS. You can open certain file types like JPG images, WAV music files and TXT text files. 
 
 Example files are downloaded into ESP-BOX from [spiffs_content](/spiffs_content) folder.
 

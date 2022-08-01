@@ -2,7 +2,7 @@ description: ESP-BOX Display Audio Photo Example
 targets:
     - esp32s3
 dependencies:
-  idf: ">=4.4"
+  idf: ">=5.0"
   esp-box:
     version: "*"
     override_path: "../../../esp-box"
