@@ -1,4 +1,4 @@
-version: "1.2.1"
+version: "2.0.0"
 description: Board Support Package for ESP32-S2-Kaluga kit
 url: https://github.com/espressif/esp-bsp/tree/master/esp32_s2_kaluga_kit
 
@@ -6,7 +6,7 @@ targets:
   - esp32s2
 
 dependencies:
-  idf: ">=4.4"
+  idf: ">=5.0"
 
   button:
     version: "^2"
