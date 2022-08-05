@@ -33,6 +33,7 @@
 #define DEFAULT_VOLUME  (70)
 
 static const char *TAG = "DISP";
+static i2s_chan_handle_t i2s_tx_chan;
 
 /*******************************************************************************
 * Types definitions
@@ -124,15 +125,14 @@ void app_disp_lvgl_show(void)
 
 void app_audio_init(void)
 {
-    const i2s_config_t i2s_config = BSP_I2S_DUPLEX_MONO_CONFIG(SAMPLE_RATE);
-    const es8311_clock_config_t clk_cfg = BSP_ES8311_SCLK_CONFIG(SAMPLE_RATE);
-
     /* Create and configure ES8311 I2C driver */
     es8311_dev = es8311_create(BSP_I2C_NUM, ES8311_ADDRRES_0);
+    const es8311_clock_config_t clk_cfg = BSP_ES8311_SCLK_CONFIG(SAMPLE_RATE);
     es8311_init(es8311_dev, &clk_cfg, ES8311_RESOLUTION_16, ES8311_RESOLUTION_16);
     es8311_voice_volume_set(es8311_dev, DEFAULT_VOLUME, NULL);
 
-    bsp_audio_init(&i2s_config);
+    /* Configure I2S peripheral and Power Amplifier */
+    bsp_audio_init(NULL, &i2s_tx_chan, NULL);
     bsp_audio_poweramp_enable(true);
 }
 
@@ -317,7 +317,8 @@ static void play_file(void *arg)
 
             /* Send it to I2S */
             size_t i2s_bytes_written;
-            ESP_ERROR_CHECK(i2s_write(BSP_I2S_NUM, wav_bytes, bytes_read_from_spiffs, &i2s_bytes_written, pdMS_TO_TICKS(500)));
+            assert(i2s_tx_chan);
+            ESP_ERROR_CHECK(i2s_channel_write(i2s_tx_chan, wav_bytes, bytes_read_from_spiffs, &i2s_bytes_written, pdMS_TO_TICKS(500)));
             bytes_send_to_i2s += i2s_bytes_written;
             xSemaphoreGive(audio_mux);
         }

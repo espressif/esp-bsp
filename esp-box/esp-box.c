@@ -44,19 +44,28 @@ void bsp_i2c_deinit(void)
     ESP_ERROR_CHECK_WITHOUT_ABORT(i2c_driver_delete(BSP_I2C_NUM));
 }
 
-void bsp_audio_init(const i2s_config_t *i2s_config)
+void bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel)
 {
     /* Setup I2S peripheral */
-    const i2s_pin_config_t i2s_pin_config = {
-        .mck_io_num = BSP_I2S_MCLK,
-        .bck_io_num = BSP_I2S_SCLK,
-        .ws_io_num = BSP_I2S_LCLK,
-        .data_out_num = BSP_I2S_DOUT,
-        .data_in_num = BSP_I2S_DSIN
-    };
+    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(CONFIG_BSP_I2S_NUM, I2S_ROLE_MASTER);
+    chan_cfg.auto_clear = true; // Auto clear the legacy data in the DMA buffer
+    ESP_ERROR_CHECK(i2s_new_channel(&chan_cfg, tx_channel, rx_channel));
 
-    ESP_ERROR_CHECK(i2s_driver_install(BSP_I2S_NUM, i2s_config, 0, NULL));
-    ESP_ERROR_CHECK(i2s_set_pin(BSP_I2S_NUM, &i2s_pin_config));
+    /* Setup I2S channels */
+    const i2s_std_config_t std_cfg_default = BSP_I2S_DUPLEX_MONO_CFG(22050);
+    const i2s_std_config_t *p_i2s_cfg = &std_cfg_default;
+    if (i2s_config != NULL) {
+        p_i2s_cfg = i2s_config;
+    }
+
+    if (tx_channel != NULL) {
+        ESP_ERROR_CHECK(i2s_channel_init_std_mode(*tx_channel, p_i2s_cfg));
+        ESP_ERROR_CHECK(i2s_channel_enable(*tx_channel));
+    }
+    if (rx_channel != NULL) {
+        ESP_ERROR_CHECK(i2s_channel_init_std_mode(*rx_channel, p_i2s_cfg));
+        ESP_ERROR_CHECK(i2s_channel_enable(*rx_channel));
+    }
 
     /* Setup power amplifier pin */
     const gpio_config_t io_conf = {
@@ -67,20 +76,6 @@ void bsp_audio_init(const i2s_config_t *i2s_config)
         .pull_up_en = GPIO_PULLDOWN_DISABLE,
     };
     ESP_ERROR_CHECK(gpio_config(&io_conf));
-}
-
-void bsp_audio_deinit(void)
-{
-    ESP_ERROR_CHECK_WITHOUT_ABORT(i2s_driver_uninstall(BSP_I2S_NUM));
-    const gpio_config_t io_conf = {
-        .intr_type = GPIO_INTR_DISABLE,
-        .mode = GPIO_MODE_INPUT,
-        .pin_bit_mask = BIT64(BSP_POWER_AMP_IO),
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .pull_up_en = GPIO_PULLDOWN_DISABLE,
-    };
-
-    ESP_ERROR_CHECK_WITHOUT_ABORT(gpio_config(&io_conf));
 }
 
 void bsp_audio_poweramp_enable(bool enable)
@@ -241,7 +236,7 @@ static lv_disp_t *lvgl_port_display_init(void)
     ESP_LOGD(TAG, "Install LCD driver of st7789");
     esp_lcd_panel_handle_t panel_handle = NULL;
     const esp_lcd_panel_dev_config_t panel_config = {
-        .reset_gpio_num = BSP_LCD_RST,
+        .reset_gpio_num = BSP_LCD_RST, // Shared with Touch reset
         .color_space = ESP_LCD_COLOR_SPACE_BGR,
         .bits_per_pixel = 16,
     };
@@ -250,9 +245,7 @@ static lv_disp_t *lvgl_port_display_init(void)
     esp_lcd_panel_reset(panel_handle);
     esp_lcd_panel_init(panel_handle);
     esp_lcd_panel_mirror(panel_handle, true, true);
-    /* In IDF v5.0 esp_lcd_panel_disp_on_off() must be called to turn on the display (display is not turned on automatically in IDF v5.0).
-       However, a function with same behaviour - esp_lcd_panel_disp_off() is called here for compatibility with IDF v4.4 */
-    esp_lcd_panel_disp_off(panel_handle, false);
+    esp_lcd_panel_disp_on_off(panel_handle, true);
 
     // alloc draw buffers used by LVGL
     // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
@@ -280,11 +273,11 @@ static void lvgl_port_indev_init(void)
     lv_indev_t *indev_touchpad;
 
     /* Initialize touch */
-    esp_lcd_touch_config_t tp_cfg = {
+    const esp_lcd_touch_config_t tp_cfg = {
         .x_max = BSP_LCD_H_RES,
         .y_max = BSP_LCD_V_RES,
-        .rst_gpio_num = GPIO_NUM_NC,
-        .int_gpio_num = GPIO_NUM_NC, //GPIO_NUM_3
+        .rst_gpio_num = GPIO_NUM_NC, // Shared with LCD reset
+        .int_gpio_num = BSP_LCD_TOUCH_INT,
         .levels = {
             .reset = 0,
             .interrupt = 0,
@@ -294,15 +287,12 @@ static void lvgl_port_indev_init(void)
             .mirror_x = 1,
             .mirror_y = 0,
         },
-        .device = {
-            .i2c = {
-                .port = BSP_I2C_NUM,
-            }
-        }
     };
-    ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_tt21100(&tp_cfg, &tp));
+    esp_lcd_panel_io_handle_t tp_io_handle = NULL;
+    const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle));
+    ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, &tp));
     assert(tp);
-
 
     /* Register a touchpad input device */
     lv_indev_drv_init(&indev_drv_tp);

@@ -18,8 +18,6 @@
 #include "lvgl.h"
 #include "disp_example.h"
 
-#define TAG "Kaluga"
-
 /* Buffer for reading/writing to I2S driver. Same length as SPIFFS buffer and I2S buffer, for optimal read/write performance.
    Recording audio data path:
    I2S peripheral -> I2S buffer (DMA) -> App buffer (RAM) -> SPIFFS buffer -> External SPI Flash.
@@ -32,11 +30,14 @@
 #define RECORDING_LENGTH (160)
 
 /* Globals */
+static const char *TAG = "Kaluga";
 static button_handle_t audio_button[BSP_BUTTON_NUM] = {};
 static QueueHandle_t audio_button_q = NULL;
 static led_strip_t *rgb_led = NULL;
+static i2s_chan_handle_t i2s_tx_chan;
+static i2s_chan_handle_t i2s_rx_chan;
 
-static void btn_handler(void *arg)
+static void btn_handler(void *arg, void *arg2)
 {
     for (uint8_t i = 0; i < BSP_BUTTON_NUM; i++) {
         if ((button_handle_t)arg == audio_button[i]) {
@@ -101,11 +102,9 @@ static esp_err_t spiffs_init(void)
 
 static void audio_task(void *arg)
 {
-    const i2s_config_t i2s_config = BSP_I2S_DUPLEX_MONO_CONFIG(SAMPLE_RATE);
-    const es8311_clock_config_t clk_cfg = BSP_ES8311_SCLK_CONFIG(SAMPLE_RATE);
-
     /* Create and configure ES8311 I2C driver */
     es8311_handle_t es8311_dev = es8311_create(BSP_I2C_NUM, ES8311_ADDRRES_0);
+    const es8311_clock_config_t clk_cfg = BSP_ES8311_SCLK_CONFIG(SAMPLE_RATE);
     es8311_init(es8311_dev, &clk_cfg, ES8311_RESOLUTION_16, ES8311_RESOLUTION_16);
     es8311_voice_volume_set(es8311_dev, DEFAULT_VOLUME, NULL);
 
@@ -113,7 +112,8 @@ static void audio_task(void *arg)
     es8311_microphone_config(es8311_dev, false);
     es8311_microphone_gain_set(es8311_dev, ES8311_MIC_GAIN_42DB);
 
-    bsp_audio_init(&i2s_config);
+    /* Configure I2S peripheral and Power Amplifier */
+    bsp_audio_init(NULL, &i2s_tx_chan, &i2s_rx_chan);
     bsp_audio_poweramp_enable(true);
 
     /* Pointer to a file that is going to be played */
@@ -147,14 +147,12 @@ static void audio_task(void *arg)
                 }
 
                 disp_set_recording(true);
-                ESP_ERROR_CHECK(i2s_zero_dma_buffer(BSP_I2S_NUM)); // Reset RX buffers before i2s_read
                 ESP_LOGI(TAG, "Recording start");
 
                 size_t bytes_written_to_spiffs = 0;
                 while (bytes_written_to_spiffs < RECORDING_LENGTH * BUFFER_SIZE) {
                     size_t bytes_received_from_i2s;
-
-                    ESP_ERROR_CHECK(i2s_read(BSP_I2S_NUM, recording_buffer, BUFFER_SIZE, &bytes_received_from_i2s, pdMS_TO_TICKS(5000)));
+                    ESP_ERROR_CHECK(i2s_channel_read(i2s_rx_chan, recording_buffer, BUFFER_SIZE, &bytes_received_from_i2s, pdMS_TO_TICKS(5000)));
 
                     /* Write WAV file data */
                     size_t data_written = fwrite(recording_buffer, 1, bytes_received_from_i2s, record_file);
@@ -209,7 +207,7 @@ static void audio_task(void *arg)
 
                     /* Send it to I2S */
                     size_t i2s_bytes_written;
-                    ESP_ERROR_CHECK(i2s_write(BSP_I2S_NUM, wav_bytes, bytes_read_from_spiffs, &i2s_bytes_written, pdMS_TO_TICKS(500)));
+                    ESP_ERROR_CHECK(i2s_channel_write(i2s_tx_chan, wav_bytes, bytes_read_from_spiffs, &i2s_bytes_written, pdMS_TO_TICKS(500)));
                     bytes_send_to_i2s += i2s_bytes_written;
                 }
 

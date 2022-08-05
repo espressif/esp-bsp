@@ -9,7 +9,7 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/i2c.h"
-#include "driver/i2s.h"
+#include "driver/i2s_std.h"
 #include "soc/usb_pins.h"
 #include "lvgl.h"
 
@@ -97,29 +97,41 @@ extern "C" {
  *  - Codec ES8311 for output (playback) path
  *  - ADC ES7210 for input (recording) path
  *
- * After initialization of I2S, use BSP_I2S_NUM macro when reading/writing to I2S stream:
+ * After initialization of I2S with bsp_audio_init(), use standard I2S drive API for reading/writing to I2S stream:
  * \code{.c}
- * i2s_write(BSP_I2S_NUM, wav_bytes, wav_bytes_len, &i2s_bytes_written, pdMS_TO_TICKS(500));
+ * i2s_write_channel(tx_handle, wav_bytes, wav_bytes_len, &i2s_bytes_written, pdMS_TO_TICKS(500));
  * \endcode
  **************************************************************************************************/
-#define BSP_I2S_NUM           CONFIG_BSP_I2S_NUM
 
 /**
- * @brief Mono Duplex I2S init structure
+ * @brief ESP-BOX I2S pinout
  *
+ * Can be used for i2s_std_gpio_config_t and/or i2s_std_config_t initialization
  */
-#define BSP_I2S_DUPLEX_MONO_CONFIG(_sample_rate)                      \
-    {                                                                 \
-        .mode = I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX,          \
-        .sample_rate = _sample_rate,                                  \
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,                 \
-        .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,                  \
-        .communication_format = I2S_COMM_FORMAT_STAND_I2S,            \
-        .dma_buf_count = 3,                                           \
-        .dma_buf_len = 1024,                                          \
-        .use_apll = true,                                             \
-        .tx_desc_auto_clear = true,                                   \
-        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL2 | ESP_INTR_FLAG_IRAM \
+#define BSP_I2S_GPIO_CFG       \
+    {                          \
+        .mclk = BSP_I2S_MCLK,  \
+        .bclk = BSP_I2S_SCLK,  \
+        .ws = BSP_I2S_LCLK,    \
+        .dout = BSP_I2S_DOUT,  \
+        .din = BSP_I2S_DSIN,   \
+        .invert_flags = {      \
+            .mclk_inv = false, \
+            .bclk_inv = false, \
+            .ws_inv = false,   \
+        },                     \
+    }
+
+/**
+ * @brief Mono Duplex I2S configuration structure
+ *
+ * This configuration is used by default in bsp_audio_init()
+ */
+#define BSP_I2S_DUPLEX_MONO_CFG(_sample_rate)                                                         \
+    {                                                                                                 \
+        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(_sample_rate),                                          \
+        .slot_cfg = I2S_STD_PHILIP_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO), \
+        .gpio_cfg = BSP_I2S_GPIO_CFG,                                                                 \
     }
 
 /**
@@ -137,16 +149,12 @@ extern "C" {
 /**
  * @brief Init audio
  *
- * @param[in] i2s_config I2S configuration
+ * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
+ * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
+ * @param[out] tx_channel I2S TX channel
+ * @param[out] rx_channel I2S RX channel
  */
-void bsp_audio_init(const i2s_config_t *i2s_config);
-
-/**
- * @brief Deinit audio
- *
- * Frees resources used for I2S driver.
- */
-void bsp_audio_deinit(void);
+void bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel);
 
 /**
  * @brief Enable/disable audio power amplifier

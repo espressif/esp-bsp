@@ -4,5 +4,5 @@ targets:
 dependencies:
   idf: ">=4.4"
   esp-box:
-    version: "^1.0"
+    version: "*"
     override_path: "../../../esp-box"

@@ -9,7 +9,7 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/i2c.h"
-#include "driver/i2s.h"
+#include "driver/i2s_std.h"
 #include "driver/touch_pad.h"
 #include "iot_button.h"
 #include "lvgl.h"
@@ -81,24 +81,36 @@ extern "C" {
  * i2s_write(BSP_I2S_NUM, wav_bytes, wav_bytes_len, &i2s_bytes_written, pdMS_TO_TICKS(500));
  * \endcode
  **************************************************************************************************/
-#define BSP_I2S_NUM           (I2S_NUM_0) // ESP32-S2 has only 1 I2S peripheral
 
 /**
- * @brief Mono Duplex I2S init structure
+ * @brief Kaluga-kit I2S pinout
  *
+ * Can be used for i2s_std_gpio_config_t and/or i2s_std_config_t initialization
  */
-#define BSP_I2S_DUPLEX_MONO_CONFIG(_sample_rate)                      \
-    {                                                                 \
-        .mode = I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX,          \
-        .sample_rate = _sample_rate,                                  \
-        .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,                 \
-        .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,                  \
-        .communication_format = I2S_COMM_FORMAT_STAND_I2S,            \
-        .dma_buf_count = 3,                                           \
-        .dma_buf_len = 1024,                                          \
-        .use_apll = true,                                             \
-        .tx_desc_auto_clear = true,                                   \
-        .intr_alloc_flags = ESP_INTR_FLAG_LEVEL2 | ESP_INTR_FLAG_IRAM \
+#define BSP_I2S_GPIO_CFG       \
+    {                          \
+        .mclk = BSP_I2S_MCLK,  \
+        .bclk = BSP_I2S_SCLK,  \
+        .ws = BSP_I2S_LCLK,    \
+        .dout = BSP_I2S_DOUT,  \
+        .din = BSP_I2S_DSIN,   \
+        .invert_flags = {      \
+            .mclk_inv = false, \
+            .bclk_inv = false, \
+            .ws_inv = false,   \
+        },                     \
+    }
+
+/**
+ * @brief Mono Duplex I2S configuration structure
+ *
+ * This configuration is used by default in bsp_audio_init()
+ */
+#define BSP_I2S_DUPLEX_MONO_CFG(_sample_rate)                                                         \
+    {                                                                                                 \
+        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(_sample_rate),                                          \
+        .slot_cfg = I2S_STD_PHILIP_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO), \
+        .gpio_cfg = BSP_I2S_GPIO_CFG,                                                                 \
     }
 
 /**
@@ -116,16 +128,12 @@ extern "C" {
 /**
  * @brief Init audio
  *
- * @param[in] i2s_config I2S configuration
+ * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
+ * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
+ * @param[out] tx_channel I2S TX channel
+ * @param[out] rx_channel I2S RX channel
  */
-void bsp_audio_init(const i2s_config_t *i2s_config);
-
-/**
- * @brief Deinit audio
- *
- * Frees resources used for I2S driver.
- */
-void bsp_audio_deinit(void);
+void bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel);
 
 /**
  * @brief Enable/disable audio power amplifier
@@ -177,8 +185,10 @@ void bsp_i2c_deinit(void);
 /**
  * @brief Kaluga camera default configuration
  *
- * In this configuration we select RGB565 color format and 320x240 image size,
- * we place the frame buffer to internal DRAM so we can sent it to LCD display without any changes.
+ * In this configuration we select RGB565 color format and 320x240 image size - matching the display.
+ * We use double-buffering for the best performance.
+ * Since ESP32-S2 has only 320kB of internal SRAM, we allocate the framebuffers in external PSRAM.
+ * By setting XCLK to 16MHz, we configure the esp32-camera driver to use EDMA when accessing the PSRAM.
  */
 #define BSP_CAMERA_DEFAULT_CONFIG         \
     {                                     \
@@ -198,13 +208,13 @@ void bsp_i2c_deinit(void);
         .pin_vsync = BSP_CAMERA_VSYNC,    \
         .pin_href = BSP_CAMERA_HSYNC,     \
         .pin_pclk = BSP_CAMERA_PCLK,      \
-        .xclk_freq_hz = 20000000,         \
+        .xclk_freq_hz = 16000000,         \
         .ledc_timer = LEDC_TIMER_0,       \
         .ledc_channel = LEDC_CHANNEL_0,   \
         .pixel_format = PIXFORMAT_RGB565, \
         .frame_size = FRAMESIZE_QVGA,     \
         .jpeg_quality = 12,               \
-        .fb_count = 1,                    \
+        .fb_count = 2,                    \
         .fb_location = CAMERA_FB_IN_PSRAM \
     }
 

@@ -317,17 +317,17 @@ bool bsp_voltage_init(void);
  * @brief Get battery voltage
  *
  * @note bsp_voltage_init() must be called first
- * @return uint32_t Resulting voltage in [mV]
+ * @return Resulting voltage in [mV]
  */
-uint32_t bsp_voltage_battery_get(void);
+int bsp_voltage_battery_get(void);
 
 /**
  * @brief Get USB device connector voltage
  *
  * @note bsp_voltage_init() must be called first
- * @return uint32_t Resulting voltage in [mV]
+ * @return Resulting voltage in [mV]
  */
-uint32_t bsp_voltage_usb_get(void);
+int bsp_voltage_usb_get(void);
 
 #ifdef __cplusplus
 }
