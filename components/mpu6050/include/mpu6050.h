@@ -55,6 +55,11 @@ typedef struct {
 } mpu6050_gyro_value_t;
 
 typedef struct {
+    float temp;
+} mpu6050_temp_value_t;
+
+
+typedef struct {
     float roll;
     float pitch;
 } complimentary_angle_t;

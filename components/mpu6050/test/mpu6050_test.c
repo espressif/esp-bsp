@@ -64,6 +64,7 @@ TEST_CASE("Sensor mpu6050 test", "[mpu6050][iot][sensor]")
     uint8_t mpu6050_deviceid;
     mpu6050_acce_value_t acce;
     mpu6050_gyro_value_t gyro;
+    mpu6050_temp_value_t temp;
 
     i2c_sensor_mpu6050_init();
 
@@ -78,6 +79,10 @@ TEST_CASE("Sensor mpu6050 test", "[mpu6050][iot][sensor]")
     ret = mpu6050_get_gyro(mpu6050, &gyro);
     TEST_ASSERT_EQUAL(ESP_OK, ret);
     ESP_LOGI(TAG, "gyro_x:%.2f, gyro_y:%.2f, gyro_z:%.2f\n", gyro.gyro_x, gyro.gyro_y, gyro.gyro_z);
+
+    ret = mpu6050_get_temp(mpu6050, &temp);
+    TEST_ASSERT_EQUAL(ESP_OK, ret);
+    ESP_LOGI(TAG, "t:%.2f \n", temp.temp);
 
     mpu6050_delete(mpu6050);
     ret = i2c_driver_delete(I2C_MASTER_NUM);
