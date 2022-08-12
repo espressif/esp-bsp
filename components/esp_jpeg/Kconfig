@@ -2,7 +2,7 @@ menu "JPEG Decoder"
 
     config JD_USE_ROM
         bool "Use TinyJPG Decoder from ROM"
-        depends on !IDF_TARGET_ESP32S2
+        depends on (!IDF_TARGET_ESP32S2 && !IDF_TARGET_ESP32C2)
         default y
         help
             By default, Espressif SoCs use TJpg decoder implemented in ROM code. 
