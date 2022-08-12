@@ -20,6 +20,7 @@
 #define MPU6050_ACCEL_CONFIG        0x1Cu
 #define MPU6050_ACCEL_XOUT_H        0x3Bu
 #define MPU6050_GYRO_XOUT_H         0x43u
+#define MPU6050_TEMP_XOUT_H         0x41u
 #define MPU6050_PWR_MGMT_1          0x6Bu
 #define MPU6050_WHO_AM_I            0x75u
 
