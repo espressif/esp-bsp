@@ -20,9 +20,15 @@
 #else
 #error Using JPEG decoder from ROM is not supported for selected target. Please select external code in menuconfig.
 #endif
+
+/* The ROM code of TJPGD is older and has different return type in decode callback */
+typedef unsigned int jpeg_decode_out_t;
 #else
 /* When Tiny JPG Decoder is not in ROM or selected external code */
 #include "tjpgd.h"
+
+/* The TJPGD outside the ROM code is newer and has different return type in decode callback */
+typedef int jpeg_decode_out_t;
 #endif
 
 static const char *TAG = "JPEG";
@@ -58,7 +64,7 @@ static uint8_t jpeg_get_div_by_scale(esp_jpeg_image_scale_t scale);
 static uint8_t jpeg_get_color_bytes(esp_jpeg_image_format_t format);
 
 static unsigned int jpeg_decode_in_cb(JDEC *jd, uint8_t *buff, unsigned int nbyte);
-static unsigned int jpeg_decode_out_cb(JDEC *jd, void *bitmap, JRECT *rect);
+static jpeg_decode_out_t jpeg_decode_out_cb(JDEC *jd, void *bitmap, JRECT *rect);
 /*******************************************************************************
 * Public API functions
 *******************************************************************************/
@@ -133,7 +139,7 @@ static unsigned int jpeg_decode_in_cb(JDEC *dec, uint8_t *buff, unsigned int nby
     return to_read;
 }
 
-static unsigned int jpeg_decode_out_cb(JDEC *dec, void *bitmap, JRECT *rect)
+static jpeg_decode_out_t jpeg_decode_out_cb(JDEC *dec, void *bitmap, JRECT *rect)
 {
     uint16_t color = 0;
     assert(dec != NULL);
