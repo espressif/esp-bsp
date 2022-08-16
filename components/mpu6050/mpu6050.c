@@ -20,6 +20,7 @@
 #define MPU6050_ACCEL_CONFIG        0x1Cu
 #define MPU6050_ACCEL_XOUT_H        0x3Bu
 #define MPU6050_GYRO_XOUT_H         0x43u
+#define MPU6050_TEMP_XOUT_H         0x41u
 #define MPU6050_PWR_MGMT_1          0x6Bu
 #define MPU6050_WHO_AM_I            0x75u
 
@@ -254,6 +255,14 @@ esp_err_t mpu6050_get_gyro(mpu6050_handle_t sensor, mpu6050_gyro_value_t *const 
     gyro_value->gyro_y = raw_gyro.raw_gyro_y / gyro_sensitivity;
     gyro_value->gyro_z = raw_gyro.raw_gyro_z / gyro_sensitivity;
     return ESP_OK;
+}
+
+esp_err_t mpu6050_get_temp(mpu6050_handle_t sensor, mpu6050_temp_value_t *const temp_value)
+{
+    uint8_t data_rd[2];
+    esp_err_t ret = mpu6050_read(sensor, MPU6050_TEMP_XOUT_H, data_rd, sizeof(data_rd));
+    temp_value->temp = (int16_t)((data_rd[0] << 8) | (data_rd[1])) / 340.00 + 36.53;
+    return ret;
 }
 
 esp_err_t mpu6050_complimentory_filter(mpu6050_handle_t sensor, const mpu6050_acce_value_t *const acce_value,

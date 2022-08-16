@@ -55,6 +55,11 @@ typedef struct {
 } mpu6050_gyro_value_t;
 
 typedef struct {
+    float temp;
+} mpu6050_temp_value_t;
+
+
+typedef struct {
     float roll;
     float pitch;
 } complimentary_angle_t;
@@ -210,6 +215,19 @@ esp_err_t mpu6050_get_gyro(mpu6050_handle_t sensor, mpu6050_gyro_value_t *const 
  *     - ESP_OK Success
  *     - ESP_FAIL Fail
  */
+
+/**
+ * @brief Read temperature values
+ *
+ * @param sensor object handle of mpu6050
+ * @param temp_value temperature measurements
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_FAIL Fail
+ */
+esp_err_t mpu6050_get_temp(mpu6050_handle_t sensor, mpu6050_temp_value_t *const temp_value);
+
 esp_err_t mpu6050_complimentory_filter(mpu6050_handle_t sensor, const mpu6050_acce_value_t *const acce_value,
                                        const mpu6050_gyro_value_t *const gyro_value, complimentary_angle_t *const complimentary_angle);
 
