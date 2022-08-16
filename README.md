@@ -12,6 +12,10 @@ Board support packages for development boards using Espressif's SoCs, written in
 | [ESP32-S2-Kaluga Kit](esp32_s2_kaluga_kit) | ESP32-S2 | LCD display, audio codec + power amplifier,<br>smart LED and camera | <img src="docu/pics/kaluga.png" width="150">  |
 | [ESP32-S3-USB-OTG](esp32_s3_usb_otg) | ESP32-S3 | LCD display, uSD card slot, USB-OTG | <img src="docu/pics/esp32_s3_otg.png" width="150">  |
 
+## LCD and TOUCH drivers
+
+The BSP repository includes lot of LCD and Touch driver components. The list of available and planned LCDs is [here](LCD.md).
+
 ## How to use
 
 ### Examples
