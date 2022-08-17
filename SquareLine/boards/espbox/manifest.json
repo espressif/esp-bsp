@@ -1,0 +1,18 @@
+{
+    "name":"ESP-BOX",
+    "version":"1.0.0",
+    "mcu":"ESP32S3",
+
+    "screen_width":"320",
+    "screen_height":"240",
+    "screen_color_swap":true,
+
+    "short_description":"Espressif's ESP-BOX",
+    "long_description":"ESP32-S3-BOX is an AI voice development kit that is based on Espressif’s ESP32-S3 Wi-Fi + Bluetooth 5 (LE) SoC, with AI capabilities. In addition to ESP32-S3’s 512KB SRAM.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/esp-box.h",
+        "__ESP_BOARD_I2C_INIT__": "/* Initialize I2C (for touch and audio) */\n    bsp_i2c_init();"
+    }
+}

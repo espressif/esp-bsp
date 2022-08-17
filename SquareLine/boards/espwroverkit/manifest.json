@@ -1,0 +1,18 @@
+{
+    "name":"ESP WROVER KIT",
+    "version":"1.0.0",
+    "mcu":"ESP32",
+
+    "screen_width":"240",
+    "screen_height":"320",
+    "screen_color_swap":true,
+
+    "short_description":"Espressif's ESP WROVER KIT",
+    "long_description":"ESP-WROVER-KIT is an ESP32-based development board produced by Espressif.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/esp_wrover_kit.h",
+        "__ESP_BOARD_I2C_INIT__": ""
+    }
+}
