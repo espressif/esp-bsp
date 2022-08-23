@@ -1,0 +1,19 @@
+# LCD screen and touch controllers list
+
+The list of available LCD displays and links to LCD driver component and touch driver component.
+
+|    Picture                               | Name | LCD Controller | LCD Driver | Touch Controller | Touch Driver | Notes |
+| ---------------------------------------- | ---- | -------------- | ---------- | ---------------- | ------------ | ----- |
+| <img src="docu/pics/wrover.png" width="150"> | [ESP-WROVER-KIT](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/hw-reference/esp32/get-started-wrover-kit.html) | ST7789  | [IDF](https://github.com/espressif/esp-idf/tree/master/components/esp_lcd) | - | - | | 
+| <img src="docu/pics/wrover.png" width="150"> | [ESP-WROVER-KIT](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/hw-reference/esp32/get-started-wrover-kit.html) | ILI9341 | [IDF](https://github.com/espressif/esp-idf/tree/master/components/esp_lcd) | -| - | | 
+| <img src="docu/pics/box.webp" width="150"> | ESP-BOX | ST7789 | [IDF](https://github.com/espressif/esp-idf/tree/master/components/esp_lcd) | TT21100 | [Component Manager](https://components.espressif.com/component/espressif/esp_lcd_touch_tt21100) | |
+| <img src="docu/pics/kaluga.png" width="150"> | [ESP32-S2-Kaluga Kit](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/hw-reference/esp32s2/user-guide-esp32-s2-kaluga-1-kit.html) | ST7789  | [IDF](https://github.com/espressif/esp-idf/tree/master/components/esp_lcd) | - | - | | 
+| <img src="docu/pics/esp32_s3_otg.png" width="150"> | [ESP32-S3-USB-OTG](https://docs.espressif.com/projects/espressif-esp-dev-kits/en/latest/esp32s3/esp32-s3-usb-otg/user_guide.html) | ST7789  | [IDF](https://github.com/espressif/esp-idf/tree/master/components/esp_lcd) | - | - | | 
+| <img src="docu/pics/esp32-s2-hmi-devkit-1-3d-v1.0.png" width="150"> | [ESP32-S2-HMI-DevKit-1](https://docs.espressif.com/projects/espressif-esp-dev-kits/en/latest/esp32s2/esp32-s2-hmi-devkit-1/user_guide.html#hardware-overview) | RM68120 | **IN PLAN** | FT5X06 | [Component Manager](https://components.espressif.com/component/espressif/esp_lcd_touch_ft5x06) | |
+| <img src="docu/pics/1.28inch-LCD-Module-1.jpg" width="150"> | [Waveshare 1.28" round LCD](https://www.waveshare.com/product/1.28inch-lcd-module.htm) | GC9A01 | [Component Manager](https://components.espressif.com/component/espressif/esp_lcd_gc9a01) | - | - | |
+| <img src="docu/pics/7inch-Capacitive-Touch-LCD-C_l.jpg" width="150"> | [Waveshare 7" LCD](https://www.waveshare.com/7inch-capacitive-touch-lcd-c.htm) | RA8875 | **IN PLAN** | GT911 | [Component Manager](https://components.espressif.com/component/espressif/esp_lcd_touch_gt911) | |
+| <img src="docu/pics/Adafruit-PiTFT.jpg" width="150"> | [Adafruit PiTFT - 2.8"](https://learn.adafruit.com/adafruit-pitft-28-inch-resistive-touchscreen-display-raspberry-pi) | ILI9341 | [Component Manager](https://components.espressif.com/component/espressif/esp_lcd_ili9341) | STMPE610 | [Component Manager](https://components.espressif.com/component/espressif/esp_lcd_touch_stmpe610) | |
+| <img src="docu/pics/ESP32-S3-Parallel-TFT-with-Touch-ILI9488-1000x750.jpg" width="150"> | [Makerfabs Parallel TFT](https://www.makerfabs.com/esp32-s3-parallel-tft-with-touch-ili9488.html) | ILI9488 | **IN PLAN** (Waiting for HW) | FT6236 | **IN PLAN** (Waiting for HW) | |
+| <img src="docu/pics/1.3inch-oled-module-c-1.jpg" width="150"> | [64×128 1.3" OLED](https://www.waveshare.com/1.3inch-oled-module-c.htm) | SH1107 | **IN PLAN** | - | - | |
+| <img src="docu/pics/ssd1306.jpg" width="150"> | 128x32 0,91" OLED | SSD1306 | [IDF](https://github.com/espressif/esp-idf/tree/master/components/esp_lcd) | - | - | |
+| ??? | ??? | SSD1963 | **N/A** | - | - | |
