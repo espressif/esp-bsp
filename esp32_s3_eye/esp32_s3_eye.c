@@ -1,48 +1,87 @@
 /*
- * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
  *
- * SPDX-License-Identifier: CC0-1.0
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdio.h>
-#include "bsp/esp_wrover_kit.h"
+#include "bsp/esp32_s3_eye.h"
 #include "esp_vfs_fat.h"
-#include "lvgl.h"
 #include "esp_timer.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
+#include "esp_log.h"
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 #include "driver/spi_master.h"
 #include "driver/ledc.h"
+#include "driver/i2c.h"
 
-#define TAG "Wrover"
+static const char *TAG = "S3-EYE";
 
 static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
 static lv_disp_drv_t disp_drv;      // contains callback functions
 static SemaphoreHandle_t lvgl_mux;  // LVGL mutex
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 
-void bsp_leds_init(void)
+const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+    {
+        .type = BUTTON_TYPE_ADC,
+        .adc_button_config.adc_channel = ADC1_CHANNEL_0, // ADC1 channel 0 is GPIO1
+        .adc_button_config.button_index = BSP_BUTTON_MENU,
+        .adc_button_config.min = 2310, // middle is 2410mV
+        .adc_button_config.max = 2510
+    },
+    {
+        .type = BUTTON_TYPE_ADC,
+        .adc_button_config.adc_channel = ADC1_CHANNEL_0, // ADC1 channel 0 is GPIO1
+        .adc_button_config.button_index = BSP_BUTTON_PLAY,
+        .adc_button_config.min = 1880, // middle is 1980mV
+        .adc_button_config.max = 2080
+    },
+    {
+        .type = BUTTON_TYPE_ADC,
+        .adc_button_config.adc_channel = ADC1_CHANNEL_0, // ADC1 channel 0 is GPIO1
+        .adc_button_config.button_index = BSP_BUTTON_DOWN,
+        .adc_button_config.min = 720, // middle is 820mV
+        .adc_button_config.max = 920
+    },
+    {
+        .type = BUTTON_TYPE_ADC,
+        .adc_button_config.adc_channel = ADC1_CHANNEL_0, // ADC1 channel 0 is GPIO1
+        .adc_button_config.button_index = BSP_BUTTON_UP,
+        .adc_button_config.min = 280, // middle is 380mV
+        .adc_button_config.max = 480
+    }
+};
+
+void bsp_i2c_init(void)
 {
-    const gpio_config_t led_io_config = {
-        .pin_bit_mask = BIT64(BSP_LED_RED) | BIT64(BSP_LED_GREEN) | BIT64(BSP_LED_BLUE),
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE
+    const i2c_config_t i2c_conf = {
+        .mode = I2C_MODE_MASTER,
+        .sda_io_num = BSP_I2C_SDA,
+        .sda_pullup_en = GPIO_PULLUP_ENABLE,
+        .scl_io_num = BSP_I2C_SCL,
+        .scl_pullup_en = GPIO_PULLUP_ENABLE,
+        .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
     };
-    ESP_ERROR_CHECK(gpio_config(&led_io_config));
+    ESP_ERROR_CHECK(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
+    ESP_ERROR_CHECK(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
 }
 
-void bsp_led_set(const bsp_led_t led_io, const bool on)
+void bsp_i2c_deinit(void)
 {
-    ESP_ERROR_CHECK(gpio_set_level((gpio_num_t) led_io, (uint32_t) on));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(i2c_driver_delete(BSP_I2C_NUM));
 }
+
 
 esp_err_t bsp_sdcard_mount(void)
 {
     const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-#ifdef CONFIG_BSP_uSD_FORMAT_ON_MOUNT_FAIL
+#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
         .format_if_mount_failed = true,
 #else
         .format_if_mount_failed = false,
@@ -51,33 +90,30 @@ esp_err_t bsp_sdcard_mount(void)
         .allocation_unit_size = 16 * 1024
     };
 
-    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
-    slot_config.width = 4;
+    const sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    const sdmmc_slot_config_t slot_config = {
+        .clk = BSP_SD_CLK,
+        .cmd = BSP_SD_CMD,
+        .d0 = BSP_SD_D0,
+        .d1 = GPIO_NUM_NC,
+        .d2 = GPIO_NUM_NC,
+        .d3 = GPIO_NUM_NC,
+        .d4 = GPIO_NUM_NC,
+        .d5 = GPIO_NUM_NC,
+        .d6 = GPIO_NUM_NC,
+        .d7 = GPIO_NUM_NC,
+        .cd = SDMMC_SLOT_NO_CD,
+        .wp = SDMMC_SLOT_NO_WP,
+        .width = 1,
+        .flags = 0,
+    };
 
-    return esp_vfs_fat_sdmmc_mount(CONFIG_BSP_uSD_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
+    return esp_vfs_fat_sdmmc_mount(BSP_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
 }
 
 esp_err_t bsp_sdcard_unmount(void)
 {
-    return esp_vfs_fat_sdcard_unmount(CONFIG_BSP_uSD_MOUNT_POINT, bsp_sdcard);
-}
-
-void bsp_button_init(const bsp_button_t btn)
-{
-    const gpio_config_t btn_io_config = {
-        .pin_bit_mask = BIT64(btn),
-        .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE
-    };
-    ESP_ERROR_CHECK(gpio_config(&btn_io_config));
-}
-
-bool bsp_button_get(const bsp_button_t btn)
-{
-    return !(bool)gpio_get_level(btn);
+    return esp_vfs_fat_sdcard_unmount(BSP_MOUNT_POINT, bsp_sdcard);
 }
 
 static bool lvgl_port_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
@@ -106,46 +142,36 @@ static void lvgl_port_update_callback(lv_disp_drv_t *drv)
     case LV_DISP_ROT_NONE:
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, false);
-#ifdef CONFIG_BSP_LCD_ILI9341
-        esp_lcd_panel_mirror(panel_handle, true, false);
-#else
         esp_lcd_panel_mirror(panel_handle, false, false);
-#endif
+        esp_lcd_panel_set_gap(panel_handle, 0, 0);
         break;
     case LV_DISP_ROT_90:
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, true);
-#ifdef CONFIG_BSP_LCD_ILI9341
-        esp_lcd_panel_mirror(panel_handle, true, true);
-#else
         esp_lcd_panel_mirror(panel_handle, false, true);
-#endif
+        esp_lcd_panel_set_gap(panel_handle, 80, 0);
         break;
     case LV_DISP_ROT_180:
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, false);
-#ifdef CONFIG_BSP_LCD_ILI9341
-        esp_lcd_panel_mirror(panel_handle, false, true);
-#else
         esp_lcd_panel_mirror(panel_handle, true, true);
-#endif
+        esp_lcd_panel_set_gap(panel_handle, 0, 80);
         break;
     case LV_DISP_ROT_270:
         // Rotate LCD display
         esp_lcd_panel_swap_xy(panel_handle, true);
-#ifdef CONFIG_BSP_LCD_ILI9341
-        esp_lcd_panel_mirror(panel_handle, false, false);
-#else
         esp_lcd_panel_mirror(panel_handle, true, false);
-#endif
+        esp_lcd_panel_set_gap(panel_handle, 0, 0);
         break;
     }
 }
+
 
 #define LCD_CMD_BITS         (8)
 #define LCD_PARAM_BITS       (8)
 #define LCD_LEDC_CH          (CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH)
 #define LVGL_TICK_PERIOD_MS  (CONFIG_BSP_DISPLAY_LVGL_TICK)
+#define LVGL_BUFF_SIZE_PIX   (BSP_LCD_H_RES * BSP_LCD_V_RES)
 
 static void bsp_display_brightness_init(void)
 {
@@ -176,8 +202,7 @@ void bsp_display_brightness_set(int brightness_percent)
 {
     if (brightness_percent > 100) {
         brightness_percent = 100;
-    }
-    if (brightness_percent < 0) {
+    } else if (brightness_percent < 0) {
         brightness_percent = 0;
     }
 
@@ -204,10 +229,10 @@ static lv_disp_t *lvgl_port_display_init(void)
     const spi_bus_config_t buscfg = {
         .sclk_io_num = BSP_LCD_SPI_CLK,
         .mosi_io_num = BSP_LCD_SPI_MOSI,
-        .miso_io_num = BSP_LCD_SPI_MISO,
-        .quadwp_io_num = -1,
-        .quadhd_io_num = -1,
-        .max_transfer_sz = BSP_LCD_H_RES * 80 * sizeof(uint16_t),
+        .miso_io_num = GPIO_NUM_NC,
+        .quadwp_io_num = GPIO_NUM_NC,
+        .quadhd_io_num = GPIO_NUM_NC,
+        .max_transfer_sz = LVGL_BUFF_SIZE_PIX * sizeof(lv_color_t),
     };
     ESP_ERROR_CHECK(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO));
 
@@ -219,7 +244,7 @@ static lv_disp_t *lvgl_port_display_init(void)
         .pclk_hz = BSP_LCD_PIXEL_CLOCK_HZ,
         .lcd_cmd_bits = LCD_CMD_BITS,
         .lcd_param_bits = LCD_PARAM_BITS,
-        .spi_mode = 0,
+        .spi_mode = 2,
         .trans_queue_depth = 10,
         .on_color_trans_done = lvgl_port_flush_ready,
         .user_ctx = &disp_drv,
@@ -231,30 +256,26 @@ static lv_disp_t *lvgl_port_display_init(void)
     esp_lcd_panel_handle_t panel_handle = NULL;
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = BSP_LCD_RST,
-#ifdef CONFIG_BSP_LCD_ILI9341
-        .color_space = ESP_LCD_COLOR_SPACE_BGR,
-#else
         .color_space = ESP_LCD_COLOR_SPACE_RGB,
-#endif
         .bits_per_pixel = 16,
     };
     ESP_ERROR_CHECK(esp_lcd_new_panel_st7789(io_handle, &panel_config, &panel_handle));
 
     esp_lcd_panel_reset(panel_handle);
     esp_lcd_panel_init(panel_handle);
-#ifdef CONFIG_BSP_LCD_ILI9341
-    esp_lcd_panel_mirror(panel_handle, true, false);
-#endif
+    esp_lcd_panel_invert_color(panel_handle, true);
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
     esp_lcd_panel_disp_off(panel_handle, false);
+#else
+    esp_lcd_panel_disp_on_off(panel_handle, true);
+#endif
 
     // alloc draw buffers used by LVGL
     // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
-    lv_color_t *buf1 = heap_caps_malloc(BSP_LCD_H_RES * 20 * sizeof(lv_color_t), MALLOC_CAP_DMA);
+    // but we allocate one full frame buffer for best performance
+    lv_color_t *buf1 = heap_caps_malloc(LVGL_BUFF_SIZE_PIX * sizeof(lv_color_t), MALLOC_CAP_DMA);
     assert(buf1);
-    lv_color_t *buf2 = heap_caps_malloc(BSP_LCD_H_RES * 20 * sizeof(lv_color_t), MALLOC_CAP_DMA);
-    assert(buf2);
-    // initialize LVGL draw buffers
-    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, BSP_LCD_H_RES * 20);
+    lv_disp_draw_buf_init(&disp_buf, buf1, NULL, LVGL_BUFF_SIZE_PIX);
 
     ESP_LOGI(TAG, "Registering display driver to LVGL");
     lv_disp_drv_init(&disp_drv);
@@ -275,7 +296,7 @@ static void lvgl_port_tick_increment(void *arg)
 
 static esp_err_t lvgl_port_tick_init(void)
 {
-    // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
+    // Tick interface for LVGL (using esp_timer to generate periodic event)
     const esp_timer_create_args_t lvgl_tick_timer_args = {
         .callback = &lvgl_port_tick_increment,
         .name = "LVGL tick"
@@ -290,12 +311,9 @@ static void lvgl_port_task(void *arg)
     ESP_LOGI(TAG, "Starting LVGL task");
     while (1) {
         bsp_display_lock(0);
-        uint32_t task_delay_ms = lv_timer_handler();
+        lv_timer_handler();
         bsp_display_unlock();
-        if (task_delay_ms > 500) {
-            task_delay_ms = 500;
-        }
-        vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
@@ -307,13 +325,8 @@ lv_disp_t *bsp_display_start(void)
     lvgl_port_tick_init();
     lvgl_mux = xSemaphoreCreateMutex();
     assert(lvgl_mux);
-    xTaskCreate(lvgl_port_task, "LVGL task", 4096, NULL, CONFIG_BSP_DISPLAY_LVGL_TASK_PRIORITY, NULL);
+    xTaskCreatePinnedToCore(lvgl_port_task, "LVGL task", 4096, NULL, CONFIG_BSP_DISPLAY_LVGL_TASK_PRIORITY, NULL, 1);
     return disp;
-}
-
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
-{
-    lv_disp_set_rotation(disp, rotation);
 }
 
 bool bsp_display_lock(uint32_t timeout_ms)
@@ -328,4 +341,26 @@ void bsp_display_unlock(void)
 {
     assert(lvgl_mux && "bsp_display_start must be called first");
     xSemaphoreGive(lvgl_mux);
+}
+
+void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
+{
+    lv_disp_set_rotation(disp, rotation);
+}
+
+void bsp_leds_init(void)
+{
+    const gpio_config_t led_io_config = {
+        .pin_bit_mask = BIT64(BSP_LED_GREEN),
+        .mode = GPIO_MODE_OUTPUT_OD, // GPIO3 is connected directly to the LED (on board revision 2.1), so we use Open-drain here
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    ESP_ERROR_CHECK(gpio_config(&led_io_config));
+}
+
+void bsp_led_set(const bsp_led_t led_io, const bool on)
+{
+    ESP_ERROR_CHECK(gpio_set_level((gpio_num_t) led_io, (uint32_t) on));
 }
