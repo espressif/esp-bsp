@@ -11,6 +11,8 @@ BOARDS_DIR = "boards/"
 COMMON_DIR = "common/"
 # JSON file which describing the board (must be in each board directory)
 BOARD_GENFILE = "manifest.json"
+# Components specific folder in specific board folder. Will be copied from boards/BOARD/ directory
+COMPONENTS_SPECIFIC_FILES = "components"
 # Files, which are specific for each board. Will be copied from boards/BOARD/ directory
 BOARD_SPECIFIC_FILES = {"sdkconfig.defaults", "main/idf_component.yml"}
 # Generated output directory
@@ -96,16 +98,16 @@ def copy_file(src_path, dst_path, placeholders, translate=1):
         replace_placeholders(dst_path, placeholders)
 
 # Copy all files in directory
-def copy_directory(from_dir, to_dir, placeholders):
+def copy_directory(from_dir, to_dir, placeholders, translate=1):
     if not os.path.exists(to_dir):
         os.makedirs(to_dir)
     for filename in os.listdir(from_dir):
         f = os.path.join(from_dir, filename)
         out_f = os.path.join(to_dir, filename)
         if os.path.isdir(f):
-            copy_directory(f, out_f, placeholders)
+            copy_directory(f, out_f, placeholders, translate)
         else:
-            copy_file(f, out_f, placeholders)
+            copy_file(f, out_f, placeholders, translate)
 
 # Add folder into ZIP archive recursively
 def zip_add_folder(zip_obj, path, outdir):
@@ -194,6 +196,10 @@ def process_board(board_name, output, dir):
         # Copy specific board files
         for file in BOARD_SPECIFIC_FILES:
             copy_file(os.path.join(dir, file), os.path.join(squareline_dir_path, file), placeholders)
+        # Copy components, if exists
+        components_dir_path = os.path.join(dir, COMPONENTS_SPECIFIC_FILES)
+        if os.path.exists(components_dir_path):
+            copy_directory(components_dir_path, os.path.join(squareline_dir_path, "components"), placeholders, 0)
         # Copy image
         copy_file(os.path.join(dir, "image.png"), os.path.join(output, output_filename + ".png"), placeholders, 0)
 
@@ -242,7 +248,7 @@ def main(outdir, sel_board):
         for dirname in os.listdir(BOARDS_DIR):
             d = os.path.join(BOARDS_DIR, dirname)
             # checking if it is a file
-            if os.path.isdir(d):
+            if os.path.isdir(d) and "custom" not in dirname:
                 process_board(dirname, os.path.join(output_folder, dirname), d)
 
     print_ok(f"Generating done! Output folder: {outdir}")

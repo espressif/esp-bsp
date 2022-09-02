@@ -1,0 +1,12 @@
+version: "1.0.0"
+description: Board Support Package for WaveShare 7inch
+url: https://github.com/espressif/esp-bsp/SquareLine/boards/custom_waveshare_7inch/components/ws_7inch
+
+dependencies:
+  idf: ">=5.0"
+  esp_lcd_ra8875: "^1"
+  esp_lcd_touch_gt911: "^1"
+
+  lvgl/lvgl:
+    version: "^8"
+    public: true
