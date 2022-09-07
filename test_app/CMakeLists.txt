@@ -21,5 +21,4 @@ endif()
 # Set the components to include the tests for.
 set(TEST_COMPONENTS bh1750 ssd1306 mpu6050 mag3110 hts221 fbm320 CACHE STRING "List of components to test")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-add_compile_options("-Wno-format")
 project(esp_bsp_test_app)

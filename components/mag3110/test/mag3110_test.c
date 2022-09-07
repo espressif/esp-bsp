@@ -43,7 +43,7 @@ static void i2c_bus_init(void)
 /**
  * @brief i2c master initialization
  */
-static void i2c_sensor_mag3110_init()
+static void i2c_sensor_mag3110_init(void)
 {
     i2c_bus_init();
     mag3110 = mag3110_create(I2C_MASTER_NUM);

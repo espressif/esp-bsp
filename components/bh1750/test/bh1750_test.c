@@ -39,7 +39,7 @@ static void i2c_bus_init(void)
     TEST_ASSERT_EQUAL_MESSAGE(ESP_OK, ret, "I2C install returned error");
 }
 
-void bh1750_init()
+void bh1750_init(void)
 {
     i2c_bus_init();
     bh1750 = bh1750_create(I2C_MASTER_NUM, BH1750_I2C_ADDRESS_DEFAULT);
