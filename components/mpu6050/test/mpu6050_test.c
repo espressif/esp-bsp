@@ -43,7 +43,7 @@ static void i2c_bus_init(void)
 /**
  * @brief i2c master initialization
  */
-static void i2c_sensor_mpu6050_init()
+static void i2c_sensor_mpu6050_init(void)
 {
     esp_err_t ret;
 

@@ -33,7 +33,7 @@
 static const char *TAG = "Kaluga";
 static button_handle_t audio_button[BSP_BUTTON_NUM] = {};
 static QueueHandle_t audio_button_q = NULL;
-static led_strip_t *rgb_led = NULL;
+static led_strip_handle_t rgb_led = NULL;
 static i2s_chan_handle_t i2s_tx_chan;
 static i2s_chan_handle_t i2s_rx_chan;
 
@@ -220,12 +220,12 @@ static void audio_task(void *arg)
                 /* Wit each button SET press, toggle RGB led on/off and set random color */
                 static bool rgb_off = false;
                 if (rgb_off) {
-                    rgb_led->set_pixel(rgb_led, 0, 0, 0, 0);
+                    led_strip_set_pixel(rgb_led, 0, 0, 0, 0);
                 } else {
-                    rgb_led->set_pixel(rgb_led, 0, rand() % 100, rand() % 100, rand() % 100);
+                    led_strip_set_pixel(rgb_led, 0, rand() % 100, rand() % 100, rand() % 100);
                 }
 
-                rgb_led->refresh(rgb_led, 100);
+                led_strip_refresh(rgb_led);
                 rgb_off = !rgb_off;
                 break;
             }
@@ -259,9 +259,16 @@ void app_main(void)
     /* Init board peripherals */
     bsp_i2c_init(); // Used by ES8311 driver
     ESP_ERROR_CHECK(spiffs_init());
-    rgb_led = led_strip_init(0, BSP_LEDSTRIP_IO, 1);
+
+    /* Configure RGB LED */
+    const led_strip_config_t rgb_config = {
+        .strip_gpio_num = BSP_LEDSTRIP_IO,
+        .max_leds = 1,
+    };
+    const led_strip_rmt_config_t rmt_config = {0};
+    led_strip_new_rmt_device(&rgb_config, &rmt_config, &rgb_led);
     assert(rgb_led != NULL);
-    ESP_ERROR_CHECK(rgb_led->clear(rgb_led, 100));
+    ESP_ERROR_CHECK(led_strip_clear(rgb_led));
 
     /* Needed from random RGB LED color generation */
     time_t t;

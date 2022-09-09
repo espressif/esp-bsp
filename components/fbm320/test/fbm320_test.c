@@ -43,7 +43,7 @@ static void i2c_bus_init(void)
 /**
  * @brief i2c master initialization
  */
-static void i2c_sensor_fbm320_init()
+static void i2c_sensor_fbm320_init(void)
 {
     i2c_bus_init();
     fbm320 = fbm320_create(I2C_MASTER_NUM, FBM320_I2C_ADDRESS_1);

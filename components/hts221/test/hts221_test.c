@@ -43,7 +43,7 @@ static void i2c_bus_init(void)
 /**
  * @brief i2c master initialization
  */
-static void i2c_sensor_hts221_init()
+static void i2c_sensor_hts221_init(void)
 {
     i2c_bus_init();
     hts221 = hts221_create(I2C_MASTER_NUM);
