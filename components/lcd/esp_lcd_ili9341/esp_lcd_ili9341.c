@@ -36,7 +36,7 @@ typedef struct {
     bool reset_level;
     int x_gap;
     int y_gap;
-    unsigned int bits_per_pixel;
+    uint8_t fb_bits_per_pixel;
     uint8_t madctl_val; // save current value of LCD_CMD_MADCTL register
     uint8_t colmod_cal; // save surrent value of LCD_CMD_COLMOD register
 } ili9341_panel_t;
@@ -69,12 +69,16 @@ esp_err_t esp_lcd_new_panel_ili9341(const esp_lcd_panel_io_handle_t io, const es
         break;
     }
 
+    uint8_t fb_bits_per_pixel = 0;
     switch (panel_dev_config->bits_per_pixel) {
-    case 16:
+    case 16: // RGB565
         ili9341->colmod_cal = 0x55;
+        fb_bits_per_pixel = 16;
         break;
-    case 18:
+    case 18: // RGB666
         ili9341->colmod_cal = 0x66;
+        // each color component (R/G/B) should occupy the 6 high bits of a byte, which means 3 full bytes are required for a pixel
+        fb_bits_per_pixel = 24;
         break;
     default:
         ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported pixel width");
@@ -82,7 +86,7 @@ esp_err_t esp_lcd_new_panel_ili9341(const esp_lcd_panel_io_handle_t io, const es
     }
 
     ili9341->io = io;
-    ili9341->bits_per_pixel = panel_dev_config->bits_per_pixel;
+    ili9341->fb_bits_per_pixel = fb_bits_per_pixel;
     ili9341->reset_gpio_num = panel_dev_config->reset_gpio_num;
     ili9341->reset_level = panel_dev_config->flags.reset_active_high;
     ili9341->base.del = panel_ili9341_del;
@@ -270,7 +274,7 @@ static esp_err_t panel_ili9341_draw_bitmap(esp_lcd_panel_t *panel, int x_start, 
         (y_end - 1) & 0xFF,
     }, 4);
     // transfer frame buffer
-    size_t len = (x_end - x_start) * (y_end - y_start) * ili9341->bits_per_pixel / 8;
+    size_t len = (x_end - x_start) * (y_end - y_start) * ili9341->fb_bits_per_pixel / 8;
     esp_lcd_panel_io_tx_color(io, LCD_CMD_RAMWR, color_data, len);
 
     return ESP_OK;
