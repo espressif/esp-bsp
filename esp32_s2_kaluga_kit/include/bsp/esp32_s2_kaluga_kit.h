@@ -132,15 +132,25 @@ extern "C" {
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
  * @param[out] tx_channel I2S TX channel
  * @param[out] rx_channel I2S RX channel
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
+ *      - ESP_ERR_INVALID_ARG   NULL pointer or invalid configuration
+ *      - ESP_ERR_NOT_FOUND     No available I2S channel found
+ *      - ESP_ERR_NO_MEM        No memory for storing the channel information
+ *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
  */
-void bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel);
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel);
 
 /**
  * @brief Enable/disable audio power amplifier
  *
  * @param[in] enable Enable/disable audio power amplifier
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Invalid GPIO number
  */
-void bsp_audio_poweramp_enable(bool enable);
+esp_err_t bsp_audio_poweramp_enable(bool enable);
 
 /**************************************************************************************************
  *
@@ -160,14 +170,23 @@ void bsp_audio_poweramp_enable(bool enable);
 /**
  * @brief Init I2C driver
  *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   I2C parameter error
+ *      - ESP_FAIL              I2C driver installation error
+ *
  */
-void bsp_i2c_init(void);
+esp_err_t bsp_i2c_init(void);
 
 /**
  * @brief Deinit I2C driver and free its resources
  *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   I2C parameter error
+ *
  */
-void bsp_i2c_deinit(void);
+esp_err_t bsp_i2c_deinit(void);
 
 /**************************************************************************************************
  *
@@ -240,7 +259,7 @@ void bsp_i2c_deinit(void);
  *
  * This function initializes SPI, display controller and starts LVGL handling task.
  *
- * @return Pointer to LVGL display
+ * @return Pointer to LVGL display or NULL when error occured
  */
 lv_disp_t *bsp_display_start(void);
 
@@ -261,8 +280,8 @@ void bsp_display_unlock(void);
 
 /* Backlight functions are not implemented - Kaluga board doesn't provide backlight control
    These functions are here to provide consistent API with other Board Support Packages */
-void bsp_display_backlight_on(void);
-void bsp_display_backlight_off(void);
+esp_err_t bsp_display_backlight_on(void);
+esp_err_t bsp_display_backlight_off(void);
 
 /**
  * @brief Rotate screen
@@ -333,22 +352,30 @@ typedef enum {
  * @attention This function initializes all touchpad buttons, including 'Photo' and 'Network' buttons,
  *            which have conflicts with Audio board buttons and LCD respectively.
  * @param[in] fn  Interrupt callback for touchpad peripheral.
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   NULL pointer or invalid configuration
+ *      - ESP_FAIL              Touch pad not initialized
+ *      - ESP_ERR_NO_MEM        No memory
  */
-void bsp_touchpad_init(intr_handler_t fn);
+esp_err_t bsp_touchpad_init(intr_handler_t fn);
 
 /**
  * @brief Deinit buttons on Touchpad board
  *
  */
-void bsp_touchpad_deinit(void);
+esp_err_t bsp_touchpad_deinit(void);
 
 /**
  * @brief Calibrate touch threshold
  *
  * @param[in] tch_pad       Touch pad from bsp_touchpad_button_t enum.
  * @param[in] tch_threshold Interrupt threshold ratio. Min.: 0, max.: 1.
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   NULL pointer or invalid configuration
  */
-void bsp_touchpad_calibrate(bsp_touchpad_button_t tch_pad, float tch_threshold);
+esp_err_t bsp_touchpad_calibrate(bsp_touchpad_button_t tch_pad, float tch_threshold);
 
 #ifdef __cplusplus
 }

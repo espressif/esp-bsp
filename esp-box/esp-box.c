@@ -20,12 +20,46 @@
 
 static const char *TAG = "ESP-BOX";
 
+/* Assert on error, if selected in menuconfig. Otherwise return error code. */
+//TODO: Move this code into common header
+#if CONFIG_BSP_ERROR_CHECK
+#define BSP_ERROR_CHECK_RETURN_ERR(x)    ESP_ERROR_CHECK(x)
+#define BSP_ERROR_CHECK_RETURN_NULL(x)   ESP_ERROR_CHECK(x)
+#define BSP_NULL_CHECK(x, ret)           assert(x)
+#define BSP_NULL_CHECK_GOTO(x, goto_tag) assert(x)
+#else
+#define BSP_ERROR_CHECK_RETURN_ERR(x) do { \
+        esp_err_t err_rc_ = (x);            \
+        if (unlikely(err_rc_ != ESP_OK)) {  \
+            return err_rc_;                 \
+        }                                   \
+    } while(0)
+
+#define BSP_ERROR_CHECK_RETURN_NULL(x)  do { \
+        if (unlikely((x) != ESP_OK)) {      \
+            return NULL;                    \
+        }                                   \
+    } while(0)
+
+#define BSP_NULL_CHECK(x, ret) do { \
+        if ((x) == NULL) {          \
+            return ret;             \
+        }                           \
+    } while(0)
+
+#define BSP_NULL_CHECK_GOTO(x, goto_tag) do { \
+        if ((x) == NULL) {      \
+            goto goto_tag;      \
+        }                       \
+    } while(0)
+#endif
+
 static lv_disp_draw_buf_t disp_buf; // Contains internal graphic buffer(s) called draw buffer(s)
 static lv_disp_drv_t disp_drv;      // Contains callback functions
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
 static SemaphoreHandle_t lvgl_mux;  // LVGL mutex
 
-void bsp_i2c_init(void)
+esp_err_t bsp_i2c_init(void)
 {
     const i2c_config_t i2c_conf = {
         .mode = I2C_MODE_MASTER,
@@ -35,21 +69,24 @@ void bsp_i2c_init(void)
         .scl_pullup_en = GPIO_PULLUP_DISABLE,
         .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
     };
-    ESP_ERROR_CHECK(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
-    ESP_ERROR_CHECK(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+
+    return ESP_OK;
 }
 
-void bsp_i2c_deinit(void)
+esp_err_t bsp_i2c_deinit(void)
 {
-    ESP_ERROR_CHECK_WITHOUT_ABORT(i2c_driver_delete(BSP_I2C_NUM));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    return ESP_OK;
 }
 
-void bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel)
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel)
 {
     /* Setup I2S peripheral */
     i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(CONFIG_BSP_I2S_NUM, I2S_ROLE_MASTER);
     chan_cfg.auto_clear = true; // Auto clear the legacy data in the DMA buffer
-    ESP_ERROR_CHECK(i2s_new_channel(&chan_cfg, tx_channel, rx_channel));
+    BSP_ERROR_CHECK_RETURN_ERR(i2s_new_channel(&chan_cfg, tx_channel, rx_channel));
 
     /* Setup I2S channels */
     const i2s_std_config_t std_cfg_default = BSP_I2S_DUPLEX_MONO_CFG(22050);
@@ -59,12 +96,12 @@ void bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_ch
     }
 
     if (tx_channel != NULL) {
-        ESP_ERROR_CHECK(i2s_channel_init_std_mode(*tx_channel, p_i2s_cfg));
-        ESP_ERROR_CHECK(i2s_channel_enable(*tx_channel));
+        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_init_std_mode(*tx_channel, p_i2s_cfg));
+        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_enable(*tx_channel));
     }
     if (rx_channel != NULL) {
-        ESP_ERROR_CHECK(i2s_channel_init_std_mode(*rx_channel, p_i2s_cfg));
-        ESP_ERROR_CHECK(i2s_channel_enable(*rx_channel));
+        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_init_std_mode(*rx_channel, p_i2s_cfg));
+        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_enable(*rx_channel));
     }
 
     /* Setup power amplifier pin */
@@ -75,12 +112,16 @@ void bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_ch
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .pull_up_en = GPIO_PULLDOWN_DISABLE,
     };
-    ESP_ERROR_CHECK(gpio_config(&io_conf));
+    BSP_ERROR_CHECK_RETURN_ERR(gpio_config(&io_conf));
+
+    return ESP_OK;
 }
 
-void bsp_audio_poweramp_enable(bool enable)
+esp_err_t bsp_audio_poweramp_enable(bool enable)
 {
-    ESP_ERROR_CHECK(gpio_set_level(BSP_POWER_AMP_IO, enable ? 1 : 0));
+    BSP_ERROR_CHECK_RETURN_ERR(gpio_set_level(BSP_POWER_AMP_IO, enable ? 1 : 0));
+
+    return ESP_OK;
 }
 
 // Bit number used to represent command and parameter
@@ -186,7 +227,7 @@ static esp_err_t lvgl_port_tick_init(void)
         .name = "LVGL tick"
     };
     esp_timer_handle_t lvgl_tick_timer = NULL;
-    ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
+    BSP_ERROR_CHECK_RETURN_ERR(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     return esp_timer_start_periodic(lvgl_tick_timer, LVGL_TICK_PERIOD_MS * 1000);
 }
 
@@ -215,7 +256,7 @@ static lv_disp_t *lvgl_port_display_init(void)
         .quadhd_io_num = GPIO_NUM_NC,
         .max_transfer_sz = BSP_LCD_H_RES * 80 * sizeof(uint16_t),
     };
-    ESP_ERROR_CHECK(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO));
+    BSP_ERROR_CHECK_RETURN_NULL(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO));
 
     ESP_LOGD(TAG, "Install panel IO");
     esp_lcd_panel_io_handle_t io_handle = NULL;
@@ -231,7 +272,7 @@ static lv_disp_t *lvgl_port_display_init(void)
         .user_ctx = &disp_drv,
     };
     // Attach the LCD to the SPI bus
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, &io_handle));
+    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, &io_handle));
 
     ESP_LOGD(TAG, "Install LCD driver of st7789");
     esp_lcd_panel_handle_t panel_handle = NULL;
@@ -240,7 +281,7 @@ static lv_disp_t *lvgl_port_display_init(void)
         .color_space = ESP_LCD_COLOR_SPACE_BGR,
         .bits_per_pixel = 16,
     };
-    ESP_ERROR_CHECK(esp_lcd_new_panel_st7789(io_handle, &panel_config, &panel_handle));
+    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_st7789(io_handle, &panel_config, &panel_handle));
 
     esp_lcd_panel_reset(panel_handle);
     esp_lcd_panel_init(panel_handle);
@@ -250,9 +291,9 @@ static lv_disp_t *lvgl_port_display_init(void)
     // alloc draw buffers used by LVGL
     // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
     lv_color_t *buf1 = heap_caps_malloc(BSP_LCD_H_RES * 50 * sizeof(lv_color_t), MALLOC_CAP_DMA);
-    assert(buf1);
+    BSP_NULL_CHECK(buf1, NULL);
     lv_color_t *buf2 = heap_caps_malloc(BSP_LCD_H_RES * 50 * sizeof(lv_color_t), MALLOC_CAP_DMA);
-    assert(buf2);
+    BSP_NULL_CHECK_GOTO(buf2, ERR);
     // initialize LVGL draw buffers
     lv_disp_draw_buf_init(&disp_buf, buf1, buf2, BSP_LCD_H_RES * 50);
 
@@ -265,9 +306,21 @@ static lv_disp_t *lvgl_port_display_init(void)
     disp_drv.draw_buf = &disp_buf;
     disp_drv.user_data = panel_handle;
     return lv_disp_drv_register(&disp_drv);
+
+#if (!CONFIG_BSP_ERROR_CHECK)
+ERR:
+    if (buf1) {
+        free(buf1);
+    }
+    if (buf2) {
+        free(buf2);
+    }
+
+    return NULL;
+#endif
 }
 
-static void lvgl_port_indev_init(void)
+static esp_err_t lvgl_port_indev_init(void)
 {
     static lv_indev_drv_t indev_drv_tp;
     lv_indev_t *indev_touchpad;
@@ -290,8 +343,8 @@ static void lvgl_port_indev_init(void)
     };
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle));
-    ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, &tp));
+    BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle));
+    BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, &tp));
     assert(tp);
 
     /* Register a touchpad input device */
@@ -300,10 +353,12 @@ static void lvgl_port_indev_init(void)
     indev_drv_tp.read_cb = bsp_touchpad_read;
     indev_drv_tp.user_data = tp;
     indev_touchpad = lv_indev_drv_register(&indev_drv_tp);
-    assert(indev_touchpad);
+    BSP_NULL_CHECK(indev_touchpad, ESP_ERR_NO_MEM);
+
+    return ESP_OK;
 }
 
-static void bsp_display_brightness_init(void)
+static esp_err_t bsp_display_brightness_init(void)
 {
     // Setup LEDC peripheral for PWM backlight control
     const ledc_channel_config_t LCD_backlight_channel = {
@@ -323,11 +378,13 @@ static void bsp_display_brightness_init(void)
         .clk_cfg = LEDC_AUTO_CLK
     };
 
-    ESP_ERROR_CHECK(ledc_timer_config(&LCD_backlight_timer));
-    ESP_ERROR_CHECK(ledc_channel_config(&LCD_backlight_channel));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_timer_config(&LCD_backlight_timer));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_channel_config(&LCD_backlight_channel));
+
+    return ESP_OK;
 }
 
-void bsp_display_brightness_set(int brightness_percent)
+esp_err_t bsp_display_brightness_set(int brightness_percent)
 {
     if (brightness_percent > 100) {
         brightness_percent = 100;
@@ -338,29 +395,31 @@ void bsp_display_brightness_set(int brightness_percent)
 
     ESP_LOGI(TAG, "Setting LCD backlight: %d%%", brightness_percent);
     uint32_t duty_cycle = (1023 * brightness_percent) / 100; // LEDC resolution set to 10bits, thus: 100% = 1023
-    ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH, duty_cycle));
-    ESP_ERROR_CHECK(ledc_update_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_set_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH, duty_cycle));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_update_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH));
+
+    return ESP_OK;
 }
 
-void bsp_display_backlight_off(void)
+esp_err_t bsp_display_backlight_off(void)
 {
-    bsp_display_brightness_set(0);
+    return bsp_display_brightness_set(0);
 }
 
-void bsp_display_backlight_on(void)
+esp_err_t bsp_display_backlight_on(void)
 {
-    bsp_display_brightness_set(100);
+    return bsp_display_brightness_set(100);
 }
 
 lv_disp_t *bsp_display_start(void)
 {
     lv_init();
-    bsp_display_brightness_init();
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_brightness_init());
     lv_disp_t *disp = lvgl_port_display_init();
-    lvgl_port_indev_init();
-    lvgl_port_tick_init();
+    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_indev_init());
+    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_tick_init());
     lvgl_mux = xSemaphoreCreateMutex();
-    assert(lvgl_mux);
+    BSP_NULL_CHECK(lvgl_mux, NULL);
     xTaskCreate(lvgl_port_task, "LVGL task", 4096, NULL, CONFIG_BSP_DISPLAY_LVGL_TASK_PRIORITY, NULL);
     return disp;
 }

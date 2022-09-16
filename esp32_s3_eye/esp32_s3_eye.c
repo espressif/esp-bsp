@@ -22,6 +22,33 @@
 
 static const char *TAG = "S3-EYE";
 
+/* Assert on error, if selected in menuconfig. Otherwise return error code. */
+//TODO: Move this code into common header
+#if CONFIG_BSP_ERROR_CHECK
+#define BSP_ERROR_CHECK_RETURN_ERR(x)   ESP_ERROR_CHECK(x)
+#define BSP_ERROR_CHECK_RETURN_NULL(x)  ESP_ERROR_CHECK(x)
+#define BSP_NULL_CHECK(x, ret)          assert(x)
+#else
+#define BSP_ERROR_CHECK_RETURN_ERR(x) do { \
+        esp_err_t err_rc_ = (x);            \
+        if (unlikely(err_rc_ != ESP_OK)) {  \
+            return err_rc_;                 \
+        }                                   \
+    } while(0)
+
+#define BSP_ERROR_CHECK_RETURN_NULL(x)  do { \
+        if (unlikely((x) != ESP_OK)) {      \
+            return NULL;                    \
+        }                                   \
+    } while(0)
+
+#define BSP_NULL_CHECK(x, ret)      do { \
+        if ((x) == NULL) {      \
+            return ret;                    \
+        }                                   \
+    } while(0)
+#endif
+
 static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
 static lv_disp_drv_t disp_drv;      // contains callback functions
 static SemaphoreHandle_t lvgl_mux;  // LVGL mutex
@@ -58,7 +85,7 @@ const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     }
 };
 
-void bsp_i2c_init(void)
+esp_err_t bsp_i2c_init(void)
 {
     const i2c_config_t i2c_conf = {
         .mode = I2C_MODE_MASTER,
@@ -68,13 +95,16 @@ void bsp_i2c_init(void)
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
         .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
     };
-    ESP_ERROR_CHECK(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
-    ESP_ERROR_CHECK(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+
+    return ESP_OK;
 }
 
-void bsp_i2c_deinit(void)
+esp_err_t bsp_i2c_deinit(void)
 {
-    ESP_ERROR_CHECK_WITHOUT_ABORT(i2c_driver_delete(BSP_I2C_NUM));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    return ESP_OK;
 }
 
 
@@ -173,7 +203,7 @@ static void lvgl_port_update_callback(lv_disp_drv_t *drv)
 #define LVGL_TICK_PERIOD_MS  (CONFIG_BSP_DISPLAY_LVGL_TICK)
 #define LVGL_BUFF_SIZE_PIX   (BSP_LCD_H_RES * BSP_LCD_V_RES)
 
-static void bsp_display_brightness_init(void)
+static esp_err_t bsp_display_brightness_init(void)
 {
     // Setup LEDC peripheral for PWM backlight control
     const ledc_channel_config_t LCD_backlight_channel = {
@@ -194,11 +224,13 @@ static void bsp_display_brightness_init(void)
         .clk_cfg = LEDC_AUTO_CLK
     };
 
-    ESP_ERROR_CHECK(ledc_timer_config(&LCD_backlight_timer));
-    ESP_ERROR_CHECK(ledc_channel_config(&LCD_backlight_channel));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_timer_config(&LCD_backlight_timer));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_channel_config(&LCD_backlight_channel));
+
+    return ESP_OK;
 }
 
-void bsp_display_brightness_set(int brightness_percent)
+esp_err_t bsp_display_brightness_set(int brightness_percent)
 {
     if (brightness_percent > 100) {
         brightness_percent = 100;
@@ -209,18 +241,20 @@ void bsp_display_brightness_set(int brightness_percent)
     ESP_LOGI(TAG, "Setting LCD backlight: %d%%", brightness_percent);
     // LEDC resolution set to 10bits, thus: 100% = 1023
     uint32_t duty_cycle = (1023 * brightness_percent) / 100;
-    ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH, duty_cycle));
-    ESP_ERROR_CHECK(ledc_update_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_set_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH, duty_cycle));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_update_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH));
+
+    return ESP_OK;
 }
 
-void bsp_display_backlight_off(void)
+esp_err_t bsp_display_backlight_off(void)
 {
-    bsp_display_brightness_set(0);
+    return bsp_display_brightness_set(0);
 }
 
-void bsp_display_backlight_on(void)
+esp_err_t bsp_display_backlight_on(void)
 {
-    bsp_display_brightness_set(100);
+    return bsp_display_brightness_set(100);
 }
 
 static lv_disp_t *lvgl_port_display_init(void)
@@ -234,7 +268,7 @@ static lv_disp_t *lvgl_port_display_init(void)
         .quadhd_io_num = GPIO_NUM_NC,
         .max_transfer_sz = LVGL_BUFF_SIZE_PIX * sizeof(lv_color_t),
     };
-    ESP_ERROR_CHECK(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO));
+    BSP_ERROR_CHECK_RETURN_NULL(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO));
 
     ESP_LOGD(TAG, "Install panel IO");
     esp_lcd_panel_io_handle_t io_handle = NULL;
@@ -250,7 +284,7 @@ static lv_disp_t *lvgl_port_display_init(void)
         .user_ctx = &disp_drv,
     };
     // Attach the LCD to the SPI bus
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, &io_handle));
+    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, &io_handle));
 
     ESP_LOGD(TAG, "Install LCD driver");
     esp_lcd_panel_handle_t panel_handle = NULL;
@@ -259,7 +293,7 @@ static lv_disp_t *lvgl_port_display_init(void)
         .color_space = ESP_LCD_COLOR_SPACE_RGB,
         .bits_per_pixel = 16,
     };
-    ESP_ERROR_CHECK(esp_lcd_new_panel_st7789(io_handle, &panel_config, &panel_handle));
+    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_st7789(io_handle, &panel_config, &panel_handle));
 
     esp_lcd_panel_reset(panel_handle);
     esp_lcd_panel_init(panel_handle);
@@ -274,7 +308,7 @@ static lv_disp_t *lvgl_port_display_init(void)
     // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
     // but we allocate one full frame buffer for best performance
     lv_color_t *buf1 = heap_caps_malloc(LVGL_BUFF_SIZE_PIX * sizeof(lv_color_t), MALLOC_CAP_DMA);
-    assert(buf1);
+    BSP_NULL_CHECK(buf1, NULL);
     lv_disp_draw_buf_init(&disp_buf, buf1, NULL, LVGL_BUFF_SIZE_PIX);
 
     ESP_LOGI(TAG, "Registering display driver to LVGL");
@@ -302,7 +336,7 @@ static esp_err_t lvgl_port_tick_init(void)
         .name = "LVGL tick"
     };
     esp_timer_handle_t lvgl_tick_timer = NULL;
-    ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
+    BSP_ERROR_CHECK_RETURN_ERR(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     return esp_timer_start_periodic(lvgl_tick_timer, LVGL_TICK_PERIOD_MS * 1000);
 }
 
@@ -320,11 +354,11 @@ static void lvgl_port_task(void *arg)
 lv_disp_t *bsp_display_start(void)
 {
     lv_init();
-    bsp_display_brightness_init();
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_brightness_init());
     lv_disp_t *disp = lvgl_port_display_init();
-    lvgl_port_tick_init();
+    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_tick_init());
     lvgl_mux = xSemaphoreCreateMutex();
-    assert(lvgl_mux);
+    BSP_NULL_CHECK(lvgl_mux, NULL);
     xTaskCreatePinnedToCore(lvgl_port_task, "LVGL task", 4096, NULL, CONFIG_BSP_DISPLAY_LVGL_TASK_PRIORITY, NULL, 1);
     return disp;
 }
@@ -348,7 +382,7 @@ void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
     lv_disp_set_rotation(disp, rotation);
 }
 
-void bsp_leds_init(void)
+esp_err_t bsp_leds_init(void)
 {
     const gpio_config_t led_io_config = {
         .pin_bit_mask = BIT64(BSP_LED_GREEN),
@@ -357,10 +391,12 @@ void bsp_leds_init(void)
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE
     };
-    ESP_ERROR_CHECK(gpio_config(&led_io_config));
+    BSP_ERROR_CHECK_RETURN_ERR(gpio_config(&led_io_config));
+    return ESP_OK;
 }
 
-void bsp_led_set(const bsp_led_t led_io, const bool on)
+esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on)
 {
-    ESP_ERROR_CHECK(gpio_set_level((gpio_num_t) led_io, (uint32_t) on));
+    BSP_ERROR_CHECK_RETURN_ERR(gpio_set_level((gpio_num_t) led_io, (uint32_t) on));
+    return ESP_OK;
 }

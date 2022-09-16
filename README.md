@@ -43,6 +43,10 @@ You can add them to your project via `idf.py add-dependancy`, e.g.
 
 Alternatively, you can create `idf_component.yml` file manually, such as in [this example](examples/display/main/idf_component.yml).
 
+### Recommendation for custom projects
+
+When you want to use a BSP for real project, it is highly recommended to disable configuration option `CONFIG_BSP_ERROR_CHECK` in menuconfig. You should check all returned error codes from all called functions. Otherwise, when the option `CONFIG_BSP_ERROR_CHECK` is enabled, all errors in the BSP will abort the program.
+
 ## Migration to ESP-IDF version 5.0
 esp-idf 5.0 brings a lot of new features, but, as the bump in major version suggests, also lot of breaking changes.
 

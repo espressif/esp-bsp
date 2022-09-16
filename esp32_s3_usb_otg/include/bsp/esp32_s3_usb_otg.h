@@ -128,7 +128,7 @@ esp_err_t bsp_sdcard_unmount(void);
  *
  * This function initializes SPI, display controller and starts LVGL handling task.
  *
- * @return Pointer to LVGL display
+ * @return Pointer to LVGL display or NULL when error occured
  */
 lv_disp_t *bsp_display_start(void);
 
@@ -154,22 +154,33 @@ void bsp_display_unlock(void);
  * Display must be already initialized by calling bsp_display_start()
  *
  * @param[in] brightness_percent Brightness in [%]
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
  */
-void bsp_display_brightness_set(int brightness_percent);
+esp_err_t bsp_display_brightness_set(int brightness_percent);
 
 /**
  * @brief Turn on display backlight
  *
  * Display must be already initialized by calling bsp_display_start()
+ *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
  */
-void bsp_display_backlight_on(void);
+esp_err_t bsp_display_backlight_on(void);
 
 /**
  * @brief Turn off display backlight
  *
  * Display must be already initialized by calling bsp_display_start()
+ *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
  */
-void bsp_display_backlight_off(void);
+esp_err_t bsp_display_backlight_off(void);
 
 /**
  * @brief Rotate screen
@@ -190,16 +201,23 @@ void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
 
 /**
  * @brief Set LED's GPIOs as output push-pull
+ *
+ * @return
+ *     - ESP_OK              On success
+ *     - ESP_ERR_INVALID_ARG Parameter error
  */
-void bsp_leds_init(void);
+esp_err_t bsp_leds_init(void);
 
 /**
  * @brief Turn LED on/off
  *
  * @param led_io LED io
  * @param on Switch LED on/off
+ * @return
+ *     - ESP_OK              On success
+ *     - ESP_ERR_INVALID_ARG Parameter error
  */
-void bsp_led_set(const bsp_led_t led_io, const bool on);
+esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
 
 
 /**************************************************************************************************
@@ -210,8 +228,11 @@ void bsp_led_set(const bsp_led_t led_io, const bool on);
 
 /**
  * @brief Set button's GPIO as input
+ * @return
+ *     - ESP_OK              On success
+ *     - ESP_ERR_INVALID_ARG Parameter error
  */
-void bsp_button_init(void);
+esp_err_t bsp_button_init(void);
 
 /**
  * @brief Get button's state
@@ -238,8 +259,12 @@ bool bsp_button_get(const bsp_button_t btn);
 /**
  * @brief Switch ESP32-S3-USB-OTG to USB device mode
  *
+ * @return
+ *     - ESP_OK              On success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ *
  */
-void bsp_usb_mode_select_device(void);
+esp_err_t bsp_usb_mode_select_device(void);
 
 /**
  * @brief Switch ESP32-S3-USB-OTG to USB host mode
@@ -247,8 +272,12 @@ void bsp_usb_mode_select_device(void);
  * For easy setup of USB host mode use bsp_usb_host_start() function.
  *
  * Use this in custom USB Host lib configurations.
+ *
+ * @return
+ *     - ESP_OK              On success
+ *     - ESP_ERR_INVALID_ARG Parameter error
  */
-void bsp_usb_mode_select_host(void);
+esp_err_t bsp_usb_mode_select_host(void);
 
 /**
  * @brief Power modes of USB Host connector
@@ -272,8 +301,11 @@ typedef enum bsp_usb_host_power_mode_t {
  *
  * @param[in] mode        USB Host connector power mode
  * @param[in] limit_500mA Limit output current to 500mA
+ * @return
+ *     - ESP_OK              On success
+ *     - ESP_ERR_INVALID_ARG Parameter error
  */
-void bsp_usb_host_power_mode(bsp_usb_host_power_mode_t mode, bool limit_500mA);
+esp_err_t bsp_usb_host_power_mode(bsp_usb_host_power_mode_t mode, bool limit_500mA);
 
 /**
  * @brief Start USB host
@@ -283,15 +315,23 @@ void bsp_usb_host_power_mode(bsp_usb_host_power_mode_t mode, bool limit_500mA);
  *
  * @param[in] mode        USB Host connector power mode
  * @param[in] limit_500mA Limit output current to 500mA
+ * @return
+ *     - ESP_OK                 On success
+ *     - ESP_ERR_INVALID_ARG    Parameter error
+ *     - ESP_ERR_NO_MEM         Memory cannot be allocated
  */
-void bsp_usb_host_start(bsp_usb_host_power_mode_t mode, bool limit_500mA);
+esp_err_t bsp_usb_host_start(bsp_usb_host_power_mode_t mode, bool limit_500mA);
 
 /**
  * @brief Stop USB host
  *
  * USB Host lib will be uninstalled and power from connector removed.
+ *
+ * @return
+ *     - ESP_OK              On success
+ *     - ESP_ERR_INVALID_ARG Parameter error
  */
-void bsp_usb_host_stop(void);
+esp_err_t bsp_usb_host_stop(void);
 
 /**************************************************************************************************
  *
@@ -310,14 +350,20 @@ void bsp_usb_host_stop(void);
  * @note If the calibration fails, voltage can't be measured
  * @return true  Calibration OK
  * @return false Calibration failed
+ * @return
+ *     - ESP_OK                 On success
+ *     - ESP_ERR_INVALID_ARG    Invalid arguments
+ *     - ESP_ERR_NO_MEM         No memory
+ *     - ESP_ERR_NOT_FOUND      ADC peripheral to be claimed is already in use
+ *     - ESP_ERR_NOT_SUPPORTED  ADC scheme required eFuse bits not burnt
  */
-bool bsp_voltage_init(void);
+esp_err_t bsp_voltage_init(void);
 
 /**
  * @brief Get battery voltage
  *
  * @note bsp_voltage_init() must be called first
- * @return Resulting voltage in [mV]
+ * @return Resulting voltage in [mV] or -1 on error
  */
 int bsp_voltage_battery_get(void);
 
@@ -325,7 +371,7 @@ int bsp_voltage_battery_get(void);
  * @brief Get USB device connector voltage
  *
  * @note bsp_voltage_init() must be called first
- * @return Resulting voltage in [mV]
+ * @return Resulting voltage in [mV] or -1 on error
  */
 int bsp_voltage_usb_get(void);
 
