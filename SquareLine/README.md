@@ -8,6 +8,9 @@ This is a simple python generator script for SquareLine board packages. This scr
 * `sdkconfig.defaults` - defaults
 * `main/idf_component.yml` - Component Registry description
 
+## Optional files and folders in each board folder:
+* `components` - Folder with components (will be copied without using placeholders)
+
 ### `manifest.json`
 
 Mandatory JSON keys in manifest:
@@ -52,3 +55,14 @@ Generate only one selected board `board_dir` to `out_dir` folder
 ```
 
 **_NOTE:_** The output folder is cleaned before generating.
+
+# Custom Boards Usage
+
+The generator supports custom boards. The example of the custom board is [here](boards/custom_waveshare_7inch/). There is custom BSP for the custom board as a component. For use this custom board in SquareLine, follow these steps:
+
+1. Generate custom board.
+```
+    python gen.py -o out_dir -b custom_waveshare_7inch
+```
+
+2. Copy folder from `out_dir/espressif/custom_waveshare_7inch` to `"SquareLine Studio installation path"/boards/espressif/`
