@@ -1,5 +1,0 @@
-version: "1.0.2"
-description: "JPEG Decoder: TJpgDec"
-url: https://github.com/espressif/esp-bsp/tree/master/components/esp_jpeg/
-dependencies:
-  idf: ">=4.4"

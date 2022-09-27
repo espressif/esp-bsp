@@ -3,9 +3,7 @@ targets:
     - esp32s3
 dependencies:
   idf: ">=5.0"
+  esp_jpeg: "*"
   esp-box:
     version: "*"
     override_path: "../../../esp-box"
-  esp_jpeg:
-    version: "*"
-    override_path: "../../../components/esp_jpeg"

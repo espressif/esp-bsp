@@ -5,16 +5,16 @@ cmake_minimum_required(VERSION 3.5)
 set(EXTRA_COMPONENT_DIRS "../components")
 
 include($ENV{IDF_PATH}/tools/cmake/version.cmake) # $ENV{IDF_VERSION} was added after v4.3...
-# Test lcd_touch components only in IDF 5.0 greater versions
-if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "5.0")
-    list(APPEND EXTRA_COMPONENT_DIRS "../components/lcd_touch") #TODO: Move this to version 4.4 and greater, when it will be fixed on IDF
-endif()
+
 # Test lcd components only in IDF 4.4 and greater versions
 if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "4.4")
     list(APPEND EXTRA_COMPONENT_DIRS "../components/lcd")
+    list(APPEND EXTRA_COMPONENT_DIRS "../components/lcd_touch")
 endif()
 if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
-    set(EXCLUDE_COMPONENTS "es8311" "esp_jpeg")
+    set(EXCLUDE_COMPONENTS "es8311")
+elseif("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "5.0")
+    set(EXCLUDE_COMPONENTS "esp_lcd_touch_stmpe610")
 endif()
 
 
