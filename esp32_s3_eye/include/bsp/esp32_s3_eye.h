@@ -97,14 +97,23 @@ extern const button_config_t bsp_button_config[BSP_BUTTON_NUM];
 /**
  * @brief Init I2C driver
  *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   I2C parameter error
+ *      - ESP_FAIL              I2C driver installation error
+ *
  */
-void bsp_i2c_init(void);
+esp_err_t bsp_i2c_init(void);
 
 /**
  * @brief Deinit I2C driver and free its resources
  *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   I2C parameter error
+ *
  */
-void bsp_i2c_deinit(void);
+esp_err_t bsp_i2c_deinit(void);
 
 /**************************************************************************************************
  *
@@ -212,7 +221,7 @@ esp_err_t bsp_sdcard_unmount(void);
  *
  * This function initializes SPI, display controller and starts LVGL handling task.
  *
- * @return Pointer to LVGL display
+ * @return Pointer to LVGL display or NULL when error occured
  */
 lv_disp_t *bsp_display_start(void);
 
@@ -238,22 +247,33 @@ void bsp_display_unlock(void);
  * Display must be already initialized by calling bsp_display_start()
  *
  * @param[in] brightness_percent Brightness in [%]
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
  */
-void bsp_display_brightness_set(int brightness_percent);
+esp_err_t bsp_display_brightness_set(int brightness_percent);
 
 /**
  * @brief Turn on display backlight
  *
  * Display must be already initialized by calling bsp_display_start()
+ *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
  */
-void bsp_display_backlight_on(void);
+esp_err_t bsp_display_backlight_on(void);
 
 /**
  * @brief Turn off display backlight
  *
  * Display must be already initialized by calling bsp_display_start()
+ *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
  */
-void bsp_display_backlight_off(void);
+esp_err_t bsp_display_backlight_off(void);
 
 /**
  * @brief Rotate screen
@@ -273,16 +293,23 @@ void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
 
 /**
  * @brief Set LED's GPIOs as output push-pull
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
  */
-void bsp_leds_init(void);
+esp_err_t bsp_leds_init(void);
 
 /**
  * @brief Turn LED on/off
  *
  * @param led_io LED io
  * @param on Switch LED on/off
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
  */
-void bsp_led_set(const bsp_led_t led_io, const bool on);
+esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
 
 #ifdef __cplusplus
 }

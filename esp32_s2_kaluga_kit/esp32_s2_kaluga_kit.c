@@ -15,6 +15,33 @@
 
 static const char *TAG = "Kaluga";
 
+/* Assert on error, if selected in menuconfig. Otherwise return error code. */
+//TODO: Move this code into common header
+#if CONFIG_BSP_ERROR_CHECK
+#define BSP_ERROR_CHECK_RETURN_ERR(x)   ESP_ERROR_CHECK(x)
+#define BSP_ERROR_CHECK_RETURN_NULL(x)  ESP_ERROR_CHECK(x)
+#define BSP_NULL_CHECK(x, ret)          assert(x)
+#else
+#define BSP_ERROR_CHECK_RETURN_ERR(x) do { \
+        esp_err_t err_rc_ = (x);            \
+        if (unlikely(err_rc_ != ESP_OK)) {  \
+            return err_rc_;                 \
+        }                                   \
+    } while(0)
+
+#define BSP_ERROR_CHECK_RETURN_NULL(x)  do { \
+        if (unlikely((x) != ESP_OK)) {      \
+            return NULL;                    \
+        }                                   \
+    } while(0)
+
+#define BSP_NULL_CHECK(x, ret)      do { \
+        if ((x) == NULL) {      \
+            return ret;                    \
+        }                                   \
+    } while(0)
+#endif
+
 static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
 static lv_disp_drv_t disp_drv;      // contains callback functions
 static SemaphoreHandle_t lvgl_mux;  // LVGL mutex
@@ -74,7 +101,7 @@ const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     }
 };
 
-void bsp_i2c_init(void)
+esp_err_t bsp_i2c_init(void)
 {
     const i2c_config_t i2c_conf = {
         .mode = I2C_MODE_MASTER,
@@ -84,21 +111,24 @@ void bsp_i2c_init(void)
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
         .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
     };
-    ESP_ERROR_CHECK(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
-    ESP_ERROR_CHECK(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+
+    return ESP_OK;
 }
 
-void bsp_i2c_deinit(void)
+esp_err_t bsp_i2c_deinit(void)
 {
-    ESP_ERROR_CHECK_WITHOUT_ABORT(i2c_driver_delete(BSP_I2C_NUM));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    return ESP_OK;
 }
 
-void bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel)
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel)
 {
     /* Setup I2S peripheral */
     i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
     chan_cfg.auto_clear = true; // Auto clear the legacy data in the DMA buffer
-    ESP_ERROR_CHECK(i2s_new_channel(&chan_cfg, tx_channel, rx_channel));
+    BSP_ERROR_CHECK_RETURN_ERR(i2s_new_channel(&chan_cfg, tx_channel, rx_channel));
 
     /* Setup I2S channels */
     const i2s_std_config_t std_cfg_default = BSP_I2S_DUPLEX_MONO_CFG(22050);
@@ -108,12 +138,12 @@ void bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_ch
     }
 
     if (tx_channel != NULL) {
-        ESP_ERROR_CHECK(i2s_channel_init_std_mode(*tx_channel, p_i2s_cfg));
-        ESP_ERROR_CHECK(i2s_channel_enable(*tx_channel));
+        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_init_std_mode(*tx_channel, p_i2s_cfg));
+        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_enable(*tx_channel));
     }
     if (rx_channel != NULL) {
-        ESP_ERROR_CHECK(i2s_channel_init_std_mode(*rx_channel, p_i2s_cfg));
-        ESP_ERROR_CHECK(i2s_channel_enable(*rx_channel));
+        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_init_std_mode(*rx_channel, p_i2s_cfg));
+        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_enable(*rx_channel));
     }
 
     /* Setup power amplifier enable pin */
@@ -124,21 +154,25 @@ void bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_ch
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .pull_up_en = GPIO_PULLDOWN_DISABLE,
     };
-    ESP_ERROR_CHECK(gpio_config(&io_conf));
+    BSP_ERROR_CHECK_RETURN_ERR(gpio_config(&io_conf));
+
+    return ESP_OK;
 }
 
-void bsp_audio_poweramp_enable(bool enable)
+esp_err_t bsp_audio_poweramp_enable(bool enable)
 {
-    ESP_ERROR_CHECK(gpio_set_level(BSP_POWER_AMP_IO, enable ? 1 : 0));
+    BSP_ERROR_CHECK_RETURN_ERR(gpio_set_level(BSP_POWER_AMP_IO, enable ? 1 : 0));
+
+    return ESP_OK;
 }
 
-void bsp_touchpad_init(intr_handler_t fn)
+esp_err_t bsp_touchpad_init(intr_handler_t fn)
 {
     /*!< Initialize touch pad peripheral, it will start a timer to run a filter */
-    ESP_ERROR_CHECK(touch_pad_init());
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_init());
 
     for (int i = 0; i < TOUCH_BUTTON_NUM; i++) {
-        ESP_ERROR_CHECK(touch_pad_config(bsp_touch_button[i]));
+        BSP_ERROR_CHECK_RETURN_ERR(touch_pad_config(bsp_touch_button[i]));
     }
 
     /*!< Denoise setting at TouchSensor 0. */
@@ -147,8 +181,8 @@ void bsp_touchpad_init(intr_handler_t fn)
         .grade = TOUCH_PAD_DENOISE_BIT4,
         .cap_level = TOUCH_PAD_DENOISE_CAP_L4,
     };
-    ESP_ERROR_CHECK(touch_pad_denoise_set_config(&denoise));
-    ESP_ERROR_CHECK(touch_pad_denoise_enable());
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_denoise_set_config(&denoise));
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_denoise_enable());
 
     /*!< Waterproof function */
     touch_pad_waterproof_t waterproof = {
@@ -156,8 +190,8 @@ void bsp_touchpad_init(intr_handler_t fn)
         /*!< It depends on the number of the parasitic capacitance of the shield pad. */
         .shield_driver = TOUCH_PAD_SHIELD_DRV_L0,   /*!< 40pf */
     };
-    ESP_ERROR_CHECK(touch_pad_waterproof_set_config(&waterproof));
-    ESP_ERROR_CHECK(touch_pad_waterproof_enable());
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_waterproof_set_config(&waterproof));
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_waterproof_enable());
 
     /*!< Filter setting */
     touch_filter_config_t filter_info = {
@@ -166,30 +200,34 @@ void bsp_touchpad_init(intr_handler_t fn)
         .noise_thr = 0,         /*!< 50% */
         .jitter_step = 4,       /*!< use for jitter mode. */
     };
-    ESP_ERROR_CHECK(touch_pad_filter_set_config(&filter_info));
-    ESP_ERROR_CHECK(touch_pad_filter_enable());
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_filter_set_config(&filter_info));
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_filter_enable());
     /*!< Register touch interrupt ISR, enable intr type. */
-    ESP_ERROR_CHECK(touch_pad_isr_register(fn, NULL, TOUCH_PAD_INTR_MASK_ALL));
-    ESP_ERROR_CHECK(touch_pad_intr_enable(TOUCH_PAD_INTR_MASK_ACTIVE | TOUCH_PAD_INTR_MASK_INACTIVE));
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_isr_register(fn, NULL, TOUCH_PAD_INTR_MASK_ALL));
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_intr_enable(TOUCH_PAD_INTR_MASK_ACTIVE | TOUCH_PAD_INTR_MASK_INACTIVE));
 
     /*!< Enable touch sensor clock. Work mode is "timer trigger". */
-    ESP_ERROR_CHECK(touch_pad_set_fsm_mode(TOUCH_FSM_MODE_TIMER));
-    ESP_ERROR_CHECK(touch_pad_fsm_start());
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_set_fsm_mode(TOUCH_FSM_MODE_TIMER));
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_fsm_start());
 
     /*!< Wait touch sensor init done and calibrate */
     vTaskDelay(100 / portTICK_PERIOD_MS);
     for (int i = 0; i < TOUCH_BUTTON_NUM; i++) {
         bsp_touchpad_calibrate(bsp_touch_button[i], 0.1f);
     }
+
+    return ESP_OK;
 }
 
-void bsp_touchpad_calibrate(bsp_touchpad_button_t tch_pad, float tch_threshold)
+esp_err_t bsp_touchpad_calibrate(bsp_touchpad_button_t tch_pad, float tch_threshold)
 {
     /*!< read baseline value */
     uint32_t touch_value = 0;
-    ESP_ERROR_CHECK(touch_pad_read_benchmark(tch_pad, &touch_value));
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_read_benchmark(tch_pad, &touch_value));
     /*!< set interrupt threshold. */
-    ESP_ERROR_CHECK(touch_pad_set_thresh(tch_pad, (uint32_t)((float)touch_value * tch_threshold)));
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_set_thresh(tch_pad, (uint32_t)((float)touch_value * tch_threshold)));
+
+    return ESP_OK;
 }
 
 // Bit number used to represent command and parameter
@@ -258,7 +296,7 @@ static esp_err_t lvgl_port_tick_init(void)
         .name = "LVGL tick"
     };
     esp_timer_handle_t lvgl_tick_timer = NULL;
-    ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
+    BSP_ERROR_CHECK_RETURN_ERR(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     return esp_timer_start_periodic(lvgl_tick_timer, LVGL_TICK_PERIOD_MS * 1000);
 }
 
@@ -284,7 +322,7 @@ static lv_disp_t *lvgl_port_display_init(void)
         .quadhd_io_num   = GPIO_NUM_NC,
         .max_transfer_sz = LVGL_BUFF_SIZE_PIX * sizeof(lv_color_t),
     };
-    ESP_ERROR_CHECK(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO));
+    BSP_ERROR_CHECK_RETURN_NULL(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO));
 
     ESP_LOGD(TAG, "Install panel IO");
     esp_lcd_panel_io_handle_t io_handle = NULL;
@@ -300,7 +338,7 @@ static lv_disp_t *lvgl_port_display_init(void)
         .user_ctx = &disp_drv,
     };
     // Attach the LCD to the SPI bus
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, &io_handle));
+    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, &io_handle));
 
     ESP_LOGD(TAG, "Install LCD driver for ST7789");
     esp_lcd_panel_handle_t panel_handle = NULL;
@@ -309,7 +347,7 @@ static lv_disp_t *lvgl_port_display_init(void)
         .color_space = ESP_LCD_COLOR_SPACE_RGB,
         .bits_per_pixel = 16,
     };
-    ESP_ERROR_CHECK(esp_lcd_new_panel_st7789(io_handle, &panel_config, &panel_handle));
+    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_st7789(io_handle, &panel_config, &panel_handle));
 
     esp_lcd_panel_reset(panel_handle);
     esp_lcd_panel_init(panel_handle);
@@ -321,7 +359,7 @@ static lv_disp_t *lvgl_port_display_init(void)
     // Alloc draw buffers used by LVGL
     // It's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
     lv_color_t *buf1 = heap_caps_malloc(LVGL_BUFF_SIZE_PIX * sizeof(lv_color_t), MALLOC_CAP_DMA);
-    assert(buf1);
+    BSP_NULL_CHECK(buf1, NULL);
     lv_disp_draw_buf_init(&disp_buf, buf1, NULL, LVGL_BUFF_SIZE_PIX);
 
     ESP_LOGI(TAG, "Registering display driver to LVGL");
@@ -339,9 +377,9 @@ lv_disp_t *bsp_display_start(void)
 {
     lv_init();
     lv_disp_t *disp = lvgl_port_display_init();
-    lvgl_port_tick_init();
+    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_tick_init());
     lvgl_mux = xSemaphoreCreateMutex();
-    assert(lvgl_mux);
+    BSP_NULL_CHECK(lvgl_mux, NULL);
     xTaskCreate(lvgl_port_task, "LVGL task", 4096, NULL, CONFIG_BSP_DISPLAY_LVGL_TASK_PRIORITY, NULL);
     return disp;
 }
@@ -368,5 +406,11 @@ void bsp_display_unlock(void)
 
 /* Backlight functions are not implemented - Kaluga board doesn't provide backlight control
    These functions are here to provide consistent API with other Board Support Packages */
-void bsp_display_backlight_off(void) {}
-void bsp_display_backlight_on(void) {}
+esp_err_t bsp_display_backlight_off(void)
+{
+    return ESP_OK;
+}
+esp_err_t bsp_display_backlight_on(void)
+{
+    return ESP_OK;
+}

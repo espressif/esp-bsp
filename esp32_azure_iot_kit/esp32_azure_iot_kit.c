@@ -16,6 +16,40 @@
 #include "esp_vfs_fat.h"
 #include "driver/ledc.h"
 
+/* Assert on error, if selected in menuconfig. Otherwise return error code. */
+//TODO: Move this code into common header
+#if CONFIG_BSP_ERROR_CHECK
+#define BSP_ERROR_CHECK_RETURN_ERR(x)    ESP_ERROR_CHECK(x)
+#define BSP_ERROR_CHECK_RETURN_NULL(x)   ESP_ERROR_CHECK(x)
+#define BSP_NULL_CHECK(x, ret)           assert(x)
+#define BSP_NULL_CHECK_GOTO(x, goto_tag) assert(x)
+#else
+#define BSP_ERROR_CHECK_RETURN_ERR(x) do { \
+        esp_err_t err_rc_ = (x);            \
+        if (unlikely(err_rc_ != ESP_OK)) {  \
+            return err_rc_;                 \
+        }                                   \
+    } while(0)
+
+#define BSP_ERROR_CHECK_RETURN_NULL(x)  do { \
+        if (unlikely((x) != ESP_OK)) {      \
+            return NULL;                    \
+        }                                   \
+    } while(0)
+
+#define BSP_NULL_CHECK(x, ret) do { \
+        if ((x) == NULL) {          \
+            return ret;             \
+        }                           \
+    } while(0)
+
+#define BSP_NULL_CHECK_GOTO(x, goto_tag) do { \
+        if ((x) == NULL) {      \
+            goto goto_tag;      \
+        }                       \
+    } while(0)
+#endif
+
 sdmmc_card_t *bsp_sdcard = NULL;
 
 esp_err_t bsp_i2c_init(void)
@@ -28,16 +62,16 @@ esp_err_t bsp_i2c_init(void)
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
         .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
     };
-    esp_err_t ret = i2c_param_config(BSP_I2C_NUM, &i2c_conf);
-    if (ESP_OK != ret) {
-        return ret;
-    }
-    return i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0);
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+
+    return ESP_OK;
 }
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    return i2c_driver_delete(BSP_I2C_NUM);
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    return ESP_OK;
 }
 
 esp_err_t bsp_leds_init(void)
@@ -49,12 +83,14 @@ esp_err_t bsp_leds_init(void)
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE
     };
-    return gpio_config(&led_io_config);
+    BSP_ERROR_CHECK_RETURN_ERR(gpio_config(&led_io_config));
+    return ESP_OK;
 }
 
 esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on)
 {
-    return gpio_set_level((gpio_num_t) led_io, (uint32_t) on);
+    BSP_ERROR_CHECK_RETURN_ERR(gpio_set_level((gpio_num_t) led_io, (uint32_t) on));
+    return ESP_OK;
 }
 
 esp_err_t bsp_sdcard_mount(void)
@@ -110,11 +146,9 @@ esp_err_t bsp_buzzer_init(void)
 
 esp_err_t bsp_buzzer_set(const bool on)
 {
-    const esp_err_t ret = ledc_set_duty(LEDC_HIGH_SPEED_MODE, (ledc_channel_t)CONFIG_BSP_BUZZER_LEDC_CHANNEL_NUM, on ? 127 : 0);
-    if (ESP_OK != ret) {
-        return ret;
-    }
-    return ledc_update_duty(LEDC_HIGH_SPEED_MODE, (ledc_channel_t)CONFIG_BSP_BUZZER_LEDC_CHANNEL_NUM);
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_set_duty(LEDC_HIGH_SPEED_MODE, (ledc_channel_t)CONFIG_BSP_BUZZER_LEDC_CHANNEL_NUM, on ? 127 : 0));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_update_duty(LEDC_HIGH_SPEED_MODE, (ledc_channel_t)CONFIG_BSP_BUZZER_LEDC_CHANNEL_NUM));
+    return ESP_OK;
 }
 
 esp_err_t bsp_button_init(void)

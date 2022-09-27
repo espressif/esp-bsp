@@ -153,15 +153,25 @@ extern "C" {
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
  * @param[out] tx_channel I2S TX channel
  * @param[out] rx_channel I2S RX channel
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
+ *      - ESP_ERR_INVALID_ARG   NULL pointer or invalid configuration
+ *      - ESP_ERR_NOT_FOUND     No available I2S channel found
+ *      - ESP_ERR_NO_MEM        No memory for storing the channel information
+ *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
  */
-void bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel);
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel);
 
 /**
  * @brief Enable/disable audio power amplifier
  *
  * @param[in] enable Enable/disable audio power amplifier
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Invalid GPIO number
  */
-void bsp_audio_poweramp_enable(const bool enable);
+esp_err_t bsp_audio_poweramp_enable(const bool enable);
 
 /**************************************************************************************************
  *
@@ -184,14 +194,23 @@ void bsp_audio_poweramp_enable(const bool enable);
 /**
  * @brief Init I2C driver
  *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   I2C parameter error
+ *      - ESP_FAIL              I2C driver installation error
+ *
  */
-void bsp_i2c_init(void);
+esp_err_t bsp_i2c_init(void);
 
 /**
  * @brief Deinit I2C driver and free its resources
  *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   I2C parameter error
+ *
  */
-void bsp_i2c_deinit(void);
+esp_err_t bsp_i2c_deinit(void);
 
 /**************************************************************************************************
  *
@@ -217,7 +236,7 @@ void bsp_i2c_deinit(void);
  * This function initializes SPI, display controller and starts LVGL handling task.
  * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
  *
- * @return Pointer to LVGL display
+ * @return Pointer to LVGL display or NULL when error occured
  */
 lv_disp_t *bsp_display_start(void);
 
@@ -242,22 +261,33 @@ void bsp_display_unlock(void);
  * Brightness is controlled with PWM signal to a pin controling backlight.
  *
  * @param[in] brightness_percent Brightness in [%]
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
  */
-void bsp_display_brightness_set(int brightness_percent);
+esp_err_t bsp_display_brightness_set(int brightness_percent);
 
 /**
  * @brief Turn on display backlight
  *
  * Display must be already initialized by calling bsp_display_start()
+ *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
  */
-void bsp_display_backlight_on(void);
+esp_err_t bsp_display_backlight_on(void);
 
 /**
  * @brief Turn off display backlight
  *
  * Display must be already initialized by calling bsp_display_start()
+ *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
  */
-void bsp_display_backlight_off(void);
+esp_err_t bsp_display_backlight_off(void);
 
 /**
  * @brief Rotate screen
