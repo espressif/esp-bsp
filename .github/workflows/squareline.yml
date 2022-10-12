@@ -1,0 +1,45 @@
+name: squareline
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'SquareLine/**'
+      - '.github/workflows/squareline.yml'
+
+jobs:
+  create-squareline-packages:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Generate the packages
+        run: |
+          cd SquareLine
+          python3 gen.py -o out_dir
+      - uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: SquareLine/out_dir/espressif/
+
+  update-release:
+    runs-on: ubuntu-20.04
+    needs: [ create-squareline-packages ]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts
+          path: espressif
+      - name: Make the release archive
+        run: |
+          zip -r esp-bsp-squareline-latest.zip espressif
+      # - Update (force-push) 'squareline-latest' tag to the commit that is used in the workflow.
+      # - Upload artifacts generated in the previous job.
+      - name: Update release
+        uses: pyTooling/Actions/releaser@r0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            *.zip
+          tag: squareline-latest
