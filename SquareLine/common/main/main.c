@@ -11,7 +11,6 @@
 
 
 #define TAG "ESP-EXAMPLE"
-#define APP_DISP_DEFAULT_BRIGHTNESS 50
 
 /*******************************************************************************
 * Private functions
@@ -34,8 +33,8 @@ void app_main(void)
     /* Initialize display and LVGL */
     bsp_display_start();
 
-    /* Set default display brightness */
-    bsp_display_brightness_set(APP_DISP_DEFAULT_BRIGHTNESS);
+    /* Turn on display backlight */
+    bsp_display_backlight_on();
 
     /* Add and show objects on display */
     app_lvgl_display();
