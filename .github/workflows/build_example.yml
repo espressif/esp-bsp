@@ -5,24 +5,33 @@ on:
     types: [opened, reopened, synchronize]
 
 jobs:
-  build:
+  examples_list:
+    name: List all BSP examples
+    runs-on: ubuntu-20.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: set-matrix
+        run: echo "::set-output name=matrix::$(ls -d examples/*/ | jq -R -s -c 'split("\n")[:-1]')"
+
+  examples_build:
+    name: Build all BSP examples
+    needs: examples_list
     strategy:
       matrix:
         idf_ver: ["latest"]
+        example: ${{ fromJson(needs.examples_list.outputs.matrix) }}
     runs-on: ubuntu-20.04
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: 'recursive'
-      - name: Build ESP-BSP examples
+      - name: Build ESP-BSP ${{ matrix.example }} with IDF-${{ matrix.idf_ver }}
+        working-directory: '${{ matrix.example }}'
         shell: bash
         run: |
           . ${IDF_PATH}/export.sh
           pip install idf-component-manager --upgrade
-          cd examples
-          for d in */; do
-            pushd $d
-            idf.py build
-            popd
-          done
+          idf.py build
