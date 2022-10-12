@@ -38,7 +38,7 @@ static esp_err_t touch_gt911_i2c_write(esp_lcd_touch_handle_t tp, uint16_t reg, 
 /* GT911 reset */
 static esp_err_t touch_gt911_reset(esp_lcd_touch_handle_t tp);
 /* Read status and config register */
-static void touch_gt911_read_cfg(esp_lcd_touch_handle_t tp);
+static esp_err_t touch_gt911_read_cfg(esp_lcd_touch_handle_t tp);
 
 /*******************************************************************************
 * Public API functions
@@ -95,7 +95,8 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
     ESP_GOTO_ON_ERROR(ret, err, TAG, "GT911 reset failed");
 
     /* Read status and config info */
-    touch_gt911_read_cfg(esp_lcd_touch_gt911);
+    ret = touch_gt911_read_cfg(esp_lcd_touch_gt911);
+    ESP_GOTO_ON_ERROR(ret, err, TAG, "GT911 init failed");
 
 err:
     if (ret != ESP_OK) {
@@ -229,17 +230,19 @@ static esp_err_t touch_gt911_reset(esp_lcd_touch_handle_t tp)
     return ESP_OK;
 }
 
-static void touch_gt911_read_cfg(esp_lcd_touch_handle_t tp)
+static esp_err_t touch_gt911_read_cfg(esp_lcd_touch_handle_t tp)
 {
     uint8_t buf[4];
 
     assert(tp != NULL);
 
-    touch_gt911_i2c_read(tp, ESP_LCD_TOUCH_GT911_PRODUCT_ID_REG, (uint8_t *)&buf[0], 3);
-    touch_gt911_i2c_read(tp, ESP_LCD_TOUCH_GT911_CONFIG_REG, (uint8_t *)&buf[3], 1);
+    ESP_RETURN_ON_ERROR(touch_gt911_i2c_read(tp, ESP_LCD_TOUCH_GT911_PRODUCT_ID_REG, (uint8_t *)&buf[0], 3), TAG, "GT911 read error!");
+    ESP_RETURN_ON_ERROR(touch_gt911_i2c_read(tp, ESP_LCD_TOUCH_GT911_CONFIG_REG, (uint8_t *)&buf[3], 1), TAG, "GT911 read error!");
 
     ESP_LOGI(TAG, "TouchPad_ID:0x%02x,0x%02x,0x%02x", buf[0], buf[1], buf[2]);
     ESP_LOGI(TAG, "TouchPad_Config_Version:%d", buf[3]);
+
+    return ESP_OK;
 }
 
 static esp_err_t touch_gt911_i2c_read(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint8_t len)
