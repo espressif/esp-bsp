@@ -1,6 +1,4 @@
-description: Display and Camera example on ESP-BOX
-targets:
-    - esp32s3
+description: BSP Touch example
 dependencies:
   idf: ">=4.4"
   esp-box:

@@ -5,7 +5,7 @@
  */
 
 #include <stdio.h>
-#include "bsp/esp_wrover_kit.h"
+#include "bsp/esp-bsp.h"
 #include "lvgl.h"
 #include "esp_log.h"
 

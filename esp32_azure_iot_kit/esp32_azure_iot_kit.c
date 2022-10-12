@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "esp32_azure_iot_kit.h"
+#include "bsp/esp32_azure_iot_kit.h"
 #include "esp_vfs_fat.h"
 #include "driver/ledc.h"
 

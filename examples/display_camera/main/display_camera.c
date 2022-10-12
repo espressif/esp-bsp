@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include "sdkconfig.h"
-#include "bsp/esp32_s2_kaluga_kit.h"
+#include "bsp/esp-bsp.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"

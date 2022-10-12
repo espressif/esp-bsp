@@ -1,8 +1,6 @@
-description: Sensor example on ESP-BOX
-targets:
-    - esp32s3
+description: BSP Display rotation example
 dependencies:
   idf: ">=4.4"
   esp-box:
-    version: ">=1.1.0"
+    version: "*"
     override_path: "../../../esp-box"

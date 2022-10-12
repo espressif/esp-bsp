@@ -1,6 +1,4 @@
-description: ESP-BOX Display Audio Photo Example
-targets:
-    - esp32s3
+description: BSP Display Audio Photo Example
 dependencies:
   idf: ">=5.0"
   esp_jpeg: "*"

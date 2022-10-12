@@ -19,13 +19,13 @@
 #include "mag3110.h"
 #include "bh1750.h"
 #include "ssd1306.h"
-#include "esp32_azure_iot_kit.h"
+#include "bsp/esp-bsp.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "sdmmc_cmd.h" // for sdmmc_card_print_info
 #include "esp_idf_version.h" // for backward compatibility of esp-timer
 
-static const char *TAG = "BSP - Azure IoT kit";
+static const char *TAG = "example";
 
 static bh1750_handle_t bh1750_dev = NULL;
 static hts221_handle_t hts221_dev = NULL;
