@@ -5,10 +5,10 @@
  */
 
 #include "esp_log.h"
-#include "bsp/esp-box.h"
+#include "bsp/esp-bsp.h"
 #include "app_disp_fs.h"
 
-#define TAG "ESP-BOX"
+static const char *TAG = "example";
 
 /*******************************************************************************
 * Private functions

@@ -6,7 +6,7 @@
 
 #include "disp_example.h"
 #include "lvgl.h"
-#include "bsp/esp32_s2_kaluga_kit.h"
+#include "bsp/esp-bsp.h"
 
 static lv_obj_t *recording_checkbox = NULL;
 static lv_obj_t *playing_checkbox = NULL;

@@ -19,7 +19,7 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
-#include "esp32_azure_iot_kit.h"
+#include "bsp/esp-bsp.h"
 
 /* The examples use WiFi configuration that you can set via project configuration menu
 

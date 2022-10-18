@@ -15,7 +15,7 @@
 #include "esp_log.h"
 #include "esp_err.h"
 #include "esp_spiffs.h"
-#include "bsp/esp-box.h"
+#include "bsp/esp-bsp.h"
 #include "lvgl.h"
 #include "app_disp_fs.h"
 #include "es8311.h"

@@ -12,7 +12,7 @@
 #include "esp_log.h"
 #include "esp_spiffs.h"
 
-#include "bsp/esp32_s2_kaluga_kit.h"
+#include "bsp/esp-bsp.h"
 #include "es8311.h"
 #include "led_strip.h"
 #include "lvgl.h"
@@ -30,7 +30,7 @@
 #define RECORDING_LENGTH (160)
 
 /* Globals */
-static const char *TAG = "Kaluga";
+static const char *TAG = "example";
 static button_handle_t audio_button[BSP_BUTTON_NUM] = {};
 static QueueHandle_t audio_button_q = NULL;
 static led_strip_handle_t rgb_led = NULL;

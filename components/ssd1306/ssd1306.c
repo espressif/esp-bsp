@@ -308,4 +308,3 @@ void ssd1306_clear_screen(ssd1306_handle_t dev, uint8_t chFill)
     ssd1306_dev_t *device = (ssd1306_dev_t *) dev;
     memset(device->s_chDisplayBuffer, chFill, sizeof(device->s_chDisplayBuffer));
 }
-

@@ -5,10 +5,10 @@
  */
 
 #include "esp_log.h"
-#include "bsp/esp-box.h"
+#include "bsp/esp-bsp.h"
 #include "lvgl.h"
 
-#define TAG "ESP-BOX"
+static const char *TAG = "example";
 #define APP_DISP_DEFAULT_BRIGHTNESS 50
 
 static lv_obj_t *main_screen = NULL;

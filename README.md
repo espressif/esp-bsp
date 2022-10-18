@@ -34,6 +34,13 @@ Best way to start with ESP-BSP is trying one of the [examples](examples) on your
 | [rainmaker_example](examples/rainmaker_example) | Azure-IoT-kit |
 | [sensors_example](examples/sensors_example) | Azure-IoT-kit |
 
+### BSP headers
+Each BSP provides its header file in 'bsp' subfolder, so it can be included as follows: `#include "bsp/name-of-the-bsp.h"`.
+
+For you convenience, each BSP also provides a wrapper header, which has the same name for all BSPs: `#include "bsp/esp-bsp.h"`.
+
+> **_NOTE:_** There can be only one BSP in a single esp-idf project.
+
 ### In a custom project 
 Packages from this repository are uploaded to the [IDF component registry](https://components.espressif.com/).
 You can add them to your project via `idf.py add-dependency`, e.g. 

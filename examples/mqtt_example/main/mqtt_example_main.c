@@ -17,7 +17,7 @@
 #include "fbm320.h"
 #include "bh1750.h"
 #include "ssd1306.h"
-#include "esp32_azure_iot_kit.h"
+#include "bsp/esp-bsp.h"
 #include "esp_log.h"
 
 #include "esp_wifi.h"

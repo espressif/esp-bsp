@@ -394,4 +394,3 @@ void bsp_display_unlock(void)
     assert(lvgl_mux && "bsp_display_start must be called first");
     xSemaphoreGive(lvgl_mux);
 }
-
