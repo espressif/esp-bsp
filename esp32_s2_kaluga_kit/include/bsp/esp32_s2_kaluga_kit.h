@@ -75,11 +75,6 @@ extern "C" {
  *
  * There is one device connected to the I2S peripheral:
  *  - Codec ES8311 (plyback and recording)
- *
- * After initialization of I2S, use BSP_I2S_NUM macro when reading/writing to I2S stream:
- * \code{.c}
- * i2s_write(BSP_I2S_NUM, wav_bytes, wav_bytes_len, &i2s_bytes_written, pdMS_TO_TICKS(500));
- * \endcode
  **************************************************************************************************/
 
 /**
@@ -208,14 +203,16 @@ esp_err_t bsp_i2c_deinit(void);
  * We use double-buffering for the best performance.
  * Since ESP32-S2 has only 320kB of internal SRAM, we allocate the framebuffers in external PSRAM.
  * By setting XCLK to 16MHz, we configure the esp32-camera driver to use EDMA when accessing the PSRAM.
+ *
+ * @attention I2C must be enabled by bsp_i2c_init(), before camera is initialized
  */
 #define BSP_CAMERA_DEFAULT_CONFIG         \
     {                                     \
         .pin_pwdn = GPIO_NUM_NC,          \
         .pin_reset = GPIO_NUM_NC,         \
         .pin_xclk = BSP_CAMERA_XCLK,      \
-        .pin_sscb_sda = GPIO_NUM_NC,      \
-        .pin_sscb_scl = GPIO_NUM_NC,      \
+        .pin_sccb_sda = GPIO_NUM_NC,      \
+        .pin_sccb_scl = GPIO_NUM_NC,      \
         .pin_d7 = BSP_CAMERA_D7,          \
         .pin_d6 = BSP_CAMERA_D6,          \
         .pin_d5 = BSP_CAMERA_D5,          \
@@ -234,7 +231,8 @@ esp_err_t bsp_i2c_deinit(void);
         .frame_size = FRAMESIZE_QVGA,     \
         .jpeg_quality = 12,               \
         .fb_count = 2,                    \
-        .fb_location = CAMERA_FB_IN_PSRAM \
+        .fb_location = CAMERA_FB_IN_PSRAM,\
+        .sccb_i2c_port = BSP_I2C_NUM,     \
     }
 
 /**************************************************************************************************

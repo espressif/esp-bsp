@@ -132,15 +132,20 @@ esp_err_t bsp_i2c_deinit(void);
 /**
  * @brief ESP32-S3-EYE camera default configuration
  *
- * In default configuration we select RGB565 color format and 240x240 image size
+ * In this configuration we select RGB565 color format and 240x240 image size - matching the display.
+ * We use double-buffering for the best performance.
+ * Since we don't want to waste internal SRAM, we allocate the framebuffers in external PSRAM.
+ * By setting XCLK to 16MHz, we configure the esp32-camera driver to use EDMA when accessing the PSRAM.
+ *
+ * @attention I2C must be enabled by bsp_i2c_init(), before camera is initialized
  */
 #define BSP_CAMERA_DEFAULT_CONFIG         \
     {                                     \
         .pin_pwdn = GPIO_NUM_NC,          \
         .pin_reset = GPIO_NUM_NC,         \
         .pin_xclk = BSP_CAMERA_XCLK,      \
-        .pin_sscb_sda = GPIO_NUM_NC,      \
-        .pin_sscb_scl = GPIO_NUM_NC,      \
+        .pin_sccb_sda = GPIO_NUM_NC,      \
+        .pin_sccb_scl = GPIO_NUM_NC,      \
         .pin_d7 = BSP_CAMERA_D7,          \
         .pin_d6 = BSP_CAMERA_D6,          \
         .pin_d5 = BSP_CAMERA_D5,          \
@@ -159,7 +164,8 @@ esp_err_t bsp_i2c_deinit(void);
         .frame_size = FRAMESIZE_240X240,  \
         .jpeg_quality = 12,               \
         .fb_count = 2,                    \
-        .fb_location = CAMERA_FB_IN_PSRAM \
+        .fb_location = CAMERA_FB_IN_PSRAM,\
+        .sccb_i2c_port = BSP_I2C_NUM,     \
     }
 
 /**************************************************************************************************
