@@ -1,4 +1,4 @@
-version: "1.1.1"
+version: "2.0.0"
 description: Board Support Package for ESP32-S3-EYE
 url: https://github.com/espressif/esp-bsp/tree/master/esp32_s3_eye
 
@@ -6,7 +6,7 @@ targets:
   - esp32s3
 
 dependencies:
-  idf: ">=4.4"
+  idf: ">=5.0"
 
   lvgl/lvgl:
     version: "8.*"
