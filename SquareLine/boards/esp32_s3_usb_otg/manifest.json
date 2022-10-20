@@ -7,8 +7,8 @@
     "screen_height":"240",
     "screen_color_swap":true,
 
-    "short_description":"Espressif's ESP32-S3-USB-OTG",
-    "long_description":"ESP32-S3-USB-OTG is a development board that focuses on USB-OTG function verification and application development. It is based on ESP32-S3 SoC, supports Wi-Fi and BLE 5.0 wireless functions, and supports USB host and USB device functions. It can be used to develop applications such as wireless storage devices, Wi-Fi network cards, LTE MiFi, multimedia devices, virtual keyboards and mice.",
+    "short_description":"ESP32-S3-USB-OTG is a development board produced by Espressif that focuses on USB-OTG function verification and application development.",
+    "long_description":"ESP32-S3-USB-OTG is targeting at applications based on USB interface. It is equipped with the ESP32-S3-MINI-1-N8 module. Combined with the Wi-Fi functionality provided by the SoC, the USB interface can be used for video streaming over Wi-Fi, accessing the Internet through a 4G hotspot, connecting to a wireless USB disk, and many other applications.",
 
     "placeholders":
     {
