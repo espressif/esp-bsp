@@ -400,3 +400,24 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on)
     BSP_ERROR_CHECK_RETURN_ERR(gpio_set_level((gpio_num_t) led_io, (uint32_t) on));
     return ESP_OK;
 }
+
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel)
+{
+    /* Setup I2S peripheral */
+    const i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_AUTO, I2S_ROLE_MASTER);
+    BSP_ERROR_CHECK_RETURN_ERR(i2s_new_channel(&chan_cfg, NULL, rx_channel));
+    if (tx_channel) {
+        *tx_channel = NULL; // TX is not used in ESP32-S3-EYE board
+    }
+
+    /* Setup I2S channel */
+    const i2s_std_config_t std_cfg_default = BSP_I2S_SIMPLEX_MONO_CFG(); // Default config
+    const i2s_std_config_t *p_i2s_cfg = i2s_config ? i2s_config : &std_cfg_default;
+
+    if (rx_channel != NULL) {
+        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_init_std_mode(*rx_channel, p_i2s_cfg));
+        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_enable(*rx_channel));
+    }
+
+    return ESP_OK;
+}

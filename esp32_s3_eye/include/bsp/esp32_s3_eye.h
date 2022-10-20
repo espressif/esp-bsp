@@ -9,6 +9,7 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/sdmmc_host.h"
+#include "driver/i2s_std.h"
 #include "lvgl.h"
 #include "iot_button.h"
 
@@ -23,7 +24,7 @@
 /* Audio */
 #define BSP_I2S_SCLK          (GPIO_NUM_41)
 #define BSP_I2S_LCLK          (GPIO_NUM_42)
-#define BSP_I2S_DOUT          (GPIO_NUM_2)
+#define BSP_I2S_DIN           (GPIO_NUM_2)
 
 /* Display */
 #define BSP_LCD_SPI_MOSI      (GPIO_NUM_47)
@@ -68,9 +69,9 @@ extern "C" {
  *
  * Example configuration:
  * \code{.c}
- * button_handle_t audio_button[BSP_BUTTON_NUM];
+ * button_handle_t button[BSP_BUTTON_NUM];
  * for (int i = 0; i < BSP_BUTTON_NUM; i++) {
- *     audio_button[i] = iot_button_create(&bsp_button_config[i]);
+ *     button[i] = iot_button_create(&bsp_button_config[i]);
  * }
  * \endcode
  **************************************************************************************************/
@@ -131,15 +132,20 @@ esp_err_t bsp_i2c_deinit(void);
 /**
  * @brief ESP32-S3-EYE camera default configuration
  *
- * In default configuration we select RGB565 color format and 240x240 image size
+ * In this configuration we select RGB565 color format and 240x240 image size - matching the display.
+ * We use double-buffering for the best performance.
+ * Since we don't want to waste internal SRAM, we allocate the framebuffers in external PSRAM.
+ * By setting XCLK to 16MHz, we configure the esp32-camera driver to use EDMA when accessing the PSRAM.
+ *
+ * @attention I2C must be enabled by bsp_i2c_init(), before camera is initialized
  */
 #define BSP_CAMERA_DEFAULT_CONFIG         \
     {                                     \
         .pin_pwdn = GPIO_NUM_NC,          \
         .pin_reset = GPIO_NUM_NC,         \
         .pin_xclk = BSP_CAMERA_XCLK,      \
-        .pin_sscb_sda = GPIO_NUM_NC,      \
-        .pin_sscb_scl = GPIO_NUM_NC,      \
+        .pin_sccb_sda = GPIO_NUM_NC,      \
+        .pin_sccb_scl = GPIO_NUM_NC,      \
         .pin_d7 = BSP_CAMERA_D7,          \
         .pin_d6 = BSP_CAMERA_D6,          \
         .pin_d5 = BSP_CAMERA_D5,          \
@@ -158,7 +164,8 @@ esp_err_t bsp_i2c_deinit(void);
         .frame_size = FRAMESIZE_240X240,  \
         .jpeg_quality = 12,               \
         .fb_count = 2,                    \
-        .fb_location = CAMERA_FB_IN_PSRAM \
+        .fb_location = CAMERA_FB_IN_PSRAM,\
+        .sccb_i2c_port = BSP_I2C_NUM,     \
     }
 
 /**************************************************************************************************
@@ -310,6 +317,82 @@ esp_err_t bsp_leds_init(void);
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
 esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
+
+/**************************************************************************************************
+ *
+ * I2S audio interface
+ *
+ * There is only one device connected to the I2S peripheral
+ *  - MEMSensing Microsystems MSM261S4030H0: 48kHz, 24bit mono digital microphone
+ **************************************************************************************************/
+
+/**
+ * @brief Sample rate of MSM261S4030H0
+ */
+#define BSP_MIC_SAMPLE_RATE (48000u)
+
+/**
+ * @brief ESP32-S3-EYE I2S pinout
+ *
+ * Can be used for i2s_std_gpio_config_t and/or i2s_std_config_t initialization
+ */
+#define BSP_I2S_GPIO_CFG()     \
+    {                          \
+        .mclk = GPIO_NUM_NC,   \
+        .bclk = BSP_I2S_SCLK,  \
+        .ws = BSP_I2S_LCLK,    \
+        .dout = GPIO_NUM_NC,   \
+        .din = BSP_I2S_DIN,    \
+        .invert_flags = {      \
+            .mclk_inv = false, \
+            .bclk_inv = false, \
+            .ws_inv = false,   \
+        },                     \
+    }
+
+/**
+ * @brief Mono Simplex I2S configuration structure
+ *
+ * This configuration is used by default in bsp_audio_init()
+ */
+#define BSP_I2S_SIMPLEX_MONO_CFG()                      \
+    {                                                   \
+        .clk_cfg = {                                    \
+            .sample_rate_hz = BSP_MIC_SAMPLE_RATE,      \
+            .clk_src = I2S_CLK_SRC_DEFAULT,             \
+            .mclk_multiple = I2S_MCLK_MULTIPLE_384,     \
+        },                                              \
+        .slot_cfg = {                                   \
+            .data_bit_width = I2S_DATA_BIT_WIDTH_24BIT, \
+            .slot_bit_width = I2S_SLOT_BIT_WIDTH_32BIT, \
+            .slot_mode = I2S_SLOT_MODE_MONO,            \
+            .slot_mask = I2S_STD_SLOT_LEFT,             \
+            .ws_width = 32,                             \
+            .ws_pol = false,                            \
+            .bit_shift = true,                          \
+            .left_align = true,                         \
+            .big_endian = false,                        \
+            .bit_order_lsb = false,                     \
+        },                                              \
+        .gpio_cfg = BSP_I2S_GPIO_CFG(),                 \
+    }
+
+/**
+ * @brief Init audio
+ *
+ * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
+ * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, 24bit, 48000 Hz)
+ * @param[out] tx_channel I2S TX channel, does not configure anything for this board, can be NULL
+ * @param[out] rx_channel I2S RX channel, can be NULL
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
+ *      - ESP_ERR_INVALID_ARG   NULL pointer or invalid configuration
+ *      - ESP_ERR_NOT_FOUND     No available I2S channel found
+ *      - ESP_ERR_NO_MEM        No memory for storing the channel information
+ *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
+ */
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel);
 
 #ifdef __cplusplus
 }
