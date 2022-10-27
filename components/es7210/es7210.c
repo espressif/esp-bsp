@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <inttypes.h>
 #include "es7210.h"
 #include "es7210_reg.h"
 #include "esp_log.h"
