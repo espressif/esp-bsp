@@ -12,13 +12,13 @@ if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "4.4")
     list(APPEND EXTRA_COMPONENT_DIRS "../components/lcd_touch")
 endif()
 if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
-    set(EXCLUDE_COMPONENTS "es8311")
+    set(EXCLUDE_COMPONENTS "es8311" "es7210")
 elseif("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "5.0")
     set(EXCLUDE_COMPONENTS "esp_lcd_touch_stmpe610")
 endif()
 
 
 # Set the components to include the tests for.
-set(TEST_COMPONENTS bh1750 ssd1306 mpu6050 mag3110 hts221 fbm320 CACHE STRING "List of components to test")
+set(TEST_COMPONENTS bh1750 ssd1306 mpu6050 mag3110 hts221 fbm320 es7210 CACHE STRING "List of components to test")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(esp_bsp_test_app)
