@@ -22,6 +22,11 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
 - Supported only 8-bit and 16-bit communication interface
 - Not supported color inversion
 
+## Hardware notes
+
+- Read is not supported on parallel communication interface. **Please don't forget put RD pin to HIGH and PS to LOW.**
+- When CS pin is not used, put it to LOW.
+
 ## Usage
 
 For detailed usage, please go to [LCD documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html).
