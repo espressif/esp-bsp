@@ -193,12 +193,12 @@ static esp_err_t esp_lcd_touch_stmpe610_read_data(esp_lcd_touch_handle_t tp)
     /* Reset all ints */
     ESP_RETURN_ON_ERROR(touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_INT_STA, 0xFF), TAG, "STMPE610 write error!");
 
-    taskENTER_CRITICAL(&tp->data.lock);
+    portENTER_CRITICAL(&tp->data.lock);
     tp->data.coords[0].x = data_convert(x / cnt, 150, 3800, 0, tp->config.x_max);
     tp->data.coords[0].y = data_convert(y / cnt, 150, 3800, 0, tp->config.y_max);
     tp->data.coords[0].strength = z / cnt;
     tp->data.points = 1;
-    taskEXIT_CRITICAL(&tp->data.lock);
+    portEXIT_CRITICAL(&tp->data.lock);
 
     return ESP_OK;
 }
@@ -211,7 +211,7 @@ static bool esp_lcd_touch_stmpe610_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x
     assert(point_num != NULL);
     assert(max_point_num > 0);
 
-    taskENTER_CRITICAL(&tp->data.lock);
+    portENTER_CRITICAL(&tp->data.lock);
 
     /* Count of points */
     *point_num = (tp->data.points > max_point_num ? max_point_num : tp->data.points);
@@ -228,7 +228,7 @@ static bool esp_lcd_touch_stmpe610_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x
     /* Invalidate */
     tp->data.points = 0;
 
-    taskEXIT_CRITICAL(&tp->data.lock);
+    portEXIT_CRITICAL(&tp->data.lock);
 
     return (*point_num > 0);
 }

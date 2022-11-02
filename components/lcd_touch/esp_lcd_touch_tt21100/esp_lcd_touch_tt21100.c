@@ -171,7 +171,7 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
         touch_tt21100_i2c_read(tp, data, data_len);
         ESP_RETURN_ON_ERROR(err, TAG, "I2C read error!");
 
-        taskENTER_CRITICAL(&tp->data.lock);
+        portENTER_CRITICAL(&tp->data.lock);
 
         if (data_len == 14) {
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
@@ -210,7 +210,7 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
             }
         }
 
-        taskEXIT_CRITICAL(&tp->data.lock);
+        portEXIT_CRITICAL(&tp->data.lock);
     }
 
     return ESP_OK;
@@ -224,7 +224,7 @@ static bool esp_lcd_touch_tt21100_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x,
     assert(point_num != NULL);
     assert(max_point_num > 0);
 
-    taskENTER_CRITICAL(&tp->data.lock);
+    portENTER_CRITICAL(&tp->data.lock);
 
     /* Count of points */
     *point_num = (tp->data.points > max_point_num ? max_point_num : tp->data.points);
@@ -241,7 +241,7 @@ static bool esp_lcd_touch_tt21100_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x,
     /* Invalidate */
     tp->data.points = 0;
 
-    taskEXIT_CRITICAL(&tp->data.lock);
+    portEXIT_CRITICAL(&tp->data.lock);
 
     return (*point_num > 0);
 }
@@ -255,7 +255,7 @@ static esp_err_t esp_lcd_touch_tt21100_get_button_state(esp_lcd_touch_handle_t t
 
     *state = 0;
 
-    taskENTER_CRITICAL(&tp->data.lock);
+    portENTER_CRITICAL(&tp->data.lock);
 
     if (n > tp->data.buttons) {
         err = ESP_ERR_INVALID_ARG;
@@ -263,7 +263,7 @@ static esp_err_t esp_lcd_touch_tt21100_get_button_state(esp_lcd_touch_handle_t t
         *state = tp->data.button[n].status;
     }
 
-    taskEXIT_CRITICAL(&tp->data.lock);
+    portEXIT_CRITICAL(&tp->data.lock);
 
     return err;
 }
