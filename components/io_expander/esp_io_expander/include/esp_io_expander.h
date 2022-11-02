@@ -72,7 +72,7 @@ typedef enum {
  *
  */
 typedef struct {
-    uint8_t io_amount;                      /*!< Amout of device's IO, must be less than `IO_EXPANDER_PIN_NUM_MAX` */
+    uint8_t io_count;                      /*!< Count of device's IO, must be less or equal than `IO_EXPANDER_PIN_NUM_MAX` */
     struct {
         uint8_t dir_out_bit_zero : 1;       /*!< If the direction of IO is output, the corresponding bit of the direction register is 0 */
         uint8_t input_high_bit_zero : 1;    /*!< If the input level of IO is high, the corresponding bit of the input register is 0 */
