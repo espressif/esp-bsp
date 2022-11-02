@@ -131,7 +131,7 @@ static esp_err_t read_data(esp_lcd_touch_handle_t tp)
     ESP_RETURN_ON_FALSE(!checksum, ESP_ERR_INVALID_CRC, TAG, "Checksum error");
 
     touch_report_t *touch_report = (touch_report_t *)buf;
-    taskENTER_CRITICAL(&tp->data.lock);
+    portENTER_CRITICAL(&tp->data.lock);
     /* Expect Number of touched points */
     touch_cnt = (touch_cnt > CONFIG_ESP_LCD_TOUCH_MAX_POINTS ? CONFIG_ESP_LCD_TOUCH_MAX_POINTS : touch_cnt);
     tp->data.points = touch_cnt;
@@ -142,14 +142,14 @@ static esp_err_t read_data(esp_lcd_touch_handle_t tp)
         tp->data.coords[i].y = touch_report->touch_record[i].y;
         tp->data.coords[i].strength = touch_report->touch_record[i].strength;
     }
-    taskEXIT_CRITICAL(&tp->data.lock);
+    portEXIT_CRITICAL(&tp->data.lock);
 
     return ESP_OK;
 }
 
 static bool get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)
 {
-    taskENTER_CRITICAL(&tp->data.lock);
+    portENTER_CRITICAL(&tp->data.lock);
     /* Count of points */
     *point_num = (tp->data.points > max_point_num ? max_point_num : tp->data.points);
     for (size_t i = 0; i < *point_num; i++) {
@@ -162,7 +162,7 @@ static bool get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t
     }
     /* Invalidate */
     tp->data.points = 0;
-    taskEXIT_CRITICAL(&tp->data.lock);
+    portEXIT_CRITICAL(&tp->data.lock);
 
     return (*point_num > 0);
 }
