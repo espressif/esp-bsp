@@ -46,8 +46,6 @@ typedef struct {
     int x_gap;
     int y_gap;
     unsigned int bits_per_pixel;
-    uint16_t lcd_width;
-    uint16_t lcd_height;
     bool swap_axes;
 } sh1107_panel_t;
 
@@ -57,8 +55,6 @@ esp_err_t esp_lcd_new_panel_sh1107(const esp_lcd_panel_io_handle_t io, const esp
     sh1107_panel_t *sh1107 = NULL;
     ESP_GOTO_ON_FALSE(io && panel_dev_config && ret_panel, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
     ESP_GOTO_ON_FALSE(panel_dev_config->bits_per_pixel == 1, ESP_ERR_INVALID_ARG, err, TAG, "bpp must be 1");
-    esp_lcd_panel_sh1107_config_t *vendor_cfg = (esp_lcd_panel_sh1107_config_t *) panel_dev_config->vendor_config;
-    ESP_GOTO_ON_FALSE(vendor_cfg, ESP_ERR_INVALID_ARG, err, TAG, "vendor config cannot be null");
     sh1107 = calloc(1, sizeof(sh1107_panel_t));
     ESP_GOTO_ON_FALSE(sh1107, ESP_ERR_NO_MEM, err, TAG, "no mem for sh1107 panel");
 
@@ -71,8 +67,6 @@ esp_err_t esp_lcd_new_panel_sh1107(const esp_lcd_panel_io_handle_t io, const esp
     }
 
     sh1107->io = io;
-    sh1107->lcd_width = vendor_cfg->lcd_width;
-    sh1107->lcd_height = vendor_cfg->lcd_height;
     sh1107->bits_per_pixel = panel_dev_config->bits_per_pixel;
     sh1107->reset_gpio_num = panel_dev_config->reset_gpio_num;
     sh1107->reset_level = panel_dev_config->flags.reset_active_high;
@@ -141,7 +135,7 @@ static const uint8_t vendor_specific_init[] = {
 
     0x20,   /* Set Memory addressing mode (0x20/0x21) */
 
-    0xA1,   /* Non-flipped horizontal */
+    0xA0,   /* Non-flipped horizontal */
     0xC7,   /* Non-flipped vertical */
 
     0xa8,   /* multiplex ratio */
@@ -194,52 +188,51 @@ static esp_err_t panel_sh1107_draw_bitmap(esp_lcd_panel_t *panel, int x_start, i
     sh1107_panel_t *sh1107 = __containerof(panel, sh1107_panel_t, base);
     assert((x_start < x_end) && (y_start < y_end) && "start position must be smaller than end position");
     esp_lcd_panel_io_handle_t io = sh1107->io;
+
+    uint8_t column_low = 0;
+    uint8_t column_high = 0;
+    uint8_t row_start = 0, row_end = 0;
+    const uint16_t *ptr;
+    uint32_t size = 0;
+
     // adding extra gap
     x_start += sh1107->x_gap;
     x_end += sh1107->x_gap;
     y_start += sh1107->y_gap;
     y_end += sh1107->y_gap;
 
-    uint8_t columnLow = x_start & 0x0F;
-    uint8_t columnHigh = (x_start >> 4) & 0x0F;
-    uint8_t row1 = 0, row2 = 0;
-    uint32_t size = 0;
-    const uint16_t *ptr;
-
-
     if (sh1107->swap_axes) {
-        /* Portrait */
-        row1 = y_start >> 3;
-        row2 = y_end >> 3;
-    } else {
-        /* Landscape */
-        row1 = x_start >> 3;
-        row2 = x_end >> 3;
+        int x = x_start;
+        x_start = y_start;
+        y_start = x;
+        x = x_end;
+        x_end = y_end;
+        y_end = x;
     }
 
-    for (int i = row1; i < row2 + 1; i++) {
+    row_start = y_start >> 3;
+    row_end = y_end >> 3;
+
+    column_low = x_start & 0x0F;
+    column_high = (x_start >> 4) & 0x0F;
+
+    size = (x_end - x_start);
+
+    for (int i = row_start; i < row_end; i++) {
+        /* Start column */
         esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
-            0x10 | columnHigh
+            0x10 | column_high
         }, 1);
         esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
-            0x00 | columnLow
+            0x00 | column_low
         }, 1);
+        /* Page */
         esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
             0xB0 | i
         }, 1);
-        size = y_end - y_start;
 
-        if (sh1107->swap_axes) {
-            /* Portrait */
-            ptr = color_data + i * sh1107->lcd_height;
-        } else {
-            /* Landscape */
-            ptr = color_data + i * sh1107->lcd_width;
-        }
-
-        if (i != row2) {
-            esp_lcd_panel_io_tx_color(io, LCD_SH1107_I2C_RAM, (uint8_t *)ptr, size);
-        }
+        ptr = color_data + i * x_end;
+        esp_lcd_panel_io_tx_color(io, LCD_SH1107_I2C_RAM, (uint8_t *)ptr, size);
     }
 
     return ESP_OK;
@@ -252,11 +245,11 @@ static esp_err_t panel_sh1107_invert_color(esp_lcd_panel_t *panel, bool invert_c
 
     if (invert_color_data) {
         esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
-            (LCD_SH1107_PARAM_INVERT_COLOR | 0x01)
+            (LCD_SH1107_PARAM_INVERT_COLOR)
         }, 1);
     } else {
         esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
-            LCD_SH1107_PARAM_INVERT_COLOR
+            (LCD_SH1107_PARAM_INVERT_COLOR | 0x01)
         }, 1);
     }
     return ESP_OK;
@@ -266,11 +259,11 @@ static esp_err_t panel_sh1107_mirror(esp_lcd_panel_t *panel, bool mirror_x, bool
 {
     sh1107_panel_t *sh1107 = __containerof(panel, sh1107_panel_t, base);
     esp_lcd_panel_io_handle_t io = sh1107->io;
-    uint8_t param_x = (LCD_SH1107_PARAM_MIRROR_X | 0x01);
+    uint8_t param_x = (LCD_SH1107_PARAM_MIRROR_X);
     uint8_t param_y = (LCD_SH1107_PARAM_MIRROR_Y | 0x07);
 
     if (mirror_x) {
-        param_x = LCD_SH1107_PARAM_MIRROR_X;
+        param_x = (LCD_SH1107_PARAM_MIRROR_X | 0x01);
     }
     if (mirror_y) {
         param_y = (LCD_SH1107_PARAM_MIRROR_Y | 0x08);

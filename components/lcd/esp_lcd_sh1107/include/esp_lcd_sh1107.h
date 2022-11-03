@@ -12,17 +12,6 @@ extern "C" {
 #endif
 
 /**
- * @brief Vendor specific configuration structure for panel device
- *
- * @note Put this structure into esp_lcd_panel_dev_config_t like this `.vendor_config = (void*)&vendor_config`
- *
- */
-typedef struct {
-    uint16_t lcd_width;     /*!< Width size of the LCD panel in pixels */
-    uint16_t lcd_height;    /*!< Height size of the LCD panel in pixels */
-} esp_lcd_panel_sh1107_config_t;
-
-/**
  * @brief Create LCD panel for model SH1107
  *
  * @param[in] io LCD panel IO handle
