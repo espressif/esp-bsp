@@ -33,7 +33,7 @@ static esp_err_t read_reg(esp_io_expander_handle_t handle, reg_type_t reg, uint3
 esp_err_t esp_io_expander_set_dir(esp_io_expander_handle_t handle, uint32_t pin_num_mask, esp_io_expander_dir_t direction)
 {
     ESP_RETURN_ON_FALSE(handle, ESP_ERR_INVALID_ARG, TAG, "Invalid handle");
-    if (pin_num_mask >= BIT(VALID_IO_COUNT(handle))) {
+    if (pin_num_mask >= BIT64(VALID_IO_COUNT(handle))) {
         ESP_LOGW(TAG, "Pin num mask out of range, bit higher than %d won't work", VALID_IO_COUNT(handle) - 1);
     }
 
@@ -61,7 +61,7 @@ esp_err_t esp_io_expander_set_dir(esp_io_expander_handle_t handle, uint32_t pin_
 esp_err_t esp_io_expander_set_level(esp_io_expander_handle_t handle, uint32_t pin_num_mask, uint8_t level)
 {
     ESP_RETURN_ON_FALSE(handle, ESP_ERR_INVALID_ARG, TAG, "Invalid handle");
-    if (pin_num_mask >= BIT(VALID_IO_COUNT(handle))) {
+    if (pin_num_mask >= BIT64(VALID_IO_COUNT(handle))) {
         ESP_LOGW(TAG, "Pin num mask out of range, bit higher than %d won't work", VALID_IO_COUNT(handle) - 1);
     }
 
@@ -109,7 +109,7 @@ esp_err_t esp_io_expander_get_level(esp_io_expander_handle_t handle, uint32_t pi
 {
     ESP_RETURN_ON_FALSE(handle, ESP_ERR_INVALID_ARG, TAG, "Invalid handle");
     ESP_RETURN_ON_FALSE(level_mask, ESP_ERR_INVALID_ARG, TAG, "Invalid level");
-    if (pin_num_mask >= BIT(VALID_IO_COUNT(handle))) {
+    if (pin_num_mask >= BIT64(VALID_IO_COUNT(handle))) {
         ESP_LOGW(TAG, "Pin num mask out of range, bit higher than %d won't work", VALID_IO_COUNT(handle) - 1);
     }
 
