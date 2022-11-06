@@ -10,6 +10,7 @@ include($ENV{IDF_PATH}/tools/cmake/version.cmake) # $ENV{IDF_VERSION} was added 
 if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "4.4")
     list(APPEND EXTRA_COMPONENT_DIRS "../components/lcd")
     list(APPEND EXTRA_COMPONENT_DIRS "../components/lcd_touch")
+    list(APPEND EXTRA_COMPONENT_DIRS "../components/io_expander")
 endif()
 if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
     set(EXCLUDE_COMPONENTS "es8311" "es7210")
