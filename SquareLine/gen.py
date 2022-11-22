@@ -37,7 +37,7 @@ SLB_FILE = {
     "color_depth": "",
     "lvgl_export_path": "",
     "lvgl_include_path": "lvgl.h",
-    "supported_lvgl_version": "8.2.0",
+    "supported_lvgl_version": "8.2.0, 8.3.3",
     "pattern_match_files": "./CMakeLists.txt",
     "language":"C",
     "ui_export_path":"./main/ui",
@@ -133,7 +133,7 @@ def check_json_key(manifest, key):
         raise SystemExit(1)
 
 # Get version in filename format
-def get_file_version(manifest):
+def get_board_version(manifest):
     check_json_key(manifest, "version")
     v = manifest["version"].split('.')
     return f"_v{v[0]}_{v[1]}_{v[2]}"
@@ -183,9 +183,10 @@ def process_board(board_name, output, dir):
         with open(path, "r") as f:
             manifest = json.loads(f.read())
 
-        # Get string version for file names
-        file_ver = get_file_version(manifest)
-        output_filename = board_name + file_ver
+        # Get string version for board folder names
+        board_ver = get_board_version(manifest)
+        output = output + board_ver
+        output_filename = board_name
 
         check_json_key(manifest, "placeholders")
         placeholders = manifest["placeholders"]
