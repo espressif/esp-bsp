@@ -1,0 +1,10 @@
+version: "1.0.0"
+description: ESP LVGL port
+url: https://github.com/espressif/esp-bsp/tree/master/components/esp_lvgl_port
+dependencies:
+  idf: ">=4.4"
+  lvgl/lvgl:
+    version: "^8"
+    public: true
+  esp_lcd_touch:
+    version: "^1.0"

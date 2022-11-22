@@ -27,16 +27,10 @@ esp_lcd_panel_io_handle_t io_handle = NULL;
 esp_lcd_panel_io_i2c_config_t io_config = ESP_LCD_IO_I2C_SH1107_CONFIG();
 ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)config->i2c.port, &io_config, &io_handle));
 
-const esp_lcd_panel_sh1107_config_t vendor_config = {
-    .lcd_width = BOARD_DISP_I2C_HRES,
-    .lcd_height = BOARD_DISP_I2C_VRES,
-};
-
 esp_lcd_panel_handle_t lcd_panel_handle = NULL;
 esp_lcd_panel_dev_config_t panel_config = {
     .bits_per_pixel = 1,
     .reset_gpio_num = BOARD_DISP_I2C_RST,
-    .vendor_config = (void*)&vendor_config,
 };
 ESP_ERROR_CHECK(esp_lcd_new_panel_sh1107(io_handle, &panel_config, &lcd_panel_handle));
 
