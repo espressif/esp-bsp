@@ -14,8 +14,8 @@
 #include "esp_log.h"
 
 #include "sdkconfig.h"
-#include "../priv_include/bsp_err_check.h"
-#include "../priv_include/bsp_sub_board.h"
+#include "bsp_err_check.h"
+#include "bsp_sub_board.h"
 #include "bsp/esp32_s3_lcd_ev_board.h"
 
 static const char *TAG = "SUB-BOARD_800x480";
