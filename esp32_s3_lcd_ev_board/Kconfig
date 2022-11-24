@@ -107,7 +107,7 @@ menu "Board Support Package"
         config BSP_DISPLAY_LVGL_BUF_HEIGHT
             depends on !BSP_DISPLAY_LVGL_AVOID_TEAR
             int "LVGL buffer height"
-            default 10
+            default 100
             help
                 Height of LVGL buffer. The width of the buffer is the same as that of the LCD.
     endmenu
