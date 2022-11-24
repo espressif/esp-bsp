@@ -1,0 +1,33 @@
+version: "1.0.0"
+description: Board Support Package for ESP32-S3-LCD-EV-BOARD
+url: https://github.com/espressif/esp-bsp/tree/master/esp32_s3_lcd_ev_board
+
+targets:
+  - esp32s3
+
+dependencies:
+  idf: ">=5.0"
+
+  esp_lcd_touch_gt1151:
+    version: "^1"
+    public: true
+
+  esp_lcd_touch_ft5x06:
+    version: "^1"
+    public: true
+
+  es8311:
+    version: "^1"
+    public: true
+
+  es7210:
+    version: "^1"
+    public: true
+
+  esp_io_expander_tca9554:
+    version: "^1"
+    public: true
+
+  lvgl/lvgl:
+    version: "^8"
+    public: true
