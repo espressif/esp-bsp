@@ -212,7 +212,7 @@ static const lcd_init_cmd_t vendor_specific_init[] = {
     /* Entry mode set, Low vol detect disabled, normal display */
     {0xB7, {0x07}, 1},
     /* Display function control */
-    {0xB6, {0x0A, 0x02}, 2},
+    {0xB6, {0x08, 0x82, 0x27}, 3},
     /* Sleep out */
     {LCD_CMD_SLPOUT, {0}, 0x80},
     /* Display on */
