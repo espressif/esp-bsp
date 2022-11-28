@@ -14,7 +14,7 @@ BOARD_GENFILE = "manifest.json"
 # Components specific folder in specific board folder. Will be copied from boards/BOARD/ directory
 COMPONENTS_SPECIFIC_FILES = "components"
 # Files, which are specific for each board. Will be copied from boards/BOARD/ directory
-BOARD_SPECIFIC_FILES = {"sdkconfig.defaults", "main/idf_component.yml"}
+BOARD_SPECIFIC_FILES = {"sdkconfig.defaults", "main/idf_component.yml", "partitions.csv"}
 # Generated output directory
 OUT_DIR = "espressif"
 # SquareLine output directory
@@ -196,7 +196,9 @@ def process_board(board_name, output, dir):
         copy_directory(COMMON_DIR, squareline_dir_path, placeholders)
         # Copy specific board files
         for file in BOARD_SPECIFIC_FILES:
-            copy_file(os.path.join(dir, file), os.path.join(squareline_dir_path, file), placeholders)
+            board_specific_file = os.path.join(dir, file)
+            if os.path.exists(board_specific_file):
+                copy_file(board_specific_file, os.path.join(squareline_dir_path, file), placeholders)
         # Copy components, if exists
         components_dir_path = os.path.join(dir, COMPONENTS_SPECIFIC_FILES)
         if os.path.exists(components_dir_path):
