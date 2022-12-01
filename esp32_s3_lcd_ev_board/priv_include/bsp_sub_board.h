@@ -8,6 +8,7 @@
 
 #include "esp_err.h"
 #include "esp_lcd_types.h"
+#include "esp_lcd_touch.h"
 
 #ifdef __cplusplus
 extern "C" {
