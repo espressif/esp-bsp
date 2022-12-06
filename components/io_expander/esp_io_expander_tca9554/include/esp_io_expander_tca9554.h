@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief ESP IO expander: TCA9554
+ */
+
 #pragma once
 
 #include <stdint.h>

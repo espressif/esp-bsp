@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief MPU6050 driver
+ */
+
 #pragma once
 
 #ifdef __cplusplus
@@ -160,7 +165,7 @@ esp_err_t mpu6050_get_gyro_sensitivity(mpu6050_handle_t sensor, float *const gyr
  * @brief Read raw accelerometer measurements
  *
  * @param sensor object handle of mpu6050
- * @param acce_value raw accelerometer measurements
+ * @param raw_acce_value raw accelerometer measurements
  *
  * @return
  *     - ESP_OK Success
@@ -172,7 +177,7 @@ esp_err_t mpu6050_get_raw_acce(mpu6050_handle_t sensor, mpu6050_raw_acce_value_t
  * @brief Read raw gyroscope measurements
  *
  * @param sensor object handle of mpu6050
- * @param gyro_value raw gyroscope measurements
+ * @param raw_gyro_value raw gyroscope measurements
  *
  * @return
  *     - ESP_OK Success
@@ -205,18 +210,6 @@ esp_err_t mpu6050_get_acce(mpu6050_handle_t sensor, mpu6050_acce_value_t *const 
 esp_err_t mpu6050_get_gyro(mpu6050_handle_t sensor, mpu6050_gyro_value_t *const gyro_value);
 
 /**
- * @brief use complimentory filter to caculate roll and pitch
- *
- * @param acce_value accelerometer measurements
- * @param gyro_value gyroscope measurements
- * @param complimentary_angle complimentary angle
- *
- * @return
- *     - ESP_OK Success
- *     - ESP_FAIL Fail
- */
-
-/**
  * @brief Read temperature values
  *
  * @param sensor object handle of mpu6050
@@ -228,6 +221,18 @@ esp_err_t mpu6050_get_gyro(mpu6050_handle_t sensor, mpu6050_gyro_value_t *const 
  */
 esp_err_t mpu6050_get_temp(mpu6050_handle_t sensor, mpu6050_temp_value_t *const temp_value);
 
+/**
+ * @brief Use complimentory filter to calculate roll and pitch
+ *
+ * @param sensor object handle of mpu6050
+ * @param acce_value accelerometer measurements
+ * @param gyro_value gyroscope measurements
+ * @param complimentary_angle complimentary angle
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_FAIL Fail
+ */
 esp_err_t mpu6050_complimentory_filter(mpu6050_handle_t sensor, const mpu6050_acce_value_t *const acce_value,
                                        const mpu6050_gyro_value_t *const gyro_value, complimentary_angle_t *const complimentary_angle);
 

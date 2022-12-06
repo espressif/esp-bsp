@@ -3,6 +3,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+/**
+ * @file
+ * @brief ESP LCD: ILI9341
+ */
+
 #pragma once
 
 #include "esp_lcd_panel_vendor.h"

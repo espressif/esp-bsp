@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief ESP IO expander
+ */
+
 #pragma once
 
 #include <stdbool.h>
@@ -221,7 +226,7 @@ esp_err_t esp_io_expander_set_level(esp_io_expander_handle_t handle, uint32_t pi
  *
  * @param handle: IO Exapnder handle
  * @param pin_num_mask: Bitwise OR of allowed pin num with type of `esp_io_expander_pin_num_t`
- * @param level: Bitwise OR of levels. For each bit, 0 - Low level, 1 - High level
+ * @param level_mask: Bitwise OR of levels. For each bit, 0 - Low level, 1 - High level
  *
  * @return
  *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
