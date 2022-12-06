@@ -1,0 +1,18 @@
+PROJECT_NAME           = "ESP-BSP"
+PROJECT_BRIEF          = "Board support packages for development boards using Espressif's SoCs, written in C."
+OUTPUT_DIRECTORY       = ./doxygen_output
+OPTIMIZE_OUTPUT_FOR_C  = YES
+WARN_IF_UNDOCUMENTED   = NO
+INPUT                  = ./
+RECURSIVE              = YES
+EXCLUDE                = docu \
+                         examples \
+                         SquareLine \
+                         test_app
+EXCLUDE_PATTERNS       = */build/* \
+                         */managed_components/* \
+                         */dist/*
+USE_MDFILE_AS_MAINPAGE = ./README.md
+GENERATE_LATEX         = NO
+GENERATE_HTML          = NO
+GENERATE_XML           = YES
