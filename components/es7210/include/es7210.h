@@ -9,6 +9,28 @@
 #include "esp_err.h"
 #include "driver/i2c.h"
 
+/**
+ * @brief I2C address of the ES7210
+ *
+ * The 8-bit address format is as follows:
+ *
+ *                (Slave Address)
+ *     ┌─────────────────┷─────────────────┐
+ *  ┌─────┐─────┐─────┐─────┐─────┐─────┐─────┐─────┐
+ *  |  1  |  0  |  0  |  0  |  0  | AD1 | AD0 | R/W |
+ *  └─────┘─────┘─────┘─────┘─────┘─────┘─────┘─────┘
+ *     └────────┯────────┘           └───┯───┘
+ *           (Fixed)          (Hardware Selectable)
+ *
+ * And the 7-bit slave address is the most important data for users.
+ * For example, if the chip's AD0,AD1 are connected to GND, its 7-bit slave address is 1000000b(0x40).
+ * Then users can use `ES7210_ADDRRES_00` to init it.
+ */
+#define ES7210_ADDRRES_00 (0x40)
+#define ES7210_ADDRESS_01 (0x41)
+#define ES7210_ADDRESS_10 (0x42)
+#define ES7210_ADDRESS_11 (0x43)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
