@@ -1,10 +1,10 @@
-# ESP IO Expander Chip TCA9554
+# ESP IO Expander Chip TCA9554(A)
 
 Implementation of the TCA9554 io expander chip with esp_io_expander component.
 
 | Chip             | Communication interface | Component name | Link to datasheet |
 | :--------------: | :---------------------: | :------------: | :---------------: |
-| TCA9554          | I2C                     | esp_io_expander_tca9554 | [datasheet](https://www.ti.com/lit/gpn/tca9554) |
+| TCA9554(A)       | I2C                     | esp_io_expander_tca9554 | [datasheet](https://www.ti.com/lit/gpn/tca9554) |
 
 ## Add to project
 
