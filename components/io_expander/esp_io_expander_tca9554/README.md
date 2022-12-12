@@ -1,5 +1,7 @@
 # ESP IO Expander Chip TCA9554(A)
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_io_expander_tca9554/badge.svg)](https://components.espressif.com/components/espressif/esp_io_expander_tca9554)
+
 Implementation of the TCA9554 io expander chip with esp_io_expander component.
 
 | Chip             | Communication interface | Component name | Link to datasheet |

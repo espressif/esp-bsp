@@ -1,5 +1,7 @@
 # ESP LCD Touch GT1151 Controller
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_touch_gt1151/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_touch_gt1151)
+
 Implementation of the GT1151 touch controller with esp_lcd_touch component.
 
 | Touch controller | Communication interface | Component name | Link to datasheet |

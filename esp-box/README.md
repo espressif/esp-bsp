@@ -1,5 +1,7 @@
 # BSP: ESP-BOX
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp-box/badge.svg)](https://components.espressif.com/components/espressif/esp-box)
+
 * [Hardware Reference](https://github.com/espressif/esp-box/tree/master/hardware)
 
 ![image](pic.png)

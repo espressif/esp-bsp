@@ -1,5 +1,7 @@
 # ESP LCD Touch GT911 Controller
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911)
+
 Implementation of the GT911 touch controller with esp_lcd_touch component. 
 
 | Touch controller | Communication interface | Component name | Link to datasheet |

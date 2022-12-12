@@ -1,4 +1,7 @@
 # Component: HTS221
+
+[![Component Registry](https://components.espressif.com/components/espressif/hts221/badge.svg)](https://components.espressif.com/components/espressif/hts221)
+
 I2C driver and definition of HTS221 humidity and temperature sensor.
 
 See [HTS221 datasheet](https://www.st.com/resource/en/datasheet/hts221.pdf).

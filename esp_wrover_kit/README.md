@@ -1,5 +1,7 @@
 # BSP: ESP-WROVER-KIT
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_wrover_kit/badge.svg)](https://components.espressif.com/components/espressif/esp_wrover_kit)
+
 ESP-WROVER-KIT is an ESP32-based development board produced by Espressif.
 * [Hardware Reference](https://www.espressif.com/en/products/hardware/esp-wrover-kit/overview)
 

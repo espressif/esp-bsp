@@ -1,5 +1,7 @@
 # Component: ES8311
 
+[![Component Registry](https://components.espressif.com/components/espressif/es8311/badge.svg)](https://components.espressif.com/components/espressif/es8311)
+
 ES8311 low power mono audio codec features:
 * High performance and low power multi-bit delta-sigma audio ADC and DAC
 * I2S/PCM master or slave serial data port

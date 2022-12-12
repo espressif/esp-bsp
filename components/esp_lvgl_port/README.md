@@ -1,5 +1,7 @@
 # LVGL ESP Portation
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_lvgl_port/badge.svg)](https://components.espressif.com/components/espressif/esp_lvgl_port)
+
 This component helps with using LVGL with Espressif's LCD and touch drivers. It can be used with any project with LCD display. 
 
 ## Features

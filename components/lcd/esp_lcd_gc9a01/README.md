@@ -1,5 +1,7 @@
 # ESP LCD GC9A01
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_gc9a01/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_gc9a01)
+
 Implementation of the GC9A01 LCD controller with esp_lcd component. 
 
 | LCD controller | Communication interface | Component name | Link to datasheet |

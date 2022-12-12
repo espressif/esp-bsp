@@ -1,5 +1,7 @@
 # BSP: ESP32-S3-USB-OTG
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp32_s3_usb_otg/badge.svg)](https://components.espressif.com/components/espressif/esp32_s3_usb_otg)
+
 * [User Guide](https://docs.espressif.com/projects/espressif-esp-dev-kits/en/latest/esp32s3/esp32-s3-usb-otg/user_guide.html)
 
 ![](https://docs.espressif.com/projects/espressif-esp-dev-kits/en/latest/_images/pic_board_top_lable.png)

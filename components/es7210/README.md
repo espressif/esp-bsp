@@ -1,5 +1,7 @@
 # Component: ES7210
 
+[![Component Registry](https://components.espressif.com/components/espressif/es7210/badge.svg)](https://components.espressif.com/components/espressif/es7210)
+
 ES7210 high performance four channels audio ADC features:
 * High performance multi-bit delta-sigma audio ADC
 * 102 dB signal to noise ratio

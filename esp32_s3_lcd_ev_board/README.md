@@ -1,5 +1,7 @@
 # BSP: ESP32-S3-LCD-EV-BOARD
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp32_s3_lcd_ev_board/badge.svg)](https://components.espressif.com/components/espressif/esp32_s3_lcd_ev_board)
+
 * [User Guide](https://github.com/espressif/esp-dev-kits/tree/master/esp32-s3-lcd-ev-board#readme)
 
 ![](https://docs.espressif.com/projects/espressif-esp-dev-kits/zh_CN/latest/_images/board_resource.png)

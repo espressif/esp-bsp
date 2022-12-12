@@ -1,5 +1,7 @@
 # ESP LCD ILI9341
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_ili9341/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_ili9341)
+
 Implementation of the ILI9341 LCD controller with esp_lcd component. 
 
 | LCD controller | Communication interface | Component name | Link to datasheet |

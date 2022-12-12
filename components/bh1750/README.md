@@ -1,5 +1,7 @@
 # Component: BH1750
 
+[![Component Registry](https://components.espressif.com/components/espressif/bh1750/badge.svg)](https://components.espressif.com/components/espressif/bh1750)
+
 * This component will show you how to use I2C module read external i2c sensor data, here we use BH1750 light sensor(GY-30 module).
 * BH1750 measurement mode:
     * one-time mode: bh1750 just measure only one time when receieved the one time measurement command, so you need to send this command when you want to get intensity value every time

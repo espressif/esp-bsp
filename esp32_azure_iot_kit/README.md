@@ -1,4 +1,7 @@
 # BSP: ESP32-Azure-IoT-Kit
+
+[![Component Registry](https://components.espressif.com/components/espressif/esp32_azure_iot_kit/badge.svg)](https://components.espressif.com/components/espressif/esp32_azure_iot_kit)
+
 Board support package consists of:
 * uSD card interface
 * I2C interface
