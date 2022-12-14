@@ -1,5 +1,7 @@
 # ESP LCD Touch TT21100 Controller
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_touch_tt21100/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_touch_tt21100)
+
 Implementation of the TT21100 touch controller with esp_lcd_touch component. 
 
 | Touch controller | Communication interface | Component name | Link to datasheet |

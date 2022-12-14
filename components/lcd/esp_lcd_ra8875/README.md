@@ -1,5 +1,7 @@
 # ESP LCD RA8875
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_ra8875/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_ra8875)
+
 Implementation of the RA8875 LCD controller with esp_lcd component. 
 
 | LCD controller | Communication interface | Component name | Link to datasheet |

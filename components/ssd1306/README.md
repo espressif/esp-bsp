@@ -1,5 +1,7 @@
 # Component: SSD1306
 
+[![Component Registry](https://components.espressif.com/components/espressif/ssd1306/badge.svg)](https://components.espressif.com/components/espressif/ssd1306)
+
 * This is a C driver for SSD1306 OLED display
 
 ## C example

@@ -1,4 +1,7 @@
 # Component: MAG3110
+
+[![Component Registry](https://components.espressif.com/components/espressif/mag3110/badge.svg)](https://components.espressif.com/components/espressif/mag3110)
+
 * I2C driver and definition of MAG3110 3-axis digital magnetometer
 * See [datasheet](https://www.nxp.com/docs/en/data-sheet/MAG3110.pdf)
 

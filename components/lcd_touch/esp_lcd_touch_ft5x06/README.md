@@ -1,5 +1,7 @@
 # ESP LCD Touch FT5x06 Controller
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)
+
 Implementation of the FT5x06 touch controller with esp_lcd_touch component. 
 
 | Touch controller | Communication interface | Component name | Link to datasheet |

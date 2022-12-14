@@ -1,5 +1,7 @@
 # ESP LCD SH1107
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_sh1107/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_sh1107)
+
 Implementation of the SH1107 LCD controller with esp_lcd component. 
 
 | LCD controller | Communication interface | Component name | Link to datasheet |

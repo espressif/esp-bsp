@@ -1,5 +1,7 @@
 # BSP: ESP32-S2-Kaluga-Kit
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp32_s2_kaluga_kit/badge.svg)](https://components.espressif.com/components/espressif/esp32_s2_kaluga_kit)
+
 The ESP32-S2-Kaluga-1 kit v1.3 is a development kit by Espressif that is mainly created to:
 
 * Demonstrate the ESP32-S2’s human-computer interaction functionalities

@@ -1,5 +1,7 @@
 # ESP LCD Touch STMPE610 Controller
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_touch_stmpe610/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_touch_stmpe610)
+
 Implementation of the STMPE610 touch controller with esp_lcd_touch component. 
 
 | Touch controller | Communication interface | Component name | Link to datasheet |
