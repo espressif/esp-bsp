@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief SSD1306 driver
+ */
+
 #pragma once
 
 #ifdef __cplusplus
@@ -61,9 +66,6 @@ void ssd1306_delete(ssd1306_handle_t dev);
  * @param   chXpos Specifies the X position
  * @param   chYpos Specifies the Y position
  * @param   chPoint fill point
- *
- * @return
- *     - NULL
  */
 void ssd1306_fill_point(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos, uint8_t chPoint);
 
@@ -89,9 +91,6 @@ void ssd1306_fill_rectangle(ssd1306_handle_t dev, uint8_t chXpos1, uint8_t chYpo
  * @param   chSize char size
  * @param   chChr draw char
  * @param   chMode display mode
- *
- * @return
- *     - NULL
  */
 void ssd1306_draw_char(ssd1306_handle_t dev, uint8_t chXpos,
                        uint8_t chYpos, uint8_t chChr, uint8_t chSize, uint8_t chMode);
@@ -105,9 +104,6 @@ void ssd1306_draw_char(ssd1306_handle_t dev, uint8_t chXpos,
  * @param   chNum draw num
  * @param   chLen length
  * @param   chSize display size
- *
- * @return
- *     - NULL
  */
 void ssd1306_draw_num(ssd1306_handle_t dev, uint8_t chXpos,
                       uint8_t chYpos, uint32_t chNum, uint8_t chLen, uint8_t chSize);
@@ -119,9 +115,6 @@ void ssd1306_draw_num(ssd1306_handle_t dev, uint8_t chXpos,
  * @param   chXpos Specifies the X position
  * @param   chYpos Specifies the Y position
  * @param   chChar draw char
- *
- * @return
- *     - NULL
  */
 void ssd1306_draw_1616char(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos, uint8_t chChar);
 
@@ -132,9 +125,6 @@ void ssd1306_draw_1616char(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos,
  * @param   chXpos Specifies the X position
  * @param   chYpos Specifies the Y position
  * @param   chChar draw char
- *
- * @return
- *     - NULL
  */
 void ssd1306_draw_3216char(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos, uint8_t chChar);
 
@@ -147,9 +137,6 @@ void ssd1306_draw_3216char(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos,
  * @param   pchBmp point to BMP data
  * @param   chWidth picture width
  * @param   chHeight picture heght
- *
- * @return
- *     - NULL
  */
 void ssd1306_draw_bitmap(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos,
                          const uint8_t *pchBmp, uint8_t chWidth, uint8_t chHeight);

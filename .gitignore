@@ -3,4 +3,6 @@ sdkconfig
 sdkconfig.old
 managed_components
 dependencies.lock
-**/.vscode/**
+.vscode
+doxygen_output/**
+dist

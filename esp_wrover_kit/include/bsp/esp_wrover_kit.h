@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+/**
+ * @file
+ * @brief ESP BSP: Wrover-kit
+ */
+
 #pragma once
 
 #include "driver/gpio.h"

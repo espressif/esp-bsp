@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief ESP LCD touch
+ */
+
 #pragma once
 
 #include <stdbool.h>

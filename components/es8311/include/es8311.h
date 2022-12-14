@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief ES8311 driver
+ */
+
 #pragma once
 
 #include "esp_types.h"

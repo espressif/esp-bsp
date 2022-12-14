@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief ESP BSP: S3-EYE
+ */
+
 #pragma once
 
 #include "sdkconfig.h"

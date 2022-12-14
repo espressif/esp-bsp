@@ -3,6 +3,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
+/**
+ * @file
+ * @brief ESP LVGL port
+ */
+
 #pragma once
 
 #include "esp_err.h"

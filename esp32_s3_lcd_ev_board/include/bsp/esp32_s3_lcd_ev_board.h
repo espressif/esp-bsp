@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+/**
+ * @file
+ * @brief ESP BSP: S3-LCD-EV board
+ */
+
 #pragma once
 
 #include "driver/i2s_std.h"

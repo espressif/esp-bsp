@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief MAG3110 driver
+ */
+
 #pragma once
 
 #ifdef __cplusplus
