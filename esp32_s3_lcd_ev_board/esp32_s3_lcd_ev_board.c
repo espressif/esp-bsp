@@ -143,7 +143,6 @@ static void lv_port_direct_mode_copy(void)
     uint8_t *buf1 = disp_refr->driver->draw_buf->buf1;
     uint8_t *buf2 = disp_refr->driver->draw_buf->buf2;
     int h_res = disp_refr->driver->hor_res;
-    int v_res = disp_refr->driver->ver_res;
 
     uint8_t *fb_from = buf_act;
     uint8_t *fb_to = (fb_from == buf1) ? buf2 : buf1;
