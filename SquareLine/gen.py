@@ -207,6 +207,8 @@ def process_board(board_name, output, dir):
         copy_file(os.path.join(dir, "image.png"), os.path.join(output, output_filename + ".png"), placeholders, 0)
 
         create_slb_file(output, output_filename, manifest)
+        # Copy LICENSE
+        shutil.copyfile(os.path.join(COMMON_DIR, "LICENSE"), os.path.join(output, "LICENSE"))
         make_zip(output_filename, output)
         remove_folder(squareline_dir_path)
     else:
