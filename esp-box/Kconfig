@@ -27,12 +27,6 @@ menu "Board Support Package"
     endmenu
 
     menu "Display"
-        config BSP_DISPLAY_LVGL_TASK_PRIORITY
-            int "LVGL task priority"
-            default 2
-            help
-                The Board Support Package will create a task that will periodically handle LVGL operation in lv_timer_handler().
-
         config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
         int "LEDC channel index"
         default 1
@@ -40,13 +34,6 @@ menu "Board Support Package"
         help
             LEDC channel is used to generate PWM signal that controls display brightness.
             Set LEDC index that should be used.
-
-        config BSP_DISPLAY_LVGL_TICK
-        int "LVGL tick period"
-        default 5
-        range 1 100
-        help
-            Period of LVGL tick timer.
     endmenu
     
     config BSP_I2S_NUM
