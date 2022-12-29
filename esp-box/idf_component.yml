@@ -6,13 +6,13 @@ targets:
   - esp32s3
 
 dependencies:
-  idf: ">=5.0"
+  idf: "^4.4"
   esp_lcd_touch_tt21100: "^1"
 
   es8311:
     version: "^1"
     public: true
 
-  lvgl/lvgl:
-    version: "^8"
+  esp_lvgl_port:
+    version: ^1
     public: true
