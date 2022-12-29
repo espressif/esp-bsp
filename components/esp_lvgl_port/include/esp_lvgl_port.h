@@ -104,6 +104,16 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg);
 esp_err_t lvgl_port_deinit(void);
 
 /**
+ * @brief Initialize LVGL FS
+ *
+ * @note This function initialize LVGL file system support.
+ *
+ * @return
+ *      - ESP_OK                    on success
+ */
+esp_err_t lvgl_port_fs_init(void);
+
+/**
  * @brief Add display handling to LVGL
  *
  * @note Allocated memory in this function is not free in deinit. You must call lvgl_port_remove_disp for free all memory!
