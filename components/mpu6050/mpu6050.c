@@ -18,14 +18,24 @@
 /* MPU6050 register */
 #define MPU6050_GYRO_CONFIG         0x1Bu
 #define MPU6050_ACCEL_CONFIG        0x1Cu
+#define MPU6050_INT_PIN_CFG         0x37u
+#define MPU6050_INT_ENABLE          0x38u
+#define MPU6050_INT_STATUS          0x3Au
 #define MPU6050_ACCEL_XOUT_H        0x3Bu
 #define MPU6050_GYRO_XOUT_H         0x43u
 #define MPU6050_TEMP_XOUT_H         0x41u
 #define MPU6050_PWR_MGMT_1          0x6Bu
 #define MPU6050_WHO_AM_I            0x75u
 
+const uint8_t MPU6050_DATA_RDY_INT_BIT =      (uint8_t) BIT0;
+const uint8_t MPU6050_I2C_MASTER_INT_BIT =    (uint8_t) BIT3;
+const uint8_t MPU6050_FIFO_OVERFLOW_INT_BIT = (uint8_t) BIT4;
+const uint8_t MPU6050_MOT_DETECT_INT_BIT =    (uint8_t) BIT6;
+const uint8_t MPU6050_ALL_INTERRUPTS = (MPU6050_DATA_RDY_INT_BIT | MPU6050_I2C_MASTER_INT_BIT | MPU6050_FIFO_OVERFLOW_INT_BIT | MPU6050_MOT_DETECT_INT_BIT);
+
 typedef struct {
     i2c_port_t bus;
+    gpio_num_t int_pin;
     uint16_t dev_addr;
     uint32_t counter;
     float dt;  /*!< delay time between two measurements, dt should be small (ms level) */
@@ -190,6 +200,41 @@ esp_err_t mpu6050_get_gyro_sensitivity(mpu6050_handle_t sensor, float *const gyr
         break;
     }
     return ret;
+}
+
+esp_err_t mpu6050_config_interrupts(mpu6050_handle_t sensor, const mpu6050_int_config_t* const interrupt_configuration)
+{
+    return ESP_FAIL;
+}
+
+esp_err_t mpu6050_register_isr(mpu6050_handle_t sensor, const mpu6050_isr_t isr)
+{
+    return ESP_FAIL;
+}
+
+esp_err_t mpu6050_enable_interrupts(mpu6050_handle_t sensor, uint8_t interrupt_sources)
+{
+    return ESP_FAIL;
+}
+
+esp_err_t mpu6050_disable_interrupts(mpu6050_handle_t sensor, uint8_t interrupt_sources)
+{
+    return ESP_FAIL;
+}
+
+uint8_t mpu6050_is_data_ready_interrupt(uint8_t interrupt_status)
+{
+    return 0x00u;
+}
+
+uint8_t mpu6050_is_i2c_master_interrupt(uint8_t interrupt_status)
+{
+    return 0x00u;
+}
+
+uint8_t mpu6050_is_fifo_overflow_interrupt(uint8_t interrupt_status)
+{
+    return 0x00u;
 }
 
 esp_err_t mpu6050_get_raw_acce(mpu6050_handle_t sensor, mpu6050_raw_acce_value_t *const raw_acce_value)

@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 #include "driver/i2c.h"
+#include "driver/gpio.h"
 
 #define MPU6050_I2C_ADDRESS         0x68u /*!< I2C address with AD0 pin low */
 #define MPU6050_I2C_ADDRESS_1       0x69u /*!< I2C address with AD0 pin high */
@@ -34,6 +35,39 @@ typedef enum {
     GYRO_FS_1000DPS = 2,     /*!< Gyroscope full scale range is +/- 1000 degree per sencond */
     GYRO_FS_2000DPS = 3,     /*!< Gyroscope full scale range is +/- 2000 degree per sencond */
 } mpu6050_gyro_fs_t;
+
+typedef enum {
+    INTERRUPT_PIN_ACTIVE_HIGH = 0,
+    INTERRUPT_PIN_ACTIVE_LOW  = 1
+} mpu6050_int_pin_active_level_t;
+
+typedef enum {
+    INTERRUPT_PIN_PUSH_PULL   = 0,
+    INTERRUPT_PIN_OPEN_DRAIN  = 1
+} mpu6050_int_pin_mode_t;
+
+typedef enum {
+    INTERRUPT_LATCH_50US            = 0,
+    INTERRUPT_LATCH_UNTIL_CLEARED   = 1
+} mpu6050_int_latch_t;
+
+typedef enum {
+    INTERRUPT_CLEAR_ON_ANY_READ     = 0,
+    INTERRUPT_CLEAR_ON_STATUS_READ  = 1
+} mpu6050_int_clear_t;
+
+typedef struct {
+    gpio_num_t interrupt_pin;
+    mpu6050_int_pin_active_level_t active_level;
+    mpu6050_int_pin_mode_t pin_mode;
+    mpu6050_int_latch_t interrupt_latch;
+    mpu6050_int_clear_t interrupt_clear_behavior;
+} mpu6050_int_config_t;
+
+extern const uint8_t MPU6050_DATA_RDY_INT_BIT;
+extern const uint8_t MPU6050_I2C_MASTER_INT_BIT;
+extern const uint8_t MPU6050_FIFO_OVERFLOW_INT_BIT;
+extern const uint8_t MPU6050_MOT_DETECT_INT_BIT;
 
 typedef struct {
     int16_t raw_acce_x;
@@ -70,6 +104,8 @@ typedef struct {
 } complimentary_angle_t;
 
 typedef void *mpu6050_handle_t;
+
+typedef gpio_isr_t mpu6050_isr_t;
 
 /**
  * @brief Create and init sensor object and return a sensor handle
@@ -160,6 +196,20 @@ esp_err_t mpu6050_get_acce_sensitivity(mpu6050_handle_t sensor, float *const acc
  *     - ESP_FAIL Fail
  */
 esp_err_t mpu6050_get_gyro_sensitivity(mpu6050_handle_t sensor, float *const gyro_sensitivity);
+
+esp_err_t mpu6050_config_interrupts(mpu6050_handle_t sensor, const mpu6050_int_config_t* const interrupt_configuration);
+
+esp_err_t mpu6050_register_isr(mpu6050_handle_t sensor, const mpu6050_isr_t isr);
+
+esp_err_t mpu6050_enable_interrupts(mpu6050_handle_t sensor, uint8_t interrupt_sources);
+
+esp_err_t mpu6050_disable_interrupts(mpu6050_handle_t sensor, uint8_t interrupt_sources);
+
+uint8_t mpu6050_is_data_ready_interrupt(uint8_t interrupt_status);
+
+uint8_t mpu6050_is_i2c_master_interrupt(uint8_t interrupt_status);
+
+uint8_t mpu6050_is_fifo_overflow_interrupt(uint8_t interrupt_status);
 
 /**
  * @brief Read raw accelerometer measurements
