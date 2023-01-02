@@ -16,6 +16,8 @@
 #include "esp_err.h"
 #include "driver/gpio.h"
 #include "esp_lcd_panel_io.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
 #ifdef __cplusplus
 extern "C" {

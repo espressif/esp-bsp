@@ -57,28 +57,28 @@ sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
         .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = ADC1_CHANNEL_0, // ADC1 channel 0 is GPIO1
+        .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
         .adc_button_config.button_index = BSP_BUTTON_MENU,
         .adc_button_config.min = 2310, // middle is 2410mV
         .adc_button_config.max = 2510
     },
     {
         .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = ADC1_CHANNEL_0, // ADC1 channel 0 is GPIO1
+        .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
         .adc_button_config.button_index = BSP_BUTTON_PLAY,
         .adc_button_config.min = 1880, // middle is 1980mV
         .adc_button_config.max = 2080
     },
     {
         .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = ADC1_CHANNEL_0, // ADC1 channel 0 is GPIO1
+        .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
         .adc_button_config.button_index = BSP_BUTTON_DOWN,
         .adc_button_config.min = 720, // middle is 820mV
         .adc_button_config.max = 920
     },
     {
         .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = ADC1_CHANNEL_0, // ADC1 channel 0 is GPIO1
+        .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
         .adc_button_config.button_index = BSP_BUTTON_UP,
         .adc_button_config.min = 280, // middle is 380mV
         .adc_button_config.max = 480

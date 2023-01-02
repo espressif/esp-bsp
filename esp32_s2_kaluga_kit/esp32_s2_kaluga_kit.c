@@ -59,42 +59,42 @@ static const touch_pad_t bsp_touch_button[TOUCH_BUTTON_NUM] = {
 const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
         .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = ADC1_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
         .adc_button_config.button_index = BSP_BUTTON_REC,
         .adc_button_config.min = 2310, // middle is 2410mV
         .adc_button_config.max = 2510
     },
     {
         .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = ADC1_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
         .adc_button_config.button_index = BSP_BUTTON_MODE,
         .adc_button_config.min = 1880, // middle is 1980mV
         .adc_button_config.max = 2080
     },
     {
         .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = ADC1_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
         .adc_button_config.button_index = BSP_BUTTON_PLAY,
         .adc_button_config.min = 1550, // middle is 1650mV
         .adc_button_config.max = 1750
     },
     {
         .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = ADC1_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
         .adc_button_config.button_index = BSP_BUTTON_SET,
         .adc_button_config.min = 1010, // middle is 1110mV
         .adc_button_config.max = 1210
     },
     {
         .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = ADC1_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
         .adc_button_config.button_index = BSP_BUTTON_VOLDOWN,
         .adc_button_config.min = 720, // middle is 820mV
         .adc_button_config.max = 920
     },
     {
         .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = ADC1_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
         .adc_button_config.button_index = BSP_BUTTON_VOLUP,
         .adc_button_config.min = 280, // middle is 380mV
         .adc_button_config.max = 480
