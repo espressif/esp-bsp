@@ -205,11 +205,13 @@ esp_err_t mpu6050_enable_interrupts(mpu6050_handle_t sensor, uint8_t interrupt_s
 
 esp_err_t mpu6050_disable_interrupts(mpu6050_handle_t sensor, uint8_t interrupt_sources);
 
-uint8_t mpu6050_is_data_ready_interrupt(uint8_t interrupt_status);
+esp_err_t mpu6050_get_interrupt_status(mpu6050_handle_t sensor, uint8_t *const out_intr_status);
 
-uint8_t mpu6050_is_i2c_master_interrupt(uint8_t interrupt_status);
+inline uint8_t mpu6050_is_data_ready_interrupt(uint8_t interrupt_status);
 
-uint8_t mpu6050_is_fifo_overflow_interrupt(uint8_t interrupt_status);
+inline uint8_t mpu6050_is_i2c_master_interrupt(uint8_t interrupt_status);
+
+inline uint8_t mpu6050_is_fifo_overflow_interrupt(uint8_t interrupt_status);
 
 /**
  * @brief Read raw accelerometer measurements
