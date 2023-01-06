@@ -295,7 +295,7 @@ esp_err_t mpu6050_get_interrupt_status(mpu6050_handle_t sensor, uint8_t *const o
  *      - 0: The interrupt was not produced due to data ready
  *      - Any other positive integer: Interrupt was a DATA_READY interrupt 
  */
-inline uint8_t mpu6050_is_data_ready_interrupt(uint8_t interrupt_status);
+extern uint8_t mpu6050_is_data_ready_interrupt(uint8_t interrupt_status);
 
 /**
  * @brief Determine if the last mpu6050 interrupt was an I2C master interrupt.
@@ -306,7 +306,7 @@ inline uint8_t mpu6050_is_data_ready_interrupt(uint8_t interrupt_status);
  *      - 0: The interrupt is not an I2C master interrupt
  *      - Any other positive integer: Interrupt was an I2C master interrupt 
  */
-inline uint8_t mpu6050_is_i2c_master_interrupt(uint8_t interrupt_status);
+extern uint8_t mpu6050_is_i2c_master_interrupt(uint8_t interrupt_status);
 
 /**
  * @brief Determine if the last mpu6050 interrupt was triggered by a fifo overflow.
@@ -317,7 +317,7 @@ inline uint8_t mpu6050_is_i2c_master_interrupt(uint8_t interrupt_status);
  *      - 0: The interrupt is not a fifo overflow interrupt
  *      - Any other positive integer: Interrupt was triggered by a fifo overflow 
  */
-inline uint8_t mpu6050_is_fifo_overflow_interrupt(uint8_t interrupt_status);
+extern uint8_t mpu6050_is_fifo_overflow_interrupt(uint8_t interrupt_status);
 
 /**
  * @brief Read raw accelerometer measurements

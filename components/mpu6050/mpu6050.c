@@ -214,7 +214,7 @@ esp_err_t mpu6050_config_interrupts(mpu6050_handle_t sensor, const mpu6050_int_c
 
     uint8_t int_pin_cfg = 0x00;
 
-    ret = mpu6050_read(sensor, MPU6050_INT_PIN_CFG, &int_pin_cfg, 1);
+    ret = mpu6050_read(sensor, MPU6050_INTR_PIN_CFG, &int_pin_cfg, 1);
 
     if (ESP_OK != ret) {
         return ret;
@@ -236,7 +236,7 @@ esp_err_t mpu6050_config_interrupts(mpu6050_handle_t sensor, const mpu6050_int_c
         int_pin_cfg |= BIT4;
     }
 
-    ret = mpu6050_write(sensor, MPU6050_INT_PIN_CFG, &int_pin_cfg, 1);
+    ret = mpu6050_write(sensor, MPU6050_INTR_PIN_CFG, &int_pin_cfg, 1);
 
     if (ESP_OK != ret) {
         return ret;
@@ -274,7 +274,7 @@ esp_err_t mpu6050_register_isr(mpu6050_handle_t sensor, const mpu6050_isr_t isr)
     ret = gpio_isr_handler_add(
         sensor_device->int_pin,
         isr, 
-        (void *) sensor_device
+        (void *) sensor
     );
 
     if (ESP_OK != ret) {
@@ -321,7 +321,7 @@ esp_err_t mpu6050_disable_interrupts(mpu6050_handle_t sensor, uint8_t interrupt_
     if (0 != (enabled_interrupts & interrupt_sources)) {
         enabled_interrupts &= (~interrupt_sources);
 
-        ret = mpu6050_write(sensor, MPU6050_INTR_ENABLE)
+        ret = mpu6050_write(sensor, MPU6050_INTR_ENABLE, &enabled_interrupts, 1);
     }
 
     return ret;
