@@ -10,13 +10,14 @@
 #include "driver/spi_master.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "esp_spiffs.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
 
 #include "bsp/esp-box.h"
 #include "esp_lcd_touch_tt21100.h"
-#include "lvgl.h"
+#include "esp_lvgl_port.h"
 
 static const char *TAG = "ESP-BOX";
 
@@ -54,10 +55,7 @@ static const char *TAG = "ESP-BOX";
     } while(0)
 #endif
 
-static lv_disp_draw_buf_t disp_buf; // Contains internal graphic buffer(s) called draw buffer(s)
-static lv_disp_drv_t disp_drv;      // Contains callback functions
-static esp_lcd_touch_handle_t tp;   // LCD touch handle
-static SemaphoreHandle_t lvgl_mux;  // LVGL mutex
+static lv_disp_t *disp;
 
 esp_err_t bsp_i2c_init(void)
 {
@@ -80,6 +78,40 @@ esp_err_t bsp_i2c_deinit(void)
     BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
     return ESP_OK;
 }
+
+esp_err_t bsp_spiffs_mount(void)
+{
+    esp_vfs_spiffs_conf_t conf = {
+        .base_path = CONFIG_BSP_SPIFFS_MOUNT_POINT,
+        .partition_label = CONFIG_BSP_SPIFFS_PARTITION_LABEL,
+        .max_files = CONFIG_BSP_SPIFFS_MAX_FILES,
+#ifdef CONFIG_BSP_SPIFFS_FORMAT_ON_MOUNT_FAIL
+        .format_if_mount_failed = true,
+#else
+        .format_if_mount_failed = false,
+#endif
+    };
+
+    esp_err_t ret_val = esp_vfs_spiffs_register(&conf);
+
+    BSP_ERROR_CHECK_RETURN_ERR(ret_val);
+
+    size_t total = 0, used = 0;
+    ret_val = esp_spiffs_info(conf.partition_label, &total, &used);
+    if (ret_val != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret_val));
+    } else {
+        ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
+    }
+
+    return ret_val;
+}
+
+esp_err_t bsp_spiffs_unmount(void)
+{
+    return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
+}
+
 
 esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel)
 {
@@ -127,125 +159,17 @@ esp_err_t bsp_audio_poweramp_enable(bool enable)
 // Bit number used to represent command and parameter
 #define LCD_CMD_BITS           8
 #define LCD_PARAM_BITS         8
-#define LVGL_TICK_PERIOD_MS    CONFIG_BSP_DISPLAY_LVGL_TICK
 #define LCD_LEDC_CH            CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH
 
-static void bsp_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
+static bool bsp_dispaly_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
 {
-    esp_lcd_touch_handle_t tp = (esp_lcd_touch_handle_t) indev_drv->user_data;
-    uint16_t touchpad_x[1] = {0};
-    uint16_t touchpad_y[1] = {0};
-    uint8_t touchpad_cnt = 0;
+    lv_disp_t **disp = (lv_disp_t **)user_ctx;
 
-    assert(tp);
-
-
-    /* Read data from touch controller into memory */
-    esp_lcd_touch_read_data(tp);
-
-    /* Read data from touch controller */
-    bool touchpad_pressed = esp_lcd_touch_get_coordinates(tp, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 1);
-
-    if (touchpad_pressed && touchpad_cnt > 0) {
-        data->point.x = touchpad_x[0];
-        data->point.y = touchpad_y[0];
-        data->state = LV_INDEV_STATE_PRESSED;
-    } else {
-        data->state = LV_INDEV_STATE_RELEASED;
-    }
-}
-
-static bool lvgl_port_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
-{
-    lv_disp_drv_t *disp_driver = (lv_disp_drv_t *)user_ctx;
-    lv_disp_flush_ready(disp_driver);
+    lvgl_port_flush_ready(*disp);
     return false;
 }
 
-static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
-{
-    esp_lcd_panel_handle_t panel_handle = (esp_lcd_panel_handle_t) drv->user_data;
-    const int offsetx1 = area->x1;
-    const int offsetx2 = area->x2;
-    const int offsety1 = area->y1;
-    const int offsety2 = area->y2;
-    // copy a buffer's content to a specific area of the display
-    esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
-}
-
-static void lvgl_port_update_callback(lv_disp_drv_t *drv)
-{
-    esp_lcd_panel_handle_t panel_handle = (esp_lcd_panel_handle_t) drv->user_data;
-
-    switch (drv->rotated) {
-    case LV_DISP_ROT_NONE:
-        // Rotate LCD display
-        esp_lcd_panel_swap_xy(panel_handle, false);
-        esp_lcd_panel_mirror(panel_handle, true, true);
-        // Rotate LCD touch
-        esp_lcd_touch_set_mirror_y(tp, false);
-        esp_lcd_touch_set_mirror_x(tp, true);
-        break;
-    case LV_DISP_ROT_90:
-        // Rotate LCD display
-        esp_lcd_panel_swap_xy(panel_handle, true);
-        esp_lcd_panel_mirror(panel_handle, true, false);
-        // Rotate LCD touch
-        esp_lcd_touch_set_mirror_y(tp, false);
-        esp_lcd_touch_set_mirror_x(tp, true);
-        break;
-    case LV_DISP_ROT_180:
-        // Rotate LCD display
-        esp_lcd_panel_swap_xy(panel_handle, false);
-        esp_lcd_panel_mirror(panel_handle, false, false);
-        // Rotate LCD touch
-        esp_lcd_touch_set_mirror_y(tp, false);
-        esp_lcd_touch_set_mirror_x(tp, true);
-        break;
-    case LV_DISP_ROT_270:
-        // Rotate LCD display
-        esp_lcd_panel_swap_xy(panel_handle, true);
-        esp_lcd_panel_mirror(panel_handle, false, true);
-        // Rotate LCD touch
-        esp_lcd_touch_set_mirror_y(tp, false);
-        esp_lcd_touch_set_mirror_x(tp, true);
-        break;
-    }
-}
-
-static void lvgl_port_tick_increment(void *arg)
-{
-    /* Tell LVGL how many milliseconds have elapsed */
-    lv_tick_inc(LVGL_TICK_PERIOD_MS);
-}
-
-static esp_err_t lvgl_port_tick_init(void)
-{
-    // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
-    const esp_timer_create_args_t lvgl_tick_timer_args = {
-        .callback = &lvgl_port_tick_increment,
-        .name = "LVGL tick"
-    };
-    esp_timer_handle_t lvgl_tick_timer = NULL;
-    BSP_ERROR_CHECK_RETURN_ERR(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
-    return esp_timer_start_periodic(lvgl_tick_timer, LVGL_TICK_PERIOD_MS * 1000);
-}
-
-static void lvgl_port_task(void *arg)
-{
-    ESP_LOGI(TAG, "Starting LVGL task");
-    while (1) {
-        bsp_display_lock(0);
-        uint32_t task_delay_ms = lv_timer_handler();
-        bsp_display_unlock();
-        if (task_delay_ms > 500) {
-            task_delay_ms = 500;
-        }
-        vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
-    }
-}
-
-static lv_disp_t *lvgl_port_display_init(void)
+static lv_disp_t *bsp_display_lcd_init(void)
 {
     ESP_LOGD(TAG, "Initialize SPI bus");
     const spi_bus_config_t buscfg = {
@@ -268,9 +192,10 @@ static lv_disp_t *lvgl_port_display_init(void)
         .lcd_param_bits = LCD_PARAM_BITS,
         .spi_mode = 0,
         .trans_queue_depth = 10,
-        .on_color_trans_done = lvgl_port_flush_ready,
-        .user_ctx = &disp_drv,
+        .on_color_trans_done = bsp_dispaly_flush_ready,
+        .user_ctx = &disp,
     };
+
     // Attach the LCD to the SPI bus
     BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, &io_handle));
 
@@ -288,42 +213,33 @@ static lv_disp_t *lvgl_port_display_init(void)
     esp_lcd_panel_mirror(panel_handle, true, true);
     esp_lcd_panel_disp_on_off(panel_handle, true);
 
-    // alloc draw buffers used by LVGL
-    // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
-    lv_color_t *buf1 = heap_caps_malloc(BSP_LCD_H_RES * 50 * sizeof(lv_color_t), MALLOC_CAP_DMA);
-    BSP_NULL_CHECK(buf1, NULL);
-    lv_color_t *buf2 = heap_caps_malloc(BSP_LCD_H_RES * 50 * sizeof(lv_color_t), MALLOC_CAP_DMA);
-    BSP_NULL_CHECK_GOTO(buf2, ERR);
-    // initialize LVGL draw buffers
-    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, BSP_LCD_H_RES * 50);
+    /* Add LCD screen */
+    ESP_LOGD(TAG, "Add LCD screen");
+    const lvgl_port_display_cfg_t disp_cfg = {
+        .io_handle = io_handle,
+        .panel_handle = panel_handle,
+        .buffer_size = BSP_LCD_H_RES * 50,
+        .double_buffer = true,
+        .hres = BSP_LCD_H_RES,
+        .vres = BSP_LCD_V_RES,
+        .monochrome = false,
+        /* Rotation values must be same as used in esp_lcd for initial settings of the screen */
+        .rotation = {
+            .swap_xy = false,
+            .mirror_x = false,
+            .mirror_y = false,
+        },
+        .flags = {
+            .buff_dma = true,
+        }
+    };
 
-    ESP_LOGD(TAG, "Register display driver to LVGL");
-    lv_disp_drv_init(&disp_drv);
-    disp_drv.hor_res = BSP_LCD_H_RES;
-    disp_drv.ver_res = BSP_LCD_V_RES;
-    disp_drv.flush_cb = lvgl_port_flush_callback;
-    disp_drv.drv_update_cb = lvgl_port_update_callback;
-    disp_drv.draw_buf = &disp_buf;
-    disp_drv.user_data = panel_handle;
-    return lv_disp_drv_register(&disp_drv);
-
-#if (!CONFIG_BSP_ERROR_CHECK)
-ERR:
-    if (buf1) {
-        free(buf1);
-    }
-    if (buf2) {
-        free(buf2);
-    }
-
-    return NULL;
-#endif
+    return lvgl_port_add_disp(&disp_cfg);
 }
 
-static esp_err_t lvgl_port_indev_init(void)
+static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
 {
-    static lv_indev_drv_t indev_drv_tp;
-    lv_indev_t *indev_touchpad;
+    static esp_lcd_touch_handle_t tp;   // LCD touch handle
 
     /* Initialize touch */
     const esp_lcd_touch_config_t tp_cfg = {
@@ -343,19 +259,17 @@ static esp_err_t lvgl_port_indev_init(void)
     };
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
-    BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle));
-    BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, &tp));
+    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle));
+    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, &tp));
     assert(tp);
 
-    /* Register a touchpad input device */
-    lv_indev_drv_init(&indev_drv_tp);
-    indev_drv_tp.type = LV_INDEV_TYPE_POINTER;
-    indev_drv_tp.read_cb = bsp_touchpad_read;
-    indev_drv_tp.user_data = tp;
-    indev_touchpad = lv_indev_drv_register(&indev_drv_tp);
-    BSP_NULL_CHECK(indev_touchpad, ESP_ERR_NO_MEM);
+    /* Add touch input (for selected screen) */
+    const lvgl_port_touch_cfg_t touch_cfg = {
+        .disp = disp,
+        .handle = tp,
+    };
 
-    return ESP_OK;
+    return lvgl_port_add_touch(&touch_cfg);
 }
 
 static esp_err_t bsp_display_brightness_init(void)
@@ -413,14 +327,15 @@ esp_err_t bsp_display_backlight_on(void)
 
 lv_disp_t *bsp_display_start(void)
 {
-    lv_init();
+    const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
+    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&lvgl_cfg));
+
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_brightness_init());
-    lv_disp_t *disp = lvgl_port_display_init();
-    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_indev_init());
-    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_tick_init());
-    lvgl_mux = xSemaphoreCreateMutex();
-    BSP_NULL_CHECK(lvgl_mux, NULL);
-    xTaskCreate(lvgl_port_task, "LVGL task", 4096, NULL, CONFIG_BSP_DISPLAY_LVGL_TASK_PRIORITY, NULL);
+
+    BSP_NULL_CHECK(disp = bsp_display_lcd_init(), NULL);
+
+    BSP_NULL_CHECK(bsp_display_indev_init(disp), NULL);
+
     return disp;
 }
 
@@ -431,16 +346,12 @@ void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
 
 bool bsp_display_lock(uint32_t timeout_ms)
 {
-    assert(lvgl_mux && "bsp_display_start must be called first");
-
-    const TickType_t timeout_ticks = (timeout_ms == 0) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
-    return xSemaphoreTake(lvgl_mux, timeout_ticks) == pdTRUE;
+    return lvgl_port_lock(timeout_ms);
 }
 
 void bsp_display_unlock(void)
 {
-    assert(lvgl_mux && "bsp_display_start must be called first");
-    xSemaphoreGive(lvgl_mux);
+    lvgl_port_unlock();
 }
 
 esp_err_t bsp_button_init(const bsp_button_t btn)
