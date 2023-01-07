@@ -204,10 +204,19 @@ esp_err_t mpu6050_get_gyro_sensitivity(mpu6050_handle_t sensor, float *const gyr
 
 esp_err_t mpu6050_config_interrupts(mpu6050_handle_t sensor, const mpu6050_int_config_t* const interrupt_configuration)
 {
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
 
     if (NULL == interrupt_configuration)
     {
+        ret = ESP_ERR_INVALID_ARG;
+        return ret;
+    }
+
+    if (GPIO_IS_VALID_GPIO(interrupt_configuration->interrupt_pin)) {
+        // Set GPIO connected to MPU6050 INT pin only when user configures interrupts. 
+        mpu6050_dev_t *sensor_device = (mpu6050_dev_t *) sensor;
+        sensor_device->int_pin = interrupt_configuration->interrupt_pin;
+    } else {
         ret = ESP_ERR_INVALID_ARG;
         return ret;
     }
@@ -273,8 +282,8 @@ esp_err_t mpu6050_register_isr(mpu6050_handle_t sensor, const mpu6050_isr_t isr)
 
     ret = gpio_isr_handler_add(
         sensor_device->int_pin,
-        isr, 
-        (void *) sensor
+        ((gpio_isr_t) *(isr)), 
+        ((void *) sensor)
     );
 
     if (ESP_OK != ret) {
