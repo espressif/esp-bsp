@@ -200,43 +200,43 @@ esp_err_t mpu6050_get_gyro_sensitivity(mpu6050_handle_t sensor, float *const gyr
 
 /**
  * @brief Configure INT pin behavior and setup target GPIO.
- * 
+ *
  * @param sensor object handle of mpu6050
  * @param interrupt_configuration mpu6050 INT pin configuration parameters
- * 
- * @return 
+ *
+ * @return
  *      - ESP_OK Success
  *      - ESP_ERR_INVALID_ARG A parameter is NULL or incorrect
- *      - ESP_FAIL Failed to configure INT pin on mpu6050 
+ *      - ESP_FAIL Failed to configure INT pin on mpu6050
  */
-esp_err_t mpu6050_config_interrupts(mpu6050_handle_t sensor, const mpu6050_int_config_t* const interrupt_configuration);
+esp_err_t mpu6050_config_interrupts(mpu6050_handle_t sensor, const mpu6050_int_config_t *const interrupt_configuration);
 
 /**
  * @brief Register an Interrupt Service Routine to handle mpu6050 interrupts.
- * 
+ *
  * @param sensor object handle of mpu6050
  * @param isr function to handle interrupts produced by mpu6050
- * 
- * @return 
+ *
+ * @return
  *      - ESP_OK Success
  *      - ESP_ERR_INVALID_ARG A parameter is NULL or not valid
- *      - ESP_FAIL Failed to register ISR 
+ *      - ESP_FAIL Failed to register ISR
  */
 esp_err_t mpu6050_register_isr(mpu6050_handle_t sensor, const mpu6050_isr_t isr);
 
 /**
  * @brief Enable specific interrupts from mpu6050
- * 
+ *
  * @param sensor object handle of mpu6050
  * @param interrupt_sources bit mask with interrupt sources to enable
- * 
+ *
  * This function does not disable interrupts not set in interrupt_sources. To disable
  * specific mpu6050 interrupts, use mpu6050_disable_interrupts().
- * 
+ *
  * To enable all mpu6050 interrupts, pass MPU6050_ALL_INTERRUPTS as the argument
  * for interrupt_sources.
- * 
- * @return 
+ *
+ * @return
  *      - ESP_OK Success
  *      - ESP_ERR_INVALID_ARG A parameter is NULL or not valid
  *      - ESP_FAIL Failed to enable interrupt sources on mpu6050
@@ -245,17 +245,17 @@ esp_err_t mpu6050_enable_interrupts(mpu6050_handle_t sensor, uint8_t interrupt_s
 
 /**
  * @brief Disable specific interrupts from mpu6050
- * 
+ *
  * @param sensor object handle of mpu6050
  * @param interrupt_sources bit mask with interrupt sources to disable
- * 
+ *
  * This function does not enable interrupts not set in interrupt_sources. To enable
- * specific mpu6050 interrupts, use mpu6050_enable_interrupts(). 
- * 
- * To disable all mpu6050 interrupts, pass MPU6050_ALL_INTERRUPTS as the  
+ * specific mpu6050 interrupts, use mpu6050_enable_interrupts().
+ *
+ * To disable all mpu6050 interrupts, pass MPU6050_ALL_INTERRUPTS as the
  * argument for interrupt_sources.
- * 
- * @return 
+ *
+ * @return
  *      - ESP_OK Success
  *      - ESP_ERR_INVALID_ARG A parameter is NULL or not valid
  *      - ESP_FAIL Failed to enable interrupt sources on mpu6050
@@ -264,22 +264,22 @@ esp_err_t mpu6050_disable_interrupts(mpu6050_handle_t sensor, uint8_t interrupt_
 
 /**
  * @brief Get the interrupt status of mpu6050
- * 
+ *
  * @param sensor object handle of mpu6050
  * @param out_intr_status[out] bit mask that is assigned a value representing the interrupts triggered by the mpu6050
- * 
- * This function can be used by the mpu6050 ISR to determine the source of 
- * the mpu6050 interrupt that it is handling. 
- * 
- * After this function returns, the bits set in out_intr_status are 
+ *
+ * This function can be used by the mpu6050 ISR to determine the source of
+ * the mpu6050 interrupt that it is handling.
+ *
+ * After this function returns, the bits set in out_intr_status are
  * the sources of the latest interrupt triggered by the mpu6050. For example,
  * if MPU6050_DATA_RDY_INT_BIT is set in out_intr_status, the last interrupt
  * from the mpu6050 was a DATA READY interrupt.
- * 
- * The behavior of the INT_STATUS register of the mpu6050 may change depending on 
+ *
+ * The behavior of the INT_STATUS register of the mpu6050 may change depending on
  * the value of mpu6050_int_clear_t used on interrupt configuration.
- * 
- * @return 
+ *
+ * @return
  *      - ESP_OK Success
  *      - ESP_ERR_INVALID_ARG A parameter is NULL or not valid
  *      - ESP_FAIL Failed to retrieve interrupt status from mpu6050
@@ -288,34 +288,34 @@ esp_err_t mpu6050_get_interrupt_status(mpu6050_handle_t sensor, uint8_t *const o
 
 /**
  * @brief Determine if the last mpu6050 interrupt was due to data ready.
- * 
+ *
  * @param interrupt_status mpu6050 interrupt status, obtained by invoking mpu6050_get_interrupt_status()
- * 
- * @return 
+ *
+ * @return
  *      - 0: The interrupt was not produced due to data ready
- *      - Any other positive integer: Interrupt was a DATA_READY interrupt 
+ *      - Any other positive integer: Interrupt was a DATA_READY interrupt
  */
 extern uint8_t mpu6050_is_data_ready_interrupt(uint8_t interrupt_status);
 
 /**
  * @brief Determine if the last mpu6050 interrupt was an I2C master interrupt.
- * 
+ *
  * @param interrupt_status mpu6050 interrupt status, obtained by invoking mpu6050_get_interrupt_status()
- * 
- * @return 
+ *
+ * @return
  *      - 0: The interrupt is not an I2C master interrupt
- *      - Any other positive integer: Interrupt was an I2C master interrupt 
+ *      - Any other positive integer: Interrupt was an I2C master interrupt
  */
 extern uint8_t mpu6050_is_i2c_master_interrupt(uint8_t interrupt_status);
 
 /**
  * @brief Determine if the last mpu6050 interrupt was triggered by a fifo overflow.
- * 
+ *
  * @param interrupt_status mpu6050 interrupt status, obtained by invoking mpu6050_get_interrupt_status()
- * 
- * @return 
+ *
+ * @return
  *      - 0: The interrupt is not a fifo overflow interrupt
- *      - Any other positive integer: Interrupt was triggered by a fifo overflow 
+ *      - Any other positive integer: Interrupt was triggered by a fifo overflow
  */
 extern uint8_t mpu6050_is_fifo_overflow_interrupt(uint8_t interrupt_status);
 

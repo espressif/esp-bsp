@@ -202,18 +202,17 @@ esp_err_t mpu6050_get_gyro_sensitivity(mpu6050_handle_t sensor, float *const gyr
     return ret;
 }
 
-esp_err_t mpu6050_config_interrupts(mpu6050_handle_t sensor, const mpu6050_int_config_t* const interrupt_configuration)
+esp_err_t mpu6050_config_interrupts(mpu6050_handle_t sensor, const mpu6050_int_config_t *const interrupt_configuration)
 {
     esp_err_t ret = ESP_OK;
 
-    if (NULL == interrupt_configuration)
-    {
+    if (NULL == interrupt_configuration) {
         ret = ESP_ERR_INVALID_ARG;
         return ret;
     }
 
     if (GPIO_IS_VALID_GPIO(interrupt_configuration->interrupt_pin)) {
-        // Set GPIO connected to MPU6050 INT pin only when user configures interrupts. 
+        // Set GPIO connected to MPU6050 INT pin only when user configures interrupts.
         mpu6050_dev_t *sensor_device = (mpu6050_dev_t *) sensor;
         sensor_device->int_pin = interrupt_configuration->interrupt_pin;
     } else {
@@ -252,7 +251,7 @@ esp_err_t mpu6050_config_interrupts(mpu6050_handle_t sensor, const mpu6050_int_c
     }
 
     gpio_int_type_t gpio_intr_type;
-    
+
     if (INTERRUPT_PIN_ACTIVE_LOW == interrupt_configuration->active_level) {
         gpio_intr_type = GPIO_INTR_NEGEDGE;
     } else {
@@ -262,7 +261,7 @@ esp_err_t mpu6050_config_interrupts(mpu6050_handle_t sensor, const mpu6050_int_c
     gpio_config_t int_gpio_config = {
         .mode = GPIO_MODE_INPUT,
         .intr_type = gpio_intr_type,
-        .pin_bit_mask = (BIT0 << interrupt_configuration->interrupt_pin) 
+        .pin_bit_mask = (BIT0 << interrupt_configuration->interrupt_pin)
     };
 
     ret = gpio_config(&int_gpio_config);
@@ -281,10 +280,10 @@ esp_err_t mpu6050_register_isr(mpu6050_handle_t sensor, const mpu6050_isr_t isr)
     }
 
     ret = gpio_isr_handler_add(
-        sensor_device->int_pin,
-        ((gpio_isr_t) *(isr)), 
-        ((void *) sensor)
-    );
+              sensor_device->int_pin,
+              ((gpio_isr_t) * (isr)),
+              ((void *) sensor)
+          );
 
     if (ESP_OK != ret) {
         return ret;
