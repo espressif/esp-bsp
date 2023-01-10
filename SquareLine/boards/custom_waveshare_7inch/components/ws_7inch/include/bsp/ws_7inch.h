@@ -66,13 +66,20 @@ extern "C" {
 
 /**
  * @brief Init I2C driver
- *
+ * *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   I2C parameter error
+ *      - ESP_FAIL              I2C driver installation error
  */
 esp_err_t bsp_i2c_init(void);
 
 /**
  * @brief Deinit I2C driver and free its resources
- *
+ * 
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   I2C parameter error
  */
 esp_err_t bsp_i2c_deinit(void);
 
