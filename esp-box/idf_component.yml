@@ -1,4 +1,4 @@
-version: "2.1.3"
+version: "2.2.0"
 description: Board Support Package for ESP-BOX
 url: https://github.com/espressif/esp-bsp/tree/master/esp-box
 
@@ -16,3 +16,8 @@ dependencies:
   esp_lvgl_port:
     version: ^1
     public: true
+
+examples:
+  - path: ../examples/display_audio_photo
+  - path: ../examples/display_rotation
+  - path: ../examples/touchscreen_colorwheel

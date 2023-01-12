@@ -21,6 +21,10 @@
 
 static const char *TAG = "ESP-BOX";
 
+/** @cond */
+_Static_assert(CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0, "Touch buttons must be supported for this BSP");
+/** @endcond */
+
 /* Assert on error, if selected in menuconfig. Otherwise return error code. */
 //TODO: Move this code into common header
 #if CONFIG_BSP_ERROR_CHECK
@@ -56,6 +60,7 @@ static const char *TAG = "ESP-BOX";
 #endif
 
 static lv_disp_t *disp;
+static esp_lcd_touch_handle_t tp;   // LCD touch handle
 
 esp_err_t bsp_i2c_init(void)
 {
@@ -218,16 +223,16 @@ static lv_disp_t *bsp_display_lcd_init(void)
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = io_handle,
         .panel_handle = panel_handle,
-        .buffer_size = BSP_LCD_H_RES * 50,
-        .double_buffer = true,
+        .buffer_size = BSP_LCD_H_RES * BSP_LCD_DRAW_BUF_HEIGHT,
+        .double_buffer = BSP_LCD_DRAW_BUF_DOUBLE,
         .hres = BSP_LCD_H_RES,
         .vres = BSP_LCD_V_RES,
         .monochrome = false,
         /* Rotation values must be same as used in esp_lcd for initial settings of the screen */
         .rotation = {
             .swap_xy = false,
-            .mirror_x = false,
-            .mirror_y = false,
+            .mirror_x = true,
+            .mirror_y = true,
         },
         .flags = {
             .buff_dma = true,
@@ -239,8 +244,6 @@ static lv_disp_t *bsp_display_lcd_init(void)
 
 static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
 {
-    static esp_lcd_touch_handle_t tp;   // LCD touch handle
-
     /* Initialize touch */
     const esp_lcd_touch_config_t tp_cfg = {
         .x_max = BSP_LCD_H_RES,
@@ -368,5 +371,18 @@ esp_err_t bsp_button_init(const bsp_button_t btn)
 
 bool bsp_button_get(const bsp_button_t btn)
 {
-    return !(bool)gpio_get_level(btn);
+    if (btn == BSP_BUTTON_MAIN) {
+#if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
+        uint8_t home_btn_val = 0x00;
+        assert(tp);
+
+        esp_lcd_touch_get_button_state(tp, 0, &home_btn_val);
+        return home_btn_val ? true : false;
+#else
+        ESP_LOGE(TAG, "Button main is inaccessible");
+        return false;
+#endif
+    } else {
+        return !(bool)gpio_get_level(btn);
+    }
 }
