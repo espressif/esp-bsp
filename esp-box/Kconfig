@@ -26,13 +26,33 @@ menu "Board Support Package"
             default 100000
     endmenu
 
-    menu "Display"
-        config BSP_DISPLAY_LVGL_TASK_PRIORITY
-            int "LVGL task priority"
-            default 2
+    menu "SPIFFS - Virtual File System"
+        config BSP_SPIFFS_FORMAT_ON_MOUNT_FAIL
+            bool "Format SPIFFS if mounting fails"
+            default n
             help
-                The Board Support Package will create a task that will periodically handle LVGL operation in lv_timer_handler().
+                Format SPIFFS if it fails to mount the filesystem.
 
+        config BSP_SPIFFS_MOUNT_POINT
+            string "SPIFFS mount point"
+            default "/spiffs"
+            help
+                Mount point of SPIFFS in the Virtual File System.
+
+        config BSP_SPIFFS_PARTITION_LABEL
+            string "Partition label of SPIFFS"
+            default "storage"
+            help
+                Partition label which stores SPIFFS.
+
+        config BSP_SPIFFS_MAX_FILES
+            int "Max files supported for SPIFFS VFS"
+            default 5
+            help
+                Supported max files for SPIFFS in the Virtual File System.
+    endmenu
+
+    menu "Display"
         config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
         int "LEDC channel index"
         default 1
@@ -40,13 +60,6 @@ menu "Board Support Package"
         help
             LEDC channel is used to generate PWM signal that controls display brightness.
             Set LEDC index that should be used.
-
-        config BSP_DISPLAY_LVGL_TICK
-        int "LVGL tick period"
-        default 5
-        range 1 100
-        help
-            Period of LVGL tick timer.
     endmenu
     
     config BSP_I2S_NUM
