@@ -1,4 +1,4 @@
-version: "1.0.1"
+version: "1.0.2"
 description: Board Support Package for ESP32-S3-LCD-EV-BOARD
 url: https://github.com/espressif/esp-bsp/tree/master/esp32_s3_lcd_ev_board
 
@@ -31,3 +31,6 @@ dependencies:
   lvgl/lvgl:
     version: "^8"
     public: true
+
+examples:
+  - path: ../examples/display_lvgl_demos
