@@ -5,9 +5,23 @@ on:
     types: [opened, reopened, synchronize]
 
 jobs:
-  build:
+  examples_list:
+    name: List all BSP examples
+    runs-on: ubuntu-20.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: set-matrix
+        run: echo "::set-output name=matrix::$(ls -d examples/*/ | jq -R -s -c 'split("\n")[:-1]')"
+
+  examples_build:
+    name: Build
+    needs: examples_list
     strategy:
+      fail-fast: false
       matrix:
+        example: ${{ fromJson(needs.examples_list.outputs.matrix) }}
         idf_ver: ["latest"]
     runs-on: ubuntu-20.04
     container: espressif/idf:${{ matrix.idf_ver }}
@@ -15,14 +29,13 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: 'recursive'
-      - name: Build ESP-BSP examples
+      - name: Build ESP-BSP ${{ matrix.example }} with IDF-${{ matrix.idf_ver }}
+        working-directory: '${{ matrix.example }}'
         shell: bash
+        env:
+          IDF_EXTRA_ACTIONS_PATH: ../
         run: |
           . ${IDF_PATH}/export.sh
-          pip install idf-component-manager --upgrade
-          cd examples
-          for d in */; do
-            pushd $d
-            idf.py build
-            popd
-          done
+          pip install idf-component-manager ruamel.yaml --upgrade
+          chmod +x ${GITHUB_WORKSPACE}/.github/build_example_for_all_bsps.sh
+          ${GITHUB_WORKSPACE}/.github/build_example_for_all_bsps.sh ${{ matrix.example }}
