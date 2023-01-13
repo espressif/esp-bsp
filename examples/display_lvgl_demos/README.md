@@ -1,5 +1,5 @@
-| Supported Targets | ESP32-S3-LCD-EV-BOARD |
-| ----------------- | --------------------- |
+| Supported Boards | ESP-BOX | Kaluga kit | ESP32-S3-EYE | ESP32-S3-LCD-EV-BOARD |
+| ---------------- | ------- | ---------- | ------------ | --------------------- |
 
 # Display LVGL Demos
 

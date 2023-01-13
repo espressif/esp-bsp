@@ -1,5 +1,5 @@
-| Supported Targets | ESP-BOX (ESP32-S3) |
-| ----------------- | ------------------ |
+| Supported Targets | ESP-BOX (ESP32-S3) | ESP32-S3-LCD-EV-BOARD | ESP32-S3-Korvo-2 |
+| ----------------- | ------------------ | --------------------- | ---------------- |
 
 # ESP-BOX Display Audio Photo Example
 

@@ -1,5 +1,5 @@
-| Supported Boards | Wrover kit |
-| ---------------- | ---------- |
+| Supported Boards | Wrover kit | ESP-BOX | Kaluga kit | ESP32-S3-EYE | ESP32-S3-USB-OTG | ESP32-S3-LCD-EV-BOARD |
+| ---------------- | ---------- | ------- | ---------- | ------------ | ---------------- | --------------------- |
 
 # BSP: Display example
 

@@ -2,6 +2,6 @@ description: BSP Display and camera example
 
 dependencies:
   idf: ">=4.4"
-  esp32_s2_kaluga_kit:
+  esp32_s3_korvo_2:
     version: "*"
-    override_path: "../../../esp32_s2_kaluga_kit"
+    override_path: "../../../esp32_s3_korvo_2"
