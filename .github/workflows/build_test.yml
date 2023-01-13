@@ -3,6 +3,10 @@ name: Build Test Application
 on:
   pull_request:
     types: [opened, reopened, synchronize]
+    paths:
+      - 'components/**'
+      - 'test_app/**'
+      - '.github/workflows/build_test.yml'
 
 jobs:
   build:
@@ -20,9 +24,9 @@ jobs:
       - name: Build ESP-BSP Test Application
         env:
           IDF_TARGET: ${{ matrix.idf_target }}
+        working-directory: test_app
         shell: bash
         run: |
-          cd test_app
           . ${IDF_PATH}/export.sh
           export PEDANTIC_FLAGS="-DIDF_CI_BUILD -Werror -Werror=deprecated-declarations -Werror=unused-variable -Werror=unused-but-set-variable -Werror=unused-function"
           export EXTRA_CFLAGS="${PEDANTIC_FLAGS} -Wstrict-prototypes"
