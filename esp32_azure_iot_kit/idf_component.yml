@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.0.1"
 description: Board Support Package for ESP32-Azure-IoT-Kit
 url: https://github.com/espressif/esp-bsp/tree/master/esp32_azure_iot_kit
 
@@ -32,3 +32,7 @@ dependencies:
   mpu6050:
     version: "^1.0.0"
     public: true
+
+examples:
+  - path: ../examples/mqtt_example
+  - path: ../examples/sensors_example

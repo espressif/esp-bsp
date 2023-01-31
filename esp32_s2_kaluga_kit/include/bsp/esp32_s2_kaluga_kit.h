@@ -251,10 +251,12 @@ esp_err_t bsp_i2c_deinit(void);
  * LVGL is used as graphics library. LVGL is NOT thread safe, therefore the user must take LVGL mutex
  * by calling bsp_display_lock() before calling and LVGL API (lv_...) and then give the mutex with
  * bsp_display_unlock().
+ *
+ * @note Default SPI clock is set to 40MHz. On some displays shipped with Kaluga kit, 80MHz can be achieved
  **************************************************************************************************/
 #define BSP_LCD_H_RES              (320)
 #define BSP_LCD_V_RES              (240)
-#define BSP_LCD_PIXEL_CLOCK_HZ     (80 * 1000 * 1000)
+#define BSP_LCD_PIXEL_CLOCK_HZ     (40 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
 
 /**

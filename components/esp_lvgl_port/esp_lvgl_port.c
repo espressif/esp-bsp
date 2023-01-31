@@ -89,7 +89,7 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
     lvgl_port_timer_period_ms = cfg->timer_period_ms;
     ESP_RETURN_ON_ERROR(lvgl_port_tick_init(), TAG, "");
     /* Create task */
-    lvgl_port_ctx.lvgl_mux = xSemaphoreCreateMutex();
+    lvgl_port_ctx.lvgl_mux = xSemaphoreCreateRecursiveMutex();
     ESP_GOTO_ON_FALSE(lvgl_port_ctx.lvgl_mux, ESP_ERR_NO_MEM, err, TAG, "Create LVGL mutex fail!");
 
     BaseType_t res;
@@ -287,13 +287,13 @@ bool lvgl_port_lock(uint32_t timeout_ms)
     assert(lvgl_port_ctx.lvgl_mux && "lvgl_port_init must be called first");
 
     const TickType_t timeout_ticks = (timeout_ms == 0) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
-    return xSemaphoreTake(lvgl_port_ctx.lvgl_mux, timeout_ticks) == pdTRUE;
+    return xSemaphoreTakeRecursive(lvgl_port_ctx.lvgl_mux, timeout_ticks) == pdTRUE;
 }
 
 void lvgl_port_unlock(void)
 {
     assert(lvgl_port_ctx.lvgl_mux && "lvgl_port_init must be called first");
-    xSemaphoreGive(lvgl_port_ctx.lvgl_mux);
+    xSemaphoreGiveRecursive(lvgl_port_ctx.lvgl_mux);
 }
 
 void lvgl_port_flush_ready(lv_disp_t *disp)

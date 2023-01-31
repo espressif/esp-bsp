@@ -66,28 +66,29 @@
  *      | 3V3    3V3 │
  *      └────────────┘
  */
-#define BSP_PMOD1_IO1        GPIO_NUM42
-#define BSP_PMOD1_IO2        GPIO_NUM21
+#define BSP_PMOD1_IO1        GPIO_NUM_42
+#define BSP_PMOD1_IO2        GPIO_NUM_21
 #define BSP_PMOD1_IO3        BSP_USB_NEG
 #define BSP_PMOD1_IO4        BSP_USB_POS
-#define BSP_PMOD1_IO5        GPIO_NUM38
-#define BSP_PMOD1_IO6        GPIO_NUM39
-#define BSP_PMOD1_IO7        GPIO_NUM40  // Intended for I2C SCL (pull-up NOT populated)
-#define BSP_PMOD1_IO8        GPIO_NUM41  // Intended for I2C SDA (pull-up NOT populated)
+#define BSP_PMOD1_IO5        GPIO_NUM_38
+#define BSP_PMOD1_IO6        GPIO_NUM_39
+#define BSP_PMOD1_IO7        GPIO_NUM_40  // Intended for I2C SCL (pull-up NOT populated)
+#define BSP_PMOD1_IO8        GPIO_NUM_41  // Intended for I2C SDA (pull-up NOT populated)
 
-#define BSP_PMOD2_IO1        GPIO_NUM10  // Intended for SPI2 CS
-#define BSP_PMOD2_IO2        GPIO_NUM11  // Intended for SPI2 D (MOSI)
-#define BSP_PMOD2_IO3        GPIO_NUM13  // Intended for SPI2 Q (MISO)
-#define BSP_PMOD2_IO4        GPIO_NUM12  // Intended for SPI2 CLK
-#define BSP_PMOD2_IO5        GPIO_NUM9   // Intended for SPI2 HD (Hold)
-#define BSP_PMOD2_IO6        GPIO_NUM43  // UART0 TX by default
-#define BSP_PMOD2_IO7        GPIO_NUM44  // UART0 RX by default
-#define BSP_PMOD2_IO8        GPIO_NUM14  // Intended for SPI2 WP (Write-protect)
+#define BSP_PMOD2_IO1        GPIO_NUM_10  // Intended for SPI2 CS
+#define BSP_PMOD2_IO2        GPIO_NUM_11  // Intended for SPI2 D (MOSI)
+#define BSP_PMOD2_IO3        GPIO_NUM_13  // Intended for SPI2 Q (MISO)
+#define BSP_PMOD2_IO4        GPIO_NUM_12  // Intended for SPI2 CLK
+#define BSP_PMOD2_IO5        GPIO_NUM_9   // Intended for SPI2 HD (Hold)
+#define BSP_PMOD2_IO6        GPIO_NUM_43  // UART0 TX by default
+#define BSP_PMOD2_IO7        GPIO_NUM_44  // UART0 RX by default
+#define BSP_PMOD2_IO8        GPIO_NUM_14  // Intended for SPI2 WP (Write-protect)
 
 /* Buttons */
 typedef enum {
     BSP_BUTTON_CONFIG = GPIO_NUM_0,
-    BSP_BUTTON_MUTE   = GPIO_NUM_1
+    BSP_BUTTON_MUTE   = GPIO_NUM_1,
+    BSP_BUTTON_MAIN   = 100
 } bsp_button_t;
 
 #ifdef __cplusplus
@@ -273,6 +274,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_LCD_PIXEL_CLOCK_HZ     (40 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
 
+#define BSP_LCD_DRAW_BUF_HEIGHT     (10)
+#define BSP_LCD_DRAW_BUF_DOUBLE     (0)
+
 /**
  * @brief Initialize display
  *
@@ -363,6 +367,9 @@ esp_err_t bsp_button_init(const bsp_button_t btn);
 
 /**
  * @brief Get button's state
+ *
+ * Note: For LCD panel button which is defined as BSP_BUTTON_MAIN, bsp_display_start should
+ *       be called before call this function.
  *
  * @param[in] btn Button to read
  * @return true  Button pressed

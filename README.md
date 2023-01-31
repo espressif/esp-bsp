@@ -13,6 +13,7 @@ Board support packages for development boards using Espressif's SoCs, written in
 | [ESP32-S3-USB-OTG](esp32_s3_usb_otg) | ESP32-S3 | LCD display, uSD card slot, USB-OTG | <img src="docu/pics/esp32_s3_otg.png" width="150">  |
 | [ESP32-S3-EYE](esp32_s3_eye) | ESP32-S3 | LCD display, camera, uSD card slot, microphone and accelerometer | <img src="docu/pics/s3-eye.webp" width="150"> |
 | [ESP32-S3-LCD-EV-BOARD](esp32_s3_lcd_ev_board) | ESP32-S3 | LCD display with touch, audio codec + power amplifier | <img src="docu/pics/esp32-s3-lcd-ev-board_800x480.png" width="150"> |
+| [ESP32-S3-Korvo-2](esp32_s3_korvo_2) | ESP32-S3 | LCD display, camera, uSD card slot, microphone, audio codec + power amplifier | <img src="docu/pics/korvo-2.png" width="150"> |
 
 ## LCD and TOUCH drivers
 
@@ -26,14 +27,15 @@ Best way to start with ESP-BSP is trying one of the [examples](examples) on your
 
 | Example | Supported boards |
 |---|---|
+| [audio](examples/audio) | ESP32-S3-Korvo-2 |
 | [display](examples/display) | WROVER-KIT |
 | [display_audio](examples/display_audio) | Kaluga-kit |
 | [display_camera](examples/display_camera) | Kaluga-kit |
 | [display_audio_photo](examples/display_audio_photo) | ESP-BOX |
 | [display_rotation](examples/display_rotation) | ESP-BOX |
 | [display_lvgl_demos](examples/display_lvgl_demos) | ESP32-S3-LCD-EV-BOARD |
+| [touchscreen_colorwheel](examples/touchscreen_colorwheel) | ESP-BOX |
 | [mqtt_example](examples/mqtt_example) | Azure-IoT-kit |
-| [rainmaker_example](examples/rainmaker_example) | Azure-IoT-kit |
 | [sensors_example](examples/sensors_example) | Azure-IoT-kit |
 
 ### BSP headers
