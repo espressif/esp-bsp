@@ -5,7 +5,7 @@ menu "Board Support Package"
         default y
         help
             Error check assert the application before returning the error code.
-            
+
     menu "I2C"
         config BSP_I2C_NUM
             int "I2C peripheral index"
@@ -25,7 +25,7 @@ menu "Board Support Package"
             default 400000 if BSP_I2C_FAST_MODE
             default 100000
     endmenu
-    
+
     menu "uSD card - Virtual File System"
         config BSP_SD_FORMAT_ON_MOUNT_FAIL
             bool "Format uSD card if mounting fails"
@@ -41,29 +41,6 @@ menu "Board Support Package"
 
     endmenu
 
-    menu "Display"
-        config BSP_DISPLAY_LVGL_TASK_PRIORITY
-            int "LVGL task priority"
-            default 2
-            help
-                The Board Support Package will create a task that will periodically handle LVGL operation in lv_timer_handler().
-
-        config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
-        int "LEDC channel index"
-        default 1
-        range 0 7
-        help
-            LEDC channel is used to generate PWM signal that controls display brightness.
-            Set LEDC index that should be used.
-
-        config BSP_DISPLAY_LVGL_TICK
-        int "LVGL tick period"
-        default 5
-        range 1 100
-        help
-            Period of LVGL tick timer.
-    endmenu
-    
     config BSP_I2S_NUM
         int "I2S peripheral index"
         default 1

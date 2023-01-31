@@ -92,7 +92,8 @@ extern "C" {
  * \endcode
  **************************************************************************************************/
 typedef enum {
-    BSP_BUTTON_REC = 0,
+    BSP_BUTTON_MAIN = 0,
+    BSP_BUTTON_REC,
     BSP_BUTTON_MUTE,
     BSP_BUTTON_PLAY,
     BSP_BUTTON_SET,
@@ -451,6 +452,34 @@ esp_err_t bsp_display_backlight_off(void);
  * @param[in] rotation Angle of the display rotation
  */
 void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
+
+/**************************************************************************************************
+ *
+ * Button
+ *
+ **************************************************************************************************/
+
+/**
+ * @brief Set button's GPIO as input
+ *
+ * @param[in] btn Button to be initialized
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ */
+esp_err_t bsp_button_init(const bsp_button_t btn);
+
+/**
+ * @brief Get button's state
+ *
+ * Note: For LCD panel button which is defined as BSP_BUTTON_MAIN, bsp_display_start should
+ *       be called before call this function.
+ *
+ * @param[in] btn Button to read
+ * @return true  Button pressed
+ * @return false Button released
+ */
+bool bsp_button_get(const bsp_button_t btn);
 
 /**************************************************************************************************
  *
