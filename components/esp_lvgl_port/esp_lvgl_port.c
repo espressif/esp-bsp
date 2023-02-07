@@ -14,10 +14,14 @@
 #include "freertos/semphr.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
-#include "esp_lcd_touch.h"
 #include "esp_lvgl_port.h"
 
 #include "lvgl.h"
+
+
+#if __has_include ("esp_lcd_touch.h")
+#include "esp_lcd_touch.h"
+#endif
 
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 1)
 #define LVGL_PORT_HANDLE_FLUSH_READY 0
@@ -44,10 +48,12 @@ typedef struct {
     lv_disp_drv_t             disp_drv;     /* LVGL display driver */
 } lvgl_port_display_ctx_t;
 
+#if __has_include ("esp_lcd_touch.h")
 typedef struct {
     esp_lcd_touch_handle_t   handle;     /* LCD touch IO handle */
     lv_indev_drv_t           indev_drv;  /* LVGL input device driver */
 } lvgl_port_touch_ctx_t;
+#endif
 
 /*******************************************************************************
 * Local variables
@@ -68,7 +74,9 @@ static bool lvgl_port_flush_ready_callback(esp_lcd_panel_io_handle_t panel_io, e
 #endif
 static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map);
 static void lvgl_port_update_callback(lv_disp_drv_t *drv);
+#if __has_include ("esp_lcd_touch.h")
 static void lvgl_port_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
+#endif
 static void lvgl_port_pix_monochrome_callback(lv_disp_drv_t *drv, uint8_t *buf, lv_coord_t buf_w, lv_coord_t x, lv_coord_t y, lv_color_t color, lv_opa_t opa);
 /*******************************************************************************
 * Public API functions
@@ -245,6 +253,7 @@ esp_err_t lvgl_port_remove_disp(lv_disp_t *disp)
     return ESP_OK;
 }
 
+#if __has_include ("esp_lcd_touch.h")
 lv_indev_t *lvgl_port_add_touch(const lvgl_port_touch_cfg_t *touch_cfg)
 {
     assert(touch_cfg != NULL);
@@ -281,6 +290,7 @@ esp_err_t lvgl_port_remove_touch(lv_indev_t *touch)
 
     return ESP_OK;
 }
+#endif
 
 bool lvgl_port_lock(uint32_t timeout_ms)
 {
@@ -420,6 +430,7 @@ static void lvgl_port_pix_monochrome_callback(lv_disp_drv_t *drv, uint8_t *buf, 
     }
 }
 
+#if __has_include ("esp_lcd_touch.h")
 static void lvgl_port_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
 {
     assert(indev_drv);
@@ -444,6 +455,7 @@ static void lvgl_port_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *
         data->state = LV_INDEV_STATE_RELEASED;
     }
 }
+#endif
 
 static void lvgl_port_tick_increment(void *arg)
 {

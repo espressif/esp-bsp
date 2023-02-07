@@ -14,8 +14,11 @@
 #include "esp_err.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
-#include "esp_lcd_touch.h"
 #include "lvgl.h"
+
+#if __has_include ("esp_lcd_touch.h")
+#include "esp_lcd_touch.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,6 +62,7 @@ typedef struct {
     } flags;
 } lvgl_port_display_cfg_t;
 
+#if __has_include ("esp_lcd_touch.h")
 /**
  * @brief Configuration touch structure
  */
@@ -66,9 +70,10 @@ typedef struct {
     lv_disp_t *disp;    /*!< LVGL display handle (returned from lvgl_port_add_disp) */
     esp_lcd_touch_handle_t   handle;   /*!< LCD touch IO handle */
 } lvgl_port_touch_cfg_t;
+#endif
 
 /**
- * @brief Touch IO configuration structure
+ * @brief LVGL port configuration structure
  *
  */
 #define ESP_LVGL_PORT_INIT_CONFIG() \
@@ -123,6 +128,7 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg);
  */
 esp_err_t lvgl_port_remove_disp(lv_disp_t *disp);
 
+#if __has_include ("esp_lcd_touch.h")
 /**
  * @brief Add LCD touch as an input device
  *
@@ -142,6 +148,7 @@ lv_indev_t *lvgl_port_add_touch(const lvgl_port_touch_cfg_t *touch_cfg);
  *      - ESP_OK                    on success
  */
 esp_err_t lvgl_port_remove_touch(lv_indev_t *touch);
+#endif
 
 /**
  * @brief Take LVGL mutex
