@@ -39,6 +39,7 @@ typedef struct lvgl_port_ctx_s {
     SemaphoreHandle_t   lvgl_mux;
     esp_timer_handle_t  tick_timer;
     bool                running;
+    int                 task_max_sleep_ms;
 } lvgl_port_ctx_t;
 
 typedef struct {
@@ -97,6 +98,10 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
     lvgl_port_timer_period_ms = cfg->timer_period_ms;
     ESP_RETURN_ON_ERROR(lvgl_port_tick_init(), TAG, "");
     /* Create task */
+    lvgl_port_ctx.task_max_sleep_ms = cfg->task_max_sleep_ms;
+    if (lvgl_port_ctx.task_max_sleep_ms == 0) {
+        lvgl_port_ctx.task_max_sleep_ms = 500;
+    }
     lvgl_port_ctx.lvgl_mux = xSemaphoreCreateRecursiveMutex();
     ESP_GOTO_ON_FALSE(lvgl_port_ctx.lvgl_mux, ESP_ERR_NO_MEM, err, TAG, "Create LVGL mutex fail!");
 
@@ -321,7 +326,7 @@ void lvgl_port_flush_ready(lv_disp_t *disp)
 
 static void lvgl_port_task(void *arg)
 {
-    uint32_t task_delay_ms = 500;
+    uint32_t task_delay_ms = lvgl_port_ctx.task_max_sleep_ms;
 
     ESP_LOGI(TAG, "Starting LVGL task");
     lvgl_port_ctx.running = true;
@@ -330,8 +335,8 @@ static void lvgl_port_task(void *arg)
             task_delay_ms = lv_timer_handler();
             lvgl_port_unlock();
         }
-        if (task_delay_ms > 500) {
-            task_delay_ms = 500;
+        if (task_delay_ms > lvgl_port_ctx.task_max_sleep_ms) {
+            task_delay_ms = lvgl_port_ctx.task_max_sleep_ms;
         } else if (task_delay_ms < 1) {
             task_delay_ms = 1;
         }
