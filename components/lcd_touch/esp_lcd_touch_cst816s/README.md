@@ -1,19 +1,19 @@
-# ESP LCD Touch GT911 Controller
+# ESP LCD Touch CST816S Controller
 
-[![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911)
+[![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_touch_cst816s/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_touch_cst816s)
 
-Implementation of the GT911 touch controller with esp_lcd_touch component.
+Implementation of the CST816S touch controller with esp_lcd_touch component.
 
-| Touch controller | Communication interface | Component name | Link to datasheet |
-| :--------------: | :---------------------: | :------------: | :---------------: |
-| GT911            | I2C                     | esp_lcd_touch_gt911 | [WIKI](https://www.waveshare.com/wiki/7inch-Capacitive-Touch-LCD-C_Datasheets) |
+| Touch controller | Communication interface |    Component name     |                             Link to datasheet                              |
+| :--------------: | :---------------------: | :-------------------: | :------------------------------------------------------------------------: |
+|     CST816S      |           I2C           | esp_lcd_touch_cst816s | [datasheet](https://www.buydisplay.com/download/ic/DS-CST816S_DS_V1.3.pdf) |
 
 ## Add to project
 
 Packages from this repository are uploaded to [Espressif's component service](https://components.espressif.com/).
 You can add them to your project via `idf.py add-dependancy`, e.g.
 ```
-    idf.py add-dependency esp_lcd_touch_gt911==1.0.0
+    idf.py add-dependency esp_lcd_touch_cst816s==1.0.0
 ```
 
 Alternatively, you can create `idf_component.yml`. More is in [Espressif's documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html).
@@ -23,7 +23,7 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
 Initialization of the touch component.
 
 ```
-    esp_lcd_panel_io_i2c_config_t io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
+    esp_lcd_panel_io_i2c_config_t io_config = ESP_LCD_TOUCH_IO_I2C_CST816S_CONFIG();
 
     esp_lcd_touch_config_t tp_cfg = {
         .x_max = CONFIG_LCD_HRES,
@@ -42,7 +42,7 @@ Initialization of the touch component.
     };
 
     esp_lcd_touch_handle_t tp;
-    esp_lcd_touch_new_i2c_gt911(io_handle, &tp_cfg, &tp);
+    esp_lcd_touch_new_i2c_cst816s(io_handle, &tp_cfg, &tp);
 ```
 
 Read data from the touch controller and store it in RAM memory. It should be called regularly in poll.
