@@ -68,13 +68,13 @@ extern "C" {
  * @brief Init I2C driver
  *
  */
-void bsp_i2c_init(void);
+esp_err_t bsp_i2c_init(void);
 
 /**
  * @brief Deinit I2C driver and free its resources
  *
  */
-void bsp_i2c_deinit(void);
+esp_err_t bsp_i2c_deinit(void);
 
 /**************************************************************************************************
  *
