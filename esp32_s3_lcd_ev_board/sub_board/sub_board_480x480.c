@@ -29,7 +29,7 @@
 static const char *TAG = "SUB-BOARD_480x480";
 
 static bsp_lcd_trans_done_cb_t trans_done = NULL;
-#if CONFIG_BSP_LCD_RGB_REFRESH_TASK_ENABLE
+#if CONFIG_BSP_LCD_RGB_REFRESH_MANUALLY
 static TaskHandle_t lcd_task_handle = NULL;
 #endif
 
@@ -43,7 +43,7 @@ static esp_err_t lcd_config(esp_io_expander_handle_t io_expander);
 IRAM_ATTR static bool on_vsync_event(esp_lcd_panel_handle_t panel, const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx)
 {
     BaseType_t need_yield = pdFALSE;
-#if CONFIG_BSP_LCD_RGB_REFRESH_TASK_ENABLE
+#if CONFIG_BSP_LCD_RGB_REFRESH_MANUALLY
     xTaskNotifyFromISR(lcd_task_handle, ULONG_MAX, eNoAction, &need_yield);
 #endif
     if (trans_done) {
@@ -55,7 +55,7 @@ IRAM_ATTR static bool on_vsync_event(esp_lcd_panel_handle_t panel, const esp_lcd
     return (need_yield == pdTRUE);
 }
 
-#if CONFIG_BSP_LCD_RGB_REFRESH_TASK_ENABLE
+#if CONFIG_BSP_LCD_RGB_REFRESH_MANUALLY
 static void lcd_task(void *arg)
 {
     ESP_LOGI(TAG, "Starting LCD refresh task");
@@ -115,11 +115,16 @@ esp_lcd_panel_handle_t bsp_lcd_init(void *arg)
             .flags.pclk_active_neg = BSP_LCD_PCLK_ACTIVE_NEG,
         },
         .flags.fb_in_psram = 1,
-#if CONFIG_BSP_LCD_RGB_REFRESH_TASK_ENABLE
+#if CONFIG_BSP_LCD_RGB_REFRESH_MANUALLY
         .flags.refresh_on_demand = 1,
 #endif
-#if CONFIG_BSP_LCD_RGB_DOUBLE_BUFFER
+#if CONFIG_BSP_LCD_RGB_BUFFER_NUMS == 2
         .flags.double_fb = 1,
+#elif CONFIG_BSP_LCD_RGB_BUFFER_NUMS == 3
+        .num_fbs = 3,
+#endif
+#if CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_MODE
+        .bounce_buffer_size_px = BSP_LCD_H_RES * CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_HEIGHT,
 #endif
     };
     BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_rgb_panel(&panel_conf, &panel_handle));
@@ -131,7 +136,7 @@ esp_lcd_panel_handle_t bsp_lcd_init(void *arg)
     esp_lcd_panel_init(panel_handle);
     esp_lcd_panel_disp_on_off(panel_handle, true);
 
-#if CONFIG_BSP_LCD_RGB_REFRESH_TASK_ENABLE
+#if CONFIG_BSP_LCD_RGB_REFRESH_MANUALLY
     xTaskCreate(lcd_task, "LCD task", 2048, panel_handle, CONFIG_BSP_LCD_RGB_REFRESH_TASK_PRIORITY, &lcd_task_handle);
 #endif
 

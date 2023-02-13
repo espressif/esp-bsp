@@ -129,27 +129,45 @@ esp_err_t bsp_audio_poweramp_enable(bool enable)
 // This function is located in ROM (also see esp_rom/${target}/ld/${target}.rom.ld)
 extern int Cache_WriteBack_Addr(uint32_t addr, uint32_t size);
 
+static inline void *lv_port_flush_get_next_buf(void *buf)
+{
+    lv_disp_t *disp = _lv_refr_get_disp_refreshing();
+    lv_disp_draw_buf_t *draw_buf = disp->driver->draw_buf;
+    return (buf == draw_buf->buf1) ? draw_buf->buf2 : draw_buf->buf1;
+}
+
+typedef struct {
+    uint16_t inv_p;
+    uint8_t inv_area_joined[LV_INV_BUF_SIZE];
+    lv_area_t inv_areas[LV_INV_BUF_SIZE];
+} lv_port_dirty_area_t;
+
+static lv_port_dirty_area_t dirty_area;
+
+static void lv_port_flush_dirty_save(lv_port_dirty_area_t *dirty_area)
+{
+    lv_disp_t *disp = _lv_refr_get_disp_refreshing();
+    dirty_area->inv_p = disp->inv_p;
+    for (int i = 0; i < disp->inv_p; i++) {
+        dirty_area->inv_area_joined[i] = disp->inv_area_joined[i];
+        dirty_area->inv_areas[i] = disp->inv_areas[i];
+    }
+}
+
 /**
  * @brief Copy dirty area
  *
  * @note This function is used to avoid tearing effect, and only work with LVGL direct-mode.
  *
  */
-static void lv_port_direct_mode_copy(void)
+static void lv_port_flush_dirty_copy(void *dst, void *src, lv_port_dirty_area_t *dirty_area)
 {
     lv_disp_t *disp_refr = _lv_refr_get_disp_refreshing();
-
-    uint8_t *buf_act = disp_refr->driver->draw_buf->buf_act;
-    uint8_t *buf1 = disp_refr->driver->draw_buf->buf1;
-    uint8_t *buf2 = disp_refr->driver->draw_buf->buf2;
-    int h_res = disp_refr->driver->hor_res;
-
-    uint8_t *fb_from = buf_act;
-    uint8_t *fb_to = (fb_from == buf1) ? buf2 : buf1;
 
     lv_coord_t x_start, x_end, y_start, y_end;
     uint32_t copy_bytes_per_line;
     uint32_t bytes_to_flush;
+    uint32_t h_res = disp_refr->driver->hor_res;
     uint32_t bytes_per_line = h_res * 2;
     uint8_t *from, *to;
     uint8_t *flush_ptr;
@@ -162,20 +180,76 @@ static void lv_port_direct_mode_copy(void)
             y_end = disp_refr->inv_areas[i].y2 + 1;
 
             copy_bytes_per_line = (x_end - x_start) * 2;
-            from = fb_from + (y_start * h_res + x_start) * 2;
-            to = fb_to + (y_start * h_res + x_start) * 2;
+            from = src + (y_start * h_res + x_start) * 2;
+            to = dst + (y_start * h_res + x_start) * 2;
             for (int y = y_start; y < y_end; y++) {
                 memcpy(to, from, copy_bytes_per_line);
                 from += bytes_per_line;
                 to += bytes_per_line;
             }
             bytes_to_flush = (y_end - y_start) * bytes_per_line;
-            flush_ptr = fb_to + y_start * bytes_per_line;
+            flush_ptr = dst + y_start * bytes_per_line;
 
             Cache_WriteBack_Addr((uint32_t)(flush_ptr), bytes_to_flush);
         }
     }
 }
+
+typedef enum {
+    FLUSH_STATUS_PART,
+    FLUSH_STATUS_FULL
+} lv_port_flush_status_t;
+
+typedef enum {
+    FLUSH_PROBE_PART_COPY,
+    FLUSH_PROBE_SKIP_COPY,
+    FLUSH_PROBE_FULL_COPY,
+} lv_port_flush_probe_t;
+
+/**
+ * @brief Probe dirty area to copy
+ *
+ * @note This function is used to avoid tearing effect, and only work with LVGL direct-mode.
+ *
+ */
+lv_port_flush_probe_t lv_port_flush_copy_probe(void)
+{
+    static lv_port_flush_status_t prev_status = FLUSH_PROBE_PART_COPY;
+    lv_port_flush_status_t cur_status;
+    uint8_t probe_result;
+    lv_disp_t *disp_refr = _lv_refr_get_disp_refreshing();
+
+    uint32_t flush_ver = 0;
+    uint32_t flush_hor = 0;
+    for (int i = 0; i < disp_refr->inv_p; i++) {
+        if (disp_refr->inv_area_joined[i] == 0) {
+            flush_ver = (disp_refr->inv_areas[i].y2 + 1 - disp_refr->inv_areas[i].y1);
+            flush_hor = (disp_refr->inv_areas[i].x2 + 1 - disp_refr->inv_areas[i].x1);
+            break;
+        }
+    }
+    /* Check if the current full screen refreshes */
+    cur_status = ((flush_ver == disp_drv.ver_res) && (flush_hor == disp_drv.hor_res)) ? (FLUSH_STATUS_FULL) : (FLUSH_STATUS_PART);
+
+    if (prev_status == FLUSH_STATUS_FULL) {
+        if ((cur_status == FLUSH_STATUS_PART)) {
+            probe_result = FLUSH_PROBE_FULL_COPY;
+        } else {
+            probe_result = FLUSH_PROBE_SKIP_COPY;
+        }
+    } else {
+        probe_result = FLUSH_PROBE_PART_COPY;
+    }
+    prev_status = cur_status;
+
+    return probe_result;
+}
+#endif
+
+#if CONFIG_BSP_DISPLAY_LVGL_FULL_REFRESH && CONFIG_BSP_LCD_RGB_BUFFER_NUMS == 3
+static void *lvgl_port_rgb_last_buf = NULL;
+static void *lvgl_port_rgb_next_buf = NULL;
+static void *lvgl_port_flush_next_buf = NULL;
 #endif
 
 static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
@@ -187,21 +261,54 @@ static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, 
     const int offsety2 = area->y2;
 
 #if CONFIG_BSP_DISPLAY_LVGL_FULL_REFRESH
+#if CONFIG_BSP_LCD_RGB_BUFFER_NUMS == 3
+    drv->draw_buf->buf1 = color_map;
+    drv->draw_buf->buf2 = lvgl_port_flush_next_buf;
+    lvgl_port_flush_next_buf = color_map;
+#endif
     /* Due to full-refresh mode, here we just swtich pointer of frame buffer rather than draw bitmap */
     esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
+#if CONFIG_BSP_LCD_RGB_BUFFER_NUMS == 3
+    lvgl_port_rgb_next_buf = color_map;
+#else
     /* Waiting for the current frame buffer to complete transmission */
     ulTaskNotifyValueClear(NULL, ULONG_MAX);
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+#endif
 #elif CONFIG_BSP_DISPLAY_LVGL_DIRECT_MODE
+    lv_port_flush_probe_t probe_result;
     /* Action after last area refresh */
     if (lv_disp_flush_is_last(drv)) {
-        /* Due to direct-mode, here we just swtich driver's pointer of frame buffer rather than draw bitmap */
-        esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
-        /* Waiting for the current frame buffer to complete transmission */
-        ulTaskNotifyValueClear(NULL, ULONG_MAX);
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        /* Copy dirty area from the current LVGL's frame buffer to the next LVGL's frame buffer */
-        lv_port_direct_mode_copy();
+        if (drv->full_refresh) {
+            drv->full_refresh = 0;
+            /* Due to direct-mode, here we just swtich driver's pointer of frame buffer rather than draw bitmap */
+            esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
+            /* Waiting for the current frame buffer to complete transmission */
+            ulTaskNotifyValueClear(NULL, ULONG_MAX);
+            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+            lv_port_flush_dirty_copy(lv_port_flush_get_next_buf(color_map), color_map, &dirty_area);
+            drv->draw_buf->buf_act = (color_map == drv->draw_buf->buf1) ? drv->draw_buf->buf2 : drv->draw_buf->buf1;
+        } else {
+            /* Probe and copy dirty area from the current LVGL's frame buffer to the next LVGL's frame buffer */
+            probe_result = lv_port_flush_copy_probe();
+            if (probe_result == FLUSH_PROBE_FULL_COPY) {
+                lv_port_flush_dirty_save(&dirty_area);
+                /* Set LVGL full-refresh flag and force to refresh whole screen */
+                drv->full_refresh = 1;
+                lv_disp_flush_ready(drv);
+                lv_refr_now(_lv_refr_get_disp_refreshing());
+            } else {
+                /* Due to direct-mode, here we just swtich driver's pointer of frame buffer rather than draw bitmap */
+                esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
+                /* Waiting for the current frame buffer to complete transmission */
+                ulTaskNotifyValueClear(NULL, ULONG_MAX);
+                ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+                if (probe_result == FLUSH_PROBE_PART_COPY) {
+                    lv_port_flush_dirty_save(&dirty_area);
+                    lv_port_flush_dirty_copy(lv_port_flush_get_next_buf(color_map), color_map, &dirty_area);
+                }
+            }
+        }
     }
 #else
     esp_lcd_panel_draw_bitmap(panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
@@ -263,8 +370,8 @@ static void lvgl_port_task(void *arg)
         bsp_display_unlock();
         if (task_delay_ms > 500) {
             task_delay_ms = 500;
-        } else if (task_delay_ms < 5) {
-            task_delay_ms = 5;
+        } else if (task_delay_ms < CONFIG_BSP_DISPLAY_LVGL_TASK_DELAY) {
+            task_delay_ms = CONFIG_BSP_DISPLAY_LVGL_TASK_DELAY;
         }
         vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
     }
@@ -286,7 +393,13 @@ static lv_disp_t *lvgl_port_display_init(void)
     int buffer_size;
 #if CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR
     buffer_size = BSP_LCD_H_RES * BSP_LCD_V_RES;
-    esp_lcd_rgb_panel_get_frame_buffer(panel_handle, 2, &buf1, &buf2);
+#if CONFIG_BSP_DISPLAY_LVGL_FULL_REFRESH && CONFIG_BSP_LCD_RGB_BUFFER_NUMS == 3
+    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_rgb_panel_get_frame_buffer(panel_handle, 3, &lvgl_port_rgb_last_buf, &buf1, &buf2));
+    lvgl_port_rgb_next_buf = lvgl_port_rgb_last_buf;
+    lvgl_port_flush_next_buf = buf2;
+#else
+    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_rgb_panel_get_frame_buffer(panel_handle, 2, &buf1, &buf2));
+#endif
 #elif CONFIG_BSP_LCD_SUB_BOARD_480_480 || CONFIG_BSP_LCD_SUB_BOARD_800_480
     buffer_size = BSP_LCD_H_RES * LVGL_BUFFER_HEIGHT;
     buf1 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), LVGL_BUFFER_MALLOC);
@@ -309,18 +422,6 @@ static lv_disp_t *lvgl_port_display_init(void)
     disp_drv.direct_mode = 1;
 #endif
     return lv_disp_drv_register(&disp_drv);
-
-#if (!CONFIG_BSP_ERROR_CHECK)
-ERR:
-    if (buf1) {
-        free(buf1);
-    }
-    if (buf2) {
-        free(buf2);
-    }
-
-    return NULL;
-#endif
 }
 
 static void bsp_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
@@ -367,10 +468,17 @@ static esp_err_t lvgl_port_indev_init(void)
 }
 
 #if CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR
-static bool lvgl_port_task_notify(esp_lcd_panel_handle_t handle)
+static bool lvgl_port_lcd_trans_done(esp_lcd_panel_handle_t handle)
 {
     BaseType_t need_yield = pdFALSE;
+#if CONFIG_BSP_DISPLAY_LVGL_FULL_REFRESH && CONFIG_BSP_LCD_RGB_BUFFER_NUMS == 3
+    if (lvgl_port_rgb_next_buf != lvgl_port_rgb_last_buf) {
+        lvgl_port_flush_next_buf = lvgl_port_rgb_last_buf;
+        lvgl_port_rgb_last_buf = lvgl_port_rgb_next_buf;
+    }
+#else
     xTaskNotifyFromISR(lvgl_task_handle, ULONG_MAX, eNoAction, &need_yield);
+#endif
     return (need_yield == pdTRUE);
 }
 #endif
@@ -383,11 +491,14 @@ lv_disp_t *bsp_display_start(void)
     BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_tick_init());
     BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_indev_init());
 
-    lvgl_mux = xSemaphoreCreateMutex();
+    lvgl_mux = xSemaphoreCreateRecursiveMutex();
     BSP_NULL_CHECK(lvgl_mux, NULL);
-    xTaskCreate(lvgl_port_task, "LVGL task", 4096, NULL, CONFIG_BSP_DISPLAY_LVGL_TASK_PRIORITY, &lvgl_task_handle);
+    xTaskCreate(
+        lvgl_port_task, "LVGL task", CONFIG_BSP_DISPLAY_LVGL_TASK_STACK_SIZE * 1024, NULL,
+        CONFIG_BSP_DISPLAY_LVGL_TASK_PRIORITY, &lvgl_task_handle
+    );
 #if CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR
-    bsp_lcd_register_trans_done_callback(lvgl_port_task_notify);
+    bsp_lcd_register_trans_done_callback(lvgl_port_lcd_trans_done);
 #endif
 
     return disp;
@@ -419,13 +530,13 @@ bool bsp_display_lock(uint32_t timeout_ms)
     assert(lvgl_mux && "bsp_display_start must be called first");
 
     const TickType_t timeout_ticks = (timeout_ms == 0) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
-    return xSemaphoreTake(lvgl_mux, timeout_ticks) == pdTRUE;
+    return xSemaphoreTakeRecursive(lvgl_mux, timeout_ticks) == pdTRUE;
 }
 
 void bsp_display_unlock(void)
 {
     assert(lvgl_mux && "bsp_display_start must be called first");
-    xSemaphoreGive(lvgl_mux);
+    xSemaphoreGiveRecursive(lvgl_mux);
 }
 
 /**************************************************************************************************

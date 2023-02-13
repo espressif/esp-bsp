@@ -36,31 +36,50 @@ menu "Board Support Package"
                 bool "Sub board 3 with 800x480 RGB LCD"
         endchoice
 
-        config BSP_LCD_RGB_DOUBLE_BUFFER
-            bool "Enable to use double frame buffers"
+        config BSP_LCD_RGB_BUFFER_NUMS
+            int "Set number of frame buffers"
             depends on BSP_LCD_SUB_BOARD_480_480 || BSP_LCD_SUB_BOARD_800_480
-            default "n"
+            default 1
+            range 1 3
             help
-                Let RGB LCD driver create two frame size buffers. It's a necessary configuration to avoiding tearing effect.
+                Let RGB LCD driver create a specified number of frame-size buffers. Only when it is set to multiple can the avoiding tearing be turned on.
 
-        config BSP_LCD_RGB_REFRESH_TASK_ENABLE
-            bool "Enable to refresh LCD manually"
+        choice BSP_LCD_RGB_REFRESH_MODE
+            prompt "Select the refresh mode for RGB LCD"
             depends on BSP_LCD_SUB_BOARD_480_480 || BSP_LCD_SUB_BOARD_800_480
-            default "n"
-            help
-                Refresh the LCD in a specific task instead of automatically refreshing. It's a necessary configuration to avoiding tearing effect.
+            default BSP_LCD_RGB_REFRESH_AUTO
+            config BSP_LCD_RGB_REFRESH_AUTO
+                bool "Auto refresh mode"
+                help
+                    Refresh the LCD in the most common way.
+            config BSP_LCD_RGB_REFRESH_MANUALLY
+                bool "Manually refresh mode"
+                help
+                    Refresh the LCD in a specific task instead of automatically refreshing.
+            config BSP_LCD_RGB_BOUNCE_BUFFER_MODE
+                bool "Bounce buffer mode"
+                help
+                    Enable bounce buffer mode can achieve higher PCLK frequency at the cost of higher CPU consumption.
+        endchoice
 
         config BSP_LCD_RGB_REFRESH_TASK_PERIOD
             int "Minimum Period(ms) of LCD refreshing task"
-            depends on BSP_LCD_RGB_REFRESH_TASK_ENABLE
+            depends on BSP_LCD_RGB_REFRESH_MANUALLY
             default 10
             help
                This configuration does not necessarily represent the actual refresh cycle of the RGB interface.
 
         config BSP_LCD_RGB_REFRESH_TASK_PRIORITY
             int "Priority of LCD refreshing task"
-            depends on BSP_LCD_RGB_REFRESH_TASK_ENABLE
+            depends on BSP_LCD_RGB_REFRESH_MANUALLY
             default 2
+
+        config BSP_LCD_RGB_BOUNCE_BUFFER_HEIGHT
+            depends on BSP_LCD_RGB_BOUNCE_BUFFER_MODE
+            int "Bounce buffer height"
+            default 10
+            help
+                Height of bounce buffer. The width of the buffer is the same as that of the LCD.
     endmenu
 
     menu "Display"
@@ -69,6 +88,19 @@ menu "Board Support Package"
             default 2
             help
                 The Board Support Package will create a task that will periodically handle LVGL operation in lv_timer_handler().
+
+        config BSP_DISPLAY_LVGL_TASK_DELAY
+            int "LVGL task minimum delay time (ms)"
+            default 10
+            range 1 100
+            help
+                Minimum delay time for LVGL task. It should be larger if the task watchdog is triggered frequently.
+
+        config BSP_DISPLAY_LVGL_TASK_STACK_SIZE
+            int "LVGL task stack size (KB)"
+            default 4
+            help
+                Size(KB) of LVGL task stack.
 
         config BSP_DISPLAY_LVGL_TICK
             int "LVGL tick period"
@@ -79,7 +111,7 @@ menu "Board Support Package"
 
         config BSP_DISPLAY_LVGL_AVOID_TEAR
             bool "Avoid tearing effect"
-            depends on BSP_LCD_RGB_REFRESH_TASK_ENABLE && BSP_LCD_RGB_DOUBLE_BUFFER
+            depends on BSP_LCD_RGB_BUFFER_NUMS > 1
             default "n"
             help
                 Avoid tearing effect through LVGL buffer mode and double frame buffers of RGB LCD. This feature is only available for RGB LCD.
