@@ -56,6 +56,24 @@ typedef struct {
 } lvgl_port_touch_ctx_t;
 #endif
 
+#if __has_include ("iot_button.h")
+
+typedef enum {
+    LVGL_PORT_NAV_BTN_PREV,
+    LVGL_PORT_NAV_BTN_NEXT,
+    LVGL_PORT_NAV_BTN_ENTER,
+    LVGL_PORT_NAV_BTN_CNT,
+} lvgl_port_nav_btns_t;
+
+typedef struct {
+    button_handle_t btn[LVGL_PORT_NAV_BTN_CNT];     /* Button handlers */
+    lv_indev_drv_t  indev_drv;  /* LVGL input device driver */
+    bool btn_prev; /* Button prev state */
+    bool btn_next; /* Button next state */
+    bool btn_enter; /* Button enter state */
+} lvgl_port_nav_btns_ctx_t;
+#endif
+
 /*******************************************************************************
 * Local variables
 *******************************************************************************/
@@ -77,6 +95,11 @@ static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, 
 static void lvgl_port_update_callback(lv_disp_drv_t *drv);
 #if __has_include ("esp_lcd_touch.h")
 static void lvgl_port_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
+#endif
+#if __has_include ("iot_button.h")
+static void lvgl_port_navigation_buttons_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
+static void lvgl_port_btn_down_handler(void *arg, void *arg2);
+static void lvgl_port_btn_up_handler(void *arg, void *arg2);
 #endif
 static void lvgl_port_pix_monochrome_callback(lv_disp_drv_t *drv, uint8_t *buf, lv_coord_t buf_w, lv_coord_t x, lv_coord_t y, lv_color_t color, lv_opa_t opa);
 /*******************************************************************************
@@ -297,6 +320,89 @@ esp_err_t lvgl_port_remove_touch(lv_indev_t *touch)
 }
 #endif
 
+#if __has_include ("iot_button.h")
+lv_indev_t *lvgl_port_add_navigation_buttons(const lvgl_port_nav_btns_cfg_t *buttons_cfg)
+{
+    esp_err_t ret = ESP_OK;
+    lv_indev_t *indev = NULL;
+    assert(buttons_cfg != NULL);
+    assert(buttons_cfg->disp != NULL);
+
+    /* Touch context */
+    lvgl_port_nav_btns_ctx_t *buttons_ctx = malloc(sizeof(lvgl_port_nav_btns_ctx_t));
+    if (buttons_ctx == NULL) {
+        ESP_LOGE(TAG, "Not enough memory for buttons context allocation!");
+        return NULL;
+    }
+
+    /* Previous button */
+    if (buttons_cfg->button_prev != NULL) {
+        buttons_ctx->btn[LVGL_PORT_NAV_BTN_PREV] = iot_button_create(buttons_cfg->button_prev);
+        ESP_GOTO_ON_FALSE(buttons_ctx->btn[LVGL_PORT_NAV_BTN_PREV], ESP_ERR_NO_MEM, err, TAG, "Not enough memory for button create!");
+    }
+
+    /* Next button */
+    if (buttons_cfg->button_next != NULL) {
+        buttons_ctx->btn[LVGL_PORT_NAV_BTN_NEXT] = iot_button_create(buttons_cfg->button_next);
+        ESP_GOTO_ON_FALSE(buttons_ctx->btn[LVGL_PORT_NAV_BTN_NEXT], ESP_ERR_NO_MEM, err, TAG, "Not enough memory for button create!");
+    }
+
+    /* Enter button */
+    if (buttons_cfg->button_enter != NULL) {
+        buttons_ctx->btn[LVGL_PORT_NAV_BTN_ENTER] = iot_button_create(buttons_cfg->button_enter);
+        ESP_GOTO_ON_FALSE(buttons_ctx->btn[LVGL_PORT_NAV_BTN_ENTER], ESP_ERR_NO_MEM, err, TAG, "Not enough memory for button create!");
+    }
+
+    /* Button handlers */
+    for (int i = 0; i < LVGL_PORT_NAV_BTN_CNT; i++) {
+        ESP_ERROR_CHECK(iot_button_register_cb(buttons_ctx->btn[i], BUTTON_PRESS_DOWN, lvgl_port_btn_down_handler, buttons_ctx));
+        ESP_ERROR_CHECK(iot_button_register_cb(buttons_ctx->btn[i], BUTTON_PRESS_UP, lvgl_port_btn_up_handler, buttons_ctx));
+    }
+
+    buttons_ctx->btn_prev = false;
+    buttons_ctx->btn_next = false;
+    buttons_ctx->btn_enter = false;
+
+    /* Register a touchpad input device */
+    lv_indev_drv_init(&buttons_ctx->indev_drv);
+    buttons_ctx->indev_drv.type = LV_INDEV_TYPE_ENCODER;
+    buttons_ctx->indev_drv.disp = buttons_cfg->disp;
+    buttons_ctx->indev_drv.read_cb = lvgl_port_navigation_buttons_read;
+    buttons_ctx->indev_drv.user_data = buttons_ctx;
+    buttons_ctx->indev_drv.long_press_repeat_time = 300;
+    indev = lv_indev_drv_register(&buttons_ctx->indev_drv);
+
+err:
+    if (ret != ESP_OK) {
+        for (int i = 0; i < LVGL_PORT_NAV_BTN_CNT; i++) {
+            if (buttons_ctx->btn[i] != NULL) {
+                iot_button_delete(buttons_ctx->btn[i]);
+            }
+        }
+
+        if (buttons_ctx != NULL) {
+            free(buttons_ctx);
+        }
+    }
+
+    return indev;
+}
+
+esp_err_t lvgl_port_remove_navigation_buttons(lv_indev_t *buttons)
+{
+    assert(buttons);
+    lv_indev_drv_t *indev_drv = buttons->driver;
+    assert(indev_drv);
+    lvgl_port_nav_btns_ctx_t *buttons_ctx = (lvgl_port_nav_btns_ctx_t *)indev_drv->user_data;
+
+    if (buttons_ctx) {
+        free(buttons_ctx);
+    }
+
+    return ESP_OK;
+}
+#endif
+
 bool lvgl_port_lock(uint32_t timeout_ms)
 {
     assert(lvgl_port_ctx.lvgl_mux && "lvgl_port_init must be called first");
@@ -402,7 +508,11 @@ static void lvgl_port_update_callback(lv_disp_drv_t *drv)
     case LV_DISP_ROT_90:
         /* Rotate LCD display */
         esp_lcd_panel_swap_xy(panel_handle, !disp_ctx->rotation.swap_xy);
-        esp_lcd_panel_mirror(panel_handle, disp_ctx->rotation.mirror_x, !disp_ctx->rotation.mirror_y);
+        if (disp_ctx->rotation.swap_xy) {
+            esp_lcd_panel_mirror(panel_handle, !disp_ctx->rotation.mirror_x, disp_ctx->rotation.mirror_y);
+        } else {
+            esp_lcd_panel_mirror(panel_handle, disp_ctx->rotation.mirror_x, !disp_ctx->rotation.mirror_y);
+        }
         break;
     case LV_DISP_ROT_180:
         /* Rotate LCD display */
@@ -412,7 +522,11 @@ static void lvgl_port_update_callback(lv_disp_drv_t *drv)
     case LV_DISP_ROT_270:
         /* Rotate LCD display */
         esp_lcd_panel_swap_xy(panel_handle, !disp_ctx->rotation.swap_xy);
-        esp_lcd_panel_mirror(panel_handle, !disp_ctx->rotation.mirror_x, disp_ctx->rotation.mirror_y);
+        if (disp_ctx->rotation.swap_xy) {
+            esp_lcd_panel_mirror(panel_handle, disp_ctx->rotation.mirror_x, !disp_ctx->rotation.mirror_y);
+        } else {
+            esp_lcd_panel_mirror(panel_handle, !disp_ctx->rotation.mirror_x, disp_ctx->rotation.mirror_y);
+        }
         break;
     }
 }
@@ -458,6 +572,74 @@ static void lvgl_port_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *
         data->state = LV_INDEV_STATE_PRESSED;
     } else {
         data->state = LV_INDEV_STATE_RELEASED;
+    }
+}
+#endif
+
+#if __has_include ("iot_button.h")
+static uint32_t last_key = 0;
+static void lvgl_port_navigation_buttons_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
+{
+    assert(indev_drv);
+    lvgl_port_nav_btns_ctx_t *ctx = (lvgl_port_nav_btns_ctx_t *)indev_drv->user_data;
+    assert(ctx);
+
+    /* Buttons */
+    if (ctx->btn_prev) {
+        data->key = LV_KEY_LEFT;
+        last_key = LV_KEY_LEFT;
+        data->state = LV_INDEV_STATE_PRESSED;
+    } else if (ctx->btn_next) {
+        data->key = LV_KEY_RIGHT;
+        last_key = LV_KEY_RIGHT;
+        data->state = LV_INDEV_STATE_PRESSED;
+    } else if (ctx->btn_enter) {
+        data->key = LV_KEY_ENTER;
+        last_key = LV_KEY_ENTER;
+        data->state = LV_INDEV_STATE_PRESSED;
+    } else {
+        data->key = last_key;
+        data->state = LV_INDEV_STATE_RELEASED;
+    }
+}
+
+static void lvgl_port_btn_down_handler(void *arg, void *arg2)
+{
+    lvgl_port_nav_btns_ctx_t *ctx = (lvgl_port_nav_btns_ctx_t *) arg2;
+    button_handle_t button = (button_handle_t)arg;
+    if (ctx && button) {
+        /* PREV */
+        if (button == ctx->btn[LVGL_PORT_NAV_BTN_PREV]) {
+            ctx->btn_prev = true;
+        }
+        /* NEXT */
+        if (button == ctx->btn[LVGL_PORT_NAV_BTN_NEXT]) {
+            ctx->btn_next = true;
+        }
+        /* ENTER */
+        if (button == ctx->btn[LVGL_PORT_NAV_BTN_ENTER]) {
+            ctx->btn_enter = true;
+        }
+    }
+}
+
+static void lvgl_port_btn_up_handler(void *arg, void *arg2)
+{
+    lvgl_port_nav_btns_ctx_t *ctx = (lvgl_port_nav_btns_ctx_t *) arg2;
+    button_handle_t button = (button_handle_t)arg;
+    if (ctx && button) {
+        /* PREV */
+        if (button == ctx->btn[LVGL_PORT_NAV_BTN_PREV]) {
+            ctx->btn_prev = false;
+        }
+        /* NEXT */
+        if (button == ctx->btn[LVGL_PORT_NAV_BTN_NEXT]) {
+            ctx->btn_next = false;
+        }
+        /* ENTER */
+        if (button == ctx->btn[LVGL_PORT_NAV_BTN_ENTER]) {
+            ctx->btn_enter = false;
+        }
     }
 }
 #endif

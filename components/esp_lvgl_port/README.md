@@ -33,7 +33,7 @@ This part is necessary only in IDF 5.0 and older:
     static bool notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
     {
         lv_disp_t ** disp = (lv_disp_t **)user_ctx;
-        lvgl_port_flush_ready(*disp);
+        lvgl_port_flush_ready((*disp)->driver);
         return false;
     }
     
@@ -76,9 +76,12 @@ Main part of the code (IDF version independent):
         }
     };
     disp = lvgl_port_add_disp(&disp_cfg);
-```
+    
+    /* ... the rest of the initialization ... */
 
-**Note:** The screens added in this function are not removed in `lvgl_port_deinit`. They must be removed by `lvgl_port_remove_disp` before deinitialization. Otherwise, there can be memory leaks!
+    /* If deinitializing LVGL port, remember to delete all displays: */
+    lvgl_port_remove_disp(disp);
+```
 
 ### Add touch input
 
@@ -94,10 +97,60 @@ Add touch input to the LVGL. It can be called more times for adding more touch i
         .disp = disp_spi,
         .handle = tp,
     };
-    lvgl_port_add_touch(&touch_cfg);
+    lv_indev_t* touch_handle = lvgl_port_add_touch(&touch_cfg);
+    
+    /* ... the rest of the initialization ... */
+
+    /* If deinitializing LVGL port, remember to delete all touches: */
+    lvgl_port_remove_touch(touch_handle);
 ```
 
-**Note:** The inputs added in this function are not removed in `lvgl_port_deinit`. They must be removed by `lvgl_port_remove_touch` before deinitialization. Otherwise, there can be memory leaks!
+### Add buttons input
+
+Add buttons input to the LVGL. It can be called more times for adding more buttons inputs for different displays. This feature is available only when the component `espressif/button` was added into the project.
+``` c
+    /* Buttons configuration structure */
+    const button_config_t bsp_button_config[] = {
+        {
+            .type = BUTTON_TYPE_ADC,
+            .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
+            .adc_button_config.button_index = 0,
+            .adc_button_config.min = 2310, // middle is 2410mV
+            .adc_button_config.max = 2510
+        },
+        {
+            .type = BUTTON_TYPE_ADC,
+            .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
+            .adc_button_config.button_index = 1,
+            .adc_button_config.min = 1880, // middle is 1980mV
+            .adc_button_config.max = 2080
+        },
+        {
+            .type = BUTTON_TYPE_ADC,
+            .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
+            .adc_button_config.button_index = 2,
+            .adc_button_config.min = 720, // middle is 820mV
+            .adc_button_config.max = 920
+        },
+    };
+
+    const lvgl_port_nav_btns_cfg_t btns = {
+        .disp = disp_spi,
+        .button_prev = &bsp_button_config[0],
+        .button_next = &bsp_button_config[1],
+        .button_enter = &bsp_button_config[2]
+    };
+
+    /* Add buttons input (for selected screen) */
+    lv_indev_t* buttons_handle = lvgl_port_add_navigation_buttons(&btns);
+    
+    /* ... the rest of the initialization ... */
+
+    /* If deinitializing LVGL port, remember to delete all buttons: */
+    lvgl_port_remove_navigation_buttons(buttons_handle);
+```
+
+**Note:** When you use navigation buttons for control LVGL objects, these objects must be added to LVGL groups. See [LVGL documentation](https://docs.lvgl.io/master/overview/indev.html?highlight=lv_indev_get_act#keypad-and-encoder) for more info.
 
 ### LVGL API usage
 
