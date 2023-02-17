@@ -20,6 +20,10 @@
 #include "esp_lcd_touch.h"
 #endif
 
+#if __has_include ("iot_button.h")
+#include "iot_button.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,6 +75,18 @@ typedef struct {
     lv_disp_t *disp;    /*!< LVGL display handle (returned from lvgl_port_add_disp) */
     esp_lcd_touch_handle_t   handle;   /*!< LCD touch IO handle */
 } lvgl_port_touch_cfg_t;
+#endif
+
+#if __has_include ("iot_button.h")
+/**
+ * @brief Configuration of the navigation buttons structure
+ */
+typedef struct {
+    lv_disp_t *disp;                /*!< LVGL display handle (returned from lvgl_port_add_disp) */
+    const button_config_t *button_prev;   /*!< Navigation button for previous */
+    const button_config_t *button_next;   /*!< Navigation button for next */
+    const button_config_t *button_enter;  /*!< Navigation button for enter */
+} lvgl_port_nav_btns_cfg_t;
 #endif
 
 /**
@@ -150,6 +166,29 @@ lv_indev_t *lvgl_port_add_touch(const lvgl_port_touch_cfg_t *touch_cfg);
  *      - ESP_OK                    on success
  */
 esp_err_t lvgl_port_remove_touch(lv_indev_t *touch);
+#endif
+
+
+#if __has_include ("iot_button.h")
+/**
+ * @brief Add buttons as an input device
+ *
+ * @note Allocated memory in this function is not free in deinit. You must call lvgl_port_remove_navigation_buttons for free all memory!
+ *
+ * @param buttons_cfg Buttons configuration structure
+ * @return Pointer to LVGL buttons input device or NULL when error occured
+ */
+lv_indev_t *lvgl_port_add_navigation_buttons(const lvgl_port_nav_btns_cfg_t *buttons_cfg);
+
+/**
+ * @brief Remove selected buttons from input devices
+ *
+ * @note Free all memory used for this input device.
+ *
+ * @return
+ *      - ESP_OK                    on success
+ */
+esp_err_t lvgl_port_remove_navigation_buttons(lv_indev_t *buttons);
 #endif
 
 /**
