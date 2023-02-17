@@ -133,14 +133,6 @@ esp_err_t bsp_audio_poweramp_enable(bool enable)
 #define LCD_PARAM_BITS         8
 #define LCD_LEDC_CH            CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH
 
-static bool bsp_dispaly_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
-{
-    lv_disp_t **disp = (lv_disp_t **)user_ctx;
-
-    lvgl_port_flush_ready(*disp);
-    return false;
-}
-
 static lv_disp_t *bsp_display_lcd_init(void)
 {
     ESP_LOGD(TAG, "Initialize SPI bus");
@@ -164,8 +156,6 @@ static lv_disp_t *bsp_display_lcd_init(void)
         .lcd_param_bits = LCD_PARAM_BITS,
         .spi_mode = 0,
         .trans_queue_depth = 10,
-        .on_color_trans_done = bsp_dispaly_flush_ready,
-        .user_ctx = &disp,
     };
 
     // Attach the LCD to the SPI bus
