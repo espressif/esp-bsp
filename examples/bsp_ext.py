@@ -45,6 +45,7 @@ def action_extensions(base_actions, project_path=os.getcwd()):
             'esp32_s3_usb_otg',
             'esp-box',
             'esp32_s3_korvo_2',
+            'esp-box-lite',
             }
 
         if bsp == '': return

@@ -1,0 +1,21 @@
+version: "1.0.0"
+description: Board Support Package for ESP32-S3-BOX-Lite
+url: https://github.com/espressif/esp-bsp/tree/master/esp-box-lite
+
+targets:
+  - esp32s3
+
+dependencies:
+  idf: ">=5.0"
+
+  button:
+    version: "^2"
+    public: true
+
+  esp_lvgl_port:
+    version: "^1"
+    public: true
+
+  esp_codec_dev:
+    version: "^1"
+    public: true

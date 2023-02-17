@@ -288,6 +288,11 @@ lv_disp_t *bsp_display_start(void)
     return disp;
 }
 
+lv_indev_t *bsp_display_get_input_dev(void)
+{
+    return NULL;
+}
+
 bool bsp_display_lock(uint32_t timeout_ms)
 {
     return lvgl_port_lock(timeout_ms);

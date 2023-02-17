@@ -264,6 +264,11 @@ lv_disp_t *bsp_display_start(void)
     return disp;
 }
 
+lv_indev_t *bsp_display_get_input_dev(void)
+{
+    return NULL;
+}
+
 void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);

@@ -31,6 +31,7 @@ static lv_disp_draw_buf_t disp_buf;                 // Contains internal graphic
 static lv_disp_drv_t disp_drv;                      // Contains LCD panel handle and callback functions
 static SemaphoreHandle_t lvgl_mux;                  // LVGL mutex
 static TaskHandle_t lvgl_task_handle;
+static lv_indev_t *disp_indev = NULL;
 
 /**************************************************************************************************
  *
@@ -450,7 +451,6 @@ static void bsp_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
 static esp_err_t lvgl_port_indev_init(void)
 {
     static lv_indev_drv_t indev_drv_tp;
-    lv_indev_t *indev_touchpad;
 
     /* Initialize touch panel in sub board */
     tp = bsp_touch_panel_init();
@@ -461,8 +461,8 @@ static esp_err_t lvgl_port_indev_init(void)
     indev_drv_tp.type = LV_INDEV_TYPE_POINTER;
     indev_drv_tp.read_cb = bsp_touchpad_read;
     indev_drv_tp.user_data = tp;
-    indev_touchpad = lv_indev_drv_register(&indev_drv_tp);
-    BSP_NULL_CHECK(indev_touchpad, ESP_ERR_NO_MEM);
+    disp_indev = lv_indev_drv_register(&indev_drv_tp);
+    BSP_NULL_CHECK(disp_indev, ESP_ERR_NO_MEM);
 
     return ESP_OK;
 }
@@ -502,6 +502,11 @@ lv_disp_t *bsp_display_start(void)
 #endif
 
     return disp;
+}
+
+lv_indev_t *bsp_display_get_input_dev(void)
+{
+    return NULL;
 }
 
 esp_err_t bsp_display_brightness_set(int brightness_percent)

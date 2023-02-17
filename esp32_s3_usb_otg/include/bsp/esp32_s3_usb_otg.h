@@ -140,6 +140,15 @@ esp_err_t bsp_sdcard_unmount(void);
 lv_disp_t *bsp_display_start(void);
 
 /**
+ * @brief Get pointer to input device (touch, buttons, ...)
+ *
+ * @note The LVGL input device is initialized in bsp_display_start() function.
+ *
+ * @return Pointer to LVGL input device or NULL when not initialized
+ */
+lv_indev_t *bsp_display_get_input_dev(void);
+
+/**
  * @brief Take LVGL mutex
  *
  * @param timeout_ms Timeout in [ms]. 0 will block indefinitely.
