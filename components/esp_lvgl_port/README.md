@@ -33,7 +33,7 @@ This part is necessary only in IDF 5.0 and older:
     static bool notify_lvgl_flush_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
     {
         lv_disp_t ** disp = (lv_disp_t **)user_ctx;
-        lvgl_port_flush_ready(*disp);
+        lvgl_port_flush_ready((*disp)->driver);
         return false;
     }
     
