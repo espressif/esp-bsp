@@ -1,6 +1,3 @@
-| Supported Targets | ESP-BOX (ESP32-S3) |
-| ----------------- | ------------------ |
-
 # ESP-BOX Touch Screen Color Wheel Example
 
 This example demonstrates usage of ESP-BOX Board Support Package. This is a single purpose example, which is focused on display + touch applications: user can change background color by selecting it on a color wheel on the touch screen. 

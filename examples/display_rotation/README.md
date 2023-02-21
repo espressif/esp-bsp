@@ -1,7 +1,4 @@
-| Supported Targets | ESP-BOX (ESP32-S3) |
-| ----------------- | ------------------ |
-
-# ESP-BOX Display Rotation Example
+# BSP: Display Rotation Example
 
 This example demonstrates usage of ESP-BOX Board Support Package. This is a single purpose example, which is focused on rotating LCD display: user can rotating display by buttons.
 
