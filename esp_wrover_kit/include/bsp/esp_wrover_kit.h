@@ -157,7 +157,7 @@ bool bsp_button_get(const bsp_button_t btn);
  * If your colours on the display are distorted, try changing the display type in menuconfig.
  *
  * LVGL is used as graphics library. LVGL is NOT thread safe, therefore the user must take LVGL mutex
- * by calling bsp_display_lock() before calling and LVGL API (lv_...) and then give the mutex with
+ * by calling bsp_display_lock() before calling any LVGL API (lv_...) and then give the mutex with
  * bsp_display_unlock().
  *
  * Display's backlight must be enabled explicitly by calling bsp_display_backlight_on()
@@ -166,6 +166,8 @@ bool bsp_button_get(const bsp_button_t btn);
 #define BSP_LCD_V_RES               (320)
 #define BSP_LCD_PIXEL_CLOCK_HZ      (40 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM             (SPI2_HOST)
+#define BSP_LCD_DRAW_BUF_SIZE       (BSP_LCD_H_RES * 30)
+#define BSP_LCD_DRAW_BUF_DOUBLE     (1)
 
 /**
  * @brief Initialize display
