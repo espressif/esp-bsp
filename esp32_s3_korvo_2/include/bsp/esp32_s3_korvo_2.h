@@ -231,7 +231,7 @@ esp_err_t bsp_audio_poweramp_enable(const bool enable);
  *
  * After initialization of I2C, use BSP_I2C_NUM macro when creating I2C devices drivers ie.:
  * \code{.c}
- * es8311_handle_t es8311_dev = es8311_create(BSP_I2C_NUM, ES8311_ADDRRES_0);
+ * es8311_handle_t es8311_dev = es8311_create(BSP_I2C_NUM, ES8311_ADDRESS_0);
  * \endcode
  **************************************************************************************************/
 #define BSP_I2C_NUM     CONFIG_BSP_I2C_NUM
@@ -267,10 +267,11 @@ esp_err_t bsp_i2c_deinit(void);
 /**
  * @brief Init IO expander chip TCA9554
  *
+ * @note I2C must be already initialized by bsp_i2c_init()
  * @note If the device was already initialized, users can also call it to get handle
  * @note This function will be called in `bsp_display_start()`
  *
- * @return Pointer to device handle or NULL when error occured
+ * @return Pointer to device handle or NULL when error occurred
  */
 esp_io_expander_handle_t bsp_io_expander_init(void);
 
@@ -412,34 +413,33 @@ void bsp_display_unlock(void);
 /**
  * @brief Set display's brightness
  *
- * Brightness is controlled with PWM signal to a pin controling backlight.
+ * @attention ESP32-S3 Korvo v2 board has backlight control connected through IO expander, so brightness control is not supported.
  *
  * @param[in] brightness_percent Brightness in [%]
  * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_NOT_SUPPORTED Always
  */
 esp_err_t bsp_display_brightness_set(int brightness_percent);
 
 /**
  * @brief Turn on display backlight
  *
- * Display must be already initialized by calling bsp_display_start()
+ * @note I2C must be already initialized by bsp_i2c_init()
  *
  * @return
  *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_INVALID_STATE Could not init IO expander
  */
 esp_err_t bsp_display_backlight_on(void);
 
 /**
  * @brief Turn off display backlight
  *
- * Display must be already initialized by calling bsp_display_start()
+ * @note I2C must be already initialized by bsp_i2c_init()
  *
  * @return
  *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_INVALID_STATE Could not init IO expander
  */
 esp_err_t bsp_display_backlight_off(void);
 
@@ -490,9 +490,12 @@ bool bsp_button_get(const bsp_button_t btn);
 /**
  * @brief Set LED's GPIOs as output push-pull
  *
+ * @note I2C must be already initialized by bsp_i2c_init()
+ *
  * @return
  *     - ESP_OK Success
- *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_ERR_INVALID_STATE Could not init IO expander
+ *     - ESP_ERR_INVALID_ARG   Parameter error
  */
 esp_err_t bsp_leds_init(void);
 

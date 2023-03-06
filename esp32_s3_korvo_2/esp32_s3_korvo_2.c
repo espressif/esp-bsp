@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
-#include "esp_timer.h"
 #include "driver/gpio.h"
 #include "driver/ledc.h"
 #include "driver/spi_master.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "esp_check.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
@@ -19,6 +19,7 @@
 //#include "esp_adc/adc_cali_scheme.h"
 
 #include "bsp/esp32_s3_korvo_2.h"
+#include "bsp/display.h"
 #include "esp_lcd_ili9341.h"
 #include "esp_io_expander_tca9554.h"
 #include "esp_lcd_touch_tt21100.h"
@@ -189,7 +190,7 @@ esp_err_t bsp_audio_poweramp_enable(bool enable)
 esp_io_expander_handle_t bsp_io_expander_init(void)
 {
     if (io_expander) {
-        ESP_LOGW(TAG, "io_expander is initialized");
+        ESP_LOGD(TAG, "io_expander is initialized");
     } else {
         BSP_ERROR_CHECK_RETURN_NULL(esp_io_expander_new_i2c_tca9554(BSP_I2C_NUM, BSP_IO_EXPANDER_I2C_ADDRESS, &io_expander));
     }
@@ -201,14 +202,9 @@ esp_io_expander_handle_t bsp_io_expander_init(void)
 #define LCD_CMD_BITS           8
 #define LCD_PARAM_BITS         8
 
-static lv_disp_t *bsp_display_lcd_init(void)
+esp_err_t bsp_display_new(esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
 {
-    BSP_NULL_CHECK(bsp_io_expander_init(), NULL);
-    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_dir(io_expander, BSP_LCD_IO_CS, IO_EXPANDER_OUTPUT));
-    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_dir(io_expander, BSP_LCD_IO_RST, IO_EXPANDER_OUTPUT));
-    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_dir(io_expander, BSP_LCD_IO_BACKLIGHT, IO_EXPANDER_OUTPUT));
-    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_level(io_expander, BSP_LCD_IO_CS, 0));
-
+    esp_err_t ret = ESP_OK;
     ESP_LOGD(TAG, "Initialize SPI bus");
     const spi_bus_config_t buscfg = {
         .sclk_io_num = BSP_LCD_PCLK,
@@ -218,10 +214,9 @@ static lv_disp_t *bsp_display_lcd_init(void)
         .quadhd_io_num = GPIO_NUM_NC,
         .max_transfer_sz = BSP_LCD_H_RES * 80 * sizeof(uint16_t),
     };
-    BSP_ERROR_CHECK_RETURN_NULL(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO));
+    ESP_RETURN_ON_ERROR(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO), TAG, "SPI init failed");
 
     ESP_LOGD(TAG, "Install panel IO");
-    esp_lcd_panel_io_handle_t io_handle = NULL;
     const esp_lcd_panel_io_spi_config_t io_config = {
         .dc_gpio_num = BSP_LCD_DC,
         .cs_gpio_num = BSP_LCD_CS,
@@ -231,30 +226,52 @@ static lv_disp_t *bsp_display_lcd_init(void)
         .spi_mode = 0,
         .trans_queue_depth = 10,
     };
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, ret_io), err, TAG, "New panel IO failed");
 
-    // Attach the LCD to the SPI bus
-    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, &io_handle));
-
-    ESP_LOGD(TAG, "Install LCD driver of ILI9341");
-    esp_lcd_panel_handle_t panel_handle = NULL;
+    ESP_LOGD(TAG, "Install LCD driver");
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = BSP_LCD_RST, // Shared with Touch reset
         .color_space = ESP_LCD_COLOR_SPACE_BGR,
         .bits_per_pixel = 16,
     };
-    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_ili9341(io_handle, &panel_config, &panel_handle));
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9341(*ret_io, &panel_config, ret_panel), err, TAG, "New panel failed");
+
+    bsp_io_expander_init();
+    ESP_GOTO_ON_ERROR(esp_io_expander_set_dir(io_expander, BSP_LCD_IO_CS, IO_EXPANDER_OUTPUT), err, TAG, "");
+    ESP_GOTO_ON_ERROR(esp_io_expander_set_dir(io_expander, BSP_LCD_IO_RST, IO_EXPANDER_OUTPUT), err, TAG, "");
+    ESP_GOTO_ON_ERROR(esp_io_expander_set_dir(io_expander, BSP_LCD_IO_BACKLIGHT, IO_EXPANDER_OUTPUT), err, TAG, "");
+    ESP_GOTO_ON_ERROR(esp_io_expander_set_level(io_expander, BSP_LCD_IO_CS, 0), err, TAG, "");
 
     // Reset LCD
-    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_level(io_expander, BSP_LCD_IO_RST, 0));
+    ESP_GOTO_ON_ERROR(esp_io_expander_set_level(io_expander, BSP_LCD_IO_RST, 0), err, TAG, "");
     vTaskDelay(pdMS_TO_TICKS(10));
-    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_level(io_expander, BSP_LCD_IO_RST, 1));
+    ESP_GOTO_ON_ERROR(esp_io_expander_set_level(io_expander, BSP_LCD_IO_RST, 1), err, TAG, "");
     vTaskDelay(pdMS_TO_TICKS(10));
 
     // Enable display
-    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_level(io_expander, BSP_LCD_IO_CS, 0));
+    ESP_GOTO_ON_ERROR(esp_io_expander_set_level(io_expander, BSP_LCD_IO_CS, 0), err, TAG, "");
 
-    esp_lcd_panel_init(panel_handle);
-    esp_lcd_panel_mirror(panel_handle, true, true);
+    esp_lcd_panel_init(*ret_panel);
+    esp_lcd_panel_mirror(*ret_panel, true, true);
+    return ret;
+
+err:
+    if (*ret_panel) {
+        esp_lcd_panel_del(*ret_panel);
+    }
+    if (*ret_io) {
+        esp_lcd_panel_io_del(*ret_io);
+    }
+    spi_bus_free(BSP_LCD_SPI_NUM);
+    return ret;
+}
+
+static lv_disp_t *bsp_display_lcd_init(void)
+{
+    esp_lcd_panel_io_handle_t io_handle = NULL;
+    esp_lcd_panel_handle_t panel_handle = NULL;
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&panel_handle, &io_handle));
+
     esp_lcd_panel_disp_on_off(panel_handle, true);
 
     /* Add LCD screen */
@@ -322,12 +339,14 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
 
 esp_err_t bsp_display_backlight_off(void)
 {
-    return bsp_display_brightness_set(0);
+    BSP_NULL_CHECK(bsp_io_expander_init(), ESP_ERR_INVALID_STATE);
+    return esp_io_expander_set_level(io_expander, BSP_LCD_IO_BACKLIGHT, 0);
 }
 
 esp_err_t bsp_display_backlight_on(void)
 {
-    return bsp_display_brightness_set(100);
+    BSP_NULL_CHECK(bsp_io_expander_init(), ESP_ERR_INVALID_STATE);
+    return esp_io_expander_set_level(io_expander, BSP_LCD_IO_BACKLIGHT, 1);
 }
 
 lv_disp_t *bsp_display_start(void)
@@ -405,7 +424,7 @@ int bsp_voltage_battery_get(void)
 
 esp_err_t bsp_leds_init(void)
 {
-    BSP_NULL_CHECK(bsp_io_expander_init(), NULL);
+    BSP_NULL_CHECK(bsp_io_expander_init(), ESP_ERR_INVALID_STATE);
     BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_dir(io_expander, BSP_LED_RED, IO_EXPANDER_OUTPUT));
     BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_dir(io_expander, BSP_LED_BLUE, IO_EXPANDER_OUTPUT));
     BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_level(io_expander, BSP_LED_RED, true));

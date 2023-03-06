@@ -1,22 +1,25 @@
 /*
- * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2021-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
 
 #include <stdio.h>
-#include "bsp/esp_wrover_kit.h"
 #include "esp_vfs_fat.h"
-#include "esp_timer.h"
+#include "esp_log.h"
+#include "esp_check.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
 #include "driver/spi_master.h"
 #include "driver/ledc.h"
-#include "esp_lvgl_port.h"
-#include "bsp_err_check.h"
 
-#define TAG "Wrover"
+#include "bsp/esp_wrover_kit.h"
+#include "bsp/display.h"
+#include "bsp_err_check.h"
+#include "esp_lvgl_port.h"
+
+static const char *TAG = "Wrover";
 
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 
@@ -138,8 +141,12 @@ esp_err_t bsp_display_backlight_on(void)
     return bsp_display_brightness_set(100);
 }
 
-static lv_disp_t *bsp_display_lcd_init(void)
+esp_err_t bsp_display_new(esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
 {
+    esp_err_t ret = ESP_OK;
+
+    ESP_RETURN_ON_ERROR(bsp_display_brightness_init(), TAG, "Brightness init failed");
+
     ESP_LOGD(TAG, "Initialize SPI bus");
     const spi_bus_config_t buscfg = {
         .sclk_io_num = BSP_LCD_SPI_CLK,
@@ -147,12 +154,11 @@ static lv_disp_t *bsp_display_lcd_init(void)
         .miso_io_num = BSP_LCD_SPI_MISO,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = BSP_LCD_H_RES * 80 * sizeof(uint16_t),
+        .max_transfer_sz = BSP_LCD_DRAW_BUF_SIZE * sizeof(uint16_t),
     };
-    BSP_ERROR_CHECK_RETURN_NULL(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO));
+    ESP_RETURN_ON_ERROR(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO), TAG, "SPI init failed");
 
     ESP_LOGD(TAG, "Install panel IO");
-    esp_lcd_panel_io_handle_t io_handle = NULL;
     const esp_lcd_panel_io_spi_config_t io_config = {
         .dc_gpio_num = BSP_LCD_DC,
         .cs_gpio_num = BSP_LCD_SPI_CS,
@@ -162,11 +168,9 @@ static lv_disp_t *bsp_display_lcd_init(void)
         .spi_mode = 0,
         .trans_queue_depth = 10,
     };
-    // Attach the LCD to the SPI bus
-    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, &io_handle));
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, ret_io), err, TAG, "New panel IO failed");
 
     ESP_LOGD(TAG, "Install LCD driver");
-    esp_lcd_panel_handle_t panel_handle = NULL;
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = BSP_LCD_RST,
 #ifdef CONFIG_BSP_LCD_ILI9341
@@ -176,22 +180,45 @@ static lv_disp_t *bsp_display_lcd_init(void)
 #endif
         .bits_per_pixel = 16,
     };
-    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_st7789(io_handle, &panel_config, &panel_handle));
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7789(*ret_io, &panel_config, ret_panel), err, TAG, "New panel failed");
 
-    esp_lcd_panel_reset(panel_handle);
-    esp_lcd_panel_init(panel_handle);
+    esp_lcd_panel_reset(*ret_panel);
+    esp_lcd_panel_init(*ret_panel);
 #ifdef CONFIG_BSP_LCD_ILI9341
-    esp_lcd_panel_mirror(panel_handle, true, false);
+    esp_lcd_panel_mirror(*ret_panel, true, false);
 #endif
+    return ret;
+
+err:
+    if (*ret_panel) {
+        esp_lcd_panel_del(*ret_panel);
+    }
+    if (*ret_io) {
+        esp_lcd_panel_io_del(*ret_io);
+    }
+    spi_bus_free(BSP_LCD_SPI_NUM);
+    return ret;
+}
+
+static lv_disp_t *bsp_display_lcd_init(void)
+{
+    esp_lcd_panel_io_handle_t io_handle = NULL;
+    esp_lcd_panel_handle_t panel_handle = NULL;
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&panel_handle, &io_handle));
+
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
     esp_lcd_panel_disp_off(panel_handle, false);
+#else
+    esp_lcd_panel_disp_on_off(panel_handle, true);
+#endif
 
     /* Add LCD screen */
     ESP_LOGD(TAG, "Add LCD screen");
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = io_handle,
         .panel_handle = panel_handle,
-        .buffer_size = BSP_LCD_H_RES * 20,
-        .double_buffer = true,
+        .buffer_size = BSP_LCD_DRAW_BUF_SIZE,
+        .double_buffer = BSP_LCD_DRAW_BUF_DOUBLE,
         .hres = BSP_LCD_H_RES,
         .vres = BSP_LCD_V_RES,
         .monochrome = false,
@@ -216,7 +243,6 @@ static lv_disp_t *bsp_display_lcd_init(void)
 lv_disp_t *bsp_display_start(void)
 {
     lv_disp_t *disp = NULL;
-    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_brightness_init());
     const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
     BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&lvgl_cfg));
     BSP_NULL_CHECK(disp = bsp_display_lcd_init(), NULL);
