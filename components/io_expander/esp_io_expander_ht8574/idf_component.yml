@@ -1,0 +1,7 @@
+dependencies:
+  esp_io_expander:
+    version: ^1.0.1
+  idf: '>=4.4.2'
+description: ESP IO Expander - HT8574
+url: https://github.com/espressif/esp-bsp/tree/master/components/io_expander/esp_io_expander_ht8574
+version: 1.0.0
