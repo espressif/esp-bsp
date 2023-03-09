@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -17,6 +17,7 @@
 
 #include "bsp/esp-box.h"
 #include "bsp/display.h"
+#include "bsp/touch.h"
 #include "esp_lcd_touch_tt21100.h"
 #include "esp_lvgl_port.h"
 #include "bsp_err_check.h"
@@ -272,7 +273,7 @@ static lv_disp_t *bsp_display_lcd_init(void)
     return lvgl_port_add_disp(&disp_cfg);
 }
 
-static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
+esp_err_t bsp_touch_new(esp_lcd_touch_handle_t *ret_touch)
 {
     /* Initialize touch */
     const esp_lcd_touch_config_t tp_cfg = {
@@ -292,8 +293,13 @@ static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
     };
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
-    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle));
-    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, &tp));
+    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle), TAG, "");
+    return esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, ret_touch);
+}
+
+static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
+{
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(&tp));
     assert(tp);
 
     /* Add touch input (for selected screen) */

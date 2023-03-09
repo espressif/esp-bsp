@@ -39,9 +39,10 @@ Best way to start with ESP-BSP is trying one of the [examples](examples) on your
 | [sensors_example](examples/sensors_example) | Azure-IoT-kit |
 
 ### BSP headers
-Each BSP provides its header file in 'bsp' subfolder, so it can be included as follows: `#include "bsp/name-of-the-bsp.h"`.
-
+Each BSP provides its header file in 'bsp' subfolder, so it can be included as follows: `#include "bsp/name-of-the-bsp.h"`. 
 For you convenience, each BSP also provides a wrapper header, which has the same name for all BSPs: `#include "bsp/esp-bsp.h"`.
+
+BSPs that contain LCD screen or touchscreen also provide `bsp/display.h` and `bsp/touch.h`. These files provide functions for LCD or touchscreen initialization without LVGL graphics library, which is used by default.
 
 > **_NOTE:_** There can be only one BSP in a single esp-idf project.
 
