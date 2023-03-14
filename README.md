@@ -16,9 +16,16 @@ Board support packages for development boards using Espressif's SoCs, written in
 | [ESP32-S3-LCD-EV-BOARD](esp32_s3_lcd_ev_board) | ESP32-S3 | LCD display with touch, audio codec + power amplifier | <img src="docu/pics/esp32-s3-lcd-ev-board_800x480.png" width="150"> |
 | [ESP32-S3-Korvo-2](esp32_s3_korvo_2) | ESP32-S3 | LCD display, camera, uSD card slot, microphone, audio codec + power amplifier | <img src="docu/pics/korvo-2.png" width="150"> |
 
-## LCD and TOUCH drivers
+## LCD displays and TOUCH
 
-The BSP repository includes lot of LCD and Touch driver components. The list of available and planned LCDs is [here](LCD.md).
+| [LVGL port](components/esp_lvgl_port) | [LCD drivers](LCD.md) |
+| :---: | :---: |
+
+The BSP repository includes a lot of LCD and Touch driver components. The list of available and planned LCDs is [here](LCD.md).
+
+We offer seemless integration of LVGL graphical library into esp-idf applications in [LVGL port](components/esp_lvgl_port) component.
+
+Moreover, LVGL port includes recommendations and tips for increasing graphical performance.
 
 ## How to use
 

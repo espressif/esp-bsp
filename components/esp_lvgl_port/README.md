@@ -172,3 +172,7 @@ Every LVGL calls must be protected with these lock/unlock commands:
 ```
 
 **Note:** During the rotating, the component call [`esp_lcd`](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html) API.
+
+## Performance
+
+Key feature of every graphical application is performance. Recommended settings for improving LCD performance is described in a separate document [here](docs/performance.md).
