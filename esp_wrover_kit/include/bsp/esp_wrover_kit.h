@@ -166,8 +166,9 @@ bool bsp_button_get(const bsp_button_t btn);
 #define BSP_LCD_V_RES               (320)
 #define BSP_LCD_PIXEL_CLOCK_HZ      (40 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM             (SPI2_HOST)
-#define BSP_LCD_DRAW_BUF_SIZE       (BSP_LCD_H_RES * 30)
-#define BSP_LCD_DRAW_BUF_DOUBLE     (1)
+
+#define BSP_LCD_DRAW_BUFF_SIZE      (BSP_LCD_H_RES * 30)
+#define BSP_LCD_DRAW_BUFF_DOUBLE    (1)
 
 /**
  * @brief Initialize display
