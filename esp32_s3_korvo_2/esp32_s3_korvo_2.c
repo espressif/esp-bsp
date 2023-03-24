@@ -203,9 +203,11 @@ esp_io_expander_handle_t bsp_io_expander_init(void)
 #define LCD_CMD_BITS           8
 #define LCD_PARAM_BITS         8
 
-esp_err_t bsp_display_new(esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
+esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
 {
     esp_err_t ret = ESP_OK;
+    assert(config != NULL && config->max_transfer_sz > 0);
+
     ESP_LOGD(TAG, "Initialize SPI bus");
     const spi_bus_config_t buscfg = {
         .sclk_io_num = BSP_LCD_PCLK,
@@ -213,7 +215,7 @@ esp_err_t bsp_display_new(esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_ha
         .miso_io_num = GPIO_NUM_NC,
         .quadwp_io_num = GPIO_NUM_NC,
         .quadhd_io_num = GPIO_NUM_NC,
-        .max_transfer_sz = BSP_LCD_DRAW_BUFF_SIZE * sizeof(uint16_t),
+        .max_transfer_sz = config->max_transfer_sz,
     };
     ESP_RETURN_ON_ERROR(spi_bus_initialize(BSP_LCD_SPI_NUM, &buscfg, SPI_DMA_CH_AUTO), TAG, "SPI init failed");
 
@@ -271,7 +273,10 @@ static lv_disp_t *bsp_display_lcd_init(void)
 {
     esp_lcd_panel_io_handle_t io_handle = NULL;
     esp_lcd_panel_handle_t panel_handle = NULL;
-    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&panel_handle, &io_handle));
+    const bsp_display_config_t bsp_disp_cfg = {
+        .max_transfer_sz = BSP_LCD_DRAW_BUFF_SIZE * sizeof(uint16_t),
+    };
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&bsp_disp_cfg, &panel_handle, &io_handle));
 
     esp_lcd_panel_disp_on_off(panel_handle, true);
 
@@ -299,7 +304,7 @@ static lv_disp_t *bsp_display_lcd_init(void)
     return lvgl_port_add_disp(&disp_cfg);
 }
 
-esp_err_t bsp_touch_new(esp_lcd_touch_handle_t *ret_touch)
+esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t *ret_touch)
 {
     /* Initialize touch */
     const esp_lcd_touch_config_t tp_cfg = {
@@ -325,7 +330,7 @@ esp_err_t bsp_touch_new(esp_lcd_touch_handle_t *ret_touch)
 
 static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
 {
-    BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(&tp));
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(NULL, &tp));
     assert(tp);
 
     /* Add touch input (for selected screen) */

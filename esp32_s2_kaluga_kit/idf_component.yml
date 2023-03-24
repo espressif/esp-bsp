@@ -1,4 +1,4 @@
-version: "2.2.1"
+version: "2.2.2"
 description: Board Support Package for ESP32-S2-Kaluga kit
 url: https://github.com/espressif/esp-bsp/tree/master/esp32_s2_kaluga_kit
 
