@@ -31,6 +31,12 @@ typedef struct esp_lcd_touch_s esp_lcd_touch_t;
 typedef esp_lcd_touch_t *esp_lcd_touch_handle_t;
 
 /**
+ * @brief Touch controller interrupt callback type
+ *
+ */
+typedef void (*esp_lcd_touch_interrupt_callback_t)(esp_lcd_touch_handle_t tp);
+
+/**
  * @brief Touch Configuration Type
  *
  */
@@ -52,8 +58,10 @@ typedef struct {
         unsigned int mirror_y: 1; /*!< Mirror Y after read coordinates */
     } flags;
 
-    /* User callback called after get coordinates from touch controller for apply user adjusting */
+    /*!< User callback called after get coordinates from touch controller for apply user adjusting */
     void (*process_coordinates)(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+    /*!< User callback called after the touch interrupt occured */
+    esp_lcd_touch_interrupt_callback_t interrupt_callback;
 } esp_lcd_touch_config_t;
 
 typedef struct {
@@ -343,7 +351,16 @@ esp_err_t esp_lcd_touch_get_mirror_y(esp_lcd_touch_handle_t tp, bool *mirror);
  */
 esp_err_t esp_lcd_touch_del(esp_lcd_touch_handle_t tp);
 
-
+/**
+ * @brief Register user callback called after the touch interrupt occured
+ *
+ * @param tp: Touch handler
+ * @param callback: Interrupt callback
+ *
+ * @return
+ *      - ESP_OK on success
+ */
+esp_err_t esp_lcd_touch_register_interrupt_callback(esp_lcd_touch_handle_t tp, esp_lcd_touch_interrupt_callback_t callback);
 
 #ifdef __cplusplus
 }

@@ -7,10 +7,14 @@
 #include <stdlib.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "driver/gpio.h"
 #include "esp_system.h"
 #include "esp_err.h"
+#include "esp_check.h"
 #include "esp_log.h"
 #include "esp_lcd_touch.h"
+
+static const char *TAG = "TP";
 
 /*******************************************************************************
 * Function definitions
@@ -191,6 +195,41 @@ esp_err_t esp_lcd_touch_del(esp_lcd_touch_handle_t tp)
 
     if (tp->del != NULL) {
         return tp->del(tp);
+    }
+
+    return ESP_OK;
+}
+
+esp_err_t esp_lcd_touch_register_interrupt_callback(esp_lcd_touch_handle_t tp, esp_lcd_touch_interrupt_callback_t callback)
+{
+    esp_err_t ret = ESP_OK;
+    assert(tp != NULL);
+
+    /* Interrupt pin is not selected */
+    if (tp->config.int_gpio_num == GPIO_NUM_NC) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    tp->config.interrupt_callback = callback;
+
+    if (callback != NULL) {
+        ret = gpio_install_isr_service(0);
+        /* ISR service can be installed from user before, then it returns invalid state */
+        if (ret != ESP_OK && ret != ESP_ERR_INVALID_STATE) {
+            ESP_LOGE(TAG, "GPIO ISR install failed");
+            return ret;
+        }
+        /* Add GPIO ISR handler */
+        ret = gpio_intr_enable(tp->config.int_gpio_num);
+        ESP_RETURN_ON_ERROR(ret, TAG, "GPIO ISR install failed");
+        ret = gpio_isr_handler_add(tp->config.int_gpio_num, (gpio_isr_t)tp->config.interrupt_callback, tp);
+        ESP_RETURN_ON_ERROR(ret, TAG, "GPIO ISR install failed");
+    } else {
+        /* Remove GPIO ISR handler */
+        ret = gpio_isr_handler_remove(tp->config.int_gpio_num);
+        ESP_RETURN_ON_ERROR(ret, TAG, "GPIO ISR remove handler failed");
+        ret = gpio_intr_disable(tp->config.int_gpio_num);
+        ESP_RETURN_ON_ERROR(ret, TAG, "GPIO ISR disable failed");
     }
 
     return ESP_OK;
