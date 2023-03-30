@@ -35,6 +35,14 @@ extern "C" {
 #endif
 
 /**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    int max_transfer_sz;    /*!< Maximum transfer size, in bytes. */
+} bsp_display_config_t;
+
+/**
  * @brief Create new display panel
  *
  * For maximum flexibility, this function performs only reset and initialization of the display.
@@ -50,13 +58,14 @@ extern "C" {
  * spi_bus_free(spi_num_from_configuration);
  * \endcode
  *
+ * @param[in]  config    display configuration
  * @param[out] ret_panel esp_lcd panel handle
  * @param[out] ret_io    esp_lcd IO handle
  * @return
- *      - ESP_OK                On success
- *      - Else                  esp_lcd failure
+ *      - ESP_OK         On success
+ *      - Else           esp_lcd failure
  */
-esp_err_t bsp_display_new(esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io);
+esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io);
 
 #ifdef __cplusplus
 }
