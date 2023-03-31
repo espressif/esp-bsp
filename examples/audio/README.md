@@ -1,6 +1,3 @@
-| Supported Boards | ESP32-S3-Korvo-2 |
-| ---------------- | ---------------- |
-
 # BSP: Audio example
 
 This example demonstrates capabilities of Audio board of ESP32-S3-Korvo-2.

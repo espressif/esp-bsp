@@ -1,6 +1,3 @@
-| Supported Targets | Kaluga-kit (ESP32-S2) |
-| ----------------- | --------------------- |
-
 # Display + camera example
 
 This example shows how you can obtain frames from camera a display them on LCD.

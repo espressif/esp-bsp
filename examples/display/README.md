@@ -1,6 +1,3 @@
-| Supported Boards | Wrover kit |
-| ---------------- | ---------- |
-
 # BSP: Display example
 
 This is a minimalistic display + LVGL graphics library example.

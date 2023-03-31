@@ -18,11 +18,8 @@ jobs:
       - name: Build ESP-BSP examples
         shell: bash
         run: |
+          export IDF_EXTRA_ACTIONS_PATH=${GITHUB_WORKSPACE}/examples
           . ${IDF_PATH}/export.sh
-          pip install idf-component-manager --upgrade
-          cd examples
-          for d in */; do
-            pushd $d
-            idf.py build
-            popd
-          done
+          pip install idf-component-manager ruamel.yaml idf-build-apps==0.5.0 --upgrade
+          idf-build-apps find -p examples --recursive --config sdkconfig.bsp.* --target all
+          idf-build-apps build -p examples --recursive --config sdkconfig.bsp.* --target all --build-dir build_@w --check-warnings

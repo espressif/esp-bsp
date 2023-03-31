@@ -1,6 +1,3 @@
-| Supported Targets | ESP32-S3-LCD-EV-BOARD |
-| ----------------- | --------------------- |
-
 # Display LVGL Demos
 
 This example shows LVGL internal demos with RGB LCD.

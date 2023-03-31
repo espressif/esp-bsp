@@ -64,12 +64,32 @@ ESP-IDF v5.0 brings a lot of new features, but, as the bump in major version sug
 
 ESP-BSP is kept up-to-date with the latest ESP-IDF version, but some breaking changes in ESP-BSP API are inevitable.
 Usually, BSPs compatible with IDF v5.0 are version 2. If you want to use BSP with IDF v4.4 you can still use version 1 of the particular BSP.
+If you are interested in BSP examples for IDF v4.4, you can git checkout tag `examples_v4.4`.
 
 More information about ESP-IDF breaking changes can be found in the [official migration guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/migration-guides/release-5.x/index.html).
+
+### Compiling project for multiple BSPs
+
+> :warning: **Experimental feature**: This feature is under development!
+
+A single project can be run on multiple different development boards, if the boards contain the features required by the project (such as audio, display, camera...).
+For this purpose, `idf.py` is extended by [examples/bsp_ext.py](examples/bsp_ext.py) which allows you to build an example for your specific BSP. Example command for [display](examples/display) e.g.:
+```
+idf.py -D SDKCONFIG_DEFAULTS=sdkconfig.bsp.esp_wrover_kit build
+```
+
+In case you want to build locally for multiple boards at the same time, it is useful to have separate build directories for each BSP configuration.
+In order to achieve this, you can extend the above command like this:
+```
+idf.py -B build/wrover_kit -D SDKCONFIG_DEFAULTS=sdkconfig.bsp.esp_wrover_kit build
+```
+> Note: This feature is not yet integrated to idf.py by default. If you want to use it, you must set your environmental variable `IDF_EXTRA_ACTIONS_PATH` to path to `esp-bsp/examples/bsp_ext.py`.
 
 ## Additional information
 More information about idf-component-manager can be found in [Espressif API guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html)
 or [PyPi registry](https://pypi.org/project/idf-component-manager/).
+
+You can find more information about idf.py extensions [here](https://github.com/espressif/esp-idf/blob/master/tools/idf_py_actions/README.md).
 
 ## Contributing to ESP-BSP
 

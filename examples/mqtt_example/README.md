@@ -1,6 +1,3 @@
-| Supported Boards | Azure IoT kit |
-| ---------------- | ------------- |
-
 # BSP: MQTT Example
 
 This example collects data from sensor and publishes them to configured MQTT server.
