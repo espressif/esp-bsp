@@ -1,12 +1,12 @@
-/*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+﻿/*
+ * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
 
 /**
  * @file
- * @brief ESP BSP: ESP-BOX
+ * @brief ESP BSP: ESP-BOX-Lite
  */
 
 #pragma once
@@ -16,11 +16,12 @@
 #include "driver/i2c.h"
 #include "driver/i2s_std.h"
 #include "soc/usb_pins.h"
+#include "iot_button.h"
 #include "lvgl.h"
 #include "esp_codec_dev.h"
 
 /**************************************************************************************************
- *  ESP-BOX pinout
+ *  ESP-BOX-Lite pinout
  **************************************************************************************************/
 /* I2C */
 #define BSP_I2C_SCL           (GPIO_NUM_18)
@@ -30,10 +31,9 @@
 #define BSP_I2S_SCLK          (GPIO_NUM_17)
 #define BSP_I2S_MCLK          (GPIO_NUM_2)
 #define BSP_I2S_LCLK          (GPIO_NUM_47)
-#define BSP_I2S_DOUT          (GPIO_NUM_15) // To Codec ES8311
-#define BSP_I2S_DSIN          (GPIO_NUM_16) // From ADC ES7210
+#define BSP_I2S_DOUT          (GPIO_NUM_15) // To Codec ES8156
+#define BSP_I2S_DSIN          (GPIO_NUM_16) // From ADC ES7243
 #define BSP_POWER_AMP_IO      (GPIO_NUM_46)
-#define BSP_MUTE_STATUS       (GPIO_NUM_1)
 
 /* Display */
 #define BSP_LCD_DATA0         (GPIO_NUM_6)
@@ -42,7 +42,6 @@
 #define BSP_LCD_DC            (GPIO_NUM_4)
 #define BSP_LCD_RST           (GPIO_NUM_48)
 #define BSP_LCD_BACKLIGHT     (GPIO_NUM_45)
-#define BSP_LCD_TOUCH_INT     (GPIO_NUM_3)
 
 /* USB */
 #define BSP_USB_POS           USBPHY_DP_NUM
@@ -53,10 +52,10 @@
  * PMOD interface (peripheral module interface) is an open standard defined by Digilent Inc.
  * for peripherals used with FPGA or microcontroller development boards.
  *
- * ESP-BOX contains two double PMOD connectors, protected with ESD protection diodes.
+ * ESP-BOX-Lite contains two double PMOD connectors, protected with ESD protection diodes.
  * Power pins are on 3.3V.
  *
- * Double PMOD Connectors on ESP-BOX are labeled as follows:
+ * Double PMOD Connectors on ESP-BOX-Lite are labeled as follows:
  *      ┌────────────┐
  *      | IO1    IO5 │
  *      | IO2    IO6 │
@@ -85,12 +84,6 @@
 #define BSP_PMOD2_IO7        GPIO_NUM_44  // UART0 RX by default
 #define BSP_PMOD2_IO8        GPIO_NUM_14  // Intended for SPI2 WP (Write-protect)
 
-/* Buttons */
-typedef enum {
-    BSP_BUTTON_CONFIG = GPIO_NUM_0,
-    BSP_BUTTON_MUTE   = GPIO_NUM_1,
-    BSP_BUTTON_MAIN   = 100
-} bsp_button_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -98,11 +91,34 @@ extern "C" {
 
 /**************************************************************************************************
  *
+ * Buttons interface
+ *
+ * Example configuration:
+ * \code{.c}
+ * button_handle_t button[BSP_BUTTON_NUM];
+ * for (int i = 0; i < BSP_BUTTON_NUM; i++) {
+ *     button[i] = iot_button_create(&bsp_button_config[i]);
+ * }
+ * \endcode
+ **************************************************************************************************/
+
+/* Buttons */
+typedef enum {
+    BSP_BUTTON_PREV,
+    BSP_BUTTON_ENTER,
+    BSP_BUTTON_NEXT,
+    BSP_BUTTON_NUM
+} bsp_button_t;
+
+extern const button_config_t bsp_button_config[BSP_BUTTON_NUM];
+
+/**************************************************************************************************
+ *
  * I2S audio interface
  *
  * There are two devices connected to the I2S peripheral:
- *  - Codec ES8311 for output (playback) path
- *  - ADC ES7210 for input (recording) path
+ *  - Codec ES8156 for output (playback) path
+ *  - ADC ES7243 for input (recording) path
  *
  * For speaker initialization use bsp_audio_codec_speaker_init() which is inside initialize I2S with bsp_audio_init().
  * For microphone initialization use bsp_audio_codec_microphone_init() which is inside initialize I2S with bsp_audio_init().
@@ -117,7 +133,7 @@ extern "C" {
  **************************************************************************************************/
 
 /**
- * @brief ESP-BOX I2S pinout
+ * @brief ESP-BOX-Lite I2S pinout
  *
  * Can be used for i2s_std_gpio_config_t and/or i2s_std_config_t initialization
  */
@@ -269,8 +285,8 @@ esp_err_t bsp_spiffs_unmount(void);
  *
  * LCD interface
  *
- * ESP-BOX is shipped with 2.4inch ST7789 display controller.
- * It features 16-bit colors, 320x240 resolution and capacitive touch controller.
+ * ESP-BOX-Lite is shipped with 2.4inch ST7789 display controller.
+ * It features 16-bit colors, 320x240 resolution.
  *
  * LVGL is used as graphics library. LVGL is NOT thread safe, therefore the user must take LVGL mutex
  * by calling bsp_display_lock() before calling and LVGL API (lv_...) and then give the mutex with
@@ -283,7 +299,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_LCD_PIXEL_CLOCK_HZ     (40 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
 
-#define BSP_LCD_DRAW_BUFF_SIZE     (BSP_LCD_H_RES * 10)
+#ifndef BSP_LCD_DRAW_BUFF_SIZE
+#define BSP_LCD_DRAW_BUFF_SIZE     (BSP_LCD_H_RES * 100)
+#endif
 #define BSP_LCD_DRAW_BUFF_DOUBLE   (0)
 
 /**
@@ -363,37 +381,6 @@ esp_err_t bsp_display_backlight_off(void);
  * @param[in] rotation Angle of the display rotation
  */
 void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
-/**************************************************************************************************
- *
- * Button
- *
- * There are three buttons on ESP-BOX:
- *  - Reset:  Not programable
- *  - Config: Controls boot mode during reset. Can be programmed after application starts
- *  - Mute:   This button is wired to Logic Gates and its result is mapped to GPIO_NUM_1
- **************************************************************************************************/
-
-/**
- * @brief Set button's GPIO as input
- *
- * @param[in] btn Button to be initialized
- * @return
- *     - ESP_OK Success
- *     - ESP_ERR_INVALID_ARG Parameter error
- */
-esp_err_t bsp_button_init(const bsp_button_t btn);
-
-/**
- * @brief Get button's state
- *
- * Note: For LCD panel button which is defined as BSP_BUTTON_MAIN, bsp_display_start should
- *       be called before call this function.
- *
- * @param[in] btn Button to read
- * @return true  Button pressed
- * @return false Button released
- */
-bool bsp_button_get(const bsp_button_t btn);
 
 #ifdef __cplusplus
 }

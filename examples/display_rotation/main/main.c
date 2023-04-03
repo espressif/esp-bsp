@@ -109,6 +109,16 @@ static void app_lvgl_display(void)
     /* Button event */
     lv_obj_add_event_cb(btn_right, app_lvgl_btn_right_cb, LV_EVENT_CLICKED, scr);
 
+    /* Input device group */
+    lv_indev_t *indev = bsp_display_get_input_dev();
+    if (indev && indev->driver && indev->driver->type == LV_INDEV_TYPE_ENCODER) {
+        lv_group_t *main_group = lv_group_create();
+        lv_group_add_obj(main_group, btn_left);
+        lv_group_add_obj(main_group, btn_right);
+        lv_indev_set_group(indev, main_group);
+        ESP_LOGI(TAG, "Input device group was set.");
+    }
+
     bsp_display_unlock();
 }
 

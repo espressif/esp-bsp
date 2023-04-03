@@ -1,4 +1,5 @@
-version: "2.3.3"
+
+version: "2.4.0"
 description: Board Support Package for ESP-BOX
 url: https://github.com/espressif/esp-bsp/tree/master/esp-box
 
@@ -9,11 +10,11 @@ dependencies:
   idf: ">=5.0"
   esp_lcd_touch_tt21100: "^1"
 
-  es8311:
+  esp_lvgl_port:
     version: "^1"
     public: true
 
-  esp_lvgl_port:
+  esp_codec_dev:
     version: "^1"
     public: true
 

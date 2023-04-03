@@ -38,6 +38,7 @@ static esp_io_expander_handle_t io_expander = NULL; // IO expander tca9554 handl
 //static adc_cali_handle_t adc1_cali_handle; // ADC1 calibration handle
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
+static lv_indev_t *disp_indev = NULL;
 
 const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
@@ -368,9 +369,14 @@ lv_disp_t *bsp_display_start(void)
 
     BSP_NULL_CHECK(disp = bsp_display_lcd_init(), NULL);
 
-    BSP_NULL_CHECK(bsp_display_indev_init(disp), NULL);
+    BSP_NULL_CHECK(disp_indev = bsp_display_indev_init(disp), NULL);
 
     return disp;
+}
+
+lv_indev_t *bsp_display_get_input_dev(void)
+{
+    return disp_indev;
 }
 
 void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)

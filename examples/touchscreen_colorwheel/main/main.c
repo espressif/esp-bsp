@@ -61,6 +61,15 @@ void app_lvgl_display(void)
     lv_obj_set_style_text_align(lbl, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(lbl, LV_ALIGN_TOP_MID, 0, 0);
 
+    /* Input device group */
+    lv_indev_t *indev = bsp_display_get_input_dev();
+    if (indev && indev->driver && indev->driver->type == LV_INDEV_TYPE_ENCODER) {
+        lv_group_t *group = lv_group_create();
+        lv_group_add_obj(group, cw);
+        lv_group_set_editing(group, true);
+        lv_indev_set_group(indev, group);
+    }
+
     bsp_display_unlock();
 }
 

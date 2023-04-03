@@ -287,6 +287,15 @@ esp_err_t bsp_audio_poweramp_enable(const bool enable);
 lv_disp_t *bsp_display_start(void);
 
 /**
+ * @brief Get pointer to input device (touch, buttons, ...)
+ *
+ * @note The LVGL input device is initialized in bsp_display_start() function.
+ *
+ * @return Pointer to LVGL input device or NULL when not initialized
+ */
+lv_indev_t *bsp_display_get_input_dev(void);
+
+/**
  * @brief Set display's brightness (Useless, just for compatibility)
  *
  * @param[in] brightness_percent: Brightness in [%]
