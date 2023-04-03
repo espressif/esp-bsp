@@ -123,10 +123,16 @@ esp_err_t esp_lcd_touch_new_spi_stmpe610(const esp_lcd_panel_io_handle_t io, con
     if (esp_lcd_touch_stmpe610->config.rst_gpio_num != GPIO_NUM_NC) {
         const gpio_config_t rst_gpio_config = {
             .mode = GPIO_MODE_OUTPUT,
+            .intr_type = GPIO_INTR_NEGEDGE,
             .pin_bit_mask = BIT64(esp_lcd_touch_stmpe610->config.rst_gpio_num)
         };
         ret = gpio_config(&rst_gpio_config);
         ESP_GOTO_ON_ERROR(ret, err, TAG, "GPIO config failed");
+
+        /* Register interrupt callback */
+        if (esp_lcd_touch_stmpe610->config.interrupt_callback) {
+            esp_lcd_touch_register_interrupt_callback(esp_lcd_touch_stmpe610, esp_lcd_touch_stmpe610->config.interrupt_callback);
+        }
     }
 
     /* Reset and init controller */

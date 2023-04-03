@@ -65,9 +65,15 @@ esp_err_t esp_lcd_touch_new_i2c_gt1151(const esp_lcd_panel_io_handle_t io, const
     if (gt1151->config.int_gpio_num != GPIO_NUM_NC) {
         const gpio_config_t int_gpio_config = {
             .mode = GPIO_MODE_INPUT,
+            .intr_type = GPIO_INTR_NEGEDGE,
             .pin_bit_mask = BIT64(gt1151->config.int_gpio_num)
         };
         ESP_GOTO_ON_ERROR(gpio_config(&int_gpio_config), err, TAG, "GPIO intr config failed");
+
+        /* Register interrupt callback */
+        if (gt1151->config.interrupt_callback) {
+            esp_lcd_touch_register_interrupt_callback(gt1151, gt1151->config.interrupt_callback);
+        }
     }
     /* Prepare pin for touch controller reset */
     if (gt1151->config.rst_gpio_num != GPIO_NUM_NC) {

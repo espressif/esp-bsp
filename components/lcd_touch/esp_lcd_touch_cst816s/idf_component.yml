@@ -1,4 +1,4 @@
-version: "1.0.1"
+version: "1.0.2"
 description: ESP LCD Touch CST816S - touch controller CST816S
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd_touch/esp_lcd_touch_cst816s
 dependencies:
