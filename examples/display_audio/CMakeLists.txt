@@ -5,6 +5,5 @@
 cmake_minimum_required(VERSION 3.5)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-add_compile_options("-Wno-format")
 project(bsp-kaluga-display-audio-example)
 spiffs_create_partition_image(storage spiffs FLASH_IN_PROJECT)

@@ -4,6 +4,5 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-add_compile_options("-Wno-format")
-add_compile_options("-Wno-attributes") # For LVGL demo code
+add_compile_options("-Wno-attributes") # For LVGL code
 project(display_lvgl_demos)

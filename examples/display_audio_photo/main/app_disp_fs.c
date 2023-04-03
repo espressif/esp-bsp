@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <inttypes.h>
 
 #include "esp_log.h"
 #include "esp_err.h"
@@ -339,10 +340,10 @@ static void play_file(void *arg)
         ESP_LOGW(TAG, "Error in reading file");
         goto END;
     }
-    ESP_LOGI(TAG, "Number of channels: %d", wav_header.num_channels);
-    ESP_LOGI(TAG, "Bits per sample: %d", wav_header.bits_per_sample);
-    ESP_LOGI(TAG, "Sample rate: %d", wav_header.sample_rate);
-    ESP_LOGI(TAG, "Data size: %d", wav_header.data_size);
+    ESP_LOGI(TAG, "Number of channels: %" PRIu16 "", wav_header.num_channels);
+    ESP_LOGI(TAG, "Bits per sample: %" PRIu16 "", wav_header.bits_per_sample);
+    ESP_LOGI(TAG, "Sample rate: %" PRIu32 "", wav_header.sample_rate);
+    ESP_LOGI(TAG, "Data size: %" PRIu32 "", wav_header.data_size);
 
 
     esp_codec_dev_sample_info_t fs = {
