@@ -1,4 +1,6 @@
-idf_component_register(SRCS "esp_lvgl_port.c" INCLUDE_DIRS "include" REQUIRES "esp_lcd" PRIV_REQUIRES "esp_timer")
+file(GLOB_RECURSE IMAGE_SOURCES images/*.c)
+
+idf_component_register(SRCS "esp_lvgl_port.c" ${IMAGE_SOURCES} INCLUDE_DIRS "include" REQUIRES "esp_lcd" PRIV_REQUIRES "esp_timer")
 
 idf_build_get_property(build_components BUILD_COMPONENTS)
 if("espressif__button" IN_LIST build_components)
@@ -18,4 +20,10 @@ if("espressif__knob" IN_LIST build_components)
 endif()
 if("knob" IN_LIST build_components)
     target_link_libraries(${COMPONENT_LIB} PRIVATE idf::knob)
+endif()
+if("espressif__usb_host_hid" IN_LIST build_components)
+    target_link_libraries(${COMPONENT_LIB} PRIVATE idf::espressif__usb_host_hid)
+endif()
+if("usb_host_hid" IN_LIST build_components)
+    target_link_libraries(${COMPONENT_LIB} PRIVATE idf::usb_host_hid)
 endif()

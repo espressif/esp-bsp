@@ -18,15 +18,22 @@
 
 #if __has_include ("esp_lcd_touch.h")
 #include "esp_lcd_touch.h"
+#define ESP_LVGL_PORT_TOUCH_COMPONENT 1
 #endif
 
 #if __has_include ("iot_knob.h")
 #include "iot_knob.h"
 #include "iot_button.h"
+#define ESP_LVGL_PORT_KNOB_COMPONENT 1
 #endif
 
 #if __has_include ("iot_button.h")
 #include "iot_button.h"
+#define ESP_LVGL_PORT_BUTTON_COMPONENT 1
+#endif
+
+#if __has_include ("usb/hid_host.h")
+#define ESP_LVGL_PORT_USB_HOST_HID_COMPONENT 1
 #endif
 
 #ifdef __cplusplus
@@ -72,7 +79,7 @@ typedef struct {
     } flags;
 } lvgl_port_display_cfg_t;
 
-#if __has_include ("esp_lcd_touch.h")
+#ifdef ESP_LVGL_PORT_TOUCH_COMPONENT
 /**
  * @brief Configuration touch structure
  */
@@ -82,7 +89,7 @@ typedef struct {
 } lvgl_port_touch_cfg_t;
 #endif
 
-#if __has_include ("iot_knob.h")
+#ifdef ESP_LVGL_PORT_KNOB_COMPONENT
 /**
  * @brief Configuration of the encoder structure
  */
@@ -93,7 +100,7 @@ typedef struct {
 } lvgl_port_encoder_cfg_t;
 #endif
 
-#if __has_include ("iot_button.h")
+#ifdef ESP_LVGL_PORT_BUTTON_COMPONENT
 /**
  * @brief Configuration of the navigation buttons structure
  */
@@ -103,6 +110,24 @@ typedef struct {
     const button_config_t *button_next;   /*!< Navigation button for next */
     const button_config_t *button_enter;  /*!< Navigation button for enter */
 } lvgl_port_nav_btns_cfg_t;
+#endif
+
+#ifdef ESP_LVGL_PORT_USB_HOST_HID_COMPONENT
+/**
+ * @brief Configuration of the mouse input
+ */
+typedef struct {
+    lv_disp_t *disp;        /*!< LVGL display handle (returned from lvgl_port_add_disp) */
+    uint8_t sensitivity;    /*!< Mouse sensitivity (cannot be zero) */
+    lv_obj_t *cursor_img;   /*!< Mouse cursor image, if NULL then used default */
+} lvgl_port_hid_mouse_cfg_t;
+
+/**
+ * @brief Configuration of the keyboard input
+ */
+typedef struct {
+    lv_disp_t *disp;        /*!< LVGL display handle (returned from lvgl_port_add_disp) */
+} lvgl_port_hid_keyboard_cfg_t;
 #endif
 
 /**
@@ -162,7 +187,7 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg);
  */
 esp_err_t lvgl_port_remove_disp(lv_disp_t *disp);
 
-#if __has_include ("esp_lcd_touch.h")
+#ifdef ESP_LVGL_PORT_TOUCH_COMPONENT
 /**
  * @brief Add LCD touch as an input device
  *
@@ -184,7 +209,7 @@ lv_indev_t *lvgl_port_add_touch(const lvgl_port_touch_cfg_t *touch_cfg);
 esp_err_t lvgl_port_remove_touch(lv_indev_t *touch);
 #endif
 
-#if __has_include ("iot_knob.h")
+#ifdef ESP_LVGL_PORT_KNOB_COMPONENT
 /**
  * @brief Add encoder as an input device
  *
@@ -206,7 +231,7 @@ lv_indev_t *lvgl_port_add_encoder(const lvgl_port_encoder_cfg_t *encoder_cfg);
 esp_err_t lvgl_port_remove_encoder(lv_indev_t *encoder);
 #endif
 
-#if __has_include ("iot_button.h")
+#ifdef ESP_LVGL_PORT_BUTTON_COMPONENT
 /**
  * @brief Add buttons as an input device
  *
@@ -226,6 +251,38 @@ lv_indev_t *lvgl_port_add_navigation_buttons(const lvgl_port_nav_btns_cfg_t *but
  *      - ESP_OK                    on success
  */
 esp_err_t lvgl_port_remove_navigation_buttons(lv_indev_t *buttons);
+#endif
+
+#ifdef ESP_LVGL_PORT_USB_HOST_HID_COMPONENT
+/**
+ * @brief Add USB HID mouse as an input device
+ *
+ * @note The USB host must be initialized before. Use `usb_host_install` for host initialization.
+ *
+ * @param mouse_cfg mouse configuration structure
+ * @return Pointer to LVGL buttons input device or NULL when error occured
+ */
+lv_indev_t *lvgl_port_add_usb_hid_mouse_input(const lvgl_port_hid_mouse_cfg_t *mouse_cfg);
+
+/**
+ * @brief Add USB HID keyboard as an input device
+ *
+ * @note The USB host must be initialized before. Use `usb_host_install` for host initialization.
+ *
+ * @param keyboard_cfg keyboard configuration structure
+ * @return Pointer to LVGL buttons input device or NULL when error occured
+ */
+lv_indev_t *lvgl_port_add_usb_hid_keyboard_input(const lvgl_port_hid_keyboard_cfg_t *keyboard_cfg);
+
+/**
+ * @brief Remove selected USB HID from input devices
+ *
+ * @note Free all memory used for this input device. When removed all HID devices, the HID task will be freed.
+ *
+ * @return
+ *      - ESP_OK                    on success
+ */
+esp_err_t lvgl_port_remove_usb_hid_input(lv_indev_t *hid);
 #endif
 
 /**
