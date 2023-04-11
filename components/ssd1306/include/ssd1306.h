@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -140,6 +140,20 @@ void ssd1306_draw_3216char(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos,
  */
 void ssd1306_draw_bitmap(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos,
                          const uint8_t *pchBmp, uint8_t chWidth, uint8_t chHeight);
+
+/**
+ * @brief   draw line between two specified points
+ *
+ * @param   dev object handle of ssd1306
+ * @param   chXpos1 Specifies the X position of the starting point of the line
+ * @param   chXpos2 Specifies the X position of the ending point of the line 
+ * @param   chYpos1 Specifies the Y position of the starting point of the line
+ * @param   chYpos2 Specifies the Y position of the ending point of the line
+ *
+ * @return
+ *     - NULL
+ */
+static void ssd1306_draw_line(ssd1306_handle_t dev, int16_t chXpos1, int16_t chYpos1, int16_t chXpos2, int16_t chYpos2);
 
 /**
  * @brief   refresh dot matrix panel

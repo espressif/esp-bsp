@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -98,6 +98,16 @@ esp_err_t mag3110_start(mag3110_handle_t sensor, const mag3110_data_rate_t data_
 
     ctrl_reg[0] = data_rate | MAG3110_ACTIVE_MODE;
     ctrl_reg[1] = MAG3110_AUTO_MRST_EN;
+
+    return mag3110_write(sensor, MAG3110_CTRL_REG1, ctrl_reg, sizeof(ctrl_reg));
+}
+
+esp_err_t mag3110_start_no_calibration(mag3110_handle_t sensor, const mag3110_data_rate_t data_rate)
+{
+    uint8_t ctrl_reg[2];
+
+    ctrl_reg[0] = data_rate | MAG3110_ACTIVE_MODE;
+    ctrl_reg[1] = MAG3110_AUTO_MRST_EN | MAG3110_RAW_DATA;
 
     return mag3110_write(sensor, MAG3110_CTRL_REG1, ctrl_reg, sizeof(ctrl_reg));
 }
