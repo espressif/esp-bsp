@@ -146,14 +146,11 @@ void ssd1306_draw_bitmap(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos,
  *
  * @param   dev object handle of ssd1306
  * @param   chXpos1 Specifies the X position of the starting point of the line
- * @param   chXpos2 Specifies the X position of the ending point of the line 
  * @param   chYpos1 Specifies the Y position of the starting point of the line
+ * @param   chXpos2 Specifies the X position of the ending point of the line 
  * @param   chYpos2 Specifies the Y position of the ending point of the line
- *
- * @return
- *     - NULL
  */
-static void ssd1306_draw_line(ssd1306_handle_t dev, int16_t chXpos1, int16_t chYpos1, int16_t chXpos2, int16_t chYpos2);
+void ssd1306_draw_line(ssd1306_handle_t dev, int16_t chXpos1, int16_t chYpos1, int16_t chXpos2, int16_t chYpos2);
 
 /**
  * @brief   refresh dot matrix panel

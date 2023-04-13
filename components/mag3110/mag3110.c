@@ -102,7 +102,7 @@ esp_err_t mag3110_start(mag3110_handle_t sensor, const mag3110_data_rate_t data_
     return mag3110_write(sensor, MAG3110_CTRL_REG1, ctrl_reg, sizeof(ctrl_reg));
 }
 
-esp_err_t mag3110_start_no_calibration(mag3110_handle_t sensor, const mag3110_data_rate_t data_rate)
+esp_err_t mag3110_start_raw(mag3110_handle_t sensor, const mag3110_data_rate_t data_rate)
 {
     uint8_t ctrl_reg[2];
 
