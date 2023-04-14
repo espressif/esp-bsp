@@ -30,14 +30,14 @@
 
 /* Globals */
 static const char *TAG = "example";
-static button_handle_t audio_button[BSP_BUTTON_NUM] = {};
+static button_handle_t audio_button[BSP_BUTTON_NUM - 1] = {};
 static QueueHandle_t audio_button_q = NULL;
 static i2s_chan_handle_t i2s_tx_chan;
 static i2s_chan_handle_t i2s_rx_chan;
 
 static void btn_handler(void *arg, void *arg2)
 {
-    for (uint8_t i = 0; i < BSP_BUTTON_NUM; i++) {
+    for (uint8_t i = 0; i < (BSP_BUTTON_NUM - 1); i++) {
         if ((button_handle_t)arg == audio_button[i]) {
             xQueueSend(audio_button_q, &i, 0);
             break;
@@ -126,6 +126,7 @@ static void audio_task(void *arg)
     while (1) {
         uint8_t btn_index = 0;
         if (xQueueReceive(audio_button_q, &btn_index, portMAX_DELAY) == pdTRUE) {
+            btn_index++; /* The first button is not handled here */
             switch (btn_index) {
             case BSP_BUTTON_REC: {
                 /* Writing to SPIFFS from internal RAM is ~15% faster than from external SPI RAM */
@@ -247,7 +248,7 @@ void app_main(void)
     assert(ret == pdPASS);
 
     /* Init audio buttons */
-    for (int i = 0; i < BSP_BUTTON_NUM; i++) {
+    for (int i = 0; i < (BSP_BUTTON_NUM - 1); i++) {
         audio_button[i] = iot_button_create(&bsp_button_config[i]);
         assert(audio_button[i] != NULL);
         ESP_ERROR_CHECK(iot_button_register_cb(audio_button[i], BUTTON_PRESS_DOWN, btn_handler, NULL));
