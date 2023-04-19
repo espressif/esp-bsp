@@ -85,7 +85,6 @@ esp_err_t bsp_i2c_set_clk_speed(bsp_i2c_clk_speed_t i2c_clk)
     default:
         break;
     }
-
     return ESP_OK;
 }
 
