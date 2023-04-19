@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -174,7 +174,11 @@ esp_err_t fbm320_get_data(fbm320_handle_t sensor, const fbm320_measure_mode_t me
     if (ESP_OK != ret) {
         return ret;
     }
-    vTaskDelay(10 / portTICK_PERIOD_MS);
+    if (meas_mode == FBM320_MEAS_PRESS_OSR_8192) {
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+    } else {
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
     ret = fbm320_read_result(sensor, &pressure_raw);
     if (ESP_OK != ret) {
         return ret;

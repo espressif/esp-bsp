@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -31,7 +31,8 @@ extern "C" {
 typedef enum {
     FBM320_MEAS_PRESS_OSR_1024  = 0x34, /* 2.5ms wait for measurement */
     FBM320_MEAS_PRESS_OSR_2048  = 0x74, /* 3.7ms wait for measurement */
-    FBM320_MEAS_PRESS_OSR_4096  = 0xB4  /* 6ms wait for measurement */
+    FBM320_MEAS_PRESS_OSR_4096  = 0xB4, /* 6ms wait for measurement */
+    FBM320_MEAS_PRESS_OSR_8192  = 0xF4  /* 11ms wait for measurement */
 } fbm320_measure_mode_t;
 
 typedef void *fbm320_handle_t;

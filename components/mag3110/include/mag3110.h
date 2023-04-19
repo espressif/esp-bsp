@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -100,6 +100,21 @@ void mag3110_delete(mag3110_handle_t sensor);
  *     - ESP_FAIL Fail
  */
 esp_err_t mag3110_start(mag3110_handle_t sensor, const mag3110_data_rate_t data_rate);
+
+/**
+ * @brief Start mag3110 sensor in raw mode
+ *
+ * This function will ignore user offset register values that are set in mag3110_calibrate() function,
+ * thus it is not needed to calibrate the sensor to run it in the raw mode.
+ *
+ * @param sensor object handle of mag3110
+ * @param[in] data_rate Data rate and oversampling settings
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_FAIL Fail
+ */
+esp_err_t mag3110_start_raw(mag3110_handle_t sensor, const mag3110_data_rate_t data_rate);
 
 /**
  * @brief Stop MAG3110 measurement

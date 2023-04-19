@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -33,6 +33,12 @@ extern "C" {
 #define BSP_I2C_SDA_IO  GPIO_NUM_25
 #define BSP_I2C_NUM     CONFIG_BSP_I2C_NUM
 
+typedef enum {
+    I2C_CLK_100KHZ = 0,
+    I2C_CLK_400KHZ = 1,
+    I2C_CLK_600KHZ = 2
+} bsp_i2c_clk_speed_t;
+
 /**
  * @brief Init I2C driver
  *
@@ -51,6 +57,16 @@ esp_err_t bsp_i2c_init(void);
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
 esp_err_t bsp_i2c_deinit(void);
+
+/**
+ * @brief Set I2C clk after initialization of the I2C driver
+ *
+ * @param i2c_clk I2C clk frequency
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ */
+esp_err_t bsp_i2c_set_clk_speed(bsp_i2c_clk_speed_t i2c_clk);
 
 /**************************************************************************************************
  *

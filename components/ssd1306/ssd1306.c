@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -10,6 +10,9 @@
 
 #define SSD1306_WRITE_CMD           (0x00)
 #define SSD1306_WRITE_DAT           (0x40)
+
+#define COORDINATE_SWAP(x1, x2, y1, y2)  { int16_t temp = x1; x1 = x2, x2 = temp; \
+                                                   temp = y1; y1 = y2; y2 = temp; }
 
 typedef struct {
     i2c_port_t bus;
@@ -239,6 +242,57 @@ void ssd1306_draw_bitmap(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos,
                 ssd1306_fill_point(dev, chXpos + i, chYpos + j, 1);
             }
         }
+    }
+}
+
+void ssd1306_draw_line(ssd1306_handle_t dev, int16_t chXpos1, int16_t chYpos1, int16_t chXpos2, int16_t chYpos2)
+{
+    // 16-bit variables allowing a display overflow effect
+    int16_t x_len = abs(chXpos1 - chXpos2);
+    int16_t y_len = abs(chYpos1 - chYpos2);
+
+    if (y_len < x_len) {
+        if (chXpos1 > chXpos2) {
+            COORDINATE_SWAP(chXpos1, chXpos2, chYpos1, chYpos2);
+        }
+        int16_t len = x_len;
+        int16_t diff = y_len;
+
+        do {
+            if (diff >= x_len) {
+                diff -= x_len;
+                if (chYpos1 < chYpos2) {
+                    chYpos1++;
+                } else {
+                    chYpos1--;
+                }
+            }
+
+            diff += y_len;
+            ssd1306_fill_point(dev, chXpos1++, chYpos1, 1);
+        } while (len--);
+    }
+
+    else {
+        if (chYpos1 > chYpos2) {
+            COORDINATE_SWAP(chXpos1, chXpos2, chYpos1, chYpos2);
+        }
+        int16_t len = y_len;
+        int16_t diff = x_len;
+
+        do {
+            if (diff >= y_len) {
+                diff -= y_len;
+                if (chXpos1 < chXpos2) {
+                    chXpos1++;
+                } else {
+                    chXpos1--;
+                }
+            }
+
+            diff += x_len;
+            ssd1306_fill_point(dev, chXpos1, chYpos1++, 1);
+        } while (len--);
     }
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2015-2021 Espressif Systems (Shanghai) CO LTD
+// Copyright 2015-2023 Espressif Systems (Shanghai) CO LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,23 @@
 
 sdmmc_card_t *bsp_sdcard = NULL;
 
+typedef enum {
+    I2C_CLK_100K_LOW_PERIOD = 399,  I2C_CLK_100K_HIGH_PERIOD = 387,
+    I2C_CLK_100K_DATA_SETUP = 200,  I2C_CLK_100K_DATA_HOLD = 200,
+    I2C_CLK_100K_START_SETUP = 400, I2C_CLK_100K_START_HOLD = 400,
+    I2C_CLK_100K_STOP_SETUP = 400,  I2C_CLK_100K_STOP_HOLD = 400,
+
+    I2C_CLK_400K_LOW_PERIOD = 99,   I2C_CLK_400K_HIGH_PERIOD = 87,
+    I2C_CLK_400K_DATA_SETUP = 50,   I2C_CLK_400K_DATA_HOLD = 50,
+    I2C_CLK_400K_START_SETUP = 100, I2C_CLK_400K_START_HOLD = 100,
+    I2C_CLK_400K_STOP_SETUP = 100,  I2C_CLK_400K_STOP_HOLD = 100,
+
+    I2C_CLK_600K_LOW_PERIOD = 65,   I2C_CLK_600K_HIGH_PERIOD = 53,
+    I2C_CLK_600K_DATA_SETUP = 33,   I2C_CLK_600K_DATA_HOLD = 33,
+    I2C_CLK_600K_START_SETUP = 66,  I2C_CLK_600K_START_HOLD = 66,
+    I2C_CLK_600K_STOP_SETUP = 66,   I2C_CLK_600K_STOP_HOLD = 66
+} bsp_i2c_clk_params_set_t;
+
 esp_err_t bsp_i2c_init(void)
 {
     const i2c_config_t i2c_conf = {
@@ -38,6 +55,36 @@ esp_err_t bsp_i2c_init(void)
 esp_err_t bsp_i2c_deinit(void)
 {
     BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    return ESP_OK;
+}
+
+esp_err_t bsp_i2c_set_clk_speed(bsp_i2c_clk_speed_t i2c_clk)
+{
+    switch (i2c_clk) {
+    case I2C_CLK_100KHZ:
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_set_period(BSP_I2C_NUM,       I2C_CLK_100K_HIGH_PERIOD, I2C_CLK_100K_LOW_PERIOD));
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_set_data_timing(BSP_I2C_NUM,  I2C_CLK_100K_DATA_SETUP,  I2C_CLK_100K_DATA_HOLD));
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_set_start_timing(BSP_I2C_NUM, I2C_CLK_100K_START_SETUP, I2C_CLK_100K_START_HOLD));
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_set_stop_timing(BSP_I2C_NUM,  I2C_CLK_100K_STOP_SETUP,  I2C_CLK_100K_STOP_HOLD));
+        break;
+
+    case I2C_CLK_400KHZ:
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_set_period(BSP_I2C_NUM,       I2C_CLK_400K_HIGH_PERIOD, I2C_CLK_400K_LOW_PERIOD));
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_set_data_timing(BSP_I2C_NUM,  I2C_CLK_400K_DATA_SETUP,  I2C_CLK_400K_DATA_HOLD));
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_set_start_timing(BSP_I2C_NUM, I2C_CLK_400K_START_SETUP, I2C_CLK_400K_START_HOLD));
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_set_stop_timing(BSP_I2C_NUM,  I2C_CLK_400K_STOP_SETUP,  I2C_CLK_400K_STOP_HOLD));
+        break;
+
+    case I2C_CLK_600KHZ:
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_set_period(BSP_I2C_NUM,       I2C_CLK_600K_HIGH_PERIOD, I2C_CLK_600K_LOW_PERIOD));
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_set_data_timing(BSP_I2C_NUM,  I2C_CLK_600K_DATA_SETUP,  I2C_CLK_600K_DATA_HOLD));
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_set_start_timing(BSP_I2C_NUM, I2C_CLK_600K_START_SETUP, I2C_CLK_600K_START_HOLD));
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_set_stop_timing(BSP_I2C_NUM,  I2C_CLK_600K_STOP_SETUP,  I2C_CLK_600K_STOP_HOLD));
+        break;
+
+    default:
+        break;
+    }
     return ESP_OK;
 }
 
