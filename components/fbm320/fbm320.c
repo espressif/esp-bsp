@@ -174,7 +174,11 @@ esp_err_t fbm320_get_data(fbm320_handle_t sensor, const fbm320_measure_mode_t me
     if (ESP_OK != ret) {
         return ret;
     }
-    vTaskDelay(15 / portTICK_PERIOD_MS);
+    if (meas_mode == FBM320_MEAS_PRESS_OSR_8192) {
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+    } else {
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
     ret = fbm320_read_result(sensor, &pressure_raw);
     if (ESP_OK != ret) {
         return ret;
