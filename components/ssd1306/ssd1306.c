@@ -270,9 +270,9 @@ void ssd1306_draw_line(ssd1306_handle_t dev, int16_t chXpos1, int16_t chYpos1, i
 
             diff += y_len;
             ssd1306_fill_point(dev, chXpos1++, chYpos1, 1);
-        } while(len--);
+        } while (len--);
     }
-    
+
     else {
         if (chYpos1 > chYpos2) {
             COORDINATE_SWAP(chXpos1, chXpos2, chYpos1, chYpos2);
@@ -292,7 +292,7 @@ void ssd1306_draw_line(ssd1306_handle_t dev, int16_t chXpos1, int16_t chYpos1, i
 
             diff += x_len;
             ssd1306_fill_point(dev, chXpos1, chYpos1++, 1);
-        } while(len--);
+        } while (len--);
     }
 }
 
