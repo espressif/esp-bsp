@@ -13,9 +13,9 @@ if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "4.4")
     list(APPEND EXTRA_COMPONENT_DIRS "../components/io_expander")
 endif()
 if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
-    set(EXCLUDE_COMPONENTS "es8311" "es7210" "esp_lvgl_port")
+    set(EXCLUDE_COMPONENTS "es8311" "es7210" "esp_lvgl_port" "ds18b20")
 elseif("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "5.0")
-    set(EXCLUDE_COMPONENTS "esp_lcd_touch_stmpe610")
+    set(EXCLUDE_COMPONENTS "esp_lcd_touch_stmpe610" "ds18b20")
 endif()
 
 
