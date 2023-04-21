@@ -9,6 +9,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
+#include <inttypes.h>
 #include "esp_log.h"
 #include "esp_spiffs.h"
 
@@ -192,10 +193,10 @@ static void audio_task(void *arg)
                     ESP_LOGW(TAG, "Error in reading file");
                     break;
                 }
-                ESP_LOGI(TAG, "Number of channels: %d", wav_header.num_channels);
-                ESP_LOGI(TAG, "Bits per sample: %d", wav_header.bits_per_sample);
-                ESP_LOGI(TAG, "Sample rate: %d", wav_header.sample_rate);
-                ESP_LOGI(TAG, "Data size: %d", wav_header.data_size);
+                ESP_LOGI(TAG, "Number of channels: %" PRIu16 "", wav_header.num_channels);
+                ESP_LOGI(TAG, "Bits per sample: %" PRIu16 "", wav_header.bits_per_sample);
+                ESP_LOGI(TAG, "Sample rate: %" PRIu32 "", wav_header.sample_rate);
+                ESP_LOGI(TAG, "Data size: %" PRIu32 "", wav_header.data_size);
 
                 uint32_t bytes_send_to_i2s = 0;
                 while (bytes_send_to_i2s < wav_header.data_size) {

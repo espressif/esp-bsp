@@ -8,4 +8,5 @@ idf_component_register(
 set_source_files_properties(
     ${LV_DEMOS_SOURCES}
     PROPERTIES COMPILE_OPTIONS
-    -DLV_LVGL_H_INCLUDE_SIMPLE)
+    "-DLV_LVGL_H_INCLUDE_SIMPLE;-Wno-format;"
+    )

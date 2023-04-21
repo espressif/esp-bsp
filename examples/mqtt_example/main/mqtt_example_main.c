@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <stdio.h>
+#include <inttypes.h>
 #include "hts221.h"
 #include "fbm320.h"
 #include "bh1750.h"
@@ -89,7 +90,7 @@ static void app_sensors_get(sensor_data_t *data)
  */
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
-    ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
+    ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%" PRId32 "", base, event_id);
     esp_mqtt_event_handle_t event = event_data;
 
     switch ((esp_mqtt_event_id_t)event_id) {

@@ -1,6 +1,0 @@
-description: BSP Display and Audio example
-
-dependencies:
-  esp32_s2_kaluga_kit:
-    version: "^2.0.1"
-    override_path: "../../../esp32_s2_kaluga_kit"
