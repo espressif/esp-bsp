@@ -25,6 +25,8 @@
 
 static const char *TAG = "ESP-BOX";
 
+#define LCD_SPI_MAX_DATA_SIZE (32768)
+
 /** @cond */
 _Static_assert(CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0, "Touch buttons must be supported for this BSP");
 /** @endcond */
@@ -306,7 +308,7 @@ esp_err_t bsp_display_backlight_on(void)
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
 {
     esp_err_t ret = ESP_OK;
-    assert(config != NULL && config->max_transfer_sz > 0);
+    assert(config != NULL && config->max_transfer_sz > 0 && config->max_transfer_sz <= LCD_SPI_MAX_DATA_SIZE);
 
     ESP_RETURN_ON_ERROR(bsp_display_brightness_init(), TAG, "Brightness init failed");
 
@@ -362,7 +364,7 @@ static lv_disp_t *bsp_display_lcd_init(void)
     esp_lcd_panel_io_handle_t io_handle = NULL;
     esp_lcd_panel_handle_t panel_handle = NULL;
     const bsp_display_config_t bsp_disp_cfg = {
-        .max_transfer_sz = BSP_LCD_DRAW_BUFF_SIZE * sizeof(uint16_t),
+        .max_transfer_sz = 10 * BSP_LCD_H_RES,
     };
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&bsp_disp_cfg, &panel_handle, &io_handle));
 

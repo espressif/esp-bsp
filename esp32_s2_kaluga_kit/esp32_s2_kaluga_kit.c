@@ -19,6 +19,8 @@
 
 static const char *TAG = "Kaluga";
 
+#define LCD_SPI_MAX_DATA_SIZE (32768)
+
 static const touch_pad_t bsp_touch_button[TOUCH_BUTTON_NUM] = {
     TOUCH_BUTTON_PHOTO,      /*!< 'PHOTO' button */
     TOUCH_BUTTON_PLAY,       /*!< 'PLAY/PAUSE' button */
@@ -210,7 +212,7 @@ esp_err_t bsp_touchpad_calibrate(bsp_touchpad_button_t tch_pad, float tch_thresh
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
 {
     esp_err_t ret = ESP_OK;
-    assert(config != NULL && config->max_transfer_sz > 0);
+    assert(config != NULL && config->max_transfer_sz > 0 && config->max_transfer_sz <= LCD_SPI_MAX_DATA_SIZE);
 
     ESP_LOGD(TAG, "Initialize SPI bus");
     const spi_bus_config_t buscfg = {
@@ -266,7 +268,7 @@ static lv_disp_t *bsp_display_lcd_init(void)
     esp_lcd_panel_io_handle_t io_handle = NULL;
     esp_lcd_panel_handle_t panel_handle = NULL;
     const bsp_display_config_t bsp_disp_cfg = {
-        .max_transfer_sz = BSP_LCD_DRAW_BUFF_SIZE * sizeof(uint16_t),
+        .max_transfer_sz = 10 * BSP_LCD_H_RES,
     };
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&bsp_disp_cfg, &panel_handle, &io_handle));
 

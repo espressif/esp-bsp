@@ -33,6 +33,8 @@
 
 static const char *TAG = "S3-KORVO-2";
 
+#define LCD_SPI_MAX_DATA_SIZE (32768)
+
 static esp_io_expander_handle_t io_expander = NULL; // IO expander tca9554 handle
 //static adc_oneshot_unit_handle_t adc1_handle; // ADC1 handle; for USB voltage measurement
 //static adc_cali_handle_t adc1_cali_handle; // ADC1 calibration handle
@@ -207,7 +209,7 @@ esp_io_expander_handle_t bsp_io_expander_init(void)
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
 {
     esp_err_t ret = ESP_OK;
-    assert(config != NULL && config->max_transfer_sz > 0);
+    assert(config != NULL && config->max_transfer_sz > 0 && config->max_transfer_sz <= LCD_SPI_MAX_DATA_SIZE);
 
     ESP_LOGD(TAG, "Initialize SPI bus");
     const spi_bus_config_t buscfg = {
@@ -275,7 +277,7 @@ static lv_disp_t *bsp_display_lcd_init(void)
     esp_lcd_panel_io_handle_t io_handle = NULL;
     esp_lcd_panel_handle_t panel_handle = NULL;
     const bsp_display_config_t bsp_disp_cfg = {
-        .max_transfer_sz = BSP_LCD_DRAW_BUFF_SIZE * sizeof(uint16_t),
+        .max_transfer_sz = 10 * BSP_LCD_H_RES,
     };
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&bsp_disp_cfg, &panel_handle, &io_handle));
 
