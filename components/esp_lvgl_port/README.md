@@ -175,4 +175,4 @@ Every LVGL calls must be protected with these lock/unlock commands:
 
 ## Performance
 
-The key feature of every LCD is performance. Recommended settings for improving LCD performance is described in separate document [here](docs/performance.md).
+Key feature of every graphical application is performance. Recommended settings for improving LCD performance is described in a separate document [here](docs/performance.md).
