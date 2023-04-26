@@ -30,12 +30,10 @@ Best way to start with ESP-BSP is trying one of the [examples](examples) on your
 |---|---|
 | [audio](examples/audio) | ESP32-S3-Korvo-2 |
 | [display](examples/display) | WROVER-KIT |
-| [display_audio](examples/display_audio) | Kaluga-kit |
 | [display_camera](examples/display_camera) | Kaluga-kit |
 | [display_audio_photo](examples/display_audio_photo) | ESP-BOX |
 | [display_rotation](examples/display_rotation) | ESP-BOX |
 | [display_lvgl_demos](examples/display_lvgl_demos) | ESP32-S3-LCD-EV-BOARD |
-| [touchscreen_colorwheel](examples/touchscreen_colorwheel) | ESP-BOX |
 | [mqtt_example](examples/mqtt_example) | Azure-IoT-kit |
 | [sensors_example](examples/sensors_example) | Azure-IoT-kit |
 

@@ -28,5 +28,4 @@ dependencies:
     public: true
 
 examples:
-  - path: ../examples/display_audio
   - path: ../examples/display_camera

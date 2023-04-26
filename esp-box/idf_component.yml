@@ -21,4 +21,3 @@ dependencies:
 examples:
   - path: ../examples/display_audio_photo
   - path: ../examples/display_rotation
-  - path: ../examples/touchscreen_colorwheel
