@@ -136,7 +136,7 @@ esp_err_t esp_lcd_touch_new_i2c_ft5x06(const esp_lcd_panel_io_handle_t io, const
 
     /* Prepare pin for touch controller reset */
     if (esp_lcd_touch_ft5x06->config.rst_gpio_num != GPIO_NUM_NC) {
-        const gpio_config_t int_gpio_config = {
+        const gpio_config_t rst_gpio_config = {
             .mode = GPIO_MODE_OUTPUT,
             .pin_bit_mask = BIT64(esp_lcd_touch_ft5x06->config.rst_gpio_num)
         };
