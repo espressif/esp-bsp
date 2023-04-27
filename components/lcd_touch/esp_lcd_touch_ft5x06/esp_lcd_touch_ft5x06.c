@@ -120,7 +120,7 @@ esp_err_t esp_lcd_touch_new_i2c_ft5x06(const esp_lcd_panel_io_handle_t io, const
 
     /* Prepare pin for touch interrupt */
     if (esp_lcd_touch_ft5x06->config.int_gpio_num != GPIO_NUM_NC) {
-        const gpio_config_t rst_gpio_config = {
+        const gpio_config_t int_gpio_config = {
             .mode = GPIO_MODE_INPUT,
             .intr_type = GPIO_INTR_NEGEDGE,
             .pin_bit_mask = BIT64(esp_lcd_touch_ft5x06->config.int_gpio_num)
