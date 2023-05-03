@@ -8,7 +8,7 @@ jobs:
   build:
     strategy:
       matrix:
-        idf_ver: ["release-v4.4", latest]
+        idf_ver: ["release-v4.4"]
     runs-on: ubuntu-20.04
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
