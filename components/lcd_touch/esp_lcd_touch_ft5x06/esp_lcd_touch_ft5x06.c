@@ -125,7 +125,7 @@ esp_err_t esp_lcd_touch_new_i2c_ft5x06(const esp_lcd_panel_io_handle_t io, const
             .intr_type = GPIO_INTR_NEGEDGE,
             .pin_bit_mask = BIT64(esp_lcd_touch_ft5x06->config.int_gpio_num)
         };
-        ret = gpio_config(&rst_gpio_config);
+        ret = gpio_config(&int_gpio_config);
         ESP_GOTO_ON_ERROR(ret, err, TAG, "GPIO config failed");
 
         /* Register interrupt callback */
@@ -140,7 +140,7 @@ esp_err_t esp_lcd_touch_new_i2c_ft5x06(const esp_lcd_panel_io_handle_t io, const
             .mode = GPIO_MODE_OUTPUT,
             .pin_bit_mask = BIT64(esp_lcd_touch_ft5x06->config.rst_gpio_num)
         };
-        ret = gpio_config(&int_gpio_config);
+        ret = gpio_config(&rst_gpio_config);
         ESP_GOTO_ON_ERROR(ret, err, TAG, "GPIO config failed");
     }
 
