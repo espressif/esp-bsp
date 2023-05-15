@@ -122,26 +122,26 @@ esp_err_t esp_lcd_touch_new_i2c_ft5x06(const esp_lcd_panel_io_handle_t io, const
     if (esp_lcd_touch_ft5x06->config.int_gpio_num != GPIO_NUM_NC) {
         const gpio_config_t int_gpio_config = {
             .mode = GPIO_MODE_INPUT,
+            .intr_type = GPIO_INTR_NEGEDGE,
             .pin_bit_mask = BIT64(esp_lcd_touch_ft5x06->config.int_gpio_num)
         };
         ret = gpio_config(&int_gpio_config);
-        ESP_GOTO_ON_ERROR(ret, err, TAG, "GPIO config failed");
-    }
-
-    /* Prepare pin for touch controller reset */
-    if (esp_lcd_touch_ft5x06->config.rst_gpio_num != GPIO_NUM_NC) {
-        const gpio_config_t rst_gpio_config = {
-            .mode = GPIO_MODE_OUTPUT,
-            .intr_type = GPIO_INTR_NEGEDGE,
-            .pin_bit_mask = BIT64(esp_lcd_touch_ft5x06->config.rst_gpio_num)
-        };
-        ret = gpio_config(&rst_gpio_config);
         ESP_GOTO_ON_ERROR(ret, err, TAG, "GPIO config failed");
 
         /* Register interrupt callback */
         if (esp_lcd_touch_ft5x06->config.interrupt_callback) {
             esp_lcd_touch_register_interrupt_callback(esp_lcd_touch_ft5x06, esp_lcd_touch_ft5x06->config.interrupt_callback);
         }
+    }
+
+    /* Prepare pin for touch controller reset */
+    if (esp_lcd_touch_ft5x06->config.rst_gpio_num != GPIO_NUM_NC) {
+        const gpio_config_t rst_gpio_config = {
+            .mode = GPIO_MODE_OUTPUT,
+            .pin_bit_mask = BIT64(esp_lcd_touch_ft5x06->config.rst_gpio_num)
+        };
+        ret = gpio_config(&rst_gpio_config);
+        ESP_GOTO_ON_ERROR(ret, err, TAG, "GPIO config failed");
     }
 
     /* Init controller */
