@@ -9,3 +9,4 @@ dependencies:
 
   esp_lvgl_port:
     version: ^1
+    public: true
