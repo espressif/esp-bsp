@@ -1,5 +1,7 @@
 # ESP IO Expander Chip TCA9539 and TCA9555
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp_io_expander_tca95xx_16bit/badge.svg)](https://components.espressif.com/components/espressif/esp_io_expander_tca95xx_16bit)
+
 Implementation of the TCA9539 and TCA9555 io expander chip with esp_io_expander component.
 
 | Chip             | Communication interface | Component name                | Link to datasheet |
