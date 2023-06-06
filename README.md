@@ -15,6 +15,7 @@ Board support packages for development boards using Espressif's SoCs, written in
 | [ESP32-S3-EYE](esp32_s3_eye) | ESP32-S3 | LCD display, camera, uSD card slot, microphone and accelerometer | <img src="docu/pics/s3-eye.webp" width="150"> |
 | [ESP32-S3-LCD-EV-BOARD](esp32_s3_lcd_ev_board) | ESP32-S3 | LCD display with touch, audio codec + power amplifier | <img src="docu/pics/esp32-s3-lcd-ev-board_800x480.png" width="150"> |
 | [ESP32-S3-Korvo-2](esp32_s3_korvo_2) | ESP32-S3 | LCD display, camera, uSD card slot, microphone, audio codec + power amplifier | <img src="docu/pics/korvo-2.png" width="150"> |
+| [ESP32-LyraT](esp32_lyrat) | ESP32 | uSD card slot, microphone, audio codec + power amplifier | <img src="docu/pics/lyrat.png" width="150"> |
 
 ## LCD displays and TOUCH
 
