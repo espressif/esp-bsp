@@ -1,0 +1,9 @@
+version: "1.0.0"
+description: ESP LCD Panel IO with 3-wire SPI (no D/C line and MISO line).
+url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_panel_io_3wire_spi
+dependencies:
+  idf: ">=4.4.2"
+  esp_io_expander:
+    version: "^1"
+    public: true
+
