@@ -37,6 +37,7 @@ typedef struct {
         int sda_gpio_num;                           /*!< GPIO used for SDA line */
         esp_io_expander_pin_num_t sda_expander_pin; /*!< IO expander pin used for SDA line */
     };
+    esp_io_expander_handle_t io_expander;           /*!< IO expander handle, set to NULL if not used */
 } spi_line_config_t;
 
 /**
@@ -44,7 +45,6 @@ typedef struct {
  */
 typedef struct {
     spi_line_config_t line_config;              /*!< SPI line configuration */
-    esp_io_expander_handle_t io_expander;       /*!< IO expander handle, set to NULL if not used */
     uint32_t expect_clk_speed;                  /*!< Expected SPI clock speed, in Hz (1 ~ 500000)
                                                  *   If this value is 0, it will be set to `PANEL_IO_3WIRE_SPI_CLK_MAX` by default
                                                  *   The actual frequency may be very different due to the limitation of the software delay */
@@ -52,6 +52,7 @@ typedef struct {
     int lcd_cmd_bytes;                          /*!< Bytes of LCD command (1 ~ 4) */
     int lcd_param_bytes;                        /*!< Bytes of LCD parameter (1 ~ 4) */
     struct {
+        unsigned int use_dc_bit: 1;             /*!< If this flag is enabled, transmit DC bit at the beginning of every command and data */
         unsigned int dc_zero_on_data: 1;        /*!< If this flag is enabled, DC bit = 0 means transfer data, DC bit = 1 means transfer command */
         unsigned int lsb_first: 1;              /*!< If this flag is enabled, transmit LSB bit first */
         unsigned int cs_high_active: 1;         /*!< If this flag is enabled, CS line is high active */

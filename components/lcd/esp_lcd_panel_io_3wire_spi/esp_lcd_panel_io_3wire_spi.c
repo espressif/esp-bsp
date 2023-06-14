@@ -77,7 +77,7 @@ esp_err_t esp_lcd_new_panel_io_3wire_spi(const esp_lcd_panel_io_3wire_spi_config
                         TAG, "Invalid LCD parameter bytes");
 
     const spi_line_config_t *line_config = &io_config->line_config;
-    ESP_RETURN_ON_FALSE(io_config->io_expander || (line_config->cs_io_type == IO_TYPE_GPIO &&
+    ESP_RETURN_ON_FALSE(line_config->io_expander || (line_config->cs_io_type == IO_TYPE_GPIO &&
                         line_config->scl_io_type == IO_TYPE_GPIO && line_config->sda_io_type == IO_TYPE_GPIO),
                         ESP_ERR_INVALID_ARG, TAG, "IO Expander handle is required if any IO is not gpio");
 
@@ -90,13 +90,18 @@ esp_err_t esp_lcd_new_panel_io_3wire_spi(const esp_lcd_panel_io_3wire_spi_config
     panel_io->scl_io_num = line_config->scl_gpio_num;
     panel_io->sda_io_type = line_config->sda_io_type;
     panel_io->sda_io_num = line_config->sda_gpio_num;
-    panel_io->io_expander = io_config->io_expander;
+    panel_io->io_expander = line_config->io_expander;
     uint32_t expect_clk_speed = io_config->expect_clk_speed ? io_config->expect_clk_speed : PANEL_IO_3WIRE_SPI_CLK_MAX;
     panel_io->scl_half_period_us = 1000000 / (expect_clk_speed * 2);
     panel_io->lcd_cmd_bytes = io_config->lcd_cmd_bytes;
     panel_io->lcd_param_bytes = io_config->lcd_param_bytes;
-    panel_io->param_dc_bit = io_config->flags.dc_zero_on_data ? DATA_DC_BIT_0 : DATA_DC_BIT_1;
-    panel_io->cmd_dc_bit = io_config->flags.dc_zero_on_data ? DATA_DC_BIT_1 : DATA_DC_BIT_0;
+    if (io_config->flags.use_dc_bit) {
+        panel_io->param_dc_bit = io_config->flags.dc_zero_on_data ? DATA_DC_BIT_0 : DATA_DC_BIT_1;
+        panel_io->cmd_dc_bit = io_config->flags.dc_zero_on_data ? DATA_DC_BIT_1 : DATA_DC_BIT_0;
+    } else {
+        panel_io->param_dc_bit = DATA_NO_DC_BIT;
+        panel_io->cmd_dc_bit = DATA_NO_DC_BIT;
+    }
     panel_io->write_order_mask = io_config->flags.lsb_first ? WRITE_ORDER_LSB_MASK : WRITE_ORDER_MSB_MASK;
     panel_io->flags.cs_high_active = io_config->flags.cs_high_active;
     panel_io->flags.del_keep_cs_inactive = io_config->flags.del_keep_cs_inactive;
