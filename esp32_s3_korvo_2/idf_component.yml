@@ -1,4 +1,4 @@
-version: "1.1.4"
+version: "2.0.0"
 description: Board Support Package for ESP32-S3-Korvo-2
 url: https://github.com/espressif/esp-bsp/tree/master/esp32_s3_korvo_2
 
@@ -14,12 +14,8 @@ dependencies:
     version: "^1"
     public: true
 
-  es7210:
-    version: "^1"
-    public: true
-
-  es8311:
-    version: "^1"
+  esp_codec_dev:
+    version: "^1.0.2"
     public: true
 
   esp32-camera:
@@ -27,7 +23,7 @@ dependencies:
     public: true
 
   button:
-    version: "^2"
+    version: "^2.4"
     public: true
 
   esp_lvgl_port:
