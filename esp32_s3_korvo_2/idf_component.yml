@@ -23,7 +23,7 @@ dependencies:
     public: true
 
   button:
-    version: "^2.4"
+    version: "^2.5"
     public: true
 
   esp_lvgl_port:
