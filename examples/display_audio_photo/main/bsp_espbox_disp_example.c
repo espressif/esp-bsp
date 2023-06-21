@@ -16,6 +16,9 @@ static const char *TAG = "example";
 
 void app_main(void)
 {
+    /* Initialize and mount SPIFFS */
+    bsp_spiffs_mount();
+
     /* Initialize I2C (for touch and audio) */
     bsp_i2c_init();
 

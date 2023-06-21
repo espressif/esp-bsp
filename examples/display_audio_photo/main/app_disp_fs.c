@@ -22,7 +22,7 @@
 #include "jpeg_decoder.h"
 
 /* SPIFFS mount root */
-#define FS_MNT_PATH  "/root"
+#define FS_MNT_PATH  BSP_SPIFFS_MOUNT_POINT
 
 /* Buffer for reading/writing to I2S driver. Same length as SPIFFS buffer and I2S buffer, for optimal read/write performance.
    Recording audio data path:
@@ -170,19 +170,11 @@ void app_audio_init(void)
 
 void app_disp_fs_init(void)
 {
-    const esp_vfs_spiffs_conf_t spifs_conf = {
-        .base_path = FS_MNT_PATH,
-        .partition_label = NULL,
-        .max_files = 5,
-        .format_if_mount_failed = true
-    };
-
     file_buffer_size = BSP_LCD_H_RES * BSP_LCD_V_RES * sizeof(lv_color_t);
     file_buffer = heap_caps_calloc(file_buffer_size, 1, MALLOC_CAP_DEFAULT);
     assert(file_buffer);
 
-    /* Initialize file system */
-    ESP_ERROR_CHECK( esp_vfs_spiffs_register(&spifs_conf) );
+    /* Initialize root path */
     strcpy(fs_current_path, FS_MNT_PATH);
 
     /* Show list of files */

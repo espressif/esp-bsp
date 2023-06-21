@@ -249,12 +249,12 @@ esp_err_t bsp_i2c_deinit(void);
  *
  * After mounting the SPIFFS, it can be accessed with stdio functions ie.:
  * \code{.c}
- * FILE* f = fopen(BSP_MOUNT_POINT"/hello.txt", "w");
+ * FILE* f = fopen(BSP_SPIFFS_MOUNT_POINT"/hello.txt", "w");
  * fprintf(f, "Hello World!\n");
  * fclose(f);
  * \endcode
  **************************************************************************************************/
-#define BSP_MOUNT_POINT      CONFIG_BSP_SPIFFS_MOUNT_POINT
+#define BSP_SPIFFS_MOUNT_POINT      CONFIG_BSP_SPIFFS_MOUNT_POINT
 
 /**
  * @brief Mount SPIFFS to virtual file system
