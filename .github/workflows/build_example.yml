@@ -9,6 +9,7 @@ jobs:
     strategy:
       matrix:
         idf_ver: ["latest"]
+        parallel_index: [1,2,3,4,5] # This must be from 1 to 'parallel_count' defined in .idf_build_apps.toml
     runs-on: ubuntu-20.04
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
@@ -20,6 +21,6 @@ jobs:
         run: |
           export IDF_EXTRA_ACTIONS_PATH=${GITHUB_WORKSPACE}/examples
           . ${IDF_PATH}/export.sh
-          pip install idf-component-manager ruamel.yaml idf-build-apps==0.5.0 --upgrade
-          idf-build-apps find -p examples --recursive --config sdkconfig.bsp.* --target all
-          idf-build-apps build -p examples --recursive --config sdkconfig.bsp.* --target all --build-dir build_@w --check-warnings
+          pip install idf-component-manager ruamel.yaml idf-build-apps --upgrade
+          idf-build-apps find
+          idf-build-apps build --parallel-index ${{ matrix.parallel_index }}
