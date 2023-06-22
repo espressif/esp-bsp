@@ -13,6 +13,7 @@
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
+#include "esp_spiffs.h"
 
 //#include "esp_adc/adc_oneshot.h"
 //#include "esp_adc/adc_cali.h"
@@ -26,10 +27,40 @@
 #include "esp_lcd_touch_tt21100.h"
 #include "esp_lvgl_port.h"
 #include "esp_vfs_fat.h"
+#include "esp_codec_dev_defaults.h"
 #include "bsp_err_check.h"
 
 /* Battery voltage measurement is disabled, because it waits for update button component. */
 #define BSP_BATTERY_ENABLED 0
+
+/**
+ * @brief I2S pinout
+ *
+ * Can be used for i2s_std_gpio_config_t and/or i2s_std_config_t initialization
+ */
+#define BSP_I2S_GPIO_CFG       \
+    {                          \
+        .mclk = BSP_I2S_MCLK,  \
+        .bclk = BSP_I2S_SCLK,  \
+        .ws = BSP_I2S_LCLK,    \
+        .dout = BSP_I2S_DOUT,  \
+        .din = BSP_I2S_DSIN,   \
+        .invert_flags = {      \
+            .mclk_inv = false, \
+            .bclk_inv = false, \
+            .ws_inv = false,   \
+        },                     \
+    }
+
+/**
+ * @brief Mono Duplex I2S configuration structure
+ */
+#define BSP_I2S_DUPLEX_MONO_CFG(_sample_rate)                                                         \
+    {                                                                                                 \
+        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(_sample_rate),                                          \
+        .slot_cfg = I2S_STD_PHILIP_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO), \
+        .gpio_cfg = BSP_I2S_GPIO_CFG,                                                                 \
+    }
 
 static const char *TAG = "S3-KORVO-2";
 
@@ -39,8 +70,16 @@ static esp_io_expander_handle_t io_expander = NULL; // IO expander tca9554 handl
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
 static lv_indev_t *disp_indev = NULL;
+static const audio_codec_data_if_t *i2s_data_if = NULL;  /* Codec data interface */
+static i2s_chan_handle_t i2s_tx_chan = NULL;
+static i2s_chan_handle_t i2s_rx_chan = NULL;
+static bool i2c_initialized = false;
 
-const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+// This is just a wrapper to get function signature for espressif/button API callback
+static uint8_t bsp_get_main_button(void *param);
+static esp_err_t bsp_init_main_button(void *param);
+
+static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
         .type = BUTTON_TYPE_ADC,
         .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
@@ -82,11 +121,24 @@ const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
         .adc_button_config.button_index = BSP_BUTTON_VOLUP,
         .adc_button_config.min = 280, // middle is 380mV
         .adc_button_config.max = 480
+    },
+    {
+        .type = BUTTON_TYPE_CUSTOM,
+        .custom_button_config.button_custom_init = bsp_init_main_button,
+        .custom_button_config.button_custom_get_key_value = bsp_get_main_button,
+        .custom_button_config.button_custom_deinit = NULL,
+        .custom_button_config.active_level = 1,
+        .custom_button_config.priv = (void *) BSP_BUTTON_MAIN,
     }
 };
 
 esp_err_t bsp_i2c_init(void)
 {
+    /* I2C was initialized before */
+    if (i2c_initialized) {
+        return ESP_OK;
+    }
+
     const i2c_config_t i2c_conf = {
         .mode = I2C_MODE_MASTER,
         .sda_io_num = BSP_I2C_SDA,
@@ -98,12 +150,15 @@ esp_err_t bsp_i2c_init(void)
     BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
     BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
 
+    i2c_initialized = true;
+
     return ESP_OK;
 }
 
 esp_err_t bsp_i2c_deinit(void)
 {
     BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    i2c_initialized = false;
     return ESP_OK;
 }
 
@@ -169,24 +224,92 @@ esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *
         BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_enable(*rx_channel));
     }
 
-    /* Setup power amplifier pin */
-    const gpio_config_t io_conf = {
-        .intr_type = GPIO_INTR_DISABLE,
-        .mode = GPIO_MODE_OUTPUT,
-        .pin_bit_mask = BIT64(BSP_POWER_AMP_IO),
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .pull_up_en = GPIO_PULLDOWN_DISABLE,
+    audio_codec_i2s_cfg_t i2s_cfg = {
+        .port = CONFIG_BSP_I2S_NUM,
+        .rx_handle = *rx_channel,
+        .tx_handle = *tx_channel,
     };
-    BSP_ERROR_CHECK_RETURN_ERR(gpio_config(&io_conf));
+    i2s_data_if = audio_codec_new_i2s_data(&i2s_cfg);
+    BSP_NULL_CHECK(i2s_data_if, ESP_FAIL);
 
     return ESP_OK;
 }
 
-esp_err_t bsp_audio_poweramp_enable(bool enable)
+esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(gpio_set_level(BSP_POWER_AMP_IO, enable ? 1 : 0));
+    if (i2s_tx_chan == NULL || i2s_rx_chan == NULL || i2s_data_if == NULL) {
+        /* Initialize I2C and I2S */
+        BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL, &i2s_tx_chan, &i2s_rx_chan));
+    }
+    assert(i2s_data_if);
 
-    return ESP_OK;
+    const audio_codec_gpio_if_t *gpio_if = audio_codec_new_gpio();
+
+    audio_codec_i2c_cfg_t i2c_cfg = {
+        .port = BSP_I2C_NUM,
+        .addr = ES8311_CODEC_DEFAULT_ADDR,
+    };
+    const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
+    BSP_NULL_CHECK(i2c_ctrl_if, NULL);
+
+    esp_codec_dev_hw_gain_t gain = {
+        .pa_voltage = 5.0,
+        .codec_dac_voltage = 3.3,
+    };
+
+    es8311_codec_cfg_t es8311_cfg = {
+        .ctrl_if = i2c_ctrl_if,
+        .gpio_if = gpio_if,
+        .codec_mode = ESP_CODEC_DEV_WORK_MODE_DAC,
+        .pa_pin = BSP_POWER_AMP_IO,
+        .pa_reverted = false,
+        .master_mode = false,
+        .use_mclk = true,
+        .digital_mic = false,
+        .invert_mclk = false,
+        .invert_sclk = false,
+        .hw_gain = gain,
+    };
+    const audio_codec_if_t *es8311_dev = es8311_codec_new(&es8311_cfg);
+    BSP_NULL_CHECK(es8311_dev, NULL);
+
+    esp_codec_dev_cfg_t codec_dev_cfg = {
+        .dev_type = ESP_CODEC_DEV_TYPE_OUT,
+        .codec_if = es8311_dev,
+        .data_if = i2s_data_if,
+    };
+    return esp_codec_dev_new(&codec_dev_cfg);
+}
+
+esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
+{
+    if (i2s_tx_chan == NULL || i2s_rx_chan == NULL || i2s_data_if == NULL) {
+        /* Initialize I2C and I2S */
+        BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL, &i2s_tx_chan, &i2s_rx_chan));
+    }
+    assert(i2s_data_if);
+
+    audio_codec_i2c_cfg_t i2c_cfg = {
+        .port = BSP_I2C_NUM,
+        .addr = ES7210_CODEC_DEFAULT_ADDR,
+    };
+    const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
+    BSP_NULL_CHECK(i2c_ctrl_if, NULL);
+
+    es7210_codec_cfg_t es7210_cfg = {
+        .ctrl_if = i2c_ctrl_if,
+    };
+    const audio_codec_if_t *es7210_dev = es7210_codec_new(&es7210_cfg);
+    BSP_NULL_CHECK(es7210_dev, NULL);
+
+    esp_codec_dev_cfg_t codec_es7210_dev_cfg = {
+        .dev_type = ESP_CODEC_DEV_TYPE_IN,
+        .codec_if = es7210_dev,
+        .data_if = i2s_data_if,
+    };
+    return esp_codec_dev_new(&codec_es7210_dev_cfg);
 }
 
 esp_io_expander_handle_t bsp_io_expander_init(void)
@@ -325,13 +448,16 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     };
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle), TAG, "");
     return esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, ret_touch);
 }
 
 static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
 {
-    BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(NULL, &tp));
+    if (tp == NULL) {
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(NULL, &tp));
+    }
     assert(tp);
 
     /* Add touch input (for selected screen) */
@@ -476,4 +602,83 @@ bool bsp_button_get(const bsp_button_t btn)
     }
 
     return false;
+}
+
+static uint8_t bsp_get_main_button(void *param)
+{
+    assert(tp);
+    ESP_ERROR_CHECK(esp_lcd_touch_read_data(tp));
+#if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
+    uint8_t home_btn_val = 0x00;
+    esp_lcd_touch_get_button_state(tp, 0, &home_btn_val);
+    return home_btn_val ? true : false;
+#else
+    ESP_LOGE(TAG, "Button main is inaccessible");
+    return false;
+#endif
+}
+
+static esp_err_t bsp_init_main_button(void *param)
+{
+    if (tp == NULL) {
+        BSP_ERROR_CHECK_RETURN_ERR(bsp_touch_new(NULL, &tp));
+    }
+    return ESP_OK;
+}
+
+esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
+{
+    esp_err_t ret = ESP_OK;
+    if ((btn_array_size < BSP_BUTTON_NUM) ||
+            (btn_array == NULL)) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    if (btn_cnt) {
+        *btn_cnt = 0;
+    }
+    for (int i = 0; i < BSP_BUTTON_NUM; i++) {
+        btn_array[i] = iot_button_create(&bsp_button_config[i]);
+        if (btn_array[i] == NULL) {
+            ret = ESP_FAIL;
+            break;
+        }
+        if (btn_cnt) {
+            (*btn_cnt)++;
+        }
+    }
+    return ret;
+}
+
+esp_err_t bsp_spiffs_mount(void)
+{
+    esp_vfs_spiffs_conf_t conf = {
+        .base_path = CONFIG_BSP_SPIFFS_MOUNT_POINT,
+        .partition_label = CONFIG_BSP_SPIFFS_PARTITION_LABEL,
+        .max_files = CONFIG_BSP_SPIFFS_MAX_FILES,
+#ifdef CONFIG_BSP_SPIFFS_FORMAT_ON_MOUNT_FAIL
+        .format_if_mount_failed = true,
+#else
+        .format_if_mount_failed = false,
+#endif
+    };
+
+    esp_err_t ret_val = esp_vfs_spiffs_register(&conf);
+
+    BSP_ERROR_CHECK_RETURN_ERR(ret_val);
+
+    size_t total = 0, used = 0;
+    ret_val = esp_spiffs_info(conf.partition_label, &total, &used);
+    if (ret_val != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret_val));
+    } else {
+        ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
+    }
+
+    return ret_val;
+}
+
+esp_err_t bsp_spiffs_unmount(void)
+{
+    return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
 }

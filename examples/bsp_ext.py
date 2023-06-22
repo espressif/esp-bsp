@@ -3,12 +3,16 @@ from re import match, compile
 from pathlib import Path
 from click.core import Context
 from typing import List
-from idf_py_actions.tools import PropertyDict, red_print
 
 
 def action_extensions(base_actions, project_path=os.getcwd()):
     """ Describes extension for Board Support Packages. """
 
+    try:
+        from idf_py_actions.tools import PropertyDict, red_print
+    except ImportError:
+        print('Unsupported IDF version!')
+        return {}
     try:
         import ruamel.yaml
     except ImportError:

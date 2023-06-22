@@ -1,0 +1,9 @@
+target = "all"
+paths = "examples"
+recursive = true
+check_warnings = true
+config = "sdkconfig.bsp.*"
+
+# build related options
+build_dir = "build_@w"
+parallel_count = 5
