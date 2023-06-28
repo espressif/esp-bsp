@@ -18,6 +18,10 @@ elseif("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "5.0")
     set(EXCLUDE_COMPONENTS "esp_lcd_touch_stmpe610" "ds18b20")
 endif()
 
+# Test rgb lcd components only in esp32s3
+if(NOT "${IDF_TARGET}" STREQUAL "esp32s3")
+    list(APPEND EXCLUDE_COMPONENTS "esp_lcd_gc9503")
+endif()
 
 # Set the components to include the tests for.
 set(TEST_COMPONENTS bh1750 ssd1306 mpu6050 mag3110 hts221 fbm320 es7210 CACHE STRING "List of components to test")

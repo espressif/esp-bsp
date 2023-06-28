@@ -1,0 +1,7 @@
+version: "1.0.0"
+targets:
+  - esp32s3
+description: ESP LCD GC9503
+url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_gc9503
+dependencies:
+  idf: ">=4.4"
