@@ -374,7 +374,11 @@ static lv_disp_t *bsp_display_lcd_init(void)
         .io_handle = io_handle,
         .panel_handle = panel_handle,
         .buffer_size = BSP_LCD_H_RES * CONFIG_BSP_LCD_DRAW_BUF_HEIGHT,
-        .double_buffer = CONFIG_BSP_LCD_DRAW_BUF_DOUBLE,
+#if CONFIG_BSP_LCD_DRAW_BUF_DOUBLE
+        .double_buffer = 1,
+#else
+        .double_buffer = 0,
+#endif
         .hres = BSP_LCD_H_RES,
         .vres = BSP_LCD_V_RES,
         .monochrome = false,
