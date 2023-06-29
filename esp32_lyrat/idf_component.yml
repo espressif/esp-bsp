@@ -1,0 +1,17 @@
+version: "1.0.0"
+description: Board Support Package for ESP32-LyraT
+url: https://github.com/espressif/esp-bsp/tree/master/esp32_lyrat
+
+targets:
+  - esp32
+
+dependencies:
+  idf: ">=4.4"
+
+  button:
+    version: "^2.5"
+    public: true
+
+  esp_codec_dev:
+    version: "^1.0.3"
+    public: true
