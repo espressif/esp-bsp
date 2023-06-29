@@ -15,7 +15,7 @@ jobs:
         uses: espressif/upload-components-ci-action@v1
         with:
           directories: >
-            esp32_azure_iot_kit;esp32_s2_kaluga_kit;esp_wrover_kit;esp-box;esp32_s3_usb_otg;esp32_s3_eye;esp32_s3_lcd_ev_board;esp32_s3_korvo_2;esp-box-lite;esp32_lyrat;
+            esp32_azure_iot_kit;esp32_s2_kaluga_kit;esp_wrover_kit;esp-box;esp32_s3_usb_otg;esp32_s3_eye;esp32_s3_lcd_ev_board;esp32_s3_korvo_2;esp-box-lite;esp32_lyrat;esp32_c3_lcdkit;
             components/bh1750;components/ds18b20;components/es8311;components/es7210;components/fbm320;components/hts221;components/mag3110;components/mpu6050;components/ssd1306;components/esp_lvgl_port;
             components/lcd_touch/esp_lcd_touch;components/lcd_touch/esp_lcd_touch_ft5x06;components/lcd_touch/esp_lcd_touch_gt911;components/lcd_touch/esp_lcd_touch_tt21100;components/lcd_touch/esp_lcd_touch_gt1151;components/lcd_touch/esp_lcd_touch_cst816s;
             components/lcd/esp_lcd_gc9a01;components/lcd/esp_lcd_ili9341;components/lcd/esp_lcd_ra8875;components/lcd_touch/esp_lcd_touch_stmpe610;components/lcd/esp_lcd_sh1107;components/lcd/esp_lcd_st7796;components/lcd/esp_lcd_gc9503;
