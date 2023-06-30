@@ -109,7 +109,8 @@ static void lvgl_port_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *
 static void lvgl_port_encoder_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
 static void lvgl_port_encoder_btn_down_handler(void *arg, void *arg2);
 static void lvgl_port_encoder_btn_up_handler(void *arg, void *arg2);
-#elif __has_include ("iot_button.h")
+#endif
+#if __has_include ("iot_button.h")
 static void lvgl_port_navigation_buttons_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
 static void lvgl_port_btn_down_handler(void *arg, void *arg2);
 static void lvgl_port_btn_up_handler(void *arg, void *arg2);
@@ -411,7 +412,9 @@ esp_err_t lvgl_port_remove_encoder(lv_indev_t *encoder)
 
     return ESP_OK;
 }
-#elif __has_include ("iot_button.h")
+#endif
+
+#if __has_include ("iot_button.h")
 lv_indev_t *lvgl_port_add_navigation_buttons(const lvgl_port_nav_btns_cfg_t *buttons_cfg)
 {
     esp_err_t ret = ESP_OK;
@@ -711,7 +714,9 @@ static void lvgl_port_encoder_btn_up_handler(void *arg, void *arg2)
         }
     }
 }
-#elif __has_include ("iot_button.h")
+#endif
+
+#if __has_include ("iot_button.h")
 static uint32_t last_key = 0;
 static void lvgl_port_navigation_buttons_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
 {

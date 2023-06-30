@@ -23,7 +23,9 @@
 #if __has_include ("iot_knob.h")
 #include "iot_knob.h"
 #include "iot_button.h"
-#elif __has_include ("iot_button.h")
+#endif
+
+#if __has_include ("iot_button.h")
 #include "iot_button.h"
 #endif
 
@@ -81,12 +83,17 @@ typedef struct {
 #endif
 
 #if __has_include ("iot_knob.h")
+/**
+ * @brief Configuration of the encoder structure
+ */
 typedef struct {
     lv_disp_t *disp;    /*!< LVGL display handle (returned from lvgl_port_add_disp) */
     const knob_config_t *encoder_a_b;
     const button_config_t *encoder_enter;  /*!< Navigation button for enter */
 } lvgl_port_encoder_cfg_t;
-#elif __has_include ("iot_button.h")
+#endif
+
+#if __has_include ("iot_button.h")
 /**
  * @brief Configuration of the navigation buttons structure
  */
@@ -197,7 +204,9 @@ lv_indev_t *lvgl_port_add_encoder(const lvgl_port_encoder_cfg_t *encoder_cfg);
  *      - ESP_OK                    on success
  */
 esp_err_t lvgl_port_remove_encoder(lv_indev_t *encoder);
-#elif __has_include ("iot_button.h")
+#endif
+
+#if __has_include ("iot_button.h")
 /**
  * @brief Add buttons as an input device
  *
