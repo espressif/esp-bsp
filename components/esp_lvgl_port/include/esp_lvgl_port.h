@@ -20,6 +20,11 @@
 #include "esp_lcd_touch.h"
 #endif
 
+#if __has_include ("iot_knob.h")
+#include "iot_knob.h"
+#include "iot_button.h"
+#endif
+
 #if __has_include ("iot_button.h")
 #include "iot_button.h"
 #endif
@@ -75,6 +80,17 @@ typedef struct {
     lv_disp_t *disp;    /*!< LVGL display handle (returned from lvgl_port_add_disp) */
     esp_lcd_touch_handle_t   handle;   /*!< LCD touch IO handle */
 } lvgl_port_touch_cfg_t;
+#endif
+
+#if __has_include ("iot_knob.h")
+/**
+ * @brief Configuration of the encoder structure
+ */
+typedef struct {
+    lv_disp_t *disp;    /*!< LVGL display handle (returned from lvgl_port_add_disp) */
+    const knob_config_t *encoder_a_b;
+    const button_config_t *encoder_enter;  /*!< Navigation button for enter */
+} lvgl_port_encoder_cfg_t;
 #endif
 
 #if __has_include ("iot_button.h")
@@ -168,6 +184,27 @@ lv_indev_t *lvgl_port_add_touch(const lvgl_port_touch_cfg_t *touch_cfg);
 esp_err_t lvgl_port_remove_touch(lv_indev_t *touch);
 #endif
 
+#if __has_include ("iot_knob.h")
+/**
+ * @brief Add encoder as an input device
+ *
+ * @note Allocated memory in this function is not free in deinit. You must call lvgl_port_remove_encoder for free all memory!
+ *
+ * @param encoder_cfg Encoder configuration structure
+ * @return Pointer to LVGL encoder input device or NULL when error occured
+ */
+lv_indev_t *lvgl_port_add_encoder(const lvgl_port_encoder_cfg_t *encoder_cfg);
+
+/**
+ * @brief Remove encoder from input devices
+ *
+ * @note Free all memory used for this input device.
+ *
+ * @return
+ *      - ESP_OK                    on success
+ */
+esp_err_t lvgl_port_remove_encoder(lv_indev_t *encoder);
+#endif
 
 #if __has_include ("iot_button.h")
 /**
