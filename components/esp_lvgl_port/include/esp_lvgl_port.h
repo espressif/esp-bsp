@@ -109,13 +109,13 @@ typedef struct {
  * @brief LVGL port configuration structure
  *
  */
-#define ESP_LVGL_PORT_INIT_CONFIG() \
-    {                               \
-        .task_priority = 4,       \
-        .task_stack = 4096,       \
-        .task_affinity = -1,      \
-        .task_max_sleep_ms = 500, \
-        .timer_period_ms = 5,     \
+#define ESP_LVGL_PORT_INIT_CONFIG()                     \
+    {                                                   \
+        .task_priority = CONFIG_LVGL_PORT_TASK_PRIORITY,\
+        .task_stack = CONFIG_LVGL_PORT_TASK_STACK_SIZE, \
+        .task_affinity = -1,                            \
+        .task_max_sleep_ms = 500,                       \
+        .timer_period_ms = 5,                           \
     }
 
 /**

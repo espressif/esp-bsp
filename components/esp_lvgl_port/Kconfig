@@ -1,0 +1,14 @@
+menu "ESP Lvgl Port"
+
+    config LVGL_PORT_TASK_STACK_SIZE
+        int "Lvgl task stack size"
+        default 4096
+        help
+            Set the default lvgl port task stack size.
+
+    config LVGL_PORT_TASK_PRIORITY
+        int "LVGL task priority"
+        default 4
+        help
+            Set the default lvgl port task priority.
+endmenu
