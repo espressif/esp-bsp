@@ -14,11 +14,16 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/i2c.h"
-#include "driver/i2s_std.h"
 #include "soc/usb_pins.h"
 #include "lvgl.h"
 #include "esp_codec_dev.h"
+#include "iot_button.h"
 
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+#include "driver/i2s.h"
+#else
+#include "driver/i2s_std.h"
+#endif
 /**************************************************************************************************
  *  ESP-BOX pinout
  **************************************************************************************************/
@@ -47,6 +52,10 @@
 /* USB */
 #define BSP_USB_POS           USBPHY_DP_NUM
 #define BSP_USB_NEG           USBPHY_DM_NUM
+
+/* Buttons */
+#define BSP_BUTTON_CONFIG_IO  (GPIO_NUM_0)
+#define BSP_BUTTON_MUTE_IO    (GPIO_NUM_1)
 
 /* PMOD */
 /*
@@ -87,9 +96,10 @@
 
 /* Buttons */
 typedef enum {
-    BSP_BUTTON_CONFIG = GPIO_NUM_0,
-    BSP_BUTTON_MUTE   = GPIO_NUM_1,
-    BSP_BUTTON_MAIN   = 100
+    BSP_BUTTON_CONFIG = 0,
+    BSP_BUTTON_MUTE,
+    BSP_BUTTON_MAIN,
+    BSP_BUTTON_NUM
 } bsp_button_t;
 
 #ifdef __cplusplus
@@ -117,43 +127,11 @@ extern "C" {
  **************************************************************************************************/
 
 /**
- * @brief ESP-BOX I2S pinout
- *
- * Can be used for i2s_std_gpio_config_t and/or i2s_std_config_t initialization
- */
-#define BSP_I2S_GPIO_CFG       \
-    {                          \
-        .mclk = BSP_I2S_MCLK,  \
-        .bclk = BSP_I2S_SCLK,  \
-        .ws = BSP_I2S_LCLK,    \
-        .dout = BSP_I2S_DOUT,  \
-        .din = BSP_I2S_DSIN,   \
-        .invert_flags = {      \
-            .mclk_inv = false, \
-            .bclk_inv = false, \
-            .ws_inv = false,   \
-        },                     \
-    }
-
-/**
- * @brief Mono Duplex I2S configuration structure
- *
- * This configuration is used by default in bsp_audio_init()
- */
-#define BSP_I2S_DUPLEX_MONO_CFG(_sample_rate)                                                         \
-    {                                                                                                 \
-        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(_sample_rate),                                          \
-        .slot_cfg = I2S_STD_PHILIP_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO), \
-        .gpio_cfg = BSP_I2S_GPIO_CFG,                                                                 \
-    }
-
-/**
  * @brief Init audio
  *
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
+ * @warning The type of i2s_config param is depending on IDF version.
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
- * @param[out] tx_channel I2S TX channel
- * @param[out] rx_channel I2S RX channel
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
@@ -162,17 +140,19 @@ extern "C" {
  *      - ESP_ERR_NO_MEM        No memory for storing the channel information
  *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
  */
-esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel);
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+esp_err_t bsp_audio_init(const i2s_config_t *i2s_config);
+#else
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
+#endif
 
 /**
- * @brief Enable/disable audio power amplifier
+ * @brief Get codec I2S interface (initialized in bsp_audio_init)
  *
- * @param[in] enable Enable/disable audio power amplifier
  * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Invalid GPIO number
+ *      - Pointer to codec I2S interface handle or NULL when error occured
  */
-esp_err_t bsp_audio_poweramp_enable(const bool enable);
+const audio_codec_data_if_t *bsp_audio_get_codec_itf(void);
 
 /**
  * @brief Initialize speaker codec device
@@ -378,7 +358,8 @@ void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
  *     - ESP_OK Success
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
-esp_err_t bsp_button_init(const bsp_button_t btn);
+esp_err_t bsp_button_init(const bsp_button_t btn)
+__attribute__((deprecated("use espressif/button API instead")));
 
 /**
  * @brief Get button's state
@@ -390,7 +371,26 @@ esp_err_t bsp_button_init(const bsp_button_t btn);
  * @return true  Button pressed
  * @return false Button released
  */
-bool bsp_button_get(const bsp_button_t btn);
+bool bsp_button_get(const bsp_button_t btn)
+__attribute__((deprecated("use espressif/button API instead")));
+
+/**
+ * @brief Initialize all buttons
+ *
+ * Returned button handlers must be used with espressif/button component API
+ *
+ * @note For LCD panel button which is defined as BSP_BUTTON_MAIN, bsp_display_start should
+ *       be called before call this function.
+ *
+ * @param[out] btn_array      Output button array
+ * @param[out] btn_cnt        Number of button handlers saved to btn_array, can be NULL
+ * @param[in]  btn_array_size Size of output button array. Must be at least BSP_BUTTON_NUM
+ * @return
+ *     - ESP_OK               All buttons initialized
+ *     - ESP_ERR_INVALID_ARG  btn_array is too small or NULL
+ *     - ESP_FAIL             Underlaying iot_button_create failed
+ */
+esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 
 #ifdef __cplusplus
 }

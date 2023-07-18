@@ -15,6 +15,7 @@
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
 
+#include "iot_button.h"
 #include "bsp/esp-box.h"
 #include "bsp/display.h"
 #include "bsp/touch.h"
@@ -32,9 +33,31 @@ _Static_assert(CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0, "Touch buttons must be supp
 static lv_disp_t *disp;
 static lv_indev_t *disp_indev = NULL;
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
-static const audio_codec_data_if_t *i2s_data_if = NULL;  /* Codec data interface */
-static i2s_chan_handle_t i2s_tx_chan = NULL;
-static i2s_chan_handle_t i2s_rx_chan = NULL;
+
+// This is just a wrapper to get function signature for espressif/button API callback
+static uint8_t bsp_get_main_button(void *param);
+static esp_err_t bsp_init_main_button(void *param);
+
+static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.gpio_num = BSP_BUTTON_CONFIG_IO,
+        .gpio_button_config.active_level = 0,
+    },
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.gpio_num = BSP_BUTTON_MUTE_IO,
+        .gpio_button_config.active_level = 0,
+    },
+    {
+        .type = BUTTON_TYPE_CUSTOM,
+        .custom_button_config.button_custom_init = bsp_init_main_button,
+        .custom_button_config.button_custom_get_key_value = bsp_get_main_button,
+        .custom_button_config.button_custom_deinit = NULL,
+        .custom_button_config.active_level = 1,
+        .custom_button_config.priv = (void *) BSP_BUTTON_MAIN,
+    }
+};
 
 esp_err_t bsp_i2c_init(void)
 {
@@ -100,78 +123,15 @@ esp_err_t bsp_spiffs_unmount(void)
     return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
 }
 
-
-esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel)
-{
-    if (i2s_tx_chan && i2s_rx_chan && i2s_data_if) {
-        if (tx_channel) {
-            *tx_channel = i2s_tx_chan;
-        }
-        if (rx_channel) {
-            *rx_channel = i2s_rx_chan;
-        }
-
-        /* Audio was initialized before */
-        return ESP_OK;
-    }
-
-    /* Setup I2S peripheral */
-    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(CONFIG_BSP_I2S_NUM, I2S_ROLE_MASTER);
-    chan_cfg.auto_clear = true; // Auto clear the legacy data in the DMA buffer
-    BSP_ERROR_CHECK_RETURN_ERR(i2s_new_channel(&chan_cfg, tx_channel, rx_channel));
-
-    /* Setup I2S channels */
-    const i2s_std_config_t std_cfg_default = BSP_I2S_DUPLEX_MONO_CFG(22050);
-    const i2s_std_config_t *p_i2s_cfg = &std_cfg_default;
-    if (i2s_config != NULL) {
-        p_i2s_cfg = i2s_config;
-    }
-
-    if (tx_channel != NULL) {
-        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_init_std_mode(*tx_channel, p_i2s_cfg));
-        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_enable(*tx_channel));
-    }
-    if (rx_channel != NULL) {
-        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_init_std_mode(*rx_channel, p_i2s_cfg));
-        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_enable(*rx_channel));
-    }
-
-    audio_codec_i2s_cfg_t i2s_cfg = {
-        .port = CONFIG_BSP_I2S_NUM,
-        .rx_handle = *rx_channel,
-        .tx_handle = *tx_channel,
-    };
-    i2s_data_if = audio_codec_new_i2s_data(&i2s_cfg);
-    BSP_NULL_CHECK(i2s_data_if, NULL);
-
-    /* Setup power amplifier pin */
-    const gpio_config_t io_conf = {
-        .intr_type = GPIO_INTR_DISABLE,
-        .mode = GPIO_MODE_OUTPUT,
-        .pin_bit_mask = BIT64(BSP_POWER_AMP_IO),
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .pull_up_en = GPIO_PULLDOWN_DISABLE,
-    };
-    BSP_ERROR_CHECK_RETURN_ERR(gpio_config(&io_conf));
-
-    return ESP_OK;
-}
-
-esp_err_t bsp_audio_poweramp_enable(bool enable)
-{
-    BSP_ERROR_CHECK_RETURN_ERR(gpio_set_level(BSP_POWER_AMP_IO, enable ? 1 : 0));
-
-    return ESP_OK;
-}
-
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
 {
-    if (i2s_tx_chan == NULL || i2s_rx_chan == NULL || i2s_data_if == NULL) {
+    const audio_codec_data_if_t *i2s_data_if = bsp_audio_get_codec_itf();
+    if (i2s_data_if == NULL) {
         /* Initilize I2C */
         BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
         /* Configure I2S peripheral and Power Amplifier */
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL, &i2s_tx_chan, &i2s_rx_chan));
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_poweramp_enable(true));
+        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL));
+        i2s_data_if = bsp_audio_get_codec_itf();
     }
     assert(i2s_data_if);
 
@@ -215,12 +175,13 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
 
 esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
 {
-    if (i2s_tx_chan == NULL || i2s_rx_chan == NULL || i2s_data_if == NULL) {
+    const audio_codec_data_if_t *i2s_data_if = bsp_audio_get_codec_itf();
+    if (i2s_data_if == NULL) {
         /* Initilize I2C */
         BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
         /* Configure I2S peripheral and Power Amplifier */
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL, &i2s_tx_chan, &i2s_rx_chan));
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_poweramp_enable(true));
+        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL));
+        i2s_data_if = bsp_audio_get_codec_itf();
     }
     assert(i2s_data_if);
 
@@ -471,8 +432,19 @@ void bsp_display_unlock(void)
 
 esp_err_t bsp_button_init(const bsp_button_t btn)
 {
+    gpio_num_t btn_io;
+    switch (btn) {
+    case BSP_BUTTON_CONFIG:
+        btn_io = BSP_BUTTON_CONFIG_IO;
+        break;
+    case BSP_BUTTON_MUTE:
+        btn_io = BSP_BUTTON_MUTE_IO;
+        break;
+    default:
+        return ESP_FAIL;
+    }
     const gpio_config_t button_io_config = {
-        .pin_bit_mask = BIT64(btn),
+        .pin_bit_mask = BIT64(btn_io),
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -495,6 +467,63 @@ bool bsp_button_get(const bsp_button_t btn)
         return false;
 #endif
     } else {
-        return !(bool)gpio_get_level(btn);
+        gpio_num_t btn_io;
+        switch (btn) {
+        case BSP_BUTTON_CONFIG:
+            btn_io = BSP_BUTTON_CONFIG_IO;
+            break;
+        case BSP_BUTTON_MUTE:
+            btn_io = BSP_BUTTON_MUTE_IO;
+            break;
+        default:
+            return ESP_FAIL;
+        }
+        return !(bool)gpio_get_level(btn_io);
     }
+}
+
+static uint8_t bsp_get_main_button(void *param)
+{
+    assert(tp);
+    ESP_ERROR_CHECK(esp_lcd_touch_read_data(tp));
+#if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
+    uint8_t home_btn_val = 0x00;
+    esp_lcd_touch_get_button_state(tp, 0, &home_btn_val);
+    return home_btn_val ? true : false;
+#else
+    ESP_LOGE(TAG, "Button main is inaccessible");
+    return false;
+#endif
+}
+
+static esp_err_t bsp_init_main_button(void *param)
+{
+    if (tp == NULL) {
+        BSP_ERROR_CHECK_RETURN_ERR(bsp_touch_new(NULL, &tp));
+    }
+    return ESP_OK;
+}
+
+esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
+{
+    esp_err_t ret = ESP_OK;
+    if ((btn_array_size < BSP_BUTTON_NUM) ||
+            (btn_array == NULL)) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    if (btn_cnt) {
+        *btn_cnt = 0;
+    }
+    for (int i = 0; i < BSP_BUTTON_NUM; i++) {
+        btn_array[i] = iot_button_create(&bsp_button_config[i]);
+        if (btn_array[i] == NULL) {
+            ret = ESP_FAIL;
+            break;
+        }
+        if (btn_cnt) {
+            (*btn_cnt)++;
+        }
+    }
+    return ret;
 }

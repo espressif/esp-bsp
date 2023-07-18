@@ -1,0 +1,4 @@
+examples:
+  disable:
+    - if: IDF_VERSION_MAJOR < 5 and CONFIG_NAME not in ["esp-box"]
+      reason: Example depends on BSP, which is supported only for IDF >= 5.0

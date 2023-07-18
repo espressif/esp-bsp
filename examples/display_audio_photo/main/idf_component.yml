@@ -1,7 +1,7 @@
 description: BSP Display Audio Photo Example
 dependencies:
-  idf: ">=5.0"
+  idf: ">=4.4"
   esp_jpeg: "*"
   esp-box:
-    version: "*"
+    version: ">=3.0.0"
     override_path: "../../../esp-box"
