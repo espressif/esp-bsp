@@ -1,7 +1,7 @@
-﻿/*
+/*
  * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
  *
- * SPDX-License-Identifier: CC0-1.0
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -56,15 +56,15 @@
  * Power pins are on 3.3V.
  *
  * Double PMOD Connectors on ESP-BOX-Lite are labeled as follows:
- *      ┌────────────┐
- *      | IO1    IO5 │
- *      | IO2    IO6 │
- *      | IO3    IO7 │
- *      | IO4    IO8 │
- *      ├────────────┤
- *      | GND    GND │
- *      | 3V3    3V3 │
- *      └────────────┘
+ *      |------------|
+ *      | IO1    IO5 |
+ *      | IO2    IO6 |
+ *      | IO3    IO7 |
+ *      | IO4    IO8 |
+ *      |------------|
+ *      | GND    GND |
+ *      | 3V3    3V3 |
+ *      |------------|
  */
 #define BSP_PMOD1_IO1        GPIO_NUM_42
 #define BSP_PMOD1_IO2        GPIO_NUM_21

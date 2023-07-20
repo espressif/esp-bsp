@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+# SPDX-License-Identifier: Apache-2.0
 import os
 from re import match, compile
 from pathlib import Path
