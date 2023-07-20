@@ -1,6 +1,5 @@
 description: BSP Display Audio Photo Example
 dependencies:
-  idf: ">=4.4"
   esp_jpeg: "*"
   esp-box:
     version: ">=3.0.0"
