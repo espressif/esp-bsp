@@ -16,6 +16,7 @@
 #include "driver/i2c.h"
 #include "soc/usb_pins.h"
 #include "lvgl.h"
+#include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
 #include "iot_button.h"
 
@@ -105,6 +106,14 @@ typedef enum {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;
+} bsp_display_cfg_t;
 
 /**************************************************************************************************
  *
@@ -272,6 +281,18 @@ esp_err_t bsp_spiffs_unmount(void);
  * @return Pointer to LVGL display or NULL when error occured
  */
 lv_disp_t *bsp_display_start(void);
+
+/**
+ * @brief Initialize display
+ *
+ * This function initializes SPI, display controller and starts LVGL handling task.
+ * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
+ *
+ * @param cfg display configuration
+ *
+ * @return Pointer to LVGL display or NULL when error occured
+ */
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 
 /**
  * @brief Get pointer to input device (touch, buttons, ...)

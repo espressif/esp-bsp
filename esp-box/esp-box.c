@@ -400,12 +400,22 @@ static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
 
 lv_disp_t *bsp_display_start(void)
 {
-    const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
-    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&lvgl_cfg));
+    bsp_display_cfg_t cfg = {
+        .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG()
+    };
+    return bsp_display_start_with_config(&cfg);
+}
+
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
+{
+    assert(cfg != NULL);
+    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
+
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_brightness_init());
 
     BSP_NULL_CHECK(disp = bsp_display_lcd_init(), NULL);
 
-    BSP_NULL_CHECK(disp_indev = bsp_display_indev_init(disp), NULL);
+    BSP_NULL_CHECK(bsp_display_indev_init(disp), NULL);
 
     return disp;
 }
