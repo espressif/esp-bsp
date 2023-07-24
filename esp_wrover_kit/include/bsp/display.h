@@ -1,7 +1,7 @@
 /*
  * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
  *
- * SPDX-License-Identifier: CC0-1.0
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**

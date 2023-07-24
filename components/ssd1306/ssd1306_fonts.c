@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #include "ssd1306_fonts.h"
 
 const uint8_t c_chFont1206[95][12] = { {
