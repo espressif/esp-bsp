@@ -35,7 +35,7 @@
    With sampling frequency 22050 Hz and 16bit mono resolution it equals to ~3.715 seconds */
 #define RECORDING_LENGTH (160)
 
-#define REC_FILENAME    "/root/recording.wav"
+#define REC_FILENAME    FS_MNT_PATH"/recording.wav"
 
 static const char *TAG = "DISP";
 
@@ -787,7 +787,7 @@ static void rec_file(void *arg)
     ESP_LOGI(TAG, "Recording start");
 
     esp_codec_dev_sample_info_t fs = {
-        .sample_rate = SAMPLE_RATE / 2,
+        .sample_rate = SAMPLE_RATE,
         .channel = 1,
         .bits_per_sample = 16,
     };

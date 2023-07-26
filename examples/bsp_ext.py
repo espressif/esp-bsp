@@ -13,8 +13,8 @@ def action_extensions(base_actions, project_path=os.getcwd()):
     try:
         from idf_py_actions.tools import PropertyDict, red_print
     except ImportError:
-        print('Unsupported IDF version!')
-        return {}
+        PropertyDict = dict
+        red_print = print
     try:
         import ruamel.yaml
     except ImportError:

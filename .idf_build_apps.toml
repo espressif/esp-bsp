@@ -1,10 +1,10 @@
 target = "all"
 paths = "examples"
 recursive = true
+manifest_file = ".build-test-rules.yml"
 check_warnings = true
 ignore_warning_file = ".ignore_build_warnings.txt"
 config = "sdkconfig.bsp.*"
 
 # build related options
 build_dir = "build_@w"
-parallel_count = 5

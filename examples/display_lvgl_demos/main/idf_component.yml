@@ -1,6 +1,5 @@
 description: BSP Display rotation example
 dependencies:
-  idf: ">=5"
   esp32_s3_lcd_ev_board:
     version: "*"
     override_path: "../../../esp32_s3_lcd_ev_board"
