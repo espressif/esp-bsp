@@ -6,6 +6,3 @@ dependencies:
   lvgl/lvgl:
     version: "^8"
     public: true
-
-examples:
-  - path: examples/touchscreen
