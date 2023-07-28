@@ -256,8 +256,11 @@ esp_err_t bsp_spiffs_unmount(void);
  *
  * IO Expander Interface
  *
+ * The current mass-produced version uses TCA9554, while a small number of older versions use TCA9554A.
+ *
  **************************************************************************************************/
-#define BSP_IO_EXPANDER_I2C_ADDRESS     (ESP_IO_EXPANDER_I2C_TCA9554A_ADDRESS_000)
+#define BSP_IO_EXPANDER_I2C_ADDRESS_TCA9554A    (ESP_IO_EXPANDER_I2C_TCA9554A_ADDRESS_000)
+#define BSP_IO_EXPANDER_I2C_ADDRESS_TCA9554     (ESP_IO_EXPANDER_I2C_TCA9554_ADDRESS_000)
 
 /**
  * @brief Init IO expander chip TCA9554

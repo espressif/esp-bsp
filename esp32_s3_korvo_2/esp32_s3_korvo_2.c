@@ -317,7 +317,14 @@ esp_io_expander_handle_t bsp_io_expander_init(void)
     if (io_expander) {
         ESP_LOGD(TAG, "io_expander is initialized");
     } else {
-        BSP_ERROR_CHECK_RETURN_NULL(esp_io_expander_new_i2c_tca9554(BSP_I2C_NUM, BSP_IO_EXPANDER_I2C_ADDRESS, &io_expander));
+        // Here we try to initialize TCA9554 first, if it fails, we try to initialize TCA9554A
+        // *INDENT-OFF*
+        if ((esp_io_expander_new_i2c_tca9554(BSP_I2C_NUM, BSP_IO_EXPANDER_I2C_ADDRESS_TCA9554, &io_expander) != ESP_OK) &&
+            (esp_io_expander_new_i2c_tca9554(BSP_I2C_NUM, BSP_IO_EXPANDER_I2C_ADDRESS_TCA9554A, &io_expander) != ESP_OK)) {
+            ESP_LOGE(TAG, "Failed to initialize IO expander");
+            return NULL;
+        }
+        // *INDENT-OFF*
     }
 
     return io_expander;
@@ -363,7 +370,7 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
     };
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9341(*ret_io, &panel_config, ret_panel), err, TAG, "New panel failed");
 
-    bsp_io_expander_init();
+    BSP_NULL_CHECK(bsp_io_expander_init(), ESP_ERR_INVALID_STATE);
     ESP_GOTO_ON_ERROR(esp_io_expander_set_dir(io_expander, BSP_LCD_IO_CS, IO_EXPANDER_OUTPUT), err, TAG, "");
     ESP_GOTO_ON_ERROR(esp_io_expander_set_dir(io_expander, BSP_LCD_IO_RST, IO_EXPANDER_OUTPUT), err, TAG, "");
     ESP_GOTO_ON_ERROR(esp_io_expander_set_dir(io_expander, BSP_LCD_IO_BACKLIGHT, IO_EXPANDER_OUTPUT), err, TAG, "");
