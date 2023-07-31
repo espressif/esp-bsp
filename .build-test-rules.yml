@@ -1,4 +1,4 @@
 examples:
   disable:
-    - if: IDF_VERSION_MAJOR < 5 and CONFIG_NAME not in ["esp-box", "esp-box-lite", "esp32_s3_eye", "esp_wrover_kit", "esp32_s3_korvo_2", "esp-box-3", "esp32_azure_iot_kit"]
+    - if: IDF_VERSION_MAJOR < 5 and CONFIG_NAME in ["esp32_c3_lcdkit", "esp32_s3_lcd_ev_board", "esp32_s3_usb_otg"]
       reason: Example depends on BSP, which is supported only for IDF >= 5.0
