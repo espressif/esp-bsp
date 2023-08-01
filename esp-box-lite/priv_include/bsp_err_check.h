@@ -46,12 +46,6 @@ extern "C" {
         }                                 \
     } while(0)
 
-#define BSP_NULL_CHECK(x, ret) do { \
-        if ((x) == NULL) {          \
-            return ret;             \
-        }                           \
-    } while(0)
-
 #define BSP_NULL_CHECK_GOTO(x, goto_tag) do { \
         if ((x) == NULL) {      \
             goto goto_tag;      \

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -81,6 +81,7 @@ static void set_tab_group(void);
 *******************************************************************************/
 
 static lv_obj_t *tabview = NULL;
+static lv_obj_t *tab_btns = NULL;
 static lv_group_t *filesystem_group = NULL;
 static lv_group_t *recording_group = NULL;
 static lv_group_t *settings_group = NULL;
@@ -118,7 +119,7 @@ void app_disp_lvgl_show(void)
     lv_obj_add_event_cb(tabview, tab_changed_event, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Tabview buttons style */
-    lv_obj_t *tab_btns = lv_tabview_get_tab_btns(tabview);
+    tab_btns = lv_tabview_get_tab_btns(tabview);
     lv_obj_set_style_bg_color(tab_btns, lv_palette_darken(LV_PALETTE_GREY, 3), 0);
     lv_obj_set_style_text_color(tab_btns, lv_palette_lighten(LV_PALETTE_GREEN, 5), 0);
     lv_obj_set_style_border_side(tab_btns, LV_BORDER_SIDE_BOTTOM, LV_PART_ITEMS | LV_STATE_CHECKED);
@@ -135,8 +136,6 @@ void app_disp_lvgl_show(void)
         recording_group = lv_group_create();
         settings_group = lv_group_create();
         lv_group_add_obj(filesystem_group, tab_btns);
-        lv_group_add_obj(recording_group, tab_btns);
-        lv_group_add_obj(settings_group, tab_btns);
         lv_indev_set_group(indev, filesystem_group);
         ESP_LOGI(TAG, "Input device group was set.");
     }
@@ -947,17 +946,23 @@ static void set_tab_group(void)
         lv_group_set_editing(filesystem_group, false);
         lv_group_set_editing(recording_group, false);
         lv_group_set_editing(settings_group, false);
+        //lv_group_remove_obj(tab_btns);
         switch (tab) {
         case 0:
+            lv_group_add_obj(filesystem_group, tab_btns);
             lv_indev_set_group(indev, filesystem_group);
             break;
         case 1:
+            lv_group_add_obj(recording_group, tab_btns);
             lv_indev_set_group(indev, recording_group);
             break;
         case 2:
+            lv_group_add_obj(settings_group, tab_btns);
             lv_indev_set_group(indev, settings_group);
             break;
         }
+
+        lv_tabview_set_act(tabview, tab, false);
     }
 }
 
