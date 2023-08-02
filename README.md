@@ -13,7 +13,8 @@ Board support packages for development boards using Espressif's SoCs, written in
 | [ESP32-S2-Kaluga Kit](esp32_s2_kaluga_kit) | ESP32-S2 | LCD display, audio codec + power amplifier,<br>smart LED and camera | <img src="docu/pics/kaluga.png" width="150">  |
 | [ESP32-S3-USB-OTG](esp32_s3_usb_otg) | ESP32-S3 | LCD display, uSD card slot, USB-OTG | <img src="docu/pics/esp32_s3_otg.png" width="150">  |
 | [ESP32-S3-EYE](esp32_s3_eye) | ESP32-S3 | LCD display, camera, uSD card slot, microphone and accelerometer | <img src="docu/pics/s3-eye.webp" width="150"> |
-| [ESP32-S3-LCD-EV-BOARD](esp32_s3_lcd_ev_board) | ESP32-S3 | LCD display with touch, audio codec + power amplifier | <img src="docu/pics/esp32-s3-lcd-ev-board_800x480.png" width="150"> |
+| [ESP32-S3-LCD-EV-Board](esp32_s3_lcd_ev_board) | ESP32-S3 | LCD display with touch, audio codec + power amplifier | <img src="docu/pics/esp32-s3-lcd-ev-board_480x480.png" width="150"> |
+| [ESP32-S3-LCD-EV-Board-2](esp32_s3_lcd_ev_board) | ESP32-S3 | LCD display with touch, audio codec + power amplifier | <img src="docu/pics/esp32-s3-lcd-ev-board_800x480.png" width="150"> |
 | [ESP32-S3-Korvo-2](esp32_s3_korvo_2) | ESP32-S3 | LCD display, camera, uSD card slot, microphone, audio codec + power amplifier | <img src="docu/pics/korvo-2.png" width="150"> |
 | [ESP32-LyraT](esp32_lyrat) | ESP32 | uSD card slot, microphone, audio codec + power amplifier | <img src="docu/pics/lyrat.png" width="150"> |
 | [ESP32-C3-LCDKit](esp32_c3_lcdkit) | ESP32-C3 | LCD display with encoder, IR, PDM audio| <img src="docu/pics/esp32_c3_lcdkit.png" width="150"> |
@@ -41,12 +42,12 @@ Best way to start with ESP-BSP is trying one of the [examples](examples) on your
 | [display_camera](examples/display_camera) | Kaluga-kit |
 | [display_audio_photo](examples/display_audio_photo) | ESP-BOX |
 | [display_rotation](examples/display_rotation) | ESP-BOX |
-| [display_lvgl_demos](examples/display_lvgl_demos) | ESP32-S3-LCD-EV-BOARD |
+| [display_lvgl_demos](examples/display_lvgl_demos) | ESP32-S3-LCD-EV-Board |
 | [mqtt_example](examples/mqtt_example) | Azure-IoT-kit |
 | [sensors_example](examples/sensors_example) | Azure-IoT-kit |
 
 ### BSP headers
-Each BSP provides its header file in 'bsp' subfolder, so it can be included as follows: `#include "bsp/name-of-the-bsp.h"`. 
+Each BSP provides its header file in 'bsp' subfolder, so it can be included as follows: `#include "bsp/name-of-the-bsp.h"`.
 For you convenience, each BSP also provides a wrapper header, which has the same name for all BSPs: `#include "bsp/esp-bsp.h"`.
 
 BSPs that contain LCD screen or touchscreen also provide `bsp/display.h` and `bsp/touch.h`. These files provide functions for LCD or touchscreen initialization without LVGL graphics library, which is used by default.
