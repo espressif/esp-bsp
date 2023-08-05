@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -39,8 +39,8 @@ typedef struct {
     i2c_port_t i2c_num;
     uint32_t i2c_address;
     struct {
-        uint8_t direction;
-        uint8_t output;
+        uint16_t direction;
+        uint16_t output;
     } regs;
 } esp_io_expander_tca95xx_16bit_t;
 
@@ -95,7 +95,7 @@ static esp_err_t read_input_reg(esp_io_expander_handle_t handle, uint32_t *value
         i2c_master_write_read_device(tca->i2c_num, tca->i2c_address, (uint8_t[]){INPUT_REG_ADDR}, 1, (uint8_t*)&temp, 2, pdMS_TO_TICKS(I2C_TIMEOUT_MS)),
         TAG, "Read input reg failed");
     // *INDENT-ON*
-    *value = (((uint32_t)temp[0]) << 8) | (temp[1]);
+    *value = (((uint32_t)temp[1]) << 8) | (temp[0]);
     return ESP_OK;
 }
 
@@ -104,7 +104,7 @@ static esp_err_t write_output_reg(esp_io_expander_handle_t handle, uint32_t valu
     esp_io_expander_tca95xx_16bit_t *tca = (esp_io_expander_tca95xx_16bit_t *)__containerof(handle, esp_io_expander_tca95xx_16bit_t, base);
     value &= 0xffff;
 
-    uint8_t data[] = {OUTPUT_REG_ADDR, value >> 8, value & 0xff};
+    uint8_t data[] = {OUTPUT_REG_ADDR, value & 0xff, value >> 8};
     ESP_RETURN_ON_ERROR(
         i2c_master_write_to_device(tca->i2c_num, tca->i2c_address, data, sizeof(data), pdMS_TO_TICKS(I2C_TIMEOUT_MS)),
         TAG, "Write output reg failed");
@@ -125,7 +125,7 @@ static esp_err_t write_direction_reg(esp_io_expander_handle_t handle, uint32_t v
     esp_io_expander_tca95xx_16bit_t *tca = (esp_io_expander_tca95xx_16bit_t *)__containerof(handle, esp_io_expander_tca95xx_16bit_t, base);
     value &= 0xffff;
 
-    uint8_t data[] = {DIRECTION_REG_ADDR, value >> 8, value & 0xff};
+    uint8_t data[] = {DIRECTION_REG_ADDR, value & 0xff, value >> 8};
     ESP_RETURN_ON_ERROR(
         i2c_master_write_to_device(tca->i2c_num, tca->i2c_address, data, sizeof(data), pdMS_TO_TICKS(I2C_TIMEOUT_MS)),
         TAG, "Write direction reg failed");
