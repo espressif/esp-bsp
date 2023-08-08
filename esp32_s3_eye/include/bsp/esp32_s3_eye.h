@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -14,9 +14,16 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/sdmmc_host.h"
-#include "driver/i2s_std.h"
 #include "lvgl.h"
+#include "esp_lvgl_port.h"
+#include "esp_codec_dev.h"
 #include "iot_button.h"
+
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+#include "driver/i2s.h"
+#else
+#include "driver/i2s_std.h"
+#endif
 
 /**************************************************************************************************
  * ESP32-S3-EYE pinout
@@ -68,16 +75,23 @@ typedef enum bsp_led_t {
 extern "C" {
 #endif
 
+/**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;
+} bsp_display_cfg_t;
+
 /**************************************************************************************************
  *
  * Buttons interface
  *
  * Example configuration:
  * \code{.c}
- * button_handle_t button[BSP_BUTTON_NUM];
- * for (int i = 0; i < BSP_BUTTON_NUM; i++) {
- *     button[i] = iot_button_create(&bsp_button_config[i]);
- * }
+ * button_handle_t btns[BSP_BUTTON_NUM];
+ * bsp_iot_button_create(btns, NULL, BSP_BUTTON_NUM);
+ * iot_button_register_cb(btns[0], ...
  * \endcode
  **************************************************************************************************/
 typedef enum {
@@ -88,7 +102,23 @@ typedef enum {
     BSP_BUTTON_NUM
 } bsp_button_t;
 
-extern const button_config_t bsp_button_config[BSP_BUTTON_NUM];
+/**
+ * @brief Initialize all buttons
+ *
+ * Returned button handlers must be used with espressif/button component API
+ *
+ * @note For LCD panel button which is defined as BSP_BUTTON_MAIN, bsp_display_start should
+ *       be called before call this function.
+ *
+ * @param[out] btn_array      Output button array
+ * @param[out] btn_cnt        Number of button handlers saved to btn_array, can be NULL
+ * @param[in]  btn_array_size Size of output button array. Must be at least BSP_BUTTON_NUM
+ * @return
+ *     - ESP_OK               All buttons initialized
+ *     - ESP_ERR_INVALID_ARG  btn_array is too small or NULL
+ *     - ESP_FAIL             Underlaying iot_button_create failed
+ */
+esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 
 /**************************************************************************************************
  *
@@ -175,6 +205,40 @@ esp_err_t bsp_i2c_deinit(void);
 
 /**************************************************************************************************
  *
+ * SPIFFS
+ *
+ * After mounting the SPIFFS, it can be accessed with stdio functions ie.:
+ * \code{.c}
+ * FILE* f = fopen(BSP_SPIFFS_MOUNT_POINT"/hello.txt", "w");
+ * fprintf(f, "Hello World!\n");
+ * fclose(f);
+ * \endcode
+ **************************************************************************************************/
+#define BSP_SPIFFS_MOUNT_POINT      CONFIG_BSP_SPIFFS_MOUNT_POINT
+
+/**
+ * @brief Mount SPIFFS to virtual file system
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_spiffs_register was already called
+ *      - ESP_ERR_NO_MEM if memory can not be allocated
+ *      - ESP_FAIL if partition can not be mounted
+ *      - other error codes
+ */
+esp_err_t bsp_spiffs_mount(void);
+
+/**
+ * @brief Unmount SPIFFS from virtual file system
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if already unmounted
+ */
+esp_err_t bsp_spiffs_unmount(void);
+
+/**************************************************************************************************
+ *
  * uSD card
  *
  * After mounting the uSD card, it can be accessed with stdio functions ie.:
@@ -184,7 +248,7 @@ esp_err_t bsp_i2c_deinit(void);
  * fclose(f);
  * \endcode
  **************************************************************************************************/
-#define BSP_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
+#define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 extern sdmmc_card_t *bsp_sdcard;
 
 /**
@@ -239,6 +303,18 @@ esp_err_t bsp_sdcard_unmount(void);
  * @return Pointer to LVGL display or NULL when error occured
  */
 lv_disp_t *bsp_display_start(void);
+
+/**
+ * @brief Initialize display
+ *
+ * This function initializes SPI, display controller and starts LVGL handling task.
+ * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
+ *
+ * @param cfg display configuration
+ *
+ * @return Pointer to LVGL display or NULL when error occured
+ */
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 
 /**
  * @brief Get pointer to input device (touch, buttons, ...)
@@ -341,66 +417,26 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
  *
  * There is only one device connected to the I2S peripheral
  *  - MEMSensing Microsystems MSM261S4030H0: 48kHz, 24bit mono digital microphone
+ *
+ * For microphone initialization use bsp_audio_codec_microphone_init() which is inside initialize I2S with bsp_audio_init().
+ * After microphone initialization, use functions from esp_codec_dev for record audio.
+ * Example audio play:
+ * \code{.c}
+ * esp_codec_dev_set_out_vol(spk_codec_dev, DEFAULT_VOLUME);
+ * esp_codec_dev_open(spk_codec_dev, &fs);
+ * esp_codec_dev_write(spk_codec_dev, wav_bytes, bytes_read_from_spiffs);
+ * esp_codec_dev_close(spk_codec_dev);
+ * \endcode
  **************************************************************************************************/
-
-/**
- * @brief Sample rate of MSM261S4030H0
- */
-#define BSP_MIC_SAMPLE_RATE (48000u)
-
-/**
- * @brief ESP32-S3-EYE I2S pinout
- *
- * Can be used for i2s_std_gpio_config_t and/or i2s_std_config_t initialization
- */
-#define BSP_I2S_GPIO_CFG()     \
-    {                          \
-        .mclk = GPIO_NUM_NC,   \
-        .bclk = BSP_I2S_SCLK,  \
-        .ws = BSP_I2S_LCLK,    \
-        .dout = GPIO_NUM_NC,   \
-        .din = BSP_I2S_DIN,    \
-        .invert_flags = {      \
-            .mclk_inv = false, \
-            .bclk_inv = false, \
-            .ws_inv = false,   \
-        },                     \
-    }
-
-/**
- * @brief Mono Simplex I2S configuration structure
- *
- * This configuration is used by default in bsp_audio_init()
- */
-#define BSP_I2S_SIMPLEX_MONO_CFG()                      \
-    {                                                   \
-        .clk_cfg = {                                    \
-            .sample_rate_hz = BSP_MIC_SAMPLE_RATE,      \
-            .clk_src = I2S_CLK_SRC_DEFAULT,             \
-            .mclk_multiple = I2S_MCLK_MULTIPLE_384,     \
-        },                                              \
-        .slot_cfg = {                                   \
-            .data_bit_width = I2S_DATA_BIT_WIDTH_24BIT, \
-            .slot_bit_width = I2S_SLOT_BIT_WIDTH_32BIT, \
-            .slot_mode = I2S_SLOT_MODE_MONO,            \
-            .slot_mask = I2S_STD_SLOT_LEFT,             \
-            .ws_width = 32,                             \
-            .ws_pol = false,                            \
-            .bit_shift = true,                          \
-            .left_align = true,                         \
-            .big_endian = false,                        \
-            .bit_order_lsb = false,                     \
-        },                                              \
-        .gpio_cfg = BSP_I2S_GPIO_CFG(),                 \
-    }
 
 /**
  * @brief Init audio
  *
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
- * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, 24bit, 48000 Hz)
- * @param[out] tx_channel I2S TX channel, does not configure anything for this board, can be NULL
- * @param[out] rx_channel I2S RX channel, can be NULL
+ * @warning The type of i2s_config param is depending on IDF version.
+ * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
+ * @param[out] tx_channel I2S TX channel
+ * @param[out] rx_channel I2S RX channel
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
@@ -409,7 +445,59 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
  *      - ESP_ERR_NO_MEM        No memory for storing the channel information
  *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
  */
-esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel);
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+esp_err_t bsp_audio_init(const i2s_config_t *i2s_config);
+#else
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
+#endif
+
+/**
+ * @brief Get codec I2S interface (initialized in bsp_audio_init)
+ *
+ * @return
+ *      - Pointer to codec I2S interface handle or NULL when error occured
+ */
+const audio_codec_data_if_t *bsp_audio_get_codec_itf(void);
+
+/**
+ * @brief Initialize microphone codec device
+ *
+ * @return Pointer to codec device handle or NULL when error occured
+ */
+esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
+
+/**************************************************************************************************
+ *
+ * ADC interface
+ *
+ * There are multiple devices connected to ADC peripheral:
+ *  - Buttons
+ *
+ * After initialization of ADC, use adc_handle when using ADC driver.
+ **************************************************************************************************/
+
+#define BSP_ADC_UNIT     ADC_UNIT_1
+
+/**
+ * @brief Initialize ADC
+ *
+ * The ADC can be initialized inside BSP, when needed.
+ *
+ * @param[out] adc_handle Returned ADC handle
+ */
+esp_err_t bsp_adc_initialize(void);
+
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+/**
+ * @brief Get ADC handle
+ *
+ * @note This function is available only in IDF5 and higher
+ *
+ * @return ADC handle
+ */
+adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
+#endif
 
 #ifdef __cplusplus
 }
