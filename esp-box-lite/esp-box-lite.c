@@ -24,13 +24,16 @@
 static const char *TAG = "ESP-BOX-LITE";
 
 static lv_indev_t *disp_indev = NULL;   /* Input device (buttons) */
-static const audio_codec_data_if_t *i2s_data_if = NULL;  /* Codec data interface */
-static i2s_chan_handle_t i2s_tx_chan = NULL;
-static i2s_chan_handle_t i2s_rx_chan = NULL;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+static adc_oneshot_unit_handle_t bsp_adc_handle = NULL;
+#endif
 
-const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
         .type = BUTTON_TYPE_ADC,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        .adc_button_config.adc_handle = &bsp_adc_handle,
+#endif
         .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
         .adc_button_config.button_index = BSP_BUTTON_PREV,
         .adc_button_config.min = 2310, // middle is 2410mV
@@ -38,6 +41,9 @@ const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     },
     {
         .type = BUTTON_TYPE_ADC,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        .adc_button_config.adc_handle = &bsp_adc_handle,
+#endif
         .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
         .adc_button_config.button_index = BSP_BUTTON_ENTER,
         .adc_button_config.min = 1880, // middle is 1980mV
@@ -45,6 +51,9 @@ const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     },
     {
         .type = BUTTON_TYPE_ADC,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        .adc_button_config.adc_handle = &bsp_adc_handle,
+#endif
         .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
         .adc_button_config.button_index = BSP_BUTTON_NEXT,
         .adc_button_config.min = 720, // middle is 820mV
@@ -116,80 +125,19 @@ esp_err_t bsp_spiffs_unmount(void)
     return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
 }
 
-
-esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel)
-{
-    if (i2s_tx_chan && i2s_rx_chan && i2s_data_if) {
-        if (tx_channel) {
-            *tx_channel = i2s_tx_chan;
-        }
-        if (rx_channel) {
-            *rx_channel = i2s_rx_chan;
-        }
-
-        /* Audio was initialized before */
-        return ESP_OK;
-    }
-
-    /* Setup I2S peripheral */
-    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(CONFIG_BSP_I2S_NUM, I2S_ROLE_MASTER);
-    chan_cfg.auto_clear = true; // Auto clear the legacy data in the DMA buffer
-    BSP_ERROR_CHECK_RETURN_ERR(i2s_new_channel(&chan_cfg, tx_channel, rx_channel));
-
-    /* Setup I2S channels */
-    const i2s_std_config_t std_cfg_default = BSP_I2S_DUPLEX_MONO_CFG(22050);
-    const i2s_std_config_t *p_i2s_cfg = &std_cfg_default;
-    if (i2s_config != NULL) {
-        p_i2s_cfg = i2s_config;
-    }
-
-    if (tx_channel != NULL) {
-        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_init_std_mode(*tx_channel, p_i2s_cfg));
-        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_enable(*tx_channel));
-    }
-    if (rx_channel != NULL) {
-        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_init_std_mode(*rx_channel, p_i2s_cfg));
-        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_enable(*rx_channel));
-    }
-
-    audio_codec_i2s_cfg_t i2s_cfg = {
-        .port = CONFIG_BSP_I2S_NUM,
-        .rx_handle = i2s_rx_chan,
-        .tx_handle = i2s_tx_chan,
-    };
-    i2s_data_if = audio_codec_new_i2s_data(&i2s_cfg);
-    BSP_NULL_CHECK(i2s_data_if, NULL);
-
-    /* Setup power amplifier pin */
-    const gpio_config_t io_conf = {
-        .intr_type = GPIO_INTR_DISABLE,
-        .mode = GPIO_MODE_OUTPUT,
-        .pin_bit_mask = BIT64(BSP_POWER_AMP_IO),
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .pull_up_en = GPIO_PULLDOWN_DISABLE,
-    };
-    BSP_ERROR_CHECK_RETURN_ERR(gpio_config(&io_conf));
-
-    return ESP_OK;
-}
-
-esp_err_t bsp_audio_poweramp_enable(bool enable)
-{
-    BSP_ERROR_CHECK_RETURN_ERR(gpio_set_level(BSP_POWER_AMP_IO, enable ? 1 : 0));
-
-    return ESP_OK;
-}
-
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
 {
-    if (i2s_tx_chan == NULL || i2s_rx_chan == NULL || i2s_data_if == NULL) {
+    const audio_codec_data_if_t *i2s_data_if = bsp_audio_get_codec_itf();
+    if (i2s_data_if == NULL) {
         /* Initilize I2C */
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_i2c_init());
         /* Configure I2S peripheral and Power Amplifier */
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL, &i2s_tx_chan, &i2s_rx_chan));
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_poweramp_enable(true));
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_audio_init(NULL));
+        i2s_data_if = bsp_audio_get_codec_itf();
     }
     assert(i2s_data_if);
+
+    const audio_codec_gpio_if_t *gpio_if = audio_codec_new_gpio();
 
     audio_codec_i2c_cfg_t i2c_cfg = {
         .port = BSP_I2C_NUM,
@@ -205,6 +153,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
 
     es8156_codec_cfg_t es8156_cfg = {
         .ctrl_if = i2c_ctrl_if,
+        .gpio_if = gpio_if,
         .pa_pin = BSP_POWER_AMP_IO,
         .pa_reverted = false,
         .hw_gain = gain,
@@ -222,12 +171,13 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
 
 esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
 {
-    if (i2s_tx_chan == NULL || i2s_rx_chan == NULL || i2s_data_if == NULL) {
+    const audio_codec_data_if_t *i2s_data_if = bsp_audio_get_codec_itf();
+    if (i2s_data_if == NULL) {
         /* Initilize I2C */
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_i2c_init());
         /* Configure I2S peripheral and Power Amplifier */
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL, &i2s_tx_chan, &i2s_rx_chan));
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_poweramp_enable(true));
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_audio_init(NULL));
+        i2s_data_if = bsp_audio_get_codec_itf();
     }
     assert(i2s_data_if);
 
@@ -407,6 +357,12 @@ static lv_disp_t *bsp_display_lcd_init(void)
 
 static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
 {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    /* Initialize ADC and get ADC handle */
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_adc_initialize());
+    bsp_adc_handle = bsp_adc_get_handle();
+#endif
+
     const lvgl_port_nav_btns_cfg_t btns = {
         .disp = disp,
         .button_prev = &bsp_button_config[BSP_BUTTON_PREV],
@@ -419,9 +375,17 @@ static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
 
 lv_disp_t *bsp_display_start(void)
 {
+    bsp_display_cfg_t cfg = {
+        .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG()
+    };
+    return bsp_display_start_with_config(&cfg);
+}
+
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
+{
     lv_disp_t *disp;
-    const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
-    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&lvgl_cfg));
+    assert(cfg != NULL);
+    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
 
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_brightness_init());
 

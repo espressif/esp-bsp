@@ -1,4 +1,4 @@
-version: "1.0.2"
+version: "2.0.0"
 description: Board Support Package for ESP32-S3-BOX-Lite
 url: https://github.com/espressif/esp-bsp/tree/master/esp-box-lite
 
@@ -6,7 +6,7 @@ targets:
   - esp32s3
 
 dependencies:
-  idf: ">=5.0"
+  idf: ">=4.4.5"
 
   button:
     version: "^2"
