@@ -15,10 +15,6 @@
 #include "esp_lcd_panel_ops.h"
 #include "esp_spiffs.h"
 
-//#include "esp_adc/adc_oneshot.h"
-//#include "esp_adc/adc_cali.h"
-//#include "esp_adc/adc_cali_scheme.h"
-
 #include "bsp/esp32_s3_korvo_2.h"
 #include "bsp/display.h"
 #include "bsp/touch.h"
@@ -30,50 +26,16 @@
 #include "esp_codec_dev_defaults.h"
 #include "bsp_err_check.h"
 
-/* Battery voltage measurement is disabled, because it waits for update button component. */
-#define BSP_BATTERY_ENABLED 0
-
-/**
- * @brief I2S pinout
- *
- * Can be used for i2s_std_gpio_config_t and/or i2s_std_config_t initialization
- */
-#define BSP_I2S_GPIO_CFG       \
-    {                          \
-        .mclk = BSP_I2S_MCLK,  \
-        .bclk = BSP_I2S_SCLK,  \
-        .ws = BSP_I2S_LCLK,    \
-        .dout = BSP_I2S_DOUT,  \
-        .din = BSP_I2S_DSIN,   \
-        .invert_flags = {      \
-            .mclk_inv = false, \
-            .bclk_inv = false, \
-            .ws_inv = false,   \
-        },                     \
-    }
-
-/**
- * @brief Mono Duplex I2S configuration structure
- */
-#define BSP_I2S_DUPLEX_MONO_CFG(_sample_rate)                                                         \
-    {                                                                                                 \
-        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(_sample_rate),                                          \
-        .slot_cfg = I2S_STD_PHILIP_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO), \
-        .gpio_cfg = BSP_I2S_GPIO_CFG,                                                                 \
-    }
-
 static const char *TAG = "S3-KORVO-2";
 
 static esp_io_expander_handle_t io_expander = NULL; // IO expander tca9554 handle
-//static adc_oneshot_unit_handle_t adc1_handle; // ADC1 handle; for USB voltage measurement
-//static adc_cali_handle_t adc1_cali_handle; // ADC1 calibration handle
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
 static lv_indev_t *disp_indev = NULL;
-static const audio_codec_data_if_t *i2s_data_if = NULL;  /* Codec data interface */
-static i2s_chan_handle_t i2s_tx_chan = NULL;
-static i2s_chan_handle_t i2s_rx_chan = NULL;
 static bool i2c_initialized = false;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+static adc_oneshot_unit_handle_t bsp_adc_handle = NULL;
+#endif
 
 // This is just a wrapper to get function signature for espressif/button API callback
 static uint8_t bsp_get_main_button(void *param);
@@ -82,6 +44,9 @@ static esp_err_t bsp_init_main_button(void *param);
 static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
         .type = BUTTON_TYPE_ADC,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        .adc_button_config.adc_handle = &bsp_adc_handle,
+#endif
         .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
         .adc_button_config.button_index = BSP_BUTTON_REC,
         .adc_button_config.min = 2310, // middle is 2410mV
@@ -89,6 +54,9 @@ static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     },
     {
         .type = BUTTON_TYPE_ADC,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        .adc_button_config.adc_handle = &bsp_adc_handle,
+#endif
         .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
         .adc_button_config.button_index = BSP_BUTTON_MUTE,
         .adc_button_config.min = 1880, // middle is 1980mV
@@ -96,6 +64,9 @@ static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     },
     {
         .type = BUTTON_TYPE_ADC,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        .adc_button_config.adc_handle = &bsp_adc_handle,
+#endif
         .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
         .adc_button_config.button_index = BSP_BUTTON_PLAY,
         .adc_button_config.min = 1550, // middle is 1650mV
@@ -103,6 +74,9 @@ static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     },
     {
         .type = BUTTON_TYPE_ADC,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        .adc_button_config.adc_handle = &bsp_adc_handle,
+#endif
         .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
         .adc_button_config.button_index = BSP_BUTTON_SET,
         .adc_button_config.min = 1010, // middle is 1110mV
@@ -110,6 +84,9 @@ static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     },
     {
         .type = BUTTON_TYPE_ADC,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        .adc_button_config.adc_handle = &bsp_adc_handle,
+#endif
         .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
         .adc_button_config.button_index = BSP_BUTTON_VOLDOWN,
         .adc_button_config.min = 720, // middle is 820mV
@@ -117,6 +94,9 @@ static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     },
     {
         .type = BUTTON_TYPE_ADC,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        .adc_button_config.adc_handle = &bsp_adc_handle,
+#endif
         .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
         .adc_button_config.button_index = BSP_BUTTON_VOLUP,
         .adc_button_config.min = 280, // middle is 380mV
@@ -193,54 +173,23 @@ esp_err_t bsp_sdcard_mount(void)
         .flags = 0,
     };
 
-    return esp_vfs_fat_sdmmc_mount(BSP_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
+    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
 }
 
 esp_err_t bsp_sdcard_unmount(void)
 {
-    return esp_vfs_fat_sdcard_unmount(BSP_MOUNT_POINT, bsp_sdcard);
-}
-
-esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel)
-{
-    /* Setup I2S peripheral */
-    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(CONFIG_BSP_I2S_NUM, I2S_ROLE_MASTER);
-    chan_cfg.auto_clear = true; // Auto clear the legacy data in the DMA buffer
-    BSP_ERROR_CHECK_RETURN_ERR(i2s_new_channel(&chan_cfg, tx_channel, rx_channel));
-
-    /* Setup I2S channels */
-    const i2s_std_config_t std_cfg_default = BSP_I2S_DUPLEX_MONO_CFG(22050);
-    const i2s_std_config_t *p_i2s_cfg = &std_cfg_default;
-    if (i2s_config != NULL) {
-        p_i2s_cfg = i2s_config;
-    }
-
-    if (tx_channel != NULL) {
-        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_init_std_mode(*tx_channel, p_i2s_cfg));
-        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_enable(*tx_channel));
-    }
-    if (rx_channel != NULL) {
-        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_init_std_mode(*rx_channel, p_i2s_cfg));
-        BSP_ERROR_CHECK_RETURN_ERR(i2s_channel_enable(*rx_channel));
-    }
-
-    audio_codec_i2s_cfg_t i2s_cfg = {
-        .port = CONFIG_BSP_I2S_NUM,
-        .rx_handle = *rx_channel,
-        .tx_handle = *tx_channel,
-    };
-    i2s_data_if = audio_codec_new_i2s_data(&i2s_cfg);
-    BSP_NULL_CHECK(i2s_data_if, ESP_FAIL);
-
-    return ESP_OK;
+    return esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
 }
 
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
 {
-    if (i2s_tx_chan == NULL || i2s_rx_chan == NULL || i2s_data_if == NULL) {
-        /* Initialize I2C and I2S */
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL, &i2s_tx_chan, &i2s_rx_chan));
+    const audio_codec_data_if_t *i2s_data_if = bsp_audio_get_codec_itf();
+    if (i2s_data_if == NULL) {
+        /* Initilize I2C */
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_i2c_init());
+        /* Configure I2S peripheral and Power Amplifier */
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_audio_init(NULL));
+        i2s_data_if = bsp_audio_get_codec_itf();
     }
     assert(i2s_data_if);
 
@@ -284,10 +233,13 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
 
 esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
 {
-    if (i2s_tx_chan == NULL || i2s_rx_chan == NULL || i2s_data_if == NULL) {
-        /* Initialize I2C and I2S */
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL, &i2s_tx_chan, &i2s_rx_chan));
+    const audio_codec_data_if_t *i2s_data_if = bsp_audio_get_codec_itf();
+    if (i2s_data_if == NULL) {
+        /* Initilize I2C */
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_i2c_init());
+        /* Configure I2S peripheral and Power Amplifier */
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_audio_init(NULL));
+        i2s_data_if = bsp_audio_get_codec_itf();
     }
     assert(i2s_data_if);
 
@@ -496,9 +448,17 @@ esp_err_t bsp_display_backlight_on(void)
 
 lv_disp_t *bsp_display_start(void)
 {
+    bsp_display_cfg_t cfg = {
+        .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG()
+    };
+    return bsp_display_start_with_config(&cfg);
+}
+
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
+{
     lv_disp_t *disp = NULL;
-    const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
-    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&lvgl_cfg));
+    assert(cfg != NULL);
+    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
 
     BSP_NULL_CHECK(disp = bsp_display_lcd_init(), NULL);
 
@@ -525,51 +485,6 @@ bool bsp_display_lock(uint32_t timeout_ms)
 void bsp_display_unlock(void)
 {
     lvgl_port_unlock();
-}
-
-esp_err_t bsp_voltage_init(void)
-{
-#if BSP_BATTERY_ENABLED
-    // Init ADC1
-    const adc_oneshot_unit_init_cfg_t init_config1 = {
-        .unit_id = ADC_UNIT_1,
-    };
-    BSP_ERROR_CHECK_RETURN_ERR(adc_oneshot_new_unit(&init_config1, &adc1_handle));
-
-    // Init ADC1 channels
-    const adc_oneshot_chan_cfg_t config = {
-        .bitwidth = ADC_BITWIDTH_DEFAULT,
-        .atten = ADC_ATTEN_DB_11,
-    };
-    BSP_ERROR_CHECK_RETURN_ERR(adc_oneshot_config_channel(adc1_handle, ADC_CHANNEL_5, &config));
-
-    // ESP32-S3 supports Curve Fitting calibration scheme
-    const adc_cali_curve_fitting_config_t cali_config = {
-        .unit_id = ADC_UNIT_1,
-        .atten = ADC_ATTEN_DB_11,
-        .bitwidth = ADC_BITWIDTH_DEFAULT,
-    };
-    BSP_ERROR_CHECK_RETURN_ERR(adc_cali_create_scheme_curve_fitting(&cali_config, &adc1_cali_handle));
-    return ESP_OK;
-#else
-    ESP_LOGW(TAG, "Battery voltage measurement is disabled, because it waits for update button component.");
-    return ESP_ERR_NOT_SUPPORTED;
-#endif
-}
-
-int bsp_voltage_battery_get(void)
-{
-#if BSP_BATTERY_ENABLED
-    int voltage, adc_raw;
-
-    assert(adc1_handle);
-    BSP_ERROR_CHECK(adc_oneshot_read(adc1_handle, ADC_CHANNEL_5, &adc_raw), -1);
-    BSP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali_handle, adc_raw, &voltage), -1);
-    return voltage * BSP_BATTERY_VOLTAGE_DIV;
-#else
-    ESP_LOGW(TAG, "Battery voltage measurement is disabled, because it waits for update button component.");
-    return -1;
-#endif
 }
 
 esp_err_t bsp_leds_init(void)
@@ -640,6 +555,11 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
     }
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+    /* Initialize ADC and get ADC handle */
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_adc_initialize());
+    bsp_adc_handle = bsp_adc_get_handle();
+#endif
 
     if (btn_cnt) {
         *btn_cnt = 0;

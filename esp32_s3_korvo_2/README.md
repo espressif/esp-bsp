@@ -1,5 +1,7 @@
 # BSP: ESP32-S3-Korvo-2
 
+[![Component Registry](https://components.espressif.com/components/espressif/esp32_s3_korvo_2/badge.svg)](https://components.espressif.com/components/espressif/esp32_s3_korvo_2)
+
 * [Documentation](https://espressif-docs.readthedocs-hosted.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html)
 
 ![image](pic.png)

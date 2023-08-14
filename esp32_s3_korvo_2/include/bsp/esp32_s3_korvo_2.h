@@ -9,13 +9,19 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/i2c.h"
-#include "driver/i2s_std.h"
 #include "driver/sdmmc_host.h"
 #include "soc/usb_pins.h"
 #include "iot_button.h"
 #include "esp_io_expander.h"
 #include "esp_codec_dev.h"
 #include "lvgl.h"
+#include "esp_lvgl_port.h"
+
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+#include "driver/i2s.h"
+#else
+#include "driver/i2s_std.h"
+#endif
 
 /**************************************************************************************************
  *  Board pinout
@@ -79,6 +85,14 @@ typedef enum bsp_led_t {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;
+} bsp_display_cfg_t;
 
 /**************************************************************************************************
  *
@@ -162,6 +176,36 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
  * esp_codec_dev_close(spk_codec_dev);
  * \endcode
  **************************************************************************************************/
+
+/**
+ * @brief Init audio
+ *
+ * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
+ * @warning The type of i2s_config param is depending on IDF version.
+ * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
+ * @param[out] tx_channel I2S TX channel
+ * @param[out] rx_channel I2S RX channel
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
+ *      - ESP_ERR_INVALID_ARG   NULL pointer or invalid configuration
+ *      - ESP_ERR_NOT_FOUND     No available I2S channel found
+ *      - ESP_ERR_NO_MEM        No memory for storing the channel information
+ *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
+ */
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+esp_err_t bsp_audio_init(const i2s_config_t *i2s_config);
+#else
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
+#endif
+
+/**
+ * @brief Get codec I2S interface (initialized in bsp_audio_init)
+ *
+ * @return
+ *      - Pointer to codec I2S interface handle or NULL when error occured
+ */
+const audio_codec_data_if_t *bsp_audio_get_codec_itf(void);
 
 /**
  * @brief Initialize speaker codec device
@@ -290,7 +334,7 @@ esp_io_expander_handle_t bsp_io_expander_init(void);
 /**
  * @brief ESP32-S3-Korvo-2 camera default configuration
  *
- * In this configuration we select RGB565 color format and 240x240 image size - matching the display.
+ * In this configuration we select RGB565 color format and 320x240 image size - matching the display.
  * We use double-buffering for the best performance.
  * Since we don't want to waste internal SRAM, we allocate the framebuffers in external PSRAM.
  * By setting XCLK to 16MHz, we configure the esp32-camera driver to use EDMA when accessing the PSRAM.
@@ -319,7 +363,7 @@ esp_io_expander_handle_t bsp_io_expander_init(void);
         .ledc_timer = LEDC_TIMER_0,       \
         .ledc_channel = LEDC_CHANNEL_0,   \
         .pixel_format = PIXFORMAT_RGB565, \
-        .frame_size = FRAMESIZE_240X240,  \
+        .frame_size = FRAMESIZE_QVGA,     \
         .jpeg_quality = 12,               \
         .fb_count = 2,                    \
         .fb_location = CAMERA_FB_IN_PSRAM,\
@@ -337,7 +381,7 @@ esp_io_expander_handle_t bsp_io_expander_init(void);
  * fclose(f);
  * \endcode
  **************************************************************************************************/
-#define BSP_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
+#define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 extern sdmmc_card_t *bsp_sdcard;
 
 /**
@@ -395,6 +439,18 @@ esp_err_t bsp_sdcard_unmount(void);
  * @return Pointer to LVGL display or NULL when error occured
  */
 lv_disp_t *bsp_display_start(void);
+
+/**
+ * @brief Initialize display
+ *
+ * This function initializes SPI, display controller and starts LVGL handling task.
+ * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
+ *
+ * @param cfg display configuration
+ *
+ * @return Pointer to LVGL display or NULL when error occured
+ */
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 
 /**
  * @brief Get pointer to input device (touch, buttons, ...)
@@ -491,6 +547,39 @@ esp_err_t bsp_leds_init(void);
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
 esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
+
+/**************************************************************************************************
+ *
+ * ADC interface
+ *
+ * There are multiple devices connected to ADC peripheral:
+ *  - Buttons
+ *
+ * After initialization of ADC, use adc_handle when using ADC driver.
+ **************************************************************************************************/
+
+#define BSP_ADC_UNIT     ADC_UNIT_1
+
+/**
+ * @brief Initialize ADC
+ *
+ * The ADC can be initialized inside BSP, when needed.
+ *
+ * @param[out] adc_handle Returned ADC handle
+ */
+esp_err_t bsp_adc_initialize(void);
+
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+/**
+ * @brief Get ADC handle
+ *
+ * @note This function is available only in IDF5 and higher
+ *
+ * @return ADC handle
+ */
+adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
+#endif
 
 /**************************************************************************************************
  *
