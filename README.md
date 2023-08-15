@@ -44,8 +44,8 @@ Best way to start with ESP-BSP is trying one of the [examples](examples) on your
 | [display_audio_photo](examples/display_audio_photo) | ESP-BOX |
 | [display_rotation](examples/display_rotation) | ESP-BOX |
 | [display_lvgl_demos](examples/display_lvgl_demos) | ESP32-S3-LCD-EV-Board |
+| [display_sensors](examples/display_sensors) | Azure-IoT-kit |
 | [mqtt_example](examples/mqtt_example) | Azure-IoT-kit |
-| [sensors_example](examples/sensors_example) | Azure-IoT-kit |
 
 ### BSP headers
 Each BSP provides its header file in 'bsp' subfolder, so it can be included as follows: `#include "bsp/name-of-the-bsp.h"`.

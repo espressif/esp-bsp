@@ -9,7 +9,6 @@
 #include "hts221.h"
 #include "fbm320.h"
 #include "bh1750.h"
-#include "ssd1306.h"
 #include "bsp/esp-bsp.h"
 #include "esp_log.h"
 
@@ -27,7 +26,6 @@ static const char *TAG = "Azure";
 static bool mqtt_connected = false;
 static bh1750_handle_t bh1750_dev = NULL;
 static hts221_handle_t hts221_dev = NULL;
-static ssd1306_handle_t ssd1306_dev = NULL;
 static fbm320_handle_t fbm320_dev = NULL;
 
 typedef struct {
@@ -39,11 +37,6 @@ typedef struct {
 
 static void app_sensors_init()
 {
-    ssd1306_dev = ssd1306_create(BSP_I2C_NUM, SSD1306_I2C_ADDRESS);
-    assert(ssd1306_dev != NULL);
-    ssd1306_clear_screen(ssd1306_dev, 0x00);
-    ESP_ERROR_CHECK(ssd1306_refresh_gram(ssd1306_dev));
-
     bh1750_dev = bh1750_create(BSP_I2C_NUM, BH1750_I2C_ADDRESS_DEFAULT);
     assert(bh1750_dev != NULL);
     ESP_ERROR_CHECK(bh1750_power_on(bh1750_dev));
@@ -133,12 +126,28 @@ void app_main(void)
 {
     ESP_ERROR_CHECK(bsp_i2c_init());
     ESP_ERROR_CHECK(bsp_leds_init());
+    lv_disp_t *disp = bsp_display_start();
     app_sensors_init();
     ESP_ERROR_CHECK(nvs_flash_init());
+
+    /* Write labels on display */
+    bsp_display_lock(0);
+    lv_obj_t *main_screen = lv_disp_get_scr_act(NULL);
+    lv_obj_t *main_label = lv_label_create(main_screen);
+    lv_label_set_text_static(main_label, LV_SYMBOL_WIFI"\nWifi\nconnecting...");
+    lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_set_width(main_label, disp->driver->hor_res);
+    lv_obj_align(main_label, LV_ALIGN_TOP_MID, 0, 0);
+    bsp_display_unlock();
+
     wifi_init_sta();
 
     const esp_mqtt_client_config_t mqtt_cfg = {
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+        .uri = CONFIG_BROKER_URL,
+#else
         .broker.address.uri = CONFIG_BROKER_URL,
+#endif
     };
 
     esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
@@ -147,11 +156,10 @@ void app_main(void)
     esp_mqtt_client_start(client);
 
     /* Write labels on display */
-    ssd1306_draw_string(ssd1306_dev, 0, 0, (const uint8_t *)"Temp:", 16, 1);
-    ssd1306_draw_string(ssd1306_dev, 0, 16, (const uint8_t *)"Humi:", 16, 1);
-    ssd1306_draw_string(ssd1306_dev, 0, 32, (const uint8_t *)"Lumi:", 16, 1);
-    ssd1306_draw_string(ssd1306_dev, 0, 48, (const uint8_t *)"Press:", 16, 1);
-    ESP_ERROR_CHECK(ssd1306_refresh_gram(ssd1306_dev));
+    bsp_display_lock(0);
+    lv_label_set_text_static(main_label, "Temp:\nHumi:\nLumi:\nPress:");
+    lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_LEFT, 0);
+    bsp_display_unlock();
 
     while (1) {
         sensor_data_t sensor_data;
@@ -172,12 +180,9 @@ void app_main(void)
             esp_mqtt_client_publish(client, "esp-azure/pressure", p, 0, 1, 0);
         }
 
-        /* Display sensor data on display*/
-        ssd1306_draw_string(ssd1306_dev, 70, 0, (const uint8_t *)t, 16, 1);
-        ssd1306_draw_string(ssd1306_dev, 70, 16, (const uint8_t *)h, 16, 1);
-        ssd1306_draw_string(ssd1306_dev, 70, 32, (const uint8_t *)l, 16, 1);
-        ssd1306_draw_string(ssd1306_dev, 70, 48, (const uint8_t *)p, 16, 1);
-        ESP_ERROR_CHECK(ssd1306_refresh_gram(ssd1306_dev));
+        bsp_display_lock(0);
+        lv_label_set_text_fmt(main_label, "Temp: %s\nHumi: %s\nLumi: %s\nPress: %s", t, h, l, p);
+        bsp_display_unlock();
 
         vTaskDelay(pdMS_TO_TICKS(1000));
     }

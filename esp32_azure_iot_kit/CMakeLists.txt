@@ -2,5 +2,6 @@ idf_component_register(
     SRCS "esp32_azure_iot_kit.c"
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "priv_include"
-    REQUIRES fatfs
+    REQUIRES driver esp_lcd
+    PRIV_REQUIRES fatfs spiffs
 )
