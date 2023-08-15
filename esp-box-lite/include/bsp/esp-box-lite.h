@@ -14,11 +14,17 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/i2c.h"
-#include "driver/i2s_std.h"
 #include "soc/usb_pins.h"
-#include "iot_button.h"
 #include "lvgl.h"
+#include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
+#include "iot_button.h"
+
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+#include "driver/i2s.h"
+#else
+#include "driver/i2s_std.h"
+#endif
 
 /**************************************************************************************************
  *  ESP-BOX-Lite pinout
@@ -85,22 +91,10 @@
 #define BSP_PMOD2_IO8        GPIO_NUM_14  // Intended for SPI2 WP (Write-protect)
 
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/**************************************************************************************************
- *
- * Buttons interface
- *
- * Example configuration:
- * \code{.c}
- * button_handle_t button[BSP_BUTTON_NUM];
- * for (int i = 0; i < BSP_BUTTON_NUM; i++) {
- *     button[i] = iot_button_create(&bsp_button_config[i]);
- * }
- * \endcode
- **************************************************************************************************/
 
 /* Buttons */
 typedef enum {
@@ -110,7 +104,13 @@ typedef enum {
     BSP_BUTTON_NUM
 } bsp_button_t;
 
-extern const button_config_t bsp_button_config[BSP_BUTTON_NUM];
+/**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;
+} bsp_display_cfg_t;
 
 /**************************************************************************************************
  *
@@ -133,40 +133,10 @@ extern const button_config_t bsp_button_config[BSP_BUTTON_NUM];
  **************************************************************************************************/
 
 /**
- * @brief ESP-BOX-Lite I2S pinout
- *
- * Can be used for i2s_std_gpio_config_t and/or i2s_std_config_t initialization
- */
-#define BSP_I2S_GPIO_CFG       \
-    {                          \
-        .mclk = BSP_I2S_MCLK,  \
-        .bclk = BSP_I2S_SCLK,  \
-        .ws = BSP_I2S_LCLK,    \
-        .dout = BSP_I2S_DOUT,  \
-        .din = BSP_I2S_DSIN,   \
-        .invert_flags = {      \
-            .mclk_inv = false, \
-            .bclk_inv = false, \
-            .ws_inv = false,   \
-        },                     \
-    }
-
-/**
- * @brief Mono Duplex I2S configuration structure
- *
- * This configuration is used by default in bsp_audio_init()
- */
-#define BSP_I2S_DUPLEX_MONO_CFG(_sample_rate)                                                         \
-    {                                                                                                 \
-        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(_sample_rate),                                          \
-        .slot_cfg = I2S_STD_PHILIP_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO), \
-        .gpio_cfg = BSP_I2S_GPIO_CFG,                                                                 \
-    }
-
-/**
  * @brief Init audio
  *
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
+ * @warning The type of i2s_config param is depending on IDF version.
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
  * @param[out] tx_channel I2S TX channel
  * @param[out] rx_channel I2S RX channel
@@ -178,17 +148,19 @@ extern const button_config_t bsp_button_config[BSP_BUTTON_NUM];
  *      - ESP_ERR_NO_MEM        No memory for storing the channel information
  *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
  */
-esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config, i2s_chan_handle_t *tx_channel, i2s_chan_handle_t *rx_channel);
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+esp_err_t bsp_audio_init(const i2s_config_t *i2s_config);
+#else
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
+#endif
 
 /**
- * @brief Enable/disable audio power amplifier
+ * @brief Get codec I2S interface (initialized in bsp_audio_init)
  *
- * @param[in] enable Enable/disable audio power amplifier
  * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Invalid GPIO number
+ *      - Pointer to codec I2S interface handle or NULL when error occured
  */
-esp_err_t bsp_audio_poweramp_enable(const bool enable);
+const audio_codec_data_if_t *bsp_audio_get_codec_itf(void);
 
 /**
  * @brief Initialize speaker codec device
@@ -310,6 +282,18 @@ esp_err_t bsp_spiffs_unmount(void);
 lv_disp_t *bsp_display_start(void);
 
 /**
+ * @brief Initialize display
+ *
+ * This function initializes SPI, display controller and starts LVGL handling task.
+ * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
+ *
+ * @param cfg display configuration
+ *
+ * @return Pointer to LVGL display or NULL when error occured
+ */
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
+
+/**
  * @brief Get pointer to input device (touch, buttons, ...)
  *
  * @note The LVGL input device is initialized in bsp_display_start() function.
@@ -376,6 +360,39 @@ esp_err_t bsp_display_backlight_off(void);
  * @param[in] rotation Angle of the display rotation
  */
 void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
+
+/**************************************************************************************************
+ *
+ * ADC interface
+ *
+ * There are multiple devices connected to ADC peripheral:
+ *  - Buttons
+ *
+ * After initialization of ADC, use adc_handle when using ADC driver.
+ **************************************************************************************************/
+
+#define BSP_ADC_UNIT     ADC_UNIT_1
+
+/**
+ * @brief Initialize ADC
+ *
+ * The ADC can be initialized inside BSP, when needed.
+ *
+ * @param[out] adc_handle Returned ADC handle
+ */
+esp_err_t bsp_adc_initialize(void);
+
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+/**
+ * @brief Get ADC handle
+ *
+ * @note This function is available only in IDF5 and higher
+ *
+ * @return ADC handle
+ */
+adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
+#endif
 
 #ifdef __cplusplus
 }

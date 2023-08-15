@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -44,12 +44,6 @@ extern "C" {
         if (unlikely((x) != ESP_OK)) {    \
             return ret;                   \
         }                                 \
-    } while(0)
-
-#define BSP_NULL_CHECK(x, ret) do { \
-        if ((x) == NULL) {          \
-            return ret;             \
-        }                           \
     } while(0)
 
 #define BSP_NULL_CHECK_GOTO(x, goto_tag) do { \
