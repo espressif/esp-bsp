@@ -1,4 +1,4 @@
-version: "1.4.3"
+version: "1.5.0"
 description: Board Support Package for ESP-WROVER-KIT
 url: https://github.com/espressif/esp-bsp/tree/master/esp_wrover_kit
 
@@ -6,10 +6,15 @@ targets:
     - esp32
 
 dependencies:
-  idf: ">=4.4" # esp_lcd component was added in v4.4
+  idf: ">=4.4.5"
 
   esp_lvgl_port:
-    version: ^1
+    version: "^1"
+    public: true
+
+  button:
+    version: "^2.5"
+    public: true
 
 examples:
   - path: ../examples/display

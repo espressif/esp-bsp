@@ -8,12 +8,14 @@
 #include "esp_vfs_fat.h"
 #include "esp_log.h"
 #include "esp_check.h"
+#include "esp_spiffs.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
 #include "driver/spi_master.h"
 #include "driver/ledc.h"
 
+#include "iot_button.h"
 #include "bsp/esp_wrover_kit.h"
 #include "bsp/display.h"
 #include "bsp_err_check.h"
@@ -22,6 +24,14 @@
 static const char *TAG = "Wrover";
 
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
+
+static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.gpio_num = BSP_BUTTON_BOOT_IO,
+        .gpio_button_config.active_level = 0,
+    }
+};
 
 esp_err_t bsp_leds_init(void)
 {
@@ -42,6 +52,39 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on)
     return ESP_OK;
 }
 
+esp_err_t bsp_spiffs_mount(void)
+{
+    esp_vfs_spiffs_conf_t conf = {
+        .base_path = CONFIG_BSP_SPIFFS_MOUNT_POINT,
+        .partition_label = CONFIG_BSP_SPIFFS_PARTITION_LABEL,
+        .max_files = CONFIG_BSP_SPIFFS_MAX_FILES,
+#ifdef CONFIG_BSP_SPIFFS_FORMAT_ON_MOUNT_FAIL
+        .format_if_mount_failed = true,
+#else
+        .format_if_mount_failed = false,
+#endif
+    };
+
+    esp_err_t ret_val = esp_vfs_spiffs_register(&conf);
+
+    BSP_ERROR_CHECK_RETURN_ERR(ret_val);
+
+    size_t total = 0, used = 0;
+    ret_val = esp_spiffs_info(conf.partition_label, &total, &used);
+    if (ret_val != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret_val));
+    } else {
+        ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
+    }
+
+    return ret_val;
+}
+
+esp_err_t bsp_spiffs_unmount(void)
+{
+    return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
+}
+
 esp_err_t bsp_sdcard_mount(void)
 {
     const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
@@ -58,12 +101,12 @@ esp_err_t bsp_sdcard_mount(void)
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
     slot_config.width = 4;
 
-    return esp_vfs_fat_sdmmc_mount(CONFIG_BSP_uSD_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
+    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
 }
 
 esp_err_t bsp_sdcard_unmount(void)
 {
-    return esp_vfs_fat_sdcard_unmount(CONFIG_BSP_uSD_MOUNT_POINT, bsp_sdcard);
+    return esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
 }
 
 esp_err_t bsp_button_init(const bsp_button_t btn)
@@ -82,6 +125,30 @@ esp_err_t bsp_button_init(const bsp_button_t btn)
 bool bsp_button_get(const bsp_button_t btn)
 {
     return !(bool)gpio_get_level(btn);
+}
+
+esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
+{
+    esp_err_t ret = ESP_OK;
+    if ((btn_array_size < BSP_BUTTON_NUM) ||
+            (btn_array == NULL)) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    if (btn_cnt) {
+        *btn_cnt = 0;
+    }
+    for (int i = 0; i < BSP_BUTTON_NUM; i++) {
+        btn_array[i] = iot_button_create(&bsp_button_config[i]);
+        if (btn_array[i] == NULL) {
+            ret = ESP_FAIL;
+            break;
+        }
+        if (btn_cnt) {
+            (*btn_cnt)++;
+        }
+    }
+    return ret;
 }
 
 #define LCD_CMD_BITS         (8)
@@ -242,9 +309,17 @@ static lv_disp_t *bsp_display_lcd_init(void)
 
 lv_disp_t *bsp_display_start(void)
 {
+    bsp_display_cfg_t cfg = {
+        .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG()
+    };
+    return bsp_display_start_with_config(&cfg);
+}
+
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
+{
     lv_disp_t *disp = NULL;
-    const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
-    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&lvgl_cfg));
+    assert(cfg != NULL);
+    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
     BSP_NULL_CHECK(disp = bsp_display_lcd_init(), NULL);
     return disp;
 }
