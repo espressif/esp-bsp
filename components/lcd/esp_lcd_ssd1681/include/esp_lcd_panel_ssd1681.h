@@ -23,7 +23,7 @@ extern "C" {
 *
 * @return Whether a high priority task is woken up by this function
 */
-typedef bool (*esp_lcd_epaper_panel_cb_t)(const esp_lcd_panel_handle_t handle, const void* edata, void* user_data);
+typedef bool (*esp_lcd_epaper_panel_cb_t)(const esp_lcd_panel_handle_t handle, const void *edata, void *user_data);
 
 /**
  * @brief Type of ssd1681 e-paper callbacks
@@ -96,7 +96,7 @@ esp_err_t epaper_panel_refresh_screen(esp_lcd_panel_t *panel);
  * @param[in] color a enum value, SSD1681_EPAPER_BITMAP_BLACK or SSD1681_EPAPER_BITMAP_RED
  * @return ESP_OK                on success
  */
-esp_err_t epaper_panel_set_bitmap_color(esp_lcd_panel_t* panel, esp_lcd_ssd1681_bitmap_color_t color);
+esp_err_t epaper_panel_set_bitmap_color(esp_lcd_panel_t *panel, esp_lcd_ssd1681_bitmap_color_t color);
 
 /**
  * @brief Set the callback function
@@ -112,7 +112,7 @@ esp_err_t epaper_panel_set_bitmap_color(esp_lcd_panel_t* panel, esp_lcd_ssd1681_
  * @return ESP_OK                on success
  *         ESP_ERR_INVALID_ARG   if parameter is invalid
  */
-esp_err_t epaper_panel_register_event_callbacks(esp_lcd_panel_t *panel, epaper_panel_callbacks_t* cbs, void* user_ctx);
+esp_err_t epaper_panel_register_event_callbacks(esp_lcd_panel_t *panel, epaper_panel_callbacks_t *cbs, void *user_ctx);
 
 /**
  * @brief Set a custom waveform lut

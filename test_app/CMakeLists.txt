@@ -15,7 +15,7 @@ endif()
 if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
     set(EXCLUDE_COMPONENTS "es8311" "es7210" "esp_lvgl_port" "ds18b20")
 elseif("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "5.0")
-    set(EXCLUDE_COMPONENTS "esp_lcd_touch_stmpe610" "ds18b20")
+    set(EXCLUDE_COMPONENTS "esp_lcd_touch_stmpe610" "ds18b20" "esp_lcd_ssd1681")
 endif()
 
 # Test rgb lcd components only in esp32s3

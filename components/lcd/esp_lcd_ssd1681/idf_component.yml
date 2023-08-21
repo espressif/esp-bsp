@@ -1,5 +1,5 @@
 version: "0.1.0"
-description: ESP LCD SSD1681
+description: ESP LCD SSD1681 e-paper driver
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_ssd1681
 dependencies:
   idf: ">=5.0"
