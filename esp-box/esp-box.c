@@ -33,6 +33,7 @@ _Static_assert(CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0, "Touch buttons must be supp
 static lv_disp_t *disp;
 static lv_indev_t *disp_indev = NULL;
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
+static esp_lcd_panel_handle_t panel_handle = NULL;
 
 // This is just a wrapper to get function signature for espressif/button API callback
 static uint8_t bsp_get_main_button(void *param);
@@ -128,9 +129,9 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     const audio_codec_data_if_t *i2s_data_if = bsp_audio_get_codec_itf();
     if (i2s_data_if == NULL) {
         /* Initilize I2C */
-        BSP_ERROR_CHECK_RETURN_NULL(bsp_i2c_init());
+        BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
         /* Configure I2S peripheral and Power Amplifier */
-        BSP_ERROR_CHECK_RETURN_NULL(bsp_audio_init(NULL));
+        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL));
         i2s_data_if = bsp_audio_get_codec_itf();
     }
     assert(i2s_data_if);
@@ -178,9 +179,9 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
     const audio_codec_data_if_t *i2s_data_if = bsp_audio_get_codec_itf();
     if (i2s_data_if == NULL) {
         /* Initilize I2C */
-        BSP_ERROR_CHECK_RETURN_NULL(bsp_i2c_init());
+        BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
         /* Configure I2S peripheral and Power Amplifier */
-        BSP_ERROR_CHECK_RETURN_NULL(bsp_audio_init(NULL));
+        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL));
         i2s_data_if = bsp_audio_get_codec_itf();
     }
     assert(i2s_data_if);
@@ -264,6 +265,18 @@ esp_err_t bsp_display_backlight_on(void)
     return bsp_display_brightness_set(100);
 }
 
+esp_err_t bsp_display_enter_sleep()
+{
+    assert(panel_handle);
+    return esp_lcd_panel_disp_on_off(panel_handle, false);
+}
+
+esp_err_t bsp_display_exit_sleep()
+{
+    assert(panel_handle);
+    return esp_lcd_panel_disp_on_off(panel_handle, true);
+}
+
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
 {
     esp_err_t ret = ESP_OK;
@@ -297,6 +310,9 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
     ESP_LOGD(TAG, "Install LCD driver");
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = BSP_LCD_RST, // Shared with Touch reset
+#if CONFIG_BSP_ESP32_S3_BOX_3
+        .flags.reset_active_high = 1,
+#endif
         .color_space = BSP_LCD_COLOR_SPACE,
         .bits_per_pixel = BSP_LCD_BITS_PER_PIXEL,
     };
@@ -321,7 +337,6 @@ err:
 static lv_disp_t *bsp_display_lcd_init(void)
 {
     esp_lcd_panel_io_handle_t io_handle = NULL;
-    esp_lcd_panel_handle_t panel_handle = NULL;
     const bsp_display_config_t bsp_disp_cfg = {
         .max_transfer_sz = (BSP_LCD_H_RES * CONFIG_BSP_LCD_DRAW_BUF_HEIGHT) * sizeof(uint16_t),
     };
@@ -355,6 +370,30 @@ static lv_disp_t *bsp_display_lcd_init(void)
     };
 
     return lvgl_port_add_disp(&disp_cfg);
+}
+
+__attribute__((weak)) esp_err_t esp_lcd_touch_enter_sleep(esp_lcd_touch_handle_t tp)
+{
+    ESP_LOGE(TAG, "Sleep mode not supported!");
+    return ESP_FAIL;
+}
+
+__attribute__((weak)) esp_err_t esp_lcd_touch_exit_sleep(esp_lcd_touch_handle_t tp)
+{
+    ESP_LOGE(TAG, "Sleep mode not supported!");
+    return ESP_FAIL;
+}
+
+esp_err_t bsp_touch_enter_sleep()
+{
+    assert(tp);
+    return esp_lcd_touch_enter_sleep(tp);
+}
+
+esp_err_t bsp_touch_exit_sleep()
+{
+    assert(tp);
+    return esp_lcd_touch_exit_sleep(tp);
 }
 
 esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t *ret_touch)

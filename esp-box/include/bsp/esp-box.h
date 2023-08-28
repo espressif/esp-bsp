@@ -35,7 +35,11 @@
 /* Audio */
 #define BSP_I2S_SCLK          (GPIO_NUM_17)
 #define BSP_I2S_MCLK          (GPIO_NUM_2)
+#if CONFIG_BSP_ESP32_S3_BOX_3
+#define BSP_I2S_LCLK          (GPIO_NUM_45)
+#else
 #define BSP_I2S_LCLK          (GPIO_NUM_47)
+#endif
 #define BSP_I2S_DOUT          (GPIO_NUM_15) // To Codec ES8311
 #define BSP_I2S_DSIN          (GPIO_NUM_16) // From ADC ES7210
 #define BSP_POWER_AMP_IO      (GPIO_NUM_46)
@@ -47,7 +51,12 @@
 #define BSP_LCD_CS            (GPIO_NUM_5)
 #define BSP_LCD_DC            (GPIO_NUM_4)
 #define BSP_LCD_RST           (GPIO_NUM_48)
+
+#if CONFIG_BSP_ESP32_S3_BOX_3
+#define BSP_LCD_BACKLIGHT     (GPIO_NUM_47)
+#else
 #define BSP_LCD_BACKLIGHT     (GPIO_NUM_45)
+#endif
 #define BSP_LCD_TOUCH_INT     (GPIO_NUM_3)
 
 /* USB */
@@ -77,6 +86,27 @@
  *      | 3V3    3V3 |
  *      |------------|
  */
+#if CONFIG_BSP_ESP32_S3_BOX_3
+
+#define BSP_PMOD1_IO1        GPIO_NUM_42
+#define BSP_PMOD1_IO2        BSP_USB_POS
+#define BSP_PMOD1_IO3        GPIO_NUM_39
+#define BSP_PMOD1_IO4        GPIO_NUM_40 // Intended for I2C SCL (pull-up NOT populated)
+#define BSP_PMOD1_IO5        GPIO_NUM_21
+#define BSP_PMOD1_IO6        BSP_USB_NEG
+#define BSP_PMOD1_IO7        GPIO_NUM_38
+#define BSP_PMOD1_IO8        GPIO_NUM_41 // Intended for I2C SDA (pull-up NOT populated)
+
+#define BSP_PMOD2_IO1        GPIO_NUM_13 // Intended for SPI2 Q (MISO)
+#define BSP_PMOD2_IO2        GPIO_NUM_9  // Intended for SPI2 HD (Hold)
+#define BSP_PMOD2_IO3        GPIO_NUM_12 // Intended for SPI2 CLK
+#define BSP_PMOD2_IO4        GPIO_NUM_44 // UART0 RX by default
+#define BSP_PMOD2_IO5        GPIO_NUM_10 // Intended for SPI2 CS
+#define BSP_PMOD2_IO6        GPIO_NUM_14 // Intended for SPI2 WP (Write-protect)
+#define BSP_PMOD2_IO7        GPIO_NUM_11 // Intended for SPI2 D (MOSI)
+#define BSP_PMOD2_IO8        GPIO_NUM_43 // UART0 TX by defaultf
+
+#else
 #define BSP_PMOD1_IO1        GPIO_NUM_42
 #define BSP_PMOD1_IO2        GPIO_NUM_21
 #define BSP_PMOD1_IO3        BSP_USB_NEG
@@ -94,6 +124,7 @@
 #define BSP_PMOD2_IO6        GPIO_NUM_43  // UART0 TX by default
 #define BSP_PMOD2_IO7        GPIO_NUM_44  // UART0 RX by default
 #define BSP_PMOD2_IO8        GPIO_NUM_14  // Intended for SPI2 WP (Write-protect)
+#endif
 
 /* Buttons */
 typedef enum {
@@ -351,6 +382,50 @@ esp_err_t bsp_display_backlight_on(void);
  *      - ESP_ERR_INVALID_ARG   Parameter error
  */
 esp_err_t bsp_display_backlight_off(void);
+
+/**
+ * @brief Set LCD enter sleep mode
+ *
+ * Display must be already initialized by calling bsp_display_start()
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_NOT_SUPPORTED if this function is not supported by the panel
+ */
+esp_err_t bsp_display_enter_sleep(void);
+
+/**
+ * @brief Set LCD exit sleep mode
+ *
+ * Display must be already initialized by calling bsp_display_start()
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_NOT_SUPPORTED if this function is not supported by the panel
+ */
+esp_err_t bsp_display_exit_sleep(void);
+
+/**
+ * @brief Set touch enter sleep mode
+ *
+ * Display must be already initialized by calling bsp_display_start()
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_ARG if parameter is invalid
+ */
+esp_err_t bsp_touch_enter_sleep(void);
+
+/**
+ * @brief Set tocuh exit sleep mode
+ *
+ * Display must be already initialized by calling bsp_display_start()
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_ARG if parameter is invalid
+ */
+esp_err_t bsp_touch_exit_sleep(void);
 
 /**
  * @brief Rotate screen

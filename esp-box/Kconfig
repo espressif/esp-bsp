@@ -5,7 +5,16 @@ menu "Board Support Package"
         default y
         help
             Error check assert the application before returning the error code.
-            
+
+    choice BSP_LCD_SUB_NAME
+        prompt "Board"
+        default BSP_ESP32_S3_BOX_1
+        config BSP_ESP32_S3_BOX_1
+            bool "esp32-s3-box-1"
+        config BSP_ESP32_S3_BOX_3
+        bool "esp32-s3-box-3"
+    endchoice
+
     menu "I2C"
         config BSP_I2C_NUM
             int "I2C peripheral index"
