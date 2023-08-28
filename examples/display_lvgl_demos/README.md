@@ -15,7 +15,7 @@ To improve display performance (FPS), please set the following configurations:
     * `ESPTOOLPY_FLASHFREQ_120M`
 * PSRAM:
     * `SPIRAM_MODE_OCT`
-    * `SPIRAM_SPEED_120M` (See [here](https://github.com/espressif/esp-dev-kits/tree/master/esp32-s3-lcd-ev-board/factory#idf-patch) to enbale this feature of ESP-IDF)
+    * `SPIRAM_SPEED_120M` (See [here](https://github.com/espressif/esp-dev-kits/tree/master/esp32-s3-lcd-ev-board#psram-120m-ddr) to enbale this feature of ESP-IDF)
     * `SPIRAM_FETCH_INSTRUCTIONS`
     * `SPIRAM_RODATA`
 * Cache:
@@ -27,4 +27,4 @@ To improve display performance (FPS), please set the following configurations:
 
 ### Hardware Required
 
-ESP32-S3-LCD-EV-BOARD with 800x480 or 480x480 LCD sub-board.
+ESP32-S3-LCD-EV-Board or ESP32-S3-LCD-EV-Board-2
