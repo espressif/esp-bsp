@@ -4,4 +4,4 @@ dependencies:
   idf: '>=4.4.2'
 description: ESP IO Expander - tca9539 and tca9555
 url: https://github.com/espressif/esp-bsp/tree/master/components/io_expander/esp_io_expander_tca95xx_16bit
-version: 1.0.0
+version: 1.0.1
