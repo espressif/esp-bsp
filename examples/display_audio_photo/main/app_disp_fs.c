@@ -13,6 +13,8 @@
 #include <dirent.h>
 #include <inttypes.h>
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include "esp_log.h"
 #include "esp_err.h"
 #include "esp_spiffs.h"
@@ -274,7 +276,9 @@ static void show_window(const char *path, app_file_type_t type)
                         .out_format = JPEG_IMAGE_FORMAT_RGB565,
                         .out_scale = JPEG_IMAGE_SCALE_0,
                         .flags = {
+#if CONFIG_LV_COLOR_16_SWAP
                             .swap_color_bytes = 1,
+#endif
                         }
                     };
                     esp_jpeg_image_output_t outimg;
@@ -713,7 +717,7 @@ static void app_disp_lvgl_show_filesystem(lv_obj_t *screen, lv_group_t *group)
 
     /* File list */
     fs_list = lv_list_create(screen);
-    lv_obj_set_size(fs_list, 320, 200);
+    lv_obj_set_size(fs_list, BSP_LCD_H_RES, BSP_LCD_V_RES - 40);
     lv_obj_set_style_bg_color(fs_list, lv_color_make(0x00, 0x00, 0x00), 0);
     lv_obj_set_style_text_color(fs_list, lv_color_make(0xFF, 0xFF, 0xFF), 0);
     lv_obj_center(fs_list);
