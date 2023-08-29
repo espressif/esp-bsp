@@ -21,61 +21,91 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
 
 ## Example use
 
-Create 3-wire SPI panel IO using [esp_lcd_panel_io_additions](https://components.espressif.com/components/espressif/esp_lcd_panel_io_additions) component.
+For most RGB LCDs, they typically use a "[3-Wire SPI + Parallel RGB](https://focuslcds.com/3-wire-spi-parallel-rgb-interface-fan4213/)" interface. The "3-Wire SPI" interface is used for transmitting command data and the "Parallel RGB" interface is used for sending pixel data.
 
-```
+It's recommended to use the [esp_lcd_panel_io_additions](https://components.espressif.com/components/espressif/esp_lcd_panel_io_additions) component to bit-bang the "3-Wire SPI" interface through **GPIO** or an **IO expander** (like [TCA9554](https://components.espressif.com/components/espressif/esp_io_expander_tca9554)). To do this, please first add this component to your project manually. Then, refer to the following code to initialize the GC9503 controller.
+
+```c
+    ESP_LOGI(TAG, "Install 3-wire SPI panel IO");
     spi_line_config_t line_config = {
-        .cs_io_type = IO_TYPE_EXPANDER,
-        .cs_expander_pin = BSP_LCD_SPI_CS,
-        .scl_io_type = IO_TYPE_EXPANDER,
-        .scl_expander_pin = BSP_LCD_SPI_SCK,
-        .sda_io_type = IO_TYPE_EXPANDER,
-        .sda_expander_pin = BSP_LCD_SPI_SDO,
-        .io_expander = expander_handle,
+        .cs_io_type = IO_TYPE_EXPANDER,     // Set to `IO_TYPE_GPIO` if using GPIO, same to below
+        .cs_expander_pin = EXAMPLE_LCD_IO_SPI_CS,
+        .scl_io_type = IO_TYPE_GPIO,
+        .scl_expander_pin = EXAMPLE_LCD_IO_SPI_SCK,
+        .sda_io_type = IO_TYPE_GPIO,
+        .sda_expander_pin = EXAMPLE_LCD_IO_SPI_SDO,
+        .io_expander = expander_handle,     // Set to NULL if not using IO expander
     };
-    esp_lcd_panel_io_3wire_spi_config_t io_config = GC9503_PANEL_IO_3WIRE_SPI_CONFIG(line_config);
+    esp_lcd_panel_io_3wire_spi_config_t io_config = GC9503_PANEL_IO_3WIRE_SPI_CONFIG(line_config, 0);
     esp_lcd_panel_io_handle_t io_handle = NULL;
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_3wire_spi(&io_config, &io_handle));
-```
 
-Initialize GC9503 and create RGB panel.
+/**
+ * Uncomment these line if use custom initialization commands.
+ * The array should be declared as static const and positioned outside the function.
+ */
+// static const gc9503_lcd_init_cmd_t lcd_init_cmds[] = {
+// //   cmd   data        data_size  delay_ms
+//    {0xc1, (uint8_t []){0x3f}, 1, 0},
+//    {0xc2, (uint8_t []){0x0e}, 1, 0},
+//    {0xc6, (uint8_t []){0xf8}, 1, 0},
+//     ...
+// };
 
-```
-    esp_lcd_rgb_panel_config_t panel_conf = {
-        .clk_src = LCD_CLK_SRC_PLL160M,
+    ESP_LOGI(TAG, "Install GC9503 panel driver");
+    esp_lcd_rgb_panel_config_t rgb_config = {
+        .clk_src = LCD_CLK_SRC_DEFAULT,
         .psram_trans_align = 64,
         .data_width = 16,
-        .de_gpio_num = BSP_LCD_DE,
-        .pclk_gpio_num = BSP_LCD_PCLK,
-        .vsync_gpio_num = BSP_LCD_VSYNC,
-        .hsync_gpio_num = BSP_LCD_HSYNC,
+        .bits_per_pixel = 16,
+        .de_gpio_num = EXAMPLE_LCD_IO_RGB_DE,
+        .pclk_gpio_num = EXAMPLE_LCD_IO_RGB_PCLK,
+        .vsync_gpio_num = EXAMPLE_LCD_IO_RGB_VSYNC,
+        .hsync_gpio_num = EXAMPLE_LCD_IO_RGB_HSYNC,
+        .disp_gpio_num = EXAMPLE_LCD_IO_RGB_DISP,
         .data_gpio_nums = {
-            BSP_LCD_DATA0,
-            BSP_LCD_DATA1,
-            BSP_LCD_DATA2,
-            BSP_LCD_DATA3,
-            BSP_LCD_DATA4,
-            BSP_LCD_DATA5,
-            BSP_LCD_DATA6,
-            BSP_LCD_DATA7,
-            BSP_LCD_DATA8,
-            BSP_LCD_DATA9,
-            BSP_LCD_DATA10,
-            BSP_LCD_DATA11,
-            BSP_LCD_DATA12,
-            BSP_LCD_DATA13,
-            BSP_LCD_DATA14,
-            BSP_LCD_DATA15,
+            EXAMPLE_LCD_IO_RGB_DATA0,
+            EXAMPLE_LCD_IO_RGB_DATA1,
+            EXAMPLE_LCD_IO_RGB_DATA2,
+            EXAMPLE_LCD_IO_RGB_DATA3,
+            EXAMPLE_LCD_IO_RGB_DATA4,
+            EXAMPLE_LCD_IO_RGB_DATA5,
+            EXAMPLE_LCD_IO_RGB_DATA6,
+            EXAMPLE_LCD_IO_RGB_DATA7,
+            EXAMPLE_LCD_IO_RGB_DATA8,
+            EXAMPLE_LCD_IO_RGB_DATA9,
+            EXAMPLE_LCD_IO_RGB_DATA10,
+            EXAMPLE_LCD_IO_RGB_DATA11,
+            EXAMPLE_LCD_IO_RGB_DATA12,
+            EXAMPLE_LCD_IO_RGB_DATA13,
+            EXAMPLE_LCD_IO_RGB_DATA14,
+            EXAMPLE_LCD_IO_RGB_DATA15,
         },
         .timings = GC9503_480_480_PANEL_60HZ_RGB_TIMING(),
         .flags.fb_in_psram = 1,
+        ...
+    };
+    gc9503_vendor_config_t vendor_config = {
+        .rgb_config = &rgb_config,
+        // .init_cmds = lcd_init_cmds,      // Uncomment these line if use custom initialization commands
+        // .init_cmds_size = sizeof(lcd_init_cmds) / sizeof(gc9503_lcd_init_cmd_t),
+        .flags = {
+            .mirror_by_cmd = 1,             // Only work when `auto_del_panel_io` is set to 0
+            .auto_del_panel_io = 0,         /**
+                                             * Set to 1 if panel IO is no longer needed after LCD initialization.
+                                             * If the panel IO pins are sharing other pins of the RGB interface to save GPIOs,
+                                             * Please set it to 1 to release the pins.
+                                             */
+        },
+    };
+    const esp_lcd_panel_dev_config_t panel_config = {
+        .reset_gpio_num = EXAMPLE_LCD_IO_RST,           // Set to -1 if not use
+        .rgb_endian = LCD_RGB_ENDIAN_RGB,               // Implemented by LCD command `B1h`
+        .bits_per_pixel = EXAMPLE_LCD_BIT_PER_PIXEL,    // Implemented by LCD command `3Ah` (16/18/24)
+        .vendor_config = &vendor_config,
     };
     esp_lcd_panel_handle_t panel_handle = NULL;
-    ESP_ERROR_CHECK(esp_lcd_new_panel_gc9503(io_handle, &panel_conf, &panel_handle));
-```
-
-Delete panel IO if it is no longer needed.
-
-```
-    ESP_ERROR_CHECK(esp_lcd_panel_io_del(io_handle));
+    ESP_ERROR_CHECK(esp_lcd_new_panel_gc9503(io_handle, &panel_config, &panel_handle));
+    // Since the LCD initialization is complete, do not call `esp_lcd_panel_reset()` to reset the LCD.
+    ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
 ```
