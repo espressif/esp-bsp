@@ -36,14 +36,12 @@ static esp_err_t touch_tt21100_i2c_read(esp_lcd_touch_handle_t tp, uint8_t *data
 /* TT21100 reset */
 static esp_err_t touch_tt21100_reset(esp_lcd_touch_handle_t tp);
 
-#if CONFIG_ESP_LCD_TOUCH_SLEEP_SUPPORT
 /* TT21100 write */
 static esp_err_t touch_tt21100_i2c_write(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint16_t len);
 
 static esp_err_t esp_lcd_touch_tt21100_enter_sleep(esp_lcd_touch_handle_t tp);
 
 static esp_err_t esp_lcd_touch_tt21100_exit_sleep(esp_lcd_touch_handle_t tp);
-#endif
 /*******************************************************************************
 * Public API functions
 *******************************************************************************/
@@ -69,10 +67,8 @@ esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_panel_io_handle_t io, cons
     esp_lcd_touch_tt21100->get_button_state = esp_lcd_touch_tt21100_get_button_state;
 #endif
     esp_lcd_touch_tt21100->del = esp_lcd_touch_tt21100_del;
-#if CONFIG_ESP_LCD_TOUCH_SLEEP_SUPPORT
     esp_lcd_touch_tt21100->enter_sleep = esp_lcd_touch_tt21100_enter_sleep;
     esp_lcd_touch_tt21100->exit_sleep = esp_lcd_touch_tt21100_exit_sleep;
-#endif
     /* Mutex */
     esp_lcd_touch_tt21100->data.lock.owner = portMUX_FREE_VAL;
 
@@ -126,7 +122,6 @@ err:
     return ret;
 }
 
-#if CONFIG_ESP_LCD_TOUCH_SLEEP_SUPPORT
 static esp_err_t esp_lcd_touch_tt21100_enter_sleep(esp_lcd_touch_handle_t tp)
 {
     uint8_t power_save_cmd[2] = {0x01, 0x08};
@@ -144,7 +139,6 @@ static esp_err_t esp_lcd_touch_tt21100_exit_sleep(esp_lcd_touch_handle_t tp)
 
     return ESP_OK;
 }
-#endif
 
 static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
 {
@@ -353,7 +347,6 @@ static esp_err_t touch_tt21100_i2c_read(esp_lcd_touch_handle_t tp, uint8_t *data
     return esp_lcd_panel_io_rx_param(tp->io, -1, data, len);
 }
 
-#if CONFIG_ESP_LCD_TOUCH_SLEEP_SUPPORT
 static esp_err_t touch_tt21100_i2c_write(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint16_t len)
 {
     assert(tp != NULL);
@@ -361,4 +354,3 @@ static esp_err_t touch_tt21100_i2c_write(esp_lcd_touch_handle_t tp, uint16_t reg
 
     return esp_lcd_panel_io_tx_param(tp->io, reg, data, len);
 }
-#endif
