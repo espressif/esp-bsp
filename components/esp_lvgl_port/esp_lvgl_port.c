@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -153,6 +153,30 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
 err:
     if (ret != ESP_OK) {
         lvgl_port_deinit();
+    }
+
+    return ret;
+}
+
+esp_err_t lvgl_port_resume(void)
+{
+    esp_err_t ret = ESP_ERR_INVALID_STATE;
+
+    if (lvgl_port_ctx.tick_timer != NULL) {
+        lv_timer_enable(true);
+        ret = esp_timer_start_periodic(lvgl_port_ctx.tick_timer, lvgl_port_timer_period_ms * 1000);
+    }
+
+    return ret;
+}
+
+esp_err_t lvgl_port_stop(void)
+{
+    esp_err_t ret = ESP_ERR_INVALID_STATE;
+
+    if (lvgl_port_ctx.tick_timer != NULL) {
+        lv_timer_enable(false);
+        ret = esp_timer_stop(lvgl_port_ctx.tick_timer);
     }
 
     return ret;
@@ -535,7 +559,7 @@ static void lvgl_port_task(void *arg)
             task_delay_ms = lv_timer_handler();
             lvgl_port_unlock();
         }
-        if (task_delay_ms > lvgl_port_ctx.task_max_sleep_ms) {
+        if ((task_delay_ms > lvgl_port_ctx.task_max_sleep_ms) || (1 == task_delay_ms)) {
             task_delay_ms = lvgl_port_ctx.task_max_sleep_ms;
         } else if (task_delay_ms < 1) {
             task_delay_ms = 1;
