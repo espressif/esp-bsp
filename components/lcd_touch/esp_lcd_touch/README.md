@@ -11,5 +11,6 @@ This componnent is main esp_lcd_touch component which defines main functions and
 - [x] Mirror X
 - [x] Mirror Y
 - [x] Interrupt callback
+- [x] Sleep mode
 - [ ] Calibration
 

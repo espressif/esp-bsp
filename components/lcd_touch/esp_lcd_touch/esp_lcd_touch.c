@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -27,6 +27,28 @@ static const char *TAG = "TP";
 /*******************************************************************************
 * Public API functions
 *******************************************************************************/
+
+esp_err_t esp_lcd_touch_enter_sleep(esp_lcd_touch_handle_t tp)
+{
+    assert(tp != NULL);
+    if (tp->enter_sleep == NULL) {
+        ESP_LOGE(TAG, "Sleep mode not supported!");
+        return ESP_FAIL;
+    } else {
+        return tp->enter_sleep(tp);
+    }
+}
+
+esp_err_t esp_lcd_touch_exit_sleep(esp_lcd_touch_handle_t tp)
+{
+    assert(tp != NULL);
+    if (tp->exit_sleep == NULL) {
+        ESP_LOGE(TAG, "Sleep mode not supported!");
+        return ESP_FAIL;
+    } else {
+        return tp->exit_sleep(tp);
+    }
+}
 
 esp_err_t esp_lcd_touch_read_data(esp_lcd_touch_handle_t tp)
 {
