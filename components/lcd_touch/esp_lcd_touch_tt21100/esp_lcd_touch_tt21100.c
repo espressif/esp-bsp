@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -36,6 +36,12 @@ static esp_err_t touch_tt21100_i2c_read(esp_lcd_touch_handle_t tp, uint8_t *data
 /* TT21100 reset */
 static esp_err_t touch_tt21100_reset(esp_lcd_touch_handle_t tp);
 
+/* TT21100 write */
+static esp_err_t touch_tt21100_i2c_write(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint16_t len);
+
+static esp_err_t esp_lcd_touch_tt21100_enter_sleep(esp_lcd_touch_handle_t tp);
+
+static esp_err_t esp_lcd_touch_tt21100_exit_sleep(esp_lcd_touch_handle_t tp);
 /*******************************************************************************
 * Public API functions
 *******************************************************************************/
@@ -61,7 +67,8 @@ esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_panel_io_handle_t io, cons
     esp_lcd_touch_tt21100->get_button_state = esp_lcd_touch_tt21100_get_button_state;
 #endif
     esp_lcd_touch_tt21100->del = esp_lcd_touch_tt21100_del;
-
+    esp_lcd_touch_tt21100->enter_sleep = esp_lcd_touch_tt21100_enter_sleep;
+    esp_lcd_touch_tt21100->exit_sleep = esp_lcd_touch_tt21100_exit_sleep;
     /* Mutex */
     esp_lcd_touch_tt21100->data.lock.owner = portMUX_FREE_VAL;
 
@@ -113,6 +120,24 @@ err:
     *out_touch = esp_lcd_touch_tt21100;
 
     return ret;
+}
+
+static esp_err_t esp_lcd_touch_tt21100_enter_sleep(esp_lcd_touch_handle_t tp)
+{
+    uint8_t power_save_cmd[2] = {0x01, 0x08};
+    esp_err_t err = touch_tt21100_i2c_write(tp, 0x0500, power_save_cmd, sizeof(power_save_cmd));
+    ESP_RETURN_ON_ERROR(err, TAG, "Enter Sleep failed!");
+
+    return ESP_OK;
+}
+
+static esp_err_t esp_lcd_touch_tt21100_exit_sleep(esp_lcd_touch_handle_t tp)
+{
+    uint8_t power_save_cmd[2] = {0x00, 0x08};
+    esp_err_t err = touch_tt21100_i2c_write(tp, 0x0500, power_save_cmd, sizeof(power_save_cmd));
+    ESP_RETURN_ON_ERROR(err, TAG, "Exit Sleep failed!");
+
+    return ESP_OK;
 }
 
 static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
@@ -320,4 +345,12 @@ static esp_err_t touch_tt21100_i2c_read(esp_lcd_touch_handle_t tp, uint8_t *data
 
     /* Read data */
     return esp_lcd_panel_io_rx_param(tp->io, -1, data, len);
+}
+
+static esp_err_t touch_tt21100_i2c_write(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint16_t len)
+{
+    assert(tp != NULL);
+    assert(data != NULL);
+
+    return esp_lcd_panel_io_tx_param(tp->io, reg, data, len);
 }
