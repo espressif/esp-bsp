@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -252,6 +252,26 @@ void lvgl_port_unlock(void);
  * @param disp          LVGL display handle (returned from lvgl_port_add_disp)
  */
 void lvgl_port_flush_ready(lv_disp_t *disp);
+
+/**
+ * @brief Stop lvgl task
+ *
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if the timer is not running
+ */
+esp_err_t lvgl_port_stop(void);
+
+/**
+ * @brief Resume lvgl task
+ *
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if the timer is not running
+ */
+esp_err_t lvgl_port_resume(void);
 
 #ifdef __cplusplus
 }
