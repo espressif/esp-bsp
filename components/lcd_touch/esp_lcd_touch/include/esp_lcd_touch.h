@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -89,6 +89,30 @@ typedef struct {
  *
  */
 struct esp_lcd_touch_s {
+
+    /**
+     * @brief set touch controller into sleep mode
+     *
+     * @note This function is usually blocking.
+     *
+     * @param tp: Touch handler
+     *
+     * @return
+     *      - ESP_OK on success, otherwise returns ESP_ERR_xxx
+     */
+    esp_err_t (*enter_sleep)(esp_lcd_touch_handle_t tp);
+
+    /**
+     * @brief set touch controller into normal mode
+     *
+     * @note This function is usually blocking.
+     *
+     * @param tp: Touch handler
+     *
+     * @return
+     *      - ESP_OK on success, otherwise returns ESP_ERR_xxx
+     */
+    esp_err_t (*exit_sleep)(esp_lcd_touch_handle_t tp);
 
     /**
      * @brief Read data from touch controller (mandatory)
@@ -361,6 +385,28 @@ esp_err_t esp_lcd_touch_del(esp_lcd_touch_handle_t tp);
  *      - ESP_OK on success
  */
 esp_err_t esp_lcd_touch_register_interrupt_callback(esp_lcd_touch_handle_t tp, esp_lcd_touch_interrupt_callback_t callback);
+
+/**
+ * @brief Enter sleep mode
+ *
+ * @param tp: Touch handler
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_ARG if parameter is invalid
+ */
+esp_err_t esp_lcd_touch_enter_sleep(esp_lcd_touch_handle_t tp);
+
+/**
+ * @brief Exit sleep mode
+ *
+ * @param tp: Touch handler
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_ARG if parameter is invalid
+ */
+esp_err_t esp_lcd_touch_exit_sleep(esp_lcd_touch_handle_t tp);
 
 #ifdef __cplusplus
 }

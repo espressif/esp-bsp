@@ -9,4 +9,5 @@ menu "ESP LCD TOUCH"
         int "Maximum count of the touch buttons supported"
         range 0 10
         default 1
+
 endmenu
