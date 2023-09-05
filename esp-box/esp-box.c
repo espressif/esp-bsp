@@ -495,7 +495,6 @@ bool bsp_button_get(const bsp_button_t btn)
 static uint8_t bsp_get_main_button(void *param)
 {
     assert(tp);
-    ESP_ERROR_CHECK(esp_lcd_touch_read_data(tp));
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
     uint8_t home_btn_val = 0x00;
     esp_lcd_touch_get_button_state(tp, 0, &home_btn_val);
