@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2021-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -15,6 +15,8 @@
 #include "driver/sdmmc_host.h"
 #include "sdkconfig.h"
 #include "lvgl.h"
+#include "iot_button.h"
+#include "esp_lvgl_port.h"
 
 /**************************************************************************************************
  * ESP-WROVER-KIT pinout
@@ -22,6 +24,9 @@
  * @attention IO0 and IO2 are routed to switch button and red/green LEDs, so RGB LEDs and button CANNOT be used at the same time!
  * @attention IO2 is routed to uSD card DATA0 signal and green LED
  **************************************************************************************************/
+
+/* Buttons */
+#define BSP_BUTTON_BOOT_IO    (GPIO_NUM_0)
 
 /* RGB LED */
 typedef enum bsp_led_t {
@@ -39,11 +44,6 @@ typedef enum bsp_led_t {
 #define BSP_LCD_RST           (GPIO_NUM_18)
 #define BSP_LCD_BACKLIGHT     (GPIO_NUM_5)
 
-/* Button */
-typedef enum {
-    BSP_BUTTON_BOOT = GPIO_NUM_0
-} bsp_button_t;
-
 /* uSD card */
 #define BSP_SD_D0             (GPIO_NUM_2)
 #define BSP_SD_D1             (GPIO_NUM_4)
@@ -56,6 +56,58 @@ typedef enum {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* Button */
+typedef enum {
+    BSP_BUTTON_BOOT,
+    BSP_BUTTON_NUM
+} bsp_button_t;
+
+/**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;
+} bsp_display_cfg_t;
+
+/**************************************************************************************************
+ *
+ * SPIFFS
+ *
+ * After mounting the SPIFFS, it can be accessed with stdio functions ie.:
+ * \code{.c}
+ * FILE* f = fopen(BSP_SPIFFS_MOUNT_POINT"/hello.txt", "w");
+ * fprintf(f, "Hello World!\n");
+ * fclose(f);
+ * \endcode
+ **************************************************************************************************/
+#define BSP_SPIFFS_MOUNT_POINT      CONFIG_BSP_SPIFFS_MOUNT_POINT
+
+/**
+ * @brief Mount SPIFFS to virtual file system
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_spiffs_register was already called
+ *      - ESP_ERR_NO_MEM if memory can not be allocated
+ *      - ESP_FAIL if partition can not be mounted
+ *      - other error codes
+ */
+esp_err_t bsp_spiffs_mount(void);
+
+/**
+ * @brief Unmount SPIFFS from virtual file system
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_NOT_FOUND if the partition table does not contain SPIFFS partition with given label
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_spiffs_unregister was already called
+ *      - ESP_ERR_NO_MEM if memory can not be allocated
+ *      - ESP_FAIL if partition can not be mounted
+ *      - other error codes
+ */
+esp_err_t bsp_spiffs_unmount(void);
 
 /**************************************************************************************************
  *
@@ -70,7 +122,7 @@ extern "C" {
  *
  * @attention IO2 is also routed to RGB LED and push button
  **************************************************************************************************/
-#define BSP_MOUNT_POINT      CONFIG_BSP_uSD_MOUNT_POINT
+#define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 extern sdmmc_card_t *bsp_sdcard;
 
 /**
@@ -138,7 +190,8 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
  *     - ESP_OK Success
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
-esp_err_t bsp_button_init(const bsp_button_t btn);
+esp_err_t bsp_button_init(const bsp_button_t btn)
+__attribute__((deprecated("use espressif/button API instead")));
 
 /**
  * @brief Get button's state
@@ -147,7 +200,26 @@ esp_err_t bsp_button_init(const bsp_button_t btn);
  * @return true  Button pressed
  * @return false Button released
  */
-bool bsp_button_get(const bsp_button_t btn);
+bool bsp_button_get(const bsp_button_t btn)
+__attribute__((deprecated("use espressif/button API instead")));
+
+/**
+ * @brief Initialize all buttons
+ *
+ * Returned button handlers must be used with espressif/button component API
+ *
+ * @note For LCD panel button which is defined as BSP_BUTTON_MAIN, bsp_display_start should
+ *       be called before call this function.
+ *
+ * @param[out] btn_array      Output button array
+ * @param[out] btn_cnt        Number of button handlers saved to btn_array, can be NULL
+ * @param[in]  btn_array_size Size of output button array. Must be at least BSP_BUTTON_NUM
+ * @return
+ *     - ESP_OK               All buttons initialized
+ *     - ESP_ERR_INVALID_ARG  btn_array is too small or NULL
+ *     - ESP_FAIL             Underlaying iot_button_create failed
+ */
+esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 
 /**************************************************************************************************
  *
@@ -178,6 +250,18 @@ bool bsp_button_get(const bsp_button_t btn);
  * @return Pointer to LVGL display or NULL when error occured
  */
 lv_disp_t *bsp_display_start(void);
+
+/**
+ * @brief Initialize display
+ *
+ * This function initializes SPI, display controller and starts LVGL handling task.
+ * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
+ *
+ * @param cfg display configuration
+ *
+ * @return Pointer to LVGL display or NULL when error occured
+ */
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 
 /**
  * @brief Get pointer to input device (touch, buttons, ...)
