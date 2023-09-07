@@ -242,6 +242,9 @@ static esp_err_t esp_lcd_touch_ft5x06_del(esp_lcd_touch_handle_t tp)
     /* Reset GPIO pin settings */
     if (tp->config.int_gpio_num != GPIO_NUM_NC) {
         gpio_reset_pin(tp->config.int_gpio_num);
+        if (tp->config.interrupt_callback) {
+            gpio_isr_handler_remove(tp->config.int_gpio_num);
+        }
     }
 
     /* Reset GPIO pin settings */

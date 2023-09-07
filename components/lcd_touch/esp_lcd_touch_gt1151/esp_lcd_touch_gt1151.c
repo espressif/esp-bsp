@@ -178,6 +178,9 @@ static esp_err_t del(esp_lcd_touch_handle_t tp)
     /* Reset GPIO pin settings */
     if (tp->config.int_gpio_num != GPIO_NUM_NC) {
         gpio_reset_pin(tp->config.int_gpio_num);
+        if (tp->config.interrupt_callback) {
+            gpio_isr_handler_remove(tp->config.int_gpio_num);
+        }
     }
     if (tp->config.rst_gpio_num != GPIO_NUM_NC) {
         gpio_reset_pin(tp->config.rst_gpio_num);
