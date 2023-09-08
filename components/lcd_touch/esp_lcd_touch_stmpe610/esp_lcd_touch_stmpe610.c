@@ -113,7 +113,7 @@ esp_err_t esp_lcd_touch_new_spi_stmpe610(const esp_lcd_panel_io_handle_t io, con
     if (esp_lcd_touch_stmpe610->config.int_gpio_num != GPIO_NUM_NC) {
         const gpio_config_t int_gpio_config = {
             .mode = GPIO_MODE_INPUT,
-            .intr_type = GPIO_INTR_NEGEDGE,
+            .intr_type = (esp_lcd_touch_stmpe610->config.levels.interrupt ? GPIO_INTR_POSEDGE : GPIO_INTR_NEGEDGE),
             .pin_bit_mask = BIT64(esp_lcd_touch_stmpe610->config.int_gpio_num)
         };
         ret = gpio_config(&int_gpio_config);
@@ -246,6 +246,9 @@ static esp_err_t esp_lcd_touch_stmpe610_del(esp_lcd_touch_handle_t tp)
     /* Reset GPIO pin settings */
     if (tp->config.int_gpio_num != GPIO_NUM_NC) {
         gpio_reset_pin(tp->config.int_gpio_num);
+        if (tp->config.interrupt_callback) {
+            gpio_isr_handler_remove(tp->config.int_gpio_num);
+        }
     }
 
     /* Reset GPIO pin settings */

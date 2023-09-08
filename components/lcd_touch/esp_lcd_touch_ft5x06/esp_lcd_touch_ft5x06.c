@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -88,6 +88,8 @@ static esp_err_t touch_ft5x06_i2c_read(esp_lcd_touch_handle_t tp, uint8_t reg, u
 
 /* FT5x06 init */
 static esp_err_t touch_ft5x06_init(esp_lcd_touch_handle_t tp);
+/* FT5x06 reset */
+static esp_err_t touch_ft5x06_reset(esp_lcd_touch_handle_t tp);
 
 /*******************************************************************************
 * Public API functions
@@ -122,7 +124,7 @@ esp_err_t esp_lcd_touch_new_i2c_ft5x06(const esp_lcd_panel_io_handle_t io, const
     if (esp_lcd_touch_ft5x06->config.int_gpio_num != GPIO_NUM_NC) {
         const gpio_config_t int_gpio_config = {
             .mode = GPIO_MODE_INPUT,
-            .intr_type = GPIO_INTR_NEGEDGE,
+            .intr_type = (esp_lcd_touch_ft5x06->config.levels.interrupt ? GPIO_INTR_POSEDGE : GPIO_INTR_NEGEDGE),
             .pin_bit_mask = BIT64(esp_lcd_touch_ft5x06->config.int_gpio_num)
         };
         ret = gpio_config(&int_gpio_config);
@@ -143,6 +145,10 @@ esp_err_t esp_lcd_touch_new_i2c_ft5x06(const esp_lcd_panel_io_handle_t io, const
         ret = gpio_config(&rst_gpio_config);
         ESP_GOTO_ON_ERROR(ret, err, TAG, "GPIO config failed");
     }
+
+    /* Reset controller */
+    ret = touch_ft5x06_reset(esp_lcd_touch_ft5x06);
+    ESP_GOTO_ON_ERROR(ret, err, TAG, "FT5x06 reset failed");
 
     /* Init controller */
     ret = touch_ft5x06_init(esp_lcd_touch_ft5x06);
@@ -236,6 +242,9 @@ static esp_err_t esp_lcd_touch_ft5x06_del(esp_lcd_touch_handle_t tp)
     /* Reset GPIO pin settings */
     if (tp->config.int_gpio_num != GPIO_NUM_NC) {
         gpio_reset_pin(tp->config.int_gpio_num);
+        if (tp->config.interrupt_callback) {
+            gpio_isr_handler_remove(tp->config.int_gpio_num);
+        }
     }
 
     /* Reset GPIO pin settings */
@@ -284,6 +293,21 @@ static esp_err_t touch_ft5x06_init(esp_lcd_touch_handle_t tp)
     ret |= touch_ft5x06_i2c_write(tp, FT5x06_ID_G_PERIODMONITOR, 40);
 
     return ret;
+}
+
+/* Reset controller */
+static esp_err_t touch_ft5x06_reset(esp_lcd_touch_handle_t tp)
+{
+    assert(tp != NULL);
+
+    if (tp->config.rst_gpio_num != GPIO_NUM_NC) {
+        ESP_RETURN_ON_ERROR(gpio_set_level(tp->config.rst_gpio_num, tp->config.levels.reset), TAG, "GPIO set level error!");
+        vTaskDelay(pdMS_TO_TICKS(10));
+        ESP_RETURN_ON_ERROR(gpio_set_level(tp->config.rst_gpio_num, !tp->config.levels.reset), TAG, "GPIO set level error!");
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+
+    return ESP_OK;
 }
 
 static esp_err_t touch_ft5x06_i2c_write(esp_lcd_touch_handle_t tp, uint8_t reg, uint8_t data)
