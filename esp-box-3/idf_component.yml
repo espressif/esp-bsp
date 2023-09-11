@@ -1,0 +1,27 @@
+
+version: "1.0.0"
+description: Board Support Package for ESP32-S3-BOX-3
+url: https://github.com/espressif/esp-bsp/tree/master/esp-box-3
+
+targets:
+  - esp32s3
+
+dependencies:
+  idf: ">=4.4.5"
+  esp_lcd_touch_tt21100: "^1"
+
+  esp_lvgl_port:
+    version: "^1"
+    public: true
+
+  esp_codec_dev:
+    version: "^1"
+    public: true
+
+  button:
+    version: "^2.5"
+    public: true
+
+examples:
+  - path: ../examples/display_audio_photo
+  - path: ../examples/display_rotation
