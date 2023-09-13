@@ -23,19 +23,36 @@
 
 static const char *TAG = "ESP-BOX-LITE";
 
+/* ADC Buttons */
+typedef enum {
+    BSP_ADC_BUTTON_PREV,
+    BSP_ADC_BUTTON_ENTER,
+    BSP_ADC_BUTTON_NEXT,
+    BSP_ADC_BUTTON_NUM
+} bsp_adc_button_t;
+
 static lv_indev_t *disp_indev = NULL;   /* Input device (buttons) */
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 static adc_oneshot_unit_handle_t bsp_adc_handle = NULL;
 #endif
+static bool i2c_initialized = false;
 
 static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.active_level = false,
+        .gpio_button_config.gpio_num = BSP_BUTTON_CONFIG_IO,
+    },
+};
+
+static const button_config_t bsp_adc_button_config[BSP_ADC_BUTTON_NUM] = {
     {
         .type = BUTTON_TYPE_ADC,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
         .adc_button_config.adc_handle = &bsp_adc_handle,
 #endif
         .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
-        .adc_button_config.button_index = BSP_BUTTON_PREV,
+        .adc_button_config.button_index = BSP_ADC_BUTTON_PREV,
         .adc_button_config.min = 2310, // middle is 2410mV
         .adc_button_config.max = 2510
     },
@@ -45,7 +62,7 @@ static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
         .adc_button_config.adc_handle = &bsp_adc_handle,
 #endif
         .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
-        .adc_button_config.button_index = BSP_BUTTON_ENTER,
+        .adc_button_config.button_index = BSP_ADC_BUTTON_ENTER,
         .adc_button_config.min = 1880, // middle is 1980mV
         .adc_button_config.max = 2080
     },
@@ -55,7 +72,7 @@ static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
         .adc_button_config.adc_handle = &bsp_adc_handle,
 #endif
         .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
-        .adc_button_config.button_index = BSP_BUTTON_NEXT,
+        .adc_button_config.button_index = BSP_ADC_BUTTON_NEXT,
         .adc_button_config.min = 720, // middle is 820mV
         .adc_button_config.max = 920
     },
@@ -63,8 +80,6 @@ static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
 
 esp_err_t bsp_i2c_init(void)
 {
-    static bool i2c_initialized = false;
-
     /* I2C was initialized before */
     if (i2c_initialized) {
         return ESP_OK;
@@ -89,6 +104,7 @@ esp_err_t bsp_i2c_init(void)
 esp_err_t bsp_i2c_deinit(void)
 {
     BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    i2c_initialized = false;
     return ESP_OK;
 }
 
@@ -365,9 +381,9 @@ static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
 
     const lvgl_port_nav_btns_cfg_t btns = {
         .disp = disp,
-        .button_prev = &bsp_button_config[BSP_BUTTON_PREV],
-        .button_next = &bsp_button_config[BSP_BUTTON_NEXT],
-        .button_enter = &bsp_button_config[BSP_BUTTON_ENTER]
+        .button_prev = &bsp_adc_button_config[BSP_ADC_BUTTON_PREV],
+        .button_next = &bsp_adc_button_config[BSP_ADC_BUTTON_NEXT],
+        .button_enter = &bsp_adc_button_config[BSP_ADC_BUTTON_ENTER]
     };
 
     return lvgl_port_add_navigation_buttons(&btns);
@@ -414,4 +430,28 @@ bool bsp_display_lock(uint32_t timeout_ms)
 void bsp_display_unlock(void)
 {
     lvgl_port_unlock();
+}
+
+esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
+{
+    esp_err_t ret = ESP_OK;
+    if ((btn_array_size < BSP_BUTTON_NUM) ||
+            (btn_array == NULL)) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    if (btn_cnt) {
+        *btn_cnt = 0;
+    }
+    for (int i = 0; i < BSP_BUTTON_NUM; i++) {
+        btn_array[i] = iot_button_create(&bsp_button_config[i]);
+        if (btn_array[i] == NULL) {
+            ret = ESP_FAIL;
+            break;
+        }
+        if (btn_cnt) {
+            (*btn_cnt)++;
+        }
+    }
+    return ret;
 }
