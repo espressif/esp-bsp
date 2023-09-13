@@ -1,0 +1,6 @@
+description: BSP Display example
+
+dependencies:
+  esp_bsp_generic:
+    version: "^1.0.0"
+    override_path: "../../../bsp/esp_bsp_generic"
