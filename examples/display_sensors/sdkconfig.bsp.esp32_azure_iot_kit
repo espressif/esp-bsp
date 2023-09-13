@@ -2,3 +2,4 @@
 # Espressif IoT Development Framework (ESP-IDF) Project Minimal Configuration
 #
 CONFIG_IDF_TARGET="esp32"
+CONFIG_LV_SPRINTF_USE_FLOAT=y
