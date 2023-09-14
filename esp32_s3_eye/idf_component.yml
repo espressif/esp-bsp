@@ -1,4 +1,4 @@
-version: "3.0.1"
+version: "3.0.2"
 description: Board Support Package for ESP32-S3-EYE
 url: https://github.com/espressif/esp-bsp/tree/master/esp32_s3_eye
 
