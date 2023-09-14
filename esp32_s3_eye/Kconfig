@@ -79,6 +79,13 @@ menu "Board Support Package"
             range 1 100
             help
                 Period of LVGL tick timer.
+                
+        config BSP_DISPLAY_LVGL_MAX_SLEEP
+            int "LVGL maximum sleep time in ms"
+            default 1
+            range 1 500
+            help
+                Maximum time for task sleep in ms.
 
         config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
             int "LEDC channel index"

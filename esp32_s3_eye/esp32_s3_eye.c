@@ -186,6 +186,7 @@ esp_err_t bsp_sdcard_unmount(void)
 #define LCD_PARAM_BITS       (8)
 #define LCD_LEDC_CH          (CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH)
 #define LVGL_TICK_PERIOD_MS  (CONFIG_BSP_DISPLAY_LVGL_TICK)
+#define LVGL_MAX_SLEEP_MS    (CONFIG_BSP_DISPLAY_LVGL_MAX_SLEEP)
 
 static esp_err_t bsp_display_brightness_init(void)
 {
@@ -343,7 +344,7 @@ lv_disp_t *bsp_display_start(void)
             .task_stack = 4096,
             .task_affinity = 1,
             .timer_period_ms = LVGL_TICK_PERIOD_MS,
-            .task_max_sleep_ms = 1,
+            .task_max_sleep_ms = LVGL_MAX_SLEEP_MS,
         }
     };
     return bsp_display_start_with_config(&cfg);
