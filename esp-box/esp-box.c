@@ -33,6 +33,7 @@ _Static_assert(CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0, "Touch buttons must be supp
 static lv_disp_t *disp;
 static lv_indev_t *disp_indev = NULL;
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
+static bool i2c_initialized = false;
 
 // This is just a wrapper to get function signature for espressif/button API callback
 static uint8_t bsp_get_main_button(void *param);
@@ -61,8 +62,6 @@ static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
 
 esp_err_t bsp_i2c_init(void)
 {
-    static bool i2c_initialized = false;
-
     /* I2C was initialized before */
     if (i2c_initialized) {
         return ESP_OK;
@@ -87,6 +86,7 @@ esp_err_t bsp_i2c_init(void)
 esp_err_t bsp_i2c_deinit(void)
 {
     BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    i2c_initialized = false;
     return ESP_OK;
 }
 
