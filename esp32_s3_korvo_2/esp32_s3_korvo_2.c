@@ -266,6 +266,9 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
 
 esp_io_expander_handle_t bsp_io_expander_init(void)
 {
+    /* Initilize I2C */
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_i2c_init());
+
     if (io_expander) {
         ESP_LOGD(TAG, "io_expander is initialized");
     } else {
