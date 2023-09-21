@@ -1,0 +1,8 @@
+dependencies:
+  idf: ">=5.0"
+  lvgl/lvgl: "~8.3.0"
+  esp_lcd_ssd1681: 
+    # I am specifying the path of the component because the component
+    # had not been published to the ESP Component Registry by the time 
+    # I write this example.
+    path: "../../../"
