@@ -26,16 +26,18 @@
 typedef struct {
     esp_lcd_panel_io_handle_t io;
     int reset_gpio_num;
-    bool reset_level;
     uint8_t madctl_val; // Save current value of GC9503_CMD_MADCTL register
-    uint8_t colmod_cal; // Save surrent value of LCD_CMD_COLMOD register
+    uint8_t colmod_val; // Save current value of LCD_CMD_COLMOD register
     const gc9503_lcd_init_cmd_t *init_cmds;
     uint16_t init_cmds_size;
     struct {
         unsigned int mirror_by_cmd: 1;
+        unsigned int auto_del_panel_io: 1;
         unsigned int display_on_off_use_cmd: 1;
+        unsigned int reset_level: 1;
     } flags;
     // To save the original functions of RGB panel
+    esp_err_t (*init)(esp_lcd_panel_t *panel);
     esp_err_t (*del)(esp_lcd_panel_t *panel);
     esp_err_t (*reset)(esp_lcd_panel_t *panel);
     esp_err_t (*mirror)(esp_lcd_panel_t *panel, bool x_axis, bool y_axis);
@@ -46,6 +48,7 @@ static const char *TAG = "gc9503";
 
 static esp_err_t panel_gc9503_send_init_cmds(gc9503_panel_t *gc9503);
 
+static esp_err_t panel_gc9503_init(esp_lcd_panel_t *panel);
 static esp_err_t panel_gc9503_del(esp_lcd_panel_t *panel);
 static esp_err_t panel_gc9503_reset(esp_lcd_panel_t *panel);
 static esp_err_t panel_gc9503_mirror(esp_lcd_panel_t *panel, bool mirror_x, bool mirror_y);
@@ -61,30 +64,39 @@ esp_err_t esp_lcd_new_panel_gc9503(const esp_lcd_panel_io_handle_t io, const esp
                         ESP_ERR_INVALID_ARG, TAG, "`mirror_by_cmd` and `auto_del_panel_io` cannot work together");
 
     esp_err_t ret = ESP_OK;
+    gpio_config_t io_conf = { 0 };
+
     gc9503_panel_t *gc9503 = (gc9503_panel_t *)calloc(1, sizeof(gc9503_panel_t));
     ESP_RETURN_ON_FALSE(gc9503, ESP_ERR_NO_MEM, TAG, "no mem for gc9503 panel");
 
     if (panel_dev_config->reset_gpio_num >= 0) {
-        gpio_config_t io_conf = {
-            .mode = GPIO_MODE_OUTPUT,
-            .pin_bit_mask = 1ULL << panel_dev_config->reset_gpio_num,
-        };
+        io_conf.mode = GPIO_MODE_OUTPUT;
+        io_conf.pin_bit_mask = 1ULL << panel_dev_config->reset_gpio_num;
         ESP_GOTO_ON_ERROR(gpio_config(&io_conf), err, TAG, "configure GPIO for RST line failed");
     }
 
-    gc9503->madctl_val = GC9503_CMD_MADCTL_DEFAULT;
-    gc9503->madctl_val |= (panel_dev_config->rgb_endian == LCD_RGB_ENDIAN_BGR) ? GC9503_CMD_BGR_BIT : 0;
+    switch (panel_dev_config->rgb_ele_order) {
+    case LCD_RGB_ELEMENT_ORDER_RGB:
+        gc9503->madctl_val = 0;
+        break;
+    case LCD_RGB_ELEMENT_ORDER_BGR:
+        gc9503->madctl_val |= GC9503_CMD_BGR_BIT;
+        break;
+    default:
+        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported color element order");
+        break;
+    }
 
-    gc9503->colmod_cal = 0;
+    gc9503->colmod_val = 0;
     switch (panel_dev_config->bits_per_pixel) {
     case 16: // RGB565
-        gc9503->colmod_cal = 0x50;
+        gc9503->colmod_val = 0x50;
         break;
     case 18: // RGB666
-        gc9503->colmod_cal = 0x60;
+        gc9503->colmod_val = 0x60;
         break;
     case 24: // RGB888
-        gc9503->colmod_cal = 0x70;
+        gc9503->colmod_val = 0x70;
         break;
     default:
         ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported pixel width");
@@ -94,15 +106,29 @@ esp_err_t esp_lcd_new_panel_gc9503(const esp_lcd_panel_io_handle_t io, const esp
     gc9503->io = io;
     gc9503->init_cmds = vendor_config->init_cmds;
     gc9503->init_cmds_size = vendor_config->init_cmds_size;
+    gc9503->reset_gpio_num = panel_dev_config->reset_gpio_num;
+    gc9503->flags.reset_level = panel_dev_config->flags.reset_active_high;
+    gc9503->flags.auto_del_panel_io = vendor_config->flags.auto_del_panel_io;
+    gc9503->flags.mirror_by_cmd = vendor_config->flags.mirror_by_cmd;
+    gc9503->flags.display_on_off_use_cmd = (vendor_config->rgb_config->disp_gpio_num >= 0) ? 0 : 1;
 
-    /**
-     * In order to enable the 3-wire SPI interface pins (such as SDA and SCK) to share other pins of the RGB interface
-     * (such as HSYNC) and save GPIOs, We need to send LCD initialization commands via the 3-wire SPI interface before
-     * `esp_lcd_new_rgb_panel()` is called.
-     */
-    ESP_GOTO_ON_ERROR(panel_gc9503_send_init_cmds(gc9503), err, TAG, "send init commands failed");
-    // After sending the initialization commands, the 3-wire SPI interface can be deleted
-    if (vendor_config->flags.auto_del_panel_io) {
+    if (gc9503->flags.auto_del_panel_io) {
+        if (gc9503->reset_gpio_num >= 0) {  // Perform hardware reset
+            gpio_set_level(gc9503->reset_gpio_num, gc9503->flags.reset_level);
+            vTaskDelay(pdMS_TO_TICKS(10));
+            gpio_set_level(gc9503->reset_gpio_num, !gc9503->flags.reset_level);
+        } else { // Perform software reset
+            ESP_GOTO_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_CMD_SWRESET, NULL, 0), err, TAG, "send command failed");
+        }
+        vTaskDelay(pdMS_TO_TICKS(120));
+
+        /**
+         * In order to enable the 3-wire SPI interface pins (such as SDA and SCK) to share other pins of the RGB interface
+         * (such as HSYNC) and save GPIOs, we need to send LCD initialization commands via the 3-wire SPI interface before
+         * `esp_lcd_new_rgb_panel()` is called.
+         */
+        ESP_GOTO_ON_ERROR(panel_gc9503_send_init_cmds(gc9503), err, TAG, "send init commands failed");
+        // After sending the initialization commands, the 3-wire SPI interface can be deleted
         ESP_GOTO_ON_ERROR(esp_lcd_panel_io_del(io), err, TAG, "delete panel IO failed");
         gc9503->io = NULL;
         ESP_LOGD(TAG, "delete panel IO");
@@ -112,16 +138,14 @@ esp_err_t esp_lcd_new_panel_gc9503(const esp_lcd_panel_io_handle_t io, const esp
     ESP_GOTO_ON_ERROR(esp_lcd_new_rgb_panel(vendor_config->rgb_config, ret_panel), err, TAG, "create RGB panel failed");
     ESP_LOGD(TAG, "new RGB panel @%p", ret_panel);
 
-    gc9503->reset_gpio_num = panel_dev_config->reset_gpio_num;
-    gc9503->reset_level = panel_dev_config->flags.reset_active_high;
-    gc9503->flags.mirror_by_cmd = vendor_config->flags.mirror_by_cmd;
-    gc9503->flags.display_on_off_use_cmd = (vendor_config->rgb_config->disp_gpio_num >= 0) ? 0 : 1;
     // Save the original functions of RGB panel
+    gc9503->init = (*ret_panel)->init;
     gc9503->del = (*ret_panel)->del;
     gc9503->reset = (*ret_panel)->reset;
     gc9503->mirror = (*ret_panel)->mirror;
     gc9503->disp_on_off = (*ret_panel)->disp_on_off;
     // Overwrite the functions of RGB panel
+    (*ret_panel)->init = panel_gc9503_init;
     (*ret_panel)->del = panel_gc9503_del;
     (*ret_panel)->reset = panel_gc9503_reset;
     (*ret_panel)->mirror = panel_gc9503_mirror;
@@ -129,6 +153,8 @@ esp_err_t esp_lcd_new_panel_gc9503(const esp_lcd_panel_io_handle_t io, const esp
     (*ret_panel)->user_data = gc9503;
     ESP_LOGD(TAG, "new gc9503 panel @%p", gc9503);
 
+    ESP_LOGI(TAG, "LCD panel create success, version: %d.%d.%d", ESP_LCD_GC9503_VER_MAJOR, ESP_LCD_GC9503_VER_MINOR,
+             ESP_LCD_GC9503_VER_PATCH);
     return ESP_OK;
 
 err:
@@ -143,6 +169,7 @@ err:
 
 // *INDENT-OFF*
 static const gc9503_lcd_init_cmd_t vendor_specific_init_default[] = {
+//  {cmd, { data }, data_size, delay_ms}
     {0xf0, (uint8_t []){0x55, 0xaa, 0x52, 0x08, 0x00}, 5, 0},
     {0xf6, (uint8_t []){0x5a, 0x87}, 2, 0},
     {0xc1, (uint8_t []){0x3f}, 1, 0},
@@ -216,7 +243,7 @@ static esp_err_t panel_gc9503_send_init_cmds(gc9503_panel_t *gc9503)
         gc9503->madctl_val,
     }, 1), TAG, "send command failed");;
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_CMD_COLMOD, (uint8_t[]) {
-        gc9503->colmod_cal,
+        gc9503->colmod_val,
     }, 1), TAG, "send command failed");;
 
     // Vendor specific initialization, it can be different between manufacturers
@@ -224,19 +251,53 @@ static esp_err_t panel_gc9503_send_init_cmds(gc9503_panel_t *gc9503)
     const gc9503_lcd_init_cmd_t *init_cmds = NULL;
     uint16_t init_cmds_size = 0;
     if (gc9503->init_cmds) {
-        ESP_LOGD(TAG, "use external initialization commands");
         init_cmds = gc9503->init_cmds;
         init_cmds_size = gc9503->init_cmds_size;
     } else {
         init_cmds = vendor_specific_init_default;
         init_cmds_size = sizeof(vendor_specific_init_default) / sizeof(gc9503_lcd_init_cmd_t);
     }
+
+    bool is_cmd_overwritten = false;
     for (int i = 0; i < init_cmds_size; i++) {
+        // Check if the command has been used or conflicts with the internal
+        switch (init_cmds[i].cmd) {
+        case LCD_CMD_MADCTL:
+            is_cmd_overwritten = true;
+            gc9503->madctl_val = ((uint8_t *)init_cmds[i].data)[0];
+            break;
+        case LCD_CMD_COLMOD:
+            is_cmd_overwritten = true;
+            gc9503->colmod_val = ((uint8_t *)init_cmds[i].data)[0];
+            break;
+        default:
+            is_cmd_overwritten = false;
+            break;
+        }
+
+        if (is_cmd_overwritten) {
+            ESP_LOGW(TAG, "The %02Xh command has been used and will be overwritten by external initialization sequence",
+                     init_cmds[i].cmd);
+        }
+
         ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, init_cmds[i].cmd, init_cmds[i].data, init_cmds[i].data_bytes),
                             TAG, "send command failed");
         vTaskDelay(pdMS_TO_TICKS(init_cmds[i].delay_ms));
     }
     ESP_LOGD(TAG, "send init commands success");
+
+    return ESP_OK;
+}
+
+static esp_err_t panel_gc9503_init(esp_lcd_panel_t *panel)
+{
+    gc9503_panel_t *gc9503 = (gc9503_panel_t *)panel->user_data;
+
+    if (!gc9503->flags.auto_del_panel_io) {
+        ESP_RETURN_ON_ERROR(panel_gc9503_send_init_cmds(gc9503), TAG, "send init commands failed");
+    }
+    // Init RGB panel
+    ESP_RETURN_ON_ERROR(gc9503->init(panel), TAG, "init RGB panel failed");
 
     return ESP_OK;
 }
@@ -262,9 +323,9 @@ static esp_err_t panel_gc9503_reset(esp_lcd_panel_t *panel)
 
     // Perform hardware reset
     if (gc9503->reset_gpio_num >= 0) {
-        gpio_set_level(gc9503->reset_gpio_num, gc9503->reset_level);
+        gpio_set_level(gc9503->reset_gpio_num, gc9503->flags.reset_level);
         vTaskDelay(pdMS_TO_TICKS(10));
-        gpio_set_level(gc9503->reset_gpio_num, !gc9503->reset_level);
+        gpio_set_level(gc9503->reset_gpio_num, !gc9503->flags.reset_level);
         vTaskDelay(pdMS_TO_TICKS(120));
     } else if (io) { // Perform software reset
         ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_CMD_SWRESET, NULL, 0), TAG, "send command failed");

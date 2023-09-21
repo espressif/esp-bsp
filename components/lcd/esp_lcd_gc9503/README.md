@@ -28,13 +28,14 @@ It's recommended to use the [esp_lcd_panel_io_additions](https://components.espr
 ```c
     ESP_LOGI(TAG, "Install 3-wire SPI panel IO");
     spi_line_config_t line_config = {
-        .cs_io_type = IO_TYPE_EXPANDER,     // Set to `IO_TYPE_GPIO` if using GPIO, same to below
-        .cs_expander_pin = EXAMPLE_LCD_IO_SPI_CS,
+        .cs_io_type = IO_TYPE_GPIO,                 // Set to `IO_TYPE_EXPANDER` if using IO expander
+        .cs_gpio_num = EXAMPLE_LCD_IO_SPI_CS,
         .scl_io_type = IO_TYPE_GPIO,
-        .scl_expander_pin = EXAMPLE_LCD_IO_SPI_SCK,
+        .scl_gpio_num = EXAMPLE_LCD_IO_SPI_SCK,
         .sda_io_type = IO_TYPE_GPIO,
-        .sda_expander_pin = EXAMPLE_LCD_IO_SPI_SDO,
-        .io_expander = expander_handle,     // Set to NULL if not using IO expander
+        .sda_gpio_num = EXAMPLE_LCD_IO_SPI_SDO,
+        .io_expander = NULL,                        // Set to device handle if using IO expander
+
     };
     esp_lcd_panel_io_3wire_spi_config_t io_config = GC9503_PANEL_IO_3WIRE_SPI_CONFIG(line_config, 0);
     esp_lcd_panel_io_handle_t io_handle = NULL;
@@ -45,7 +46,7 @@ It's recommended to use the [esp_lcd_panel_io_additions](https://components.espr
  * The array should be declared as static const and positioned outside the function.
  */
 // static const gc9503_lcd_init_cmd_t lcd_init_cmds[] = {
-// //   cmd   data        data_size  delay_ms
+// //  {cmd, { data }, data_size, delay_ms}
 //    {0xc1, (uint8_t []){0x3f}, 1, 0},
 //    {0xc2, (uint8_t []){0x0e}, 1, 0},
 //    {0xc6, (uint8_t []){0xf8}, 1, 0},
@@ -100,12 +101,16 @@ It's recommended to use the [esp_lcd_panel_io_additions](https://components.espr
     };
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = EXAMPLE_LCD_IO_RST,           // Set to -1 if not use
-        .rgb_endian = LCD_RGB_ENDIAN_RGB,               // Implemented by LCD command `B1h`
+        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,     // Implemented by LCD command `B1h`
         .bits_per_pixel = EXAMPLE_LCD_BIT_PER_PIXEL,    // Implemented by LCD command `3Ah` (16/18/24)
         .vendor_config = &vendor_config,
     };
     esp_lcd_panel_handle_t panel_handle = NULL;
     ESP_ERROR_CHECK(esp_lcd_new_panel_gc9503(io_handle, &panel_config, &panel_handle));
-    // Since the LCD initialization is complete, do not call `esp_lcd_panel_reset()` to reset the LCD.
+    ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
+    ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true)); /**
+                                                                     * Don't call this function if `auto_del_panel_io` is set to 0
+                                                                     * and `disp_gpio_num` is set to -1
+                                                                     */
 ```
