@@ -21,6 +21,8 @@
 #include "bsp/display.h"
 #include "bsp/touch.h"
 #include "esp_lcd_touch_tt21100.h"
+#include "esp_lcd_touch_gt911.h"
+#include "esp_lcd_ili9341.h"
 #include "esp_lvgl_port.h"
 #include "bsp_err_check.h"
 #include "esp_codec_dev_defaults.h"
@@ -92,6 +94,20 @@ esp_err_t bsp_i2c_deinit(void)
     BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
     i2c_initialized = false;
     return ESP_OK;
+}
+
+static esp_err_t bsp_i2c_device_probe(uint8_t addr)
+{
+    esp_err_t ret = ESP_ERR_NOT_FOUND;
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (addr << 1) | I2C_MASTER_WRITE, true);
+    i2c_master_stop(cmd);
+    if (i2c_master_cmd_begin(BSP_I2C_NUM, cmd, 1000) == ESP_OK) {
+        ret = ESP_OK;
+    }
+    i2c_cmd_link_delete(cmd);
+    return ret;
 }
 
 esp_err_t bsp_spiffs_mount(void)
@@ -326,6 +342,9 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
 
     ESP_RETURN_ON_ERROR(bsp_display_brightness_init(), TAG, "Brightness init failed");
 
+    /* Initilize I2C */
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+
     ESP_LOGD(TAG, "Initialize SPI bus");
     const spi_bus_config_t buscfg = {
         .sclk_io_num = BSP_LCD_PCLK,
@@ -356,7 +375,12 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
         .color_space = BSP_LCD_COLOR_SPACE,
         .bits_per_pixel = BSP_LCD_BITS_PER_PIXEL,
     };
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7789(*ret_io, &panel_config, ret_panel), err, TAG, "New panel failed");
+
+    if (ESP_OK == bsp_i2c_device_probe(ESP_LCD_TOUCH_IO_I2C_TT21100_ADDRESS)) {
+        ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7789(*ret_io, &panel_config, ret_panel), err, TAG, "New panel failed");
+    } else {
+        ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9341(*ret_io, &panel_config, ret_panel), err, TAG, "New panel failed");
+    }
 
     esp_lcd_panel_reset(*ret_panel);
     esp_lcd_panel_init(*ret_panel);
@@ -442,7 +466,7 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
 
     /* Initialize touch */
-    const esp_lcd_touch_config_t tp_cfg = {
+    esp_lcd_touch_config_t tp_cfg = {
         .x_max = BSP_LCD_H_RES,
         .y_max = BSP_LCD_V_RES,
         .rst_gpio_num = GPIO_NUM_NC, // Shared with LCD reset
@@ -453,14 +477,37 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
         },
         .flags = {
             .swap_xy = 0,
-            .mirror_x = 1,
+            .mirror_x = 0,
             .mirror_y = 0,
         },
     };
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-    const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
+    esp_lcd_panel_io_i2c_config_t tp_io_config;
+
+    if (ESP_OK == bsp_i2c_device_probe(ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS)) {
+        esp_lcd_panel_io_i2c_config_t config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
+        memcpy(&tp_io_config, &config, sizeof(config));
+    } else if (ESP_OK == bsp_i2c_device_probe(ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS_BACKUP)) {
+        esp_lcd_panel_io_i2c_config_t config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
+        config.dev_addr = ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS_BACKUP;
+        memcpy(&tp_io_config, &config, sizeof(config));
+    } else if (ESP_OK == bsp_i2c_device_probe(ESP_LCD_TOUCH_IO_I2C_TT21100_ADDRESS)) {
+        esp_lcd_panel_io_i2c_config_t config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
+        memcpy(&tp_io_config, &config, sizeof(config));
+        tp_cfg.flags.mirror_x = 1;
+    } else {
+        ESP_LOGE(TAG, "Touch not found");
+        return ESP_ERR_NOT_FOUND;
+    }
+
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle), TAG, "");
-    return esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, ret_touch);
+    if (ESP_LCD_TOUCH_IO_I2C_TT21100_ADDRESS == tp_io_config.dev_addr) {
+        ESP_RETURN_ON_ERROR(esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, ret_touch), TAG, "New tt21100 failed");
+    } else {
+        ESP_RETURN_ON_ERROR(esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, ret_touch), TAG, "New gt911 failed");
+    }
+
+    return ESP_OK;
 }
 
 static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
