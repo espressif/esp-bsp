@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -34,8 +34,12 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
 /**
  * @brief I2C address of the GT911 controller
  *
+ * @note When power-on detects low level of the interrupt gpio, address is 0x5D.
+ * @note Interrupt gpio is high level, address is 0x14.
+ *
  */
-#define ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS (0x5D)
+#define ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS          (0x5D)
+#define ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS_BACKUP   (0x14)
 
 /**
  * @brief Touch IO configuration structure
