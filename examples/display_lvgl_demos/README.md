@@ -28,3 +28,7 @@ To improve display performance (FPS), please set the following configurations:
 ### Hardware Required
 
 ESP32-S3-LCD-EV-Board or ESP32-S3-LCD-EV-Board-2
+
+<a href="https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos">
+    <img alt="Try it with ESP Launchpad" src="https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png" width="250" height="70">
+</a>

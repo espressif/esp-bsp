@@ -23,3 +23,7 @@ Playing check box on display will be checked for the playing time.
 ### Buttons VOL+/-
 Increases/decreases playback volume by 5/100.
 Current playback volume is depicted on display.
+
+<a href="https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=audio">
+    <img alt="Try it with ESP Launchpad" src="https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png" width="250" height="70">
+</a>

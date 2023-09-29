@@ -36,16 +36,16 @@ Moreover, LVGL port includes recommendations and tips for increasing graphical p
 
 Best way to start with ESP-BSP is trying one of the [examples](examples) on your board. Every example contains `README.md` with a list of supported boards. Here is the summary of the available examples:
 
-| Example | Supported boards |
-|---|---|
-| [audio](examples/audio) | ESP32-S3-Korvo-2 |
-| [display](examples/display) | WROVER-KIT |
-| [display_camera](examples/display_camera) | Kaluga-kit |
-| [display_audio_photo](examples/display_audio_photo) | ESP-BOX |
-| [display_rotation](examples/display_rotation) | ESP-BOX |
-| [display_lvgl_demos](examples/display_lvgl_demos) | ESP32-S3-LCD-EV-Board |
-| [display_sensors](examples/display_sensors) | Azure-IoT-kit |
-| [mqtt_example](examples/mqtt_example) | Azure-IoT-kit |
+| Example | Supported boards | Try with ESP Launchpad |
+|---|---|---|
+| [audio](examples/audio) | ESP32-S3-Korvo-2 | [Flash audio](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=audio) |
+| [display](examples/display) | WROVER-KIT | [Flash display](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
+| [display_camera](examples/display_camera) | Kaluga-kit | [Flash display_camera](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera) |
+| [display_audio_photo](examples/display_audio_photo) | ESP-BOX | [Flash display_audio_photo](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo) |
+| [display_rotation](examples/display_rotation) | ESP-BOX | [Flash display_rotation](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation) |
+| [display_lvgl_demos](examples/display_lvgl_demos) | ESP32-S3-LCD-EV-Board | [Flash display_lvgl_demos](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos) |
+| [display_sensors](examples/display_sensors) | Azure-IoT-kit | [Flash display_sensors](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sensors) |
+| [mqtt_example](examples/mqtt_example) | Azure-IoT-kit | - |
 
 ### BSP headers
 Each BSP provides its header file in 'bsp' subfolder, so it can be included as follows: `#include "bsp/name-of-the-bsp.h"`.

@@ -36,3 +36,7 @@ I (455) ESP-BOX: Setting LCD backlight: 100%
 I (455) ESP-BOX: Starting LVGL task
 I (495) ESP-BOX: Example initialization done.
 ```
+
+<a href="https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation">
+    <img alt="Try it with ESP Launchpad" src="https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png" width="250" height="70">
+</a>
