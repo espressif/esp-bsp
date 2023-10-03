@@ -166,14 +166,14 @@ const audio_codec_data_if_t *bsp_audio_get_codec_itf(void);
 /**
  * @brief Initialize speaker codec device
  *
- * @return Pointer to codec device handle or NULL when error occured
+ * @return Pointer to codec device handle or NULL when error occurred
  */
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
 
 /**
  * @brief Initialize microphone codec device
  *
- * @return Pointer to codec device handle or NULL when error occured
+ * @return Pointer to codec device handle or NULL when error occurred
  */
 esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
 
@@ -187,11 +187,6 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
  *  - Encryption chip ATECC608A (NOT populated on most boards)
  *  - LCD Touch controller
  *  - Inertial Measurement Unit ICM-42607-P
- *
- * After initialization of I2C, use BSP_I2C_NUM macro when creating I2C devices drivers ie.:
- * \code{.c}
- * es8311_handle_t es8311_dev = es8311_create(BSP_I2C_NUM, ES8311_ADDRRES_0);
- * \endcode
  **************************************************************************************************/
 #define BSP_I2C_NUM     CONFIG_BSP_I2C_NUM
 
