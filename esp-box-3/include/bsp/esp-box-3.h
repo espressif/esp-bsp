@@ -27,6 +27,19 @@
 #include "driver/i2s_std.h"
 #endif
 /**************************************************************************************************
+ *  BSP Capabilities
+ **************************************************************************************************/
+
+#define BSP_CAPS_DISPLAY        1
+#define BSP_CAPS_TOUCH          1
+#define BSP_CAPS_BUTTONS        1
+#define BSP_CAPS_AUDIO          1
+#define BSP_CAPS_AUDIO_SPEAKER  1
+#define BSP_CAPS_AUDIO_MIC      1
+#define BSP_CAPS_SDCARD         1
+#define BSP_CAPS_IMU            1
+
+/**************************************************************************************************
  *  ESP-BOX pinout
  **************************************************************************************************/
 /* I2C */
