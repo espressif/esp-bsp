@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -11,10 +11,7 @@
 #include "esp_lcd_panel_ops.h"
 #include "esp_log.h"
 #include "esp_check.h"
-
-#include "esp_adc/adc_oneshot.h"
-#include "esp_adc/adc_cali.h"
-#include "esp_adc/adc_cali_scheme.h"
+#include "esp_spiffs.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -32,9 +29,35 @@
 static const char *TAG = "USB-OTG";
 
 static TaskHandle_t usb_host_task;  // USB Host Library task
-static adc_oneshot_unit_handle_t adc1_handle; // ADC1 handle; for USB voltage measurement
-static adc_cali_handle_t adc1_cali_handle; // ADC1 calibration handle
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
+
+static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.gpio_num = BSP_BUTTON_OK_IO,
+        .gpio_button_config.active_level = 0,
+    },
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.gpio_num = BSP_BUTTON_DW_IO,
+        .gpio_button_config.active_level = 0,
+    },
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.gpio_num = BSP_BUTTON_UP_IO,
+        .gpio_button_config.active_level = 0,
+    },
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.gpio_num = BSP_BUTTON_MENU_IO,
+        .gpio_button_config.active_level = 0,
+    },
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.gpio_num = BSP_USB_OVERCURRENT_IO,
+        .gpio_button_config.active_level = 0,
+    },
+};
 
 esp_err_t bsp_leds_init(void)
 {
@@ -53,6 +76,39 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on)
 {
     BSP_ERROR_CHECK_RETURN_ERR(gpio_set_level((gpio_num_t) led_io, (uint32_t) on));
     return ESP_OK;
+}
+
+esp_err_t bsp_spiffs_mount(void)
+{
+    esp_vfs_spiffs_conf_t conf = {
+        .base_path = CONFIG_BSP_SPIFFS_MOUNT_POINT,
+        .partition_label = CONFIG_BSP_SPIFFS_PARTITION_LABEL,
+        .max_files = CONFIG_BSP_SPIFFS_MAX_FILES,
+#ifdef CONFIG_BSP_SPIFFS_FORMAT_ON_MOUNT_FAIL
+        .format_if_mount_failed = true,
+#else
+        .format_if_mount_failed = false,
+#endif
+    };
+
+    esp_err_t ret_val = esp_vfs_spiffs_register(&conf);
+
+    BSP_ERROR_CHECK_RETURN_ERR(ret_val);
+
+    size_t total = 0, used = 0;
+    ret_val = esp_spiffs_info(conf.partition_label, &total, &used);
+    if (ret_val != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret_val));
+    } else {
+        ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
+    }
+
+    return ret_val;
+}
+
+esp_err_t bsp_spiffs_unmount(void)
+{
+    return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
 }
 
 esp_err_t bsp_sdcard_mount(void)
@@ -96,7 +152,7 @@ esp_err_t bsp_sdcard_unmount(void)
 esp_err_t bsp_button_init(void)
 {
     const gpio_config_t btn_io_config = {
-        .pin_bit_mask = BIT64(BSP_BUTTON_DW) | BIT64(BSP_BUTTON_UP) | BIT64(BSP_BUTTON_OK) | BIT64(BSP_BUTTON_MENU) | BIT64(BSP_USB_OVERCURRENT),
+        .pin_bit_mask = BIT64(BSP_BUTTON_OK_IO) | BIT64(BSP_BUTTON_DW_IO) | BIT64(BSP_BUTTON_UP_IO) | BIT64(BSP_BUTTON_MENU_IO) | BIT64(BSP_USB_OVERCURRENT_IO),
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -108,7 +164,52 @@ esp_err_t bsp_button_init(void)
 
 bool bsp_button_get(const bsp_button_t btn)
 {
-    return !(bool)gpio_get_level(btn);
+    gpio_num_t btn_io;
+    switch (btn) {
+    case BSP_BUTTON_OK:
+        btn_io = BSP_BUTTON_OK_IO;
+        break;
+    case BSP_BUTTON_DW:
+        btn_io = BSP_BUTTON_DW_IO;
+        break;
+    case BSP_BUTTON_UP:
+        btn_io = BSP_BUTTON_UP_IO;
+        break;
+    case BSP_BUTTON_MENU:
+        btn_io = BSP_BUTTON_MENU_IO;
+        break;
+    case BSP_USB_OVERCURRENT:
+        btn_io = BSP_USB_OVERCURRENT_IO;
+        break;
+    default:
+        return ESP_FAIL;
+    }
+
+    return !(bool)gpio_get_level(btn_io);
+}
+
+esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
+{
+    esp_err_t ret = ESP_OK;
+    if ((btn_array_size < BSP_BUTTON_NUM) ||
+            (btn_array == NULL)) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    if (btn_cnt) {
+        *btn_cnt = 0;
+    }
+    for (int i = 0; i < BSP_BUTTON_NUM; i++) {
+        btn_array[i] = iot_button_create(&bsp_button_config[i]);
+        if (btn_array[i] == NULL) {
+            ret = ESP_FAIL;
+            break;
+        }
+        if (btn_cnt) {
+            (*btn_cnt)++;
+        }
+    }
+    return ret;
 }
 
 #define LCD_CMD_BITS         (8)
@@ -257,9 +358,17 @@ static lv_disp_t *bsp_display_lcd_init(void)
 
 lv_disp_t *bsp_display_start(void)
 {
+    bsp_display_cfg_t cfg = {
+        .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG()
+    };
+    return bsp_display_start_with_config(&cfg);
+}
+
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
+{
     lv_disp_t *disp = NULL;
-    const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
-    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&lvgl_cfg));
+    assert(cfg != NULL);
+    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
     BSP_NULL_CHECK(disp = bsp_display_lcd_init(), NULL);
     return disp;
 }
@@ -393,50 +502,4 @@ esp_err_t bsp_usb_host_stop(void)
         vTaskDelete(usb_host_task);
     }
     return bsp_usb_host_power_mode(BSP_USB_HOST_POWER_MODE_OFF, false);
-}
-
-esp_err_t bsp_voltage_init(void)
-{
-    // Init ADC1
-    const adc_oneshot_unit_init_cfg_t init_config1 = {
-        .unit_id = ADC_UNIT_1,
-    };
-    BSP_ERROR_CHECK_RETURN_ERR(adc_oneshot_new_unit(&init_config1, &adc1_handle));
-
-    // Init ADC1 channels
-    const adc_oneshot_chan_cfg_t config = {
-        .bitwidth = ADC_BITWIDTH_DEFAULT,
-        .atten = ADC_ATTEN_DB_11,
-    };
-    BSP_ERROR_CHECK_RETURN_ERR(adc_oneshot_config_channel(adc1_handle, ADC_CHANNEL_0, &config));
-    BSP_ERROR_CHECK_RETURN_ERR(adc_oneshot_config_channel(adc1_handle, ADC_CHANNEL_1, &config));
-
-    // ESP32-S3 supports Curve Fitting calibration scheme
-    const adc_cali_curve_fitting_config_t cali_config = {
-        .unit_id = ADC_UNIT_1,
-        .atten = ADC_ATTEN_DB_11,
-        .bitwidth = ADC_BITWIDTH_DEFAULT,
-    };
-    BSP_ERROR_CHECK_RETURN_ERR(adc_cali_create_scheme_curve_fitting(&cali_config, &adc1_cali_handle));
-    return ESP_OK;
-}
-
-int bsp_voltage_battery_get(void)
-{
-    int voltage, adc_raw;
-
-    assert(adc1_handle);
-    BSP_ERROR_CHECK(adc_oneshot_read(adc1_handle, ADC_CHANNEL_1, &adc_raw), -1);
-    BSP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali_handle, adc_raw, &voltage), -1);
-    return voltage * BSP_BATTERY_VOLTAGE_DIV;
-}
-
-int bsp_voltage_usb_get(void)
-{
-    int voltage, adc_raw;
-
-    assert(adc1_handle);
-    BSP_ERROR_CHECK(adc_oneshot_read(adc1_handle, ADC_CHANNEL_0, &adc_raw), -1);
-    BSP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali_handle, adc_raw, &voltage), -1);
-    return (float)voltage * BSP_USB_HOST_VOLTAGE_DIV;
 }
