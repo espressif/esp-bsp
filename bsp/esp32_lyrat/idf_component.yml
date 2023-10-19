@@ -1,6 +1,6 @@
-version: "1.0.0"
+version: "1.0.0~1"
 description: Board Support Package for ESP32-LyraT
-url: https://github.com/espressif/esp-bsp/tree/master/esp32_lyrat
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_lyrat
 
 targets:
   - esp32

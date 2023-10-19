@@ -73,7 +73,7 @@ def action_extensions(base_actions, project_path=os.getcwd()):
                 del manifest['dependencies'][dep]
 
         # Add the one we need
-        manifest['dependencies'].insert(0, bsp, {'version': '*', 'override_path': ('../../../' + bsp_short_name(bsp))})
+        manifest['dependencies'].insert(0, bsp, {'version': '*', 'override_path': ('../../../bsp/' + bsp_short_name(bsp))})
         yaml.dump(manifest, manifest_path)
 
     extensions = {

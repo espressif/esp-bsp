@@ -1,6 +1,6 @@
-version: "1.4.4"
+version: "1.4.4~1"
 description: Board Support Package for ESP32-S3-USB-OTG
-url: https://github.com/espressif/esp-bsp/tree/master/esp32_s3_usb_otg
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_usb_otg
 
 targets:
   - esp32s3

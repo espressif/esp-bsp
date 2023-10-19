@@ -1,6 +1,6 @@
-version: "2.0.2"
+version: "2.0.2~1"
 description: Board Support Package for ESP32-S3-BOX-Lite
-url: https://github.com/espressif/esp-bsp/tree/master/esp-box-lite
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box-lite
 
 targets:
   - esp32s3
