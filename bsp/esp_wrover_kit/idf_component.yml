@@ -1,6 +1,6 @@
-version: "1.5.0"
+version: "1.5.0~1"
 description: Board Support Package for ESP-WROVER-KIT
-url: https://github.com/espressif/esp-bsp/tree/master/esp_wrover_kit
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp_wrover_kit
 
 targets:
     - esp32
@@ -17,4 +17,4 @@ dependencies:
     public: true
 
 examples:
-  - path: ../examples/display
+  - path: ../../examples/display

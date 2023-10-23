@@ -1,7 +1,7 @@
 
-version: "1.1.1"
+version: "1.1.1~1"
 description: Board Support Package for ESP32-S3-BOX-3
-url: https://github.com/espressif/esp-bsp/tree/master/esp-box-3
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box-3
 
 targets:
   - esp32s3
@@ -29,5 +29,5 @@ dependencies:
     public: true
 
 examples:
-  - path: ../examples/display_audio_photo
-  - path: ../examples/display_rotation
+  - path: ../../examples/display_audio_photo
+  - path: ../../examples/display_rotation

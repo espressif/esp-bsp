@@ -2,4 +2,4 @@ description: BSP Display rotation example
 dependencies:
   esp32_s3_lcd_ev_board:
     version: "*"
-    override_path: "../../../esp32_s3_lcd_ev_board"
+    override_path: "../../../bsp/esp32_s3_lcd_ev_board"

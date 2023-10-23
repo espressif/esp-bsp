@@ -1,6 +1,6 @@
-version: "2.0.0"
+version: "2.0.0~1"
 description: Board Support Package for ESP32-Azure-IoT-Kit
-url: https://github.com/espressif/esp-bsp/tree/master/esp32_azure_iot_kit
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_azure_iot_kit
 
 targets:
     - esp32
@@ -37,5 +37,5 @@ dependencies:
     public: true
 
 examples:
-  - path: ../examples/mqtt_example
-  - path: ../examples/display_sensors
+  - path: ../../examples/mqtt_example
+  - path: ../../examples/display_sensors

@@ -3,4 +3,4 @@ dependencies:
   esp_jpeg: "*"
   esp-box:
     version: ">=3.0.0"
-    override_path: "../../../esp-box"
+    override_path: "../../../bsp/esp-box"

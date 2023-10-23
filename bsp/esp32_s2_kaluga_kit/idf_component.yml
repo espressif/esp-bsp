@@ -1,6 +1,6 @@
-version: "3.0.0"
+version: "3.0.0~1"
 description: Board Support Package for ESP32-S2-Kaluga kit
-url: https://github.com/espressif/esp-bsp/tree/master/esp32_s2_kaluga_kit
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s2_kaluga_kit
 
 targets:
   - esp32s2
@@ -31,4 +31,4 @@ dependencies:
     public: true
 
 examples:
-  - path: ../examples/display_camera
+  - path: ../../examples/display_camera
