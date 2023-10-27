@@ -12,7 +12,6 @@
 
 #include <stdint.h>
 
-#include "hal/lcd_types.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_rgb.h"
 
@@ -43,22 +42,23 @@ typedef struct {
                                                      *   The array should be declared as `static const` and positioned outside the function.
                                                      *   Please refer to `vendor_specific_init_default` in source file.
                                                      */
-    uint16_t init_cmds_size;    /*<! Number of commands in above array */
+    uint16_t init_cmds_size;                        /*<! Number of commands in above array */
     struct {
-        unsigned int mirror_by_cmd: 1;          /*<! The `mirror()` function will be implemented by LCD command if set to 1.
-                                                 *   Otherwise, the function will be implemented by software.
-                                                 */
-        unsigned int auto_del_panel_io: 1;      /*<! Delete the panel IO instance automatically if set to 1. All `*_by_cmd` flags will be invalid.
-                                                 *   If the panel IO pins are sharing other pins of the RGB interface to save GPIOs,
-                                                 *   Please set it to 1 to release the panel IO and its pins (except CS signal).
-                                                 */
+        unsigned int mirror_by_cmd: 1;              /*<! The `mirror()` function will be implemented by LCD command if set to 1.
+                                                     *   Otherwise, the function will be implemented by software.
+                                                     */
+        unsigned int auto_del_panel_io: 1;          /*<! Delete the panel IO instance automatically if set to 1. All `*_by_cmd` flags will be invalid.
+                                                     *   If the panel IO pins are sharing other pins of the RGB interface to save GPIOs,
+                                                     *   Please set it to 1 to release the panel IO and its pins (except CS signal).
+                                                     */
     } flags;
 } gc9503_vendor_config_t;
 
 /**
  * @brief Create LCD panel for model GC9503
  *
- * @note  This function first initialize GC9503 with vendor specific initialization, then calls `esp_lcd_new_rgb_panel()` to create a RGB LCD panel.
+ * @note  When `auto_del_panel_io` is set to 1, this function will first initialize the GC9503 with vendor specific initialization and then calls `esp_lcd_new_rgb_panel()` to create an RGB LCD panel. And the `esp_lcd_panel_init()` function will only initialize RGB.
+ * @note  When `auto_del_panel_io` is set to 0, this function will only call `esp_lcd_new_rgb_panel()` to create an RGB LCD panel. And the `esp_lcd_panel_init()` function will initialize both the GC9503 and RGB.
  * @note  Vendor specific initialization can be different between manufacturers, should consult the LCD supplier for initialization sequence code.
  *
  * @param[in]  io LCD panel IO handle
@@ -87,11 +87,11 @@ esp_err_t esp_lcd_new_panel_gc9503(const esp_lcd_panel_io_handle_t io, const esp
         .lcd_cmd_bytes = 1,                                         \
         .lcd_param_bytes = 1,                                       \
         .flags = {                                                  \
-            .use_dc_bit = true,                                     \
-            .dc_zero_on_data = false,                               \
-            .lsb_first = false,                                     \
-            .cs_high_active = false,                                \
-            .del_keep_cs_inactive = true,                           \
+            .use_dc_bit = 1,                                        \
+            .dc_zero_on_data = 0,                                   \
+            .lsb_first = 0,                                         \
+            .cs_high_active = 0,                                    \
+            .del_keep_cs_inactive = 1,                              \
         },                                                          \
     }
 
@@ -114,7 +114,7 @@ esp_err_t esp_lcd_new_panel_gc9503(const esp_lcd_panel_io_handle_t io, const esp
         .vsync_pulse_width = 10,                    \
         .vsync_back_porch = 10,                     \
         .vsync_front_porch = 10,                    \
-        .flags.pclk_active_neg = false,             \
+        .flags.pclk_active_neg = 0,                 \
     }
 
 #ifdef __cplusplus

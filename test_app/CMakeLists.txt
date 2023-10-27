@@ -23,6 +23,11 @@ if(NOT "${IDF_TARGET}" STREQUAL "esp32s3")
     list(APPEND EXCLUDE_COMPONENTS "esp_lcd_gc9503")
 endif()
 
+# Test i80 lcd components only in esp32s2, esp32s3
+if(NOT "${IDF_TARGET}" STREQUAL "esp32s2" AND NOT "${IDF_TARGET}" STREQUAL "esp32s3")
+    list(APPEND EXCLUDE_COMPONENTS "esp_lcd_st7796")
+endif()
+
 # Set the components to include the tests for.
 set(TEST_COMPONENTS bh1750 ssd1306 mpu6050 mag3110 hts221 fbm320 es7210 icm42670 CACHE STRING "List of components to test")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
