@@ -60,7 +60,7 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
     // };
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = EXAMPLE_PIN_NUM_LCD_RST,      // Set to -1 if not use
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 4)      // Implemented by LCD command `36h`
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 1, 0)      // Implemented by LCD command `36h`
         .color_space = ESP_LCD_COLOR_SPACE_BGR,
 #else
         .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,

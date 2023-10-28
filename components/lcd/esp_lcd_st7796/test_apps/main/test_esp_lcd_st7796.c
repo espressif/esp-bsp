@@ -104,7 +104,7 @@ TEST_CASE("test st7796 to draw color bar with I80 interface", "[st7796][i80]")
     ESP_LOGI(TAG, "Install ST7796 panel driver");
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = TEST_PIN_NUM_LCD_RST,
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 4)
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 1, 0)
         .color_space = ESP_LCD_COLOR_SPACE_BGR,
 #else
         .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,

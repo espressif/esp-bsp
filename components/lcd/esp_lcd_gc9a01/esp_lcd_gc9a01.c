@@ -61,7 +61,7 @@ esp_err_t esp_lcd_new_panel_gc9a01(const esp_lcd_panel_io_handle_t io, const esp
         ESP_GOTO_ON_ERROR(gpio_config(&io_conf), err, TAG, "configure GPIO for RST line failed");
     }
 
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 4)
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 1, 0)
     switch (panel_dev_config->color_space) {
     case ESP_LCD_COLOR_SPACE_RGB:
         gc9a01->madctl_val = 0;

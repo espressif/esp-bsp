@@ -96,7 +96,7 @@ TEST_CASE("test ili9341 to draw color bar with SPI interface", "[ili9341][spi]")
     esp_lcd_panel_handle_t panel_handle = NULL;
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = TEST_PIN_NUM_LCD_RST, // Shared with Touch reset
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 4)
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 1, 0)
         .color_space = ESP_LCD_COLOR_SPACE_BGR,
 #else
         .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
