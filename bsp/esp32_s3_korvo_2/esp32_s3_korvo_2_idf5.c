@@ -5,6 +5,7 @@
  */
 
 #include "esp_err.h"
+#include "esp_adc/adc_cali_scheme.h"
 #include "esp_adc/adc_oneshot.h"
 #include "bsp/esp32_s3_korvo_2.h"
 #include "bsp_err_check.h"
