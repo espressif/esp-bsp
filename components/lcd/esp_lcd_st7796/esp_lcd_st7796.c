@@ -61,7 +61,7 @@ esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp
         ESP_GOTO_ON_ERROR(gpio_config(&io_conf), err, TAG, "configure GPIO for RST line failed");
     }
 
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 4)
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
     switch (panel_dev_config->color_space) {
     case ESP_LCD_COLOR_SPACE_RGB:
         st7796->madctl_val = 0;
@@ -74,15 +74,15 @@ esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp
         break;
     }
 #else
-    switch (panel_dev_config->rgb_ele_order) {
-    case LCD_RGB_ELEMENT_ORDER_RGB:
+    switch (panel_dev_config->rgb_endian) {
+    case LCD_RGB_ENDIAN_RGB:
         st7796->madctl_val = 0;
         break;
-    case LCD_RGB_ELEMENT_ORDER_BGR:
+    case LCD_RGB_ENDIAN_BGR:
         st7796->madctl_val |= LCD_CMD_BGR_BIT;
         break;
     default:
-        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported color element order");
+        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported rgb endian");
         break;
     }
 #endif

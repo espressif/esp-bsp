@@ -62,16 +62,17 @@ esp_err_t esp_lcd_new_panel_gc9a01(const esp_lcd_panel_io_handle_t io, const esp
  *
  * @param[in] sclk SPI clock pin number
  * @param[in] mosi SPI MOSI pin number
+ * @param[in] max_trans_sz Maximum transfer size in bytes
  *
  */
-#define GC9A01_PANEL_BUS_SPI_CONFIG(sclk, mosi)         \
-    {                                                   \
-        .sclk_io_num = sclk,                            \
-        .mosi_io_num = mosi,                            \
-        .miso_io_num = -1,                              \
-        .quadhd_io_num = -1,                            \
-        .quadwp_io_num = -1,                            \
-        .max_transfer_sz = SPI_LL_DMA_MAX_BIT_LEN >> 3, \
+#define GC9A01_PANEL_BUS_SPI_CONFIG(sclk, mosi, max_trans_sz)   \
+    {                                                           \
+        .sclk_io_num = sclk,                                    \
+        .mosi_io_num = mosi,                                    \
+        .miso_io_num = -1,                                      \
+        .quadhd_io_num = -1,                                    \
+        .quadwp_io_num = -1,                                    \
+        .max_transfer_sz = max_trans_sz,                        \
     }
 
 /**

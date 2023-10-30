@@ -1,8 +1,8 @@
-version: "2.1.0"
+version: "3.0.0"
 targets:
   - esp32s3
 description: ESP LCD GC9503
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_gc9503
 dependencies:
-  idf: ">=5.0.4"
+  idf: ">5.0.4,!=5.1.1"
   cmake_utilities: "0.*"

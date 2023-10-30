@@ -22,7 +22,8 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
 
 ```c
     ESP_LOGI(TAG, "Initialize SPI bus");
-    const spi_bus_config_t bus_config = ILI9341_PANEL_BUS_SPI_CONFIG(EXAMPLE_PIN_NUM_LCD_PCLK, EXAMPLE_PIN_NUM_LCD_MOSI);
+    const spi_bus_config_t bus_config = ILI9341_PANEL_BUS_SPI_CONFIG(EXAMPLE_PIN_NUM_LCD_PCLK, EXAMPLE_PIN_NUM_LCD_MOSI,
+                                                                     EXAMPLE_LCD_H_RES * 80 * sizeof(uint16_t));
     ESP_ERROR_CHECK(spi_bus_initialize(EXAMPLE_LCD_HOST, &bus_config, SPI_DMA_CH_AUTO));
 
     ESP_LOGI(TAG, "Install panel IO");
@@ -51,18 +52,22 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
     // };
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = EXAMPLE_PIN_NUM_LCD_RST,      // Set to -1 if not use
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 4)      // Implemented by LCD command `36h`
-        .color_space = ESP_LCD_COLOR_SPACE_BGR,
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)      // Implemented by LCD command `36h`
+        .color_space = ESP_LCD_COLOR_SPACE_RGB,
 #else
-        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
+        .rgb_endian = LCD_RGB_ENDIAN_RGB,
 #endif
-        .bits_per_pixel = EXAMPLE_LCD_BIT_PER_PIXEL,    // Implemented by LCD command `3Ah` (16/18)
+        .bits_per_pixel = 16,                           // Implemented by LCD command `3Ah` (16/18)
         // .vendor_config = &vendor_config,            // Uncomment this line if use custom initialization commands
     };
     ESP_ERROR_CHECK(esp_lcd_new_panel_ili9341(io_handle, &panel_config, &panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+    ESP_ERROR_CHECK(esp_lcd_panel_disp_off(panel_handle, false));
+#else
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
+#endif
 ```
 
 There is an example in ESP-IDF with this LCD controller. Please follow this [link](https://github.com/espressif/esp-idf/tree/master/examples/peripherals/lcd/spi_lcd_touch).
