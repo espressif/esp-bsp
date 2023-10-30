@@ -1,4 +1,4 @@
-version: "3.0.2~1"
+version: "3.0.3"
 description: Board Support Package for ESP32-S3-EYE
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_eye
 
@@ -10,6 +10,7 @@ dependencies:
 
   esp_lvgl_port:
     version: "^1"
+    public: true
 
   esp32-camera:
     version: "^2.0.2"
