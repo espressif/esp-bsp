@@ -14,6 +14,7 @@
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_lcd_panel_io_interface.h"
+#include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
 #include "unity.h"
 #include "unity_test_runner.h"
@@ -70,7 +71,8 @@ static void test_draw_bitmap(esp_lcd_panel_handle_t panel_handle)
 TEST_CASE("test gc9a01 to draw color bar with SPI interface", "[gc9a01][spi]")
 {
     ESP_LOGI(TAG, "Initialize SPI bus");
-    const spi_bus_config_t buscfg = GC9A01_PANEL_BUS_SPI_CONFIG(TEST_PIN_NUM_LCD_PCLK, TEST_PIN_NUM_LCD_DATA0);
+    const spi_bus_config_t buscfg = GC9A01_PANEL_BUS_SPI_CONFIG(TEST_PIN_NUM_LCD_PCLK, TEST_PIN_NUM_LCD_DATA0,
+                                    TEST_LCD_H_RES * 80 * TEST_LCD_BIT_PER_PIXEL / 8);
     TEST_ESP_OK(spi_bus_initialize(TEST_LCD_HOST, &buscfg, SPI_DMA_CH_AUTO));
 
     ESP_LOGI(TAG, "Install panel IO");
@@ -84,10 +86,10 @@ TEST_CASE("test gc9a01 to draw color bar with SPI interface", "[gc9a01][spi]")
     esp_lcd_panel_handle_t panel_handle = NULL;
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = TEST_PIN_NUM_LCD_RST,
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 4)
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
         .color_space = ESP_LCD_COLOR_SPACE_BGR,
 #else
-        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
+        .rgb_endian = LCD_RGB_ENDIAN_BGR,
 #endif
         .bits_per_pixel = TEST_LCD_BIT_PER_PIXEL,
     };
@@ -96,10 +98,10 @@ TEST_CASE("test gc9a01 to draw color bar with SPI interface", "[gc9a01][spi]")
     TEST_ESP_OK(esp_lcd_panel_init(panel_handle));
     TEST_ESP_OK(esp_lcd_panel_invert_color(panel_handle, true));
     TEST_ESP_OK(esp_lcd_panel_mirror(panel_handle, true, false));
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-    TEST_ESP_OK(esp_lcd_panel_disp_on_off(panel_handle, true));
-#else
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
     TEST_ESP_OK(esp_lcd_panel_disp_off(panel_handle, false));
+#else
+    TEST_ESP_OK(esp_lcd_panel_disp_on_off(panel_handle, true));
 #endif
 
     test_draw_bitmap(panel_handle);

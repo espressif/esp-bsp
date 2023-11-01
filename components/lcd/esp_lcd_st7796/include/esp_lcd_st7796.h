@@ -67,6 +67,20 @@ esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp
  * @param[in] d[0:15] I80 data pin number 0 ~ 15. Set to -1 if not used.
  *
  */
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(4, 4, 1)
+#define ST7796_PANEL_BUS_I80_CONFIG(max_trans_bytes, data_width, dc, wr, d0, d1, d2, d3, d4,    \
+                                    d5, d6, d7, d8 , d9, d10, d11, d12, d13, d14, d15)          \
+    {                                                                                           \
+        .clk_src = LCD_CLK_SRC_PLL160M,                                                         \
+        .dc_gpio_num = dc,                                                                      \
+        .wr_gpio_num = wr,                                                                      \
+        .data_gpio_nums = {                                                                     \
+            d0, d1, d2, d3, d4, d5, d6, d7, d8 , d9, d10, d11, d12, d13, d14, d15               \
+        },                                                                                      \
+        .bus_width = data_width,                                                                \
+        .max_transfer_bytes = max_trans_bytes,                                                  \
+    }
+#else
 #define ST7796_PANEL_BUS_I80_CONFIG(max_trans_bytes, data_width, dc, wr, d0, d1, d2, d3, d4,    \
                                     d5, d6, d7, d8 , d9, d10, d11, d12, d13, d14, d15)          \
     {                                                                                           \
@@ -81,6 +95,7 @@ esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp
         .psram_trans_align = 64,                                                                \
         .sram_trans_align = 4,                                                                  \
     }
+#endif
 
 /**
  * @brief LCD panel IO configuration structure

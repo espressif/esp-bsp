@@ -8,15 +8,12 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/i2c.h"
-#include "driver/spi_master.h"
+#include "freertos/semphr.h"
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_io.h"
-#include "esp_lcd_panel_io_additions.h"
-#include "esp_io_expander_tca9554.h"
 #include "unity.h"
 #include "unity_test_runner.h"
 
@@ -104,10 +101,10 @@ TEST_CASE("test st7796 to draw color bar with I80 interface", "[st7796][i80]")
     ESP_LOGI(TAG, "Install ST7796 panel driver");
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = TEST_PIN_NUM_LCD_RST,
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 4)
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
         .color_space = ESP_LCD_COLOR_SPACE_BGR,
 #else
-        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
+        .rgb_endian = LCD_RGB_ENDIAN_BGR,
 #endif
         .bits_per_pixel = TEST_LCD_BIT_PER_PIXEL,
     };
@@ -115,7 +112,11 @@ TEST_CASE("test st7796 to draw color bar with I80 interface", "[st7796][i80]")
     TEST_ESP_OK(esp_lcd_new_panel_st7796(io_handle, &panel_config, &panel_handle));
     TEST_ESP_OK(esp_lcd_panel_reset(panel_handle));
     TEST_ESP_OK(esp_lcd_panel_init(panel_handle));
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+    TEST_ESP_OK(esp_lcd_panel_disp_off(panel_handle, false));
+#else
     TEST_ESP_OK(esp_lcd_panel_disp_on_off(panel_handle, true));
+#endif
 
     test_draw_bitmap(panel_handle);
     vTaskDelay(pdMS_TO_TICKS(TEST_DELAY_TIME_MS));
