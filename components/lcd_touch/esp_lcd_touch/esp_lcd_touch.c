@@ -256,3 +256,11 @@ esp_err_t esp_lcd_touch_register_interrupt_callback(esp_lcd_touch_handle_t tp, e
 
     return ESP_OK;
 }
+
+esp_err_t esp_lcd_touch_register_interrupt_callback_with_data(esp_lcd_touch_handle_t tp, esp_lcd_touch_interrupt_callback_t callback, void *user_data)
+{
+    assert(tp != NULL);
+
+    tp->config.user_data = user_data;
+    return esp_lcd_touch_register_interrupt_callback(tp, callback);
+}

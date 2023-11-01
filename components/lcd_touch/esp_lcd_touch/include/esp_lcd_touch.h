@@ -62,6 +62,8 @@ typedef struct {
     void (*process_coordinates)(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
     /*!< User callback called after the touch interrupt occured */
     esp_lcd_touch_interrupt_callback_t interrupt_callback;
+    /*!< User data passed to callback */
+    void *user_data;
 } esp_lcd_touch_config_t;
 
 typedef struct {
@@ -385,6 +387,18 @@ esp_err_t esp_lcd_touch_del(esp_lcd_touch_handle_t tp);
  *      - ESP_OK on success
  */
 esp_err_t esp_lcd_touch_register_interrupt_callback(esp_lcd_touch_handle_t tp, esp_lcd_touch_interrupt_callback_t callback);
+
+/**
+ * @brief Register user callback called after the touch interrupt occured with user data
+ *
+ * @param tp: Touch handler
+ * @param callback: Interrupt callback
+ * @param user_data: User data passed to callback
+ *
+ * @return
+ *      - ESP_OK on success
+ */
+esp_err_t esp_lcd_touch_register_interrupt_callback_with_data(esp_lcd_touch_handle_t tp, esp_lcd_touch_interrupt_callback_t callback, void *user_data);
 
 /**
  * @brief Enter sleep mode
