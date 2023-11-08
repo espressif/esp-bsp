@@ -19,6 +19,7 @@ Board support packages for development boards using Espressif's SoCs, written in
 | [ESP32-LyraT](bsp/esp32_lyrat) | ESP32 | uSD card slot, microphone, audio codec + power amplifier | <img src="docu/pics/lyrat.png" width="150"> |
 | [ESP32-C3-LCDKit](bsp/esp32_c3_lcdkit) | ESP32-C3 | LCD display with encoder, IR, PDM audio| <img src="docu/pics/esp32_c3_lcdkit.png" width="150"> |
 | [ESP-BOX-3](bsp/esp-box-3) | ESP32-S3 | LCD display with touch, audio codec + power amplifier,<br>accelerometer and gyroscope | <img src="docu/pics/esp32_s3_box_3.png" width="150"> |
+| [ESP32-S3-KORVO-1](bsp/esp32_s3_korvo_1) | ESP32-S3-KORVO-1 | uSD card slot, microphone, audio codec + power amplifier, RGB led strip | <img src="docu/pics/esp32_s3_korvo_1.png" width="150"> |
 ## LCD displays and TOUCH
 
 | [LVGL port](components/esp_lvgl_port) | [LCD drivers](LCD.md) |
