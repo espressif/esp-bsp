@@ -1,0 +1,18 @@
+
+version: "1.0.0"
+description: Generig Board Support Package
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp_bsp_generic
+
+dependencies:
+  idf: ">=4.4.2"
+
+  button:
+    version: "^2.5"
+    public: true
+
+  led_indicator:
+    version: "^0.7"
+    public: true
+
+examples:
+  - path: ../../examples/generic_button_led
