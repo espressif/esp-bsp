@@ -1,4 +1,4 @@
-version: "1.4.4~1"
+version: "1.5.0"
 description: Board Support Package for ESP32-S3-USB-OTG
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_usb_otg
 
@@ -6,7 +6,11 @@ targets:
   - esp32s3
 
 dependencies:
-  idf: ">=5.0"
+  idf: ">=4.4"
+
+  button:
+    version: "^2.5"
+    public: true
 
   esp_lvgl_port:
     version: ^1

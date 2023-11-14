@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -15,7 +15,24 @@
 #include "driver/gpio.h"
 #include "driver/sdmmc_host.h"
 #include "soc/usb_pins.h"
+#include "iot_button.h"
 #include "lvgl.h"
+#include "esp_lvgl_port.h"
+
+/**************************************************************************************************
+ *  BSP Capabilities
+ **************************************************************************************************/
+
+#define BSP_CAPS_DISPLAY        1
+#define BSP_CAPS_TOUCH          0
+#define BSP_CAPS_BUTTONS        1
+#define BSP_CAPS_AUDIO          0
+#define BSP_CAPS_AUDIO_SPEAKER  0
+#define BSP_CAPS_AUDIO_MIC      0
+#define BSP_CAPS_SDCARD         1
+#define BSP_CAPS_IMU            0
+#define BSP_CAPS_LED            1
+#define BSP_CAPS_BAT            1
 
 /**************************************************************************************************
  * ESP32-S3-USB-OTG pinout
@@ -44,6 +61,13 @@ typedef enum bsp_led_t {
 #define BSP_SD_CMD            (GPIO_NUM_35)
 #define BSP_SD_CLK            (GPIO_NUM_36)
 
+/* Buttons */
+#define BSP_BUTTON_OK_IO            (GPIO_NUM_0)
+#define BSP_BUTTON_DW_IO            (GPIO_NUM_11)
+#define BSP_BUTTON_UP_IO            (GPIO_NUM_10)
+#define BSP_BUTTON_MENU_IO          (GPIO_NUM_14)
+#define BSP_USB_OVERCURRENT_IO      (GPIO_NUM_21)
+
 /* Button */
 // All signal are active low
 typedef enum {
@@ -51,7 +75,8 @@ typedef enum {
     BSP_BUTTON_DW = GPIO_NUM_11,
     BSP_BUTTON_UP = GPIO_NUM_10,
     BSP_BUTTON_MENU = GPIO_NUM_14,
-    BSP_USB_OVERCURRENT = GPIO_NUM_21 // This is not a real button, but the button API can be reused here
+    BSP_USB_OVERCURRENT = GPIO_NUM_21, // This is not a real button, but the button API can be reused here
+    BSP_BUTTON_NUM = 5
 } bsp_button_t;
 
 /* USB */
@@ -72,6 +97,14 @@ typedef enum {
 extern "C" {
 #endif
 
+/**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;
+} bsp_display_cfg_t;
+
 /**************************************************************************************************
  *
  * uSD card
@@ -83,7 +116,7 @@ extern "C" {
  * fclose(f);
  * \endcode
  **************************************************************************************************/
-#define BSP_MOUNT_POINT      CONFIG_BSP_uSD_MOUNT_POINT
+#define BSP_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 extern sdmmc_card_t *bsp_sdcard;
 
 /**
@@ -113,6 +146,44 @@ esp_err_t bsp_sdcard_unmount(void);
 
 /**************************************************************************************************
  *
+ * SPIFFS
+ *
+ * After mounting the SPIFFS, it can be accessed with stdio functions ie.:
+ * \code{.c}
+ * FILE* f = fopen(BSP_SPIFFS_MOUNT_POINT"/hello.txt", "w");
+ * fprintf(f, "Hello World!\n");
+ * fclose(f);
+ * \endcode
+ **************************************************************************************************/
+#define BSP_SPIFFS_MOUNT_POINT      CONFIG_BSP_SPIFFS_MOUNT_POINT
+
+/**
+ * @brief Mount SPIFFS to virtual file system
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_spiffs_register was already called
+ *      - ESP_ERR_NO_MEM if memory can not be allocated
+ *      - ESP_FAIL if partition can not be mounted
+ *      - other error codes
+ */
+esp_err_t bsp_spiffs_mount(void);
+
+/**
+ * @brief Unmount SPIFFS from virtual file system
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_NOT_FOUND if the partition table does not contain SPIFFS partition with given label
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_spiffs_unregister was already called
+ *      - ESP_ERR_NO_MEM if memory can not be allocated
+ *      - ESP_FAIL if partition can not be mounted
+ *      - other error codes
+ */
+esp_err_t bsp_spiffs_unmount(void);
+
+/**************************************************************************************************
+ *
  * LCD interface
  *
  * ESP32-S3-USB-OTG is shipped with 1.3inch ST7789 display controller.
@@ -138,6 +209,18 @@ esp_err_t bsp_sdcard_unmount(void);
  * @return Pointer to LVGL display or NULL when error occured
  */
 lv_disp_t *bsp_display_start(void);
+
+/**
+ * @brief Initialize display
+ *
+ * This function initializes SPI, display controller and starts LVGL handling task.
+ * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
+ *
+ * @param cfg display configuration
+ *
+ * @return Pointer to LVGL display or NULL when error occured
+ */
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 
 /**
  * @brief Get pointer to input device (touch, buttons, ...)
@@ -244,20 +327,44 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
 
 /**
  * @brief Set button's GPIO as input
+ *
  * @return
- *     - ESP_OK              On success
+ *     - ESP_OK Success
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
-esp_err_t bsp_button_init(void);
+esp_err_t bsp_button_init(void)
+__attribute__((deprecated("use espressif/button API instead")));
 
 /**
  * @brief Get button's state
+ *
+ * Note: For LCD panel button which is defined as BSP_BUTTON_MAIN, bsp_display_start should
+ *       be called before call this function.
  *
  * @param[in] btn Button to read
  * @return true  Button pressed
  * @return false Button released
  */
-bool bsp_button_get(const bsp_button_t btn);
+bool bsp_button_get(const bsp_button_t btn)
+__attribute__((deprecated("use espressif/button API instead")));
+
+/**
+ * @brief Initialize all buttons
+ *
+ * Returned button handlers must be used with espressif/button component API
+ *
+ * @note For LCD panel button which is defined as BSP_BUTTON_MAIN, bsp_display_start should
+ *       be called before call this function.
+ *
+ * @param[out] btn_array      Output button array
+ * @param[out] btn_cnt        Number of button handlers saved to btn_array, can be NULL
+ * @param[in]  btn_array_size Size of output button array. Must be at least BSP_BUTTON_NUM
+ * @return
+ *     - ESP_OK               All buttons initialized
+ *     - ESP_ERR_INVALID_ARG  btn_array is too small or NULL
+ *     - ESP_FAIL             Underlaying iot_button_create failed
+ */
+esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 
 /**************************************************************************************************
  *
@@ -357,6 +464,29 @@ esp_err_t bsp_usb_host_stop(void);
  * 1. Battery voltage
  * 2. Voltage on USB device connector
  **************************************************************************************************/
+
+#define BSP_ADC_UNIT     ADC_UNIT_1
+
+/**
+ * @brief Initialize ADC
+ *
+ * The ADC can be initialized inside BSP, when needed.
+ *
+ * @param[out] adc_handle Returned ADC handle
+ */
+esp_err_t bsp_adc_initialize(void);
+
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+/**
+ * @brief Get ADC handle
+ *
+ * @note This function is available only in IDF5 and higher
+ *
+ * @return ADC handle
+ */
+adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
+#endif
 
 /**
  * @brief Init voltage measurements
