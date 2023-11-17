@@ -48,6 +48,7 @@ typedef struct {
  * @brief Rotation configuration
  */
 typedef struct {
+    bool sw_rotate;/*!< Use software rotation (slower) */
     bool swap_xy;  /*!< LCD Screen swapped X and Y (in esp_lcd driver) */
     bool mirror_x; /*!< LCD Screen mirrored X (in esp_lcd driver) */
     bool mirror_y; /*!< LCD Screen mirrored Y (in esp_lcd driver) */
@@ -61,6 +62,7 @@ typedef struct {
     esp_lcd_panel_handle_t panel_handle;    /*!< LCD panel handle */
     uint32_t    buffer_size;    /*!< Size of the buffer for the screen in pixels */
     bool        double_buffer;  /*!< True, if should be allocated two buffers */
+    uint32_t    trans_size;     /*!< Allocated buffer will be in SRAM to move framebuf */
     uint32_t    hres;           /*!< LCD display horizontal resolution */
     uint32_t    vres;           /*!< LCD display vertical resolution */
     bool        monochrome;     /*!< True, if display is monochrome and using 1bit for 1px */
