@@ -42,7 +42,7 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
 
 /**
  * Uncomment these lines if use custom initialization commands.
- * The array should be declared as static const and positioned outside the function.
+ * The array should be declared as "static const" and positioned outside the function.
  */
 // static const st7796_lcd_init_cmd_t lcd_init_cmds[] = {
 // // {cmd, { data }, data_size, delay_ms}
@@ -54,7 +54,7 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
 
     ESP_LOGI(TAG, "Install ST7796 panel driver");
     esp_lcd_panel_handle_t panel_handle = NULL;
-    // const st7796_vendor_config_t vendor_config = {  // Uncomment these lines if use custom initialization commands
+    // st7796_vendor_config_t vendor_config = {  // Uncomment these lines if use custom initialization commands
     //     .init_cmds = lcd_init_cmds,
     //     .init_cmds_size = sizeof(lcd_init_cmds) / sizeof(st7796_lcd_init_cmd_t),
     // };
