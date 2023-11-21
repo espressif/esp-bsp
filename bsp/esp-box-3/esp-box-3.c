@@ -33,6 +33,26 @@ static const char *TAG = "ESP-BOX-3";
 _Static_assert(CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0, "Touch buttons must be supported for this BSP");
 /** @endcond */
 
+static const ili9341_lcd_init_cmd_t vendor_specific_init[] = {
+    {0xC8, (uint8_t []){0xFF, 0x93, 0x42}, 3, 0},
+    {0xC0, (uint8_t []){0x0E, 0x0E}, 2, 0},
+    {0xC5, (uint8_t []){0xD0}, 1, 0},
+    {0xC1, (uint8_t []){0x02}, 1, 0},
+    {0xB4, (uint8_t []){0x02}, 1, 0},
+    {0xE0, (uint8_t []){0x00, 0x03, 0x08, 0x06, 0x13, 0x09, 0x39, 0x39, 0x48, 0x02, 0x0a, 0x08, 0x17, 0x17, 0x0F}, 15, 0},
+    {0xE1, (uint8_t []){0x00, 0x28, 0x29, 0x01, 0x0d, 0x03, 0x3f, 0x33, 0x52, 0x04, 0x0f, 0x0e, 0x37, 0x38, 0x0F}, 15, 0},
+
+    {0xB1, (uint8_t []){00, 0x1B}, 2, 0},
+    {0x36, (uint8_t []){0x08}, 1, 0},
+    {0x3A, (uint8_t []){0x55}, 1, 0},
+    {0xB7, (uint8_t []){0x06}, 1, 0},
+
+    {0x11, (uint8_t []){0}, 0x80, 0},
+    {0x29, (uint8_t []){0}, 0x80, 0},
+
+    {0, (uint8_t []){0}, 0xff, 0},
+};
+
 static lv_disp_t *disp;
 static lv_indev_t *disp_indev = NULL;
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
@@ -369,7 +389,12 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, ret_io), err, TAG, "New panel IO failed");
 
     ESP_LOGD(TAG, "Install LCD driver");
-    const esp_lcd_panel_dev_config_t panel_config = {
+    const ili9341_vendor_config_t vendor_config = {
+        .init_cmds = &vendor_specific_init[0],
+        .init_cmds_size = sizeof(vendor_specific_init) / sizeof(ili9341_lcd_init_cmd_t),
+    };
+
+    esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = BSP_LCD_RST, // Shared with Touch reset
         .flags.reset_active_high = 1,
         .color_space = BSP_LCD_COLOR_SPACE,
@@ -377,9 +402,10 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
     };
 
     if (ESP_OK == bsp_i2c_device_probe(ESP_LCD_TOUCH_IO_I2C_TT21100_ADDRESS)) {
-        ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7789(*ret_io, &panel_config, ret_panel), err, TAG, "New panel failed");
+        ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7789(*ret_io, (const esp_lcd_panel_dev_config_t *)&panel_config, ret_panel), err, TAG, "New panel failed");
     } else {
-        ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9341(*ret_io, &panel_config, ret_panel), err, TAG, "New panel failed");
+        panel_config.vendor_config = (void *)&vendor_config;
+        ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9341(*ret_io, (const esp_lcd_panel_dev_config_t *)&panel_config, ret_panel), err, TAG, "New panel failed");
     }
 
     esp_lcd_panel_reset(*ret_panel);
