@@ -182,11 +182,37 @@ Every LVGL calls must be protected with these lock/unlock commands:
 ```
 
 ### Rotating screen
+LVGL supports rotation of the display. You can select whether you'd like software rotation or hardware rotation.
+Software rotation requires no additional logic in your `flush_cb` callback.
+
+Rotation mode can be selected in the `lvgl_port_display_cfg_t` structure.
+``` c
+    const lvgl_port_display_cfg_t disp_cfg = {
+        ...
+        .rotation = {
+            .sw_rotate = true / false, // true: software; false: hardware
+            ...
+        }
+    }
+```
+Display rotation can be changed at runtime.
 ``` c
     lv_disp_set_rotation(disp_handle, LV_DISP_ROT_90);
 ```
 
-**Note:** During the rotating, the component call [`esp_lcd`](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html) API.
+**Note:** During the hardware rotating, the component call [`esp_lcd`](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html) API. when using software rotation, you cannot use neither `direct_mode` nor `full_refresh` in the driver. See [LVGL documentation](https://docs.lvgl.io/8.3/porting/display.html?highlight=sw_rotate) for more info.
+
+### Using PSRAM canvas
+
+If the SRAM is insufficient, you can use the PSRAM as a canvas and use a small trans_buffer to carry it, this makes drawing more efficient.
+``` c
+    .buffer_size = DISP_WIDTH*DISP_HEIGHT, // in PSRAM, not DMA-capable
+    .trans_size = size, // in SRAM, DMA-capable
+    .flags = {
+        .buff_spiram = true,
+        .buff_dma = false,
+    }
+```
 
 ## Performance
 
