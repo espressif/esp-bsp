@@ -182,7 +182,7 @@ Every LVGL calls must be protected with these lock/unlock commands:
 ```
 
 ### Rotating screen
-LVGL supports rotation of the display. You can select whether you'd like software rotation or hardware rotation.
+LVGL port supports rotation of the display. You can select whether you'd like software rotation or hardware rotation.
 Software rotation requires no additional logic in your `flush_cb` callback.
 
 Rotation mode can be selected in the `lvgl_port_display_cfg_t` structure.
