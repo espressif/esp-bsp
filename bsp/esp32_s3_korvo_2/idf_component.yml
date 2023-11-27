@@ -1,4 +1,4 @@
-version: "2.1.1~1"
+version: "2.1.1~2"
 description: Board Support Package for ESP32-S3-Korvo-2
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_korvo_2
 
@@ -23,7 +23,7 @@ dependencies:
     public: true
 
   button:
-    version: "^2.5"
+    version: ">=2.5,<4.0"
     public: true
 
   esp_lvgl_port:
