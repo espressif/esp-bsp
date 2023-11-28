@@ -11,7 +11,8 @@ dependencies:
     public: true
 
   led_indicator:
-    version: ">=0.7,<=0.8"
+    version: "^0.9"
+    public: true
     public: true
 
 examples:

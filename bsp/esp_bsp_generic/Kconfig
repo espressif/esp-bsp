@@ -1,4 +1,4 @@
-menu "Board Support Package"
+menu "Board Support Package (generic)"
 
     config BSP_ERROR_CHECK
         bool "Enable error check in BSP"
@@ -339,6 +339,8 @@ menu "Board Support Package"
                 Select a LED type GPIO or Adressable RGB 
             config BSP_LED_TYPE_GPIO
                 bool "GPIO LED"
+            config BSP_LED_TYPE_RGB_CLASSIC
+                bool "Classic RGB LED"
             config BSP_LED_TYPE_RGB
                 bool "Adressable RGB LED"
         endchoice
@@ -351,6 +353,42 @@ menu "Board Support Package"
             range -1 ENV_GPIO_OUT_RANGE_MAX
             help
                 The GPIO pin for adressable LEDs.
+                    
+        config BSP_LED_RGB_CLASSIC_LEVEL
+            depends on BSP_LED_TYPE_RGB_CLASSIC
+            int
+            prompt "Classic RGB LED Active Level"
+            default 0
+            range 0 1
+            help
+                The active level for classic RGB LED. 
+            
+        config BSP_LED_RGB_RED_GPIO
+            depends on BSP_LED_TYPE_RGB_CLASSIC
+            int 
+            prompt "Classic RGB LED red GPIO"
+            default -1
+            range -1 ENV_GPIO_OUT_RANGE_MAX
+            help
+                The GPIO pin for red color RGB LED.
+            
+        config BSP_LED_RGB_GREEN_GPIO
+            depends on BSP_LED_TYPE_RGB_CLASSIC
+            int 
+            prompt "Classic RGB LED green GPIO"
+            default -1
+            range -1 ENV_GPIO_OUT_RANGE_MAX
+            help
+                The GPIO pin for green color RGB LED.
+            
+        config BSP_LED_RGB_BLUE_GPIO
+            depends on BSP_LED_TYPE_RGB_CLASSIC
+            int 
+            prompt "Classic RGB LED blue GPIO"
+            default -1
+            range -1 ENV_GPIO_OUT_RANGE_MAX
+            help
+                The GPIO pin for blue color RGB LED.
 
         config BSP_ESP_IDF_VERSION
             string 
@@ -376,7 +414,6 @@ menu "Board Support Package"
             depends on BSP_LEDS_NUM > 0 && BSP_LED_TYPE_GPIO
             
             config BSP_LED_1_GPIO
-                depends on BSP_LED_1_TYPE_GPIO
                 int 
                 prompt "LED 1 GPIO"
                 default 0
@@ -385,7 +422,6 @@ menu "Board Support Package"
                     The GPIO pin for LED 1.
                     
             config BSP_LED_1_LEVEL
-                depends on BSP_LED_1_TYPE_GPIO
                 int
                 prompt "LED 1 Active Level"
                 default 1
@@ -398,7 +434,6 @@ menu "Board Support Package"
             depends on BSP_LEDS_NUM > 1 && BSP_LED_TYPE_GPIO
             
             config BSP_LED_2_GPIO
-                depends on BSP_LED_2_TYPE_GPIO
                 int 
                 prompt "LED 2 GPIO"
                 default 0
@@ -406,7 +441,6 @@ menu "Board Support Package"
                 help
                     The GPIO pin for LED 2.
             config BSP_LED_2_LEVEL
-                depends on BSP_LED_2_TYPE_GPIO
                 int
                 prompt "LED 2 Active Level"
                 default 1
@@ -419,7 +453,6 @@ menu "Board Support Package"
             depends on BSP_LEDS_NUM > 2 && BSP_LED_TYPE_GPIO
             
             config BSP_LED_3_GPIO
-                depends on BSP_LED_3_TYPE_GPIO
                 int 
                 prompt "LED 3 GPIO"
                 default 0
@@ -427,7 +460,6 @@ menu "Board Support Package"
                 help
                     The GPIO pin for LED 3.
             config BSP_LED_3_LEVEL
-                depends on BSP_LED_3_TYPE_GPIO
                 int
                 prompt "LED 3 Active Level"
                 default 1
@@ -440,7 +472,6 @@ menu "Board Support Package"
             depends on BSP_LEDS_NUM > 3 && BSP_LED_TYPE_GPIO
             
             config BSP_LED_4_GPIO
-                depends on BSP_LED_4_TYPE_GPIO
                 int 
                 prompt "LED 4 GPIO"
                 default 0
@@ -448,7 +479,6 @@ menu "Board Support Package"
                 help
                     The GPIO pin for LED 4.
             config BSP_LED_4_LEVEL
-                depends on BSP_LED_4_TYPE_GPIO
                 int
                 prompt "LED 4 Active Level"
                 default 1
@@ -461,7 +491,6 @@ menu "Board Support Package"
             depends on BSP_LEDS_NUM > 4 && BSP_LED_TYPE_GPIO
             
             config BSP_LED_5_GPIO
-                depends on BSP_LED_5_TYPE_GPIO
                 int 
                 prompt "LED 5 GPIO"
                 default 0
@@ -469,7 +498,6 @@ menu "Board Support Package"
                 help
                     The GPIO pin for LED 5.
             config BSP_LED_5_LEVEL
-                depends on BSP_LED_5_TYPE_GPIO
                 int
                 prompt "LED 5 Active Level"
                 default 1

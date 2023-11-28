@@ -20,24 +20,6 @@ sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 static bool i2c_initialized = false;
 extern blink_step_t const *bsp_led_blink_defaults_lists[];
 
-typedef struct {
-    uint16_t hue;
-    uint8_t saturation;
-} HS_color_t;
-
-static const HS_color_t temp_table[] = {
-    {4, 100},  {8, 100},  {11, 100}, {14, 100}, {16, 100}, {18, 100}, {20, 100}, {22, 100}, {24, 100}, {25, 100},
-    {27, 100}, {28, 100}, {30, 100}, {31, 100}, {31, 95},  {30, 89},  {30, 85},  {29, 80},  {29, 76},  {29, 73},
-    {29, 69},  {28, 66},  {28, 63},  {28, 60},  {28, 57},  {28, 54},  {28, 52},  {27, 49},  {27, 47},  {27, 45},
-    {27, 43},  {27, 41},  {27, 39},  {27, 37},  {27, 35},  {27, 33},  {27, 31},  {27, 30},  {27, 28},  {27, 26},
-    {27, 25},  {27, 23},  {27, 22},  {27, 21},  {27, 19},  {27, 18},  {27, 17},  {27, 15},  {28, 14},  {28, 13},
-    {28, 12},  {29, 10},  {29, 9},   {30, 8},   {31, 7},   {32, 6},   {34, 5},   {36, 4},   {41, 3},   {49, 2},
-    {0, 0},    {294, 2},  {265, 3},  {251, 4},  {242, 5},  {237, 6},  {233, 7},  {231, 8},  {229, 9},  {228, 10},
-    {227, 11}, {226, 11}, {226, 12}, {225, 13}, {225, 13}, {224, 14}, {224, 14}, {224, 15}, {224, 15}, {223, 16},
-    {223, 16}, {223, 17}, {223, 17}, {223, 17}, {222, 18}, {222, 18}, {222, 19}, {222, 19}, {222, 19}, {222, 19},
-    {222, 20}, {222, 20}, {222, 20}, {222, 21}, {222, 21}
-};
-
 static const button_config_t bsp_button_config[] = {
 #if CONFIG_BSP_BUTTONS_NUM > 0
 #if CONFIG_BSP_BUTTON_1_TYPE_GPIO
@@ -208,6 +190,20 @@ static led_indicator_strips_config_t bsp_leds_rgb_config = {
     .led_strip_spi_cfg = bsp_leds_rgb_spi_config,
 #endif
 };
+
+#elif CONFIG_BSP_LED_TYPE_RGB_CLASSIC && CONFIG_BSP_LEDS_NUM > 0 // CONFIG_BSP_LED_TYPE_RGB_CLASSIC
+
+static led_indicator_rgb_config_t bsp_leds_rgb_config = {
+    .is_active_level_high = CONFIG_BSP_LED_RGB_CLASSIC_LEVEL,
+    .timer_num = LEDC_TIMER_0,
+    .red_gpio_num = CONFIG_BSP_LED_RGB_RED_GPIO,
+    .green_gpio_num = CONFIG_BSP_LED_RGB_GREEN_GPIO,
+    .blue_gpio_num = CONFIG_BSP_LED_RGB_BLUE_GPIO,
+    .red_channel = LEDC_CHANNEL_0,
+    .green_channel = LEDC_CHANNEL_1,
+    .blue_channel = LEDC_CHANNEL_2,
+};
+
 #endif // CONFIG_BSP_LED_TYPE_RGB
 
 static const led_indicator_config_t bsp_leds_config[BSP_LED_NUM] = {
@@ -215,6 +211,13 @@ static const led_indicator_config_t bsp_leds_config[BSP_LED_NUM] = {
     {
         .mode = LED_STRIPS_MODE,
         .led_indicator_strips_config = &bsp_leds_rgb_config,
+        .blink_lists = bsp_led_blink_defaults_lists,
+        .blink_list_num = BSP_LED_MAX,
+    },
+#elif CONFIG_BSP_LED_TYPE_RGB_CLASSIC
+    {
+        .mode = LED_RGB_MODE,
+        .led_indicator_rgb_config = &bsp_leds_rgb_config,
         .blink_lists = bsp_led_blink_defaults_lists,
         .blink_list_num = BSP_LED_MAX,
     },
@@ -435,24 +438,5 @@ esp_err_t bsp_led_set(led_indicator_handle_t handle, const bool on)
 
 esp_err_t bsp_led_set_temperature(led_indicator_handle_t handle, const uint16_t temperature)
 {
-    uint32_t hsv = led_indicator_get_hsv(handle);
-    uint16_t hue;
-    uint8_t saturation;
-
-    if (temperature < 600) {
-        hue = 0;
-        saturation = 100;
-    } else if (temperature > 10000) {
-        hue = 222;
-        saturation = 21 + (temperature - 10000) * 41 / 990000;
-    } else {
-        hue = temp_table[(temperature - 600) / 100].hue;
-        saturation = temp_table[(temperature - 600) / 100].saturation;
-    }
-    saturation = (saturation * 255) / 100;
-
-    SET_SATURATION(hsv, saturation);
-    SET_HUE(hsv, hue);
-
-    return led_indicator_set_hsv(handle, hsv);
+    return led_indicator_set_color_temperature(handle, temperature);
 }
