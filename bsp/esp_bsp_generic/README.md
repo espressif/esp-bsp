@@ -113,7 +113,7 @@ For button handling is used component [iot_button](https://components.espressif.
     - `BSP_LEDS_NUM` (max 5)
 
 2. Set type for all LEDs in `menuconfig`
-    - `BSP_LED_TYPE` (GPIO / Adressable LED)
+    - `BSP_LED_TYPE` (GPIO / Adressable RGB LED / Classic RGB)
 
 3. For GPIO LEDs set pin and level for each LED in `menuconfig`
     - `BSP_LED_x_GPIO`
@@ -122,6 +122,12 @@ For button handling is used component [iot_button](https://components.espressif.
 3. For addressable RBG LEDs set pin and peripheral in `menuconfig`
     - `BSP_LED_RGB_GPIO`
     - `BSP_LED_RGB_BACKEND`
+
+3. For classic RBG LEDs set pins for all colors and level in `menuconfig`
+    - `BSP_LED_RGB_RED_GPIO`
+    - `BSP_LED_RGB_GREEN_GPIO`
+    - `BSP_LED_RGB_BLUE_GPIO`
+    - `BSP_LED_RGB_CLASSIC_LEVEL`
 
 Example code:
 ```
@@ -137,5 +143,76 @@ Example code:
 ```
 For LEDs handling is used component [led_indicator](https://components.espressif.com/components/espressif/led_indicator) with [led_strip](https://components.espressif.com/components/espressif/led_strip) component. For more information, please look into guides for these components.
 
+## LCD Display
 
+1. Enable display in `menuconfig`
+    - `BSP_DISPLAY_ENABLED`
 
+2. Select communication interface in `menuconfig`
+    - `BSP_DISPLAY_INTERFACE_` (only SPI is supported)
+
+3. Set communication pins in `menuconfig`
+    - `BSP_DISPLAY_SCLK_GPIO`
+    - `BSP_DISPLAY_MOSI_GPIO`
+    - `BSP_DISPLAY_MISO_GPIO`
+    - `BSP_DISPLAY_CS_GPIO`
+    - `BSP_DISPLAY_DC_GPIO`
+    - `BSP_DISPLAY_RST_GPIO`
+    - `BSP_DISPLAY_BACKLIGHT_GPIO`
+
+4. Select display driver in `menuconfig` (one of these)
+    - `BSP_DISPLAY_DRIVER_ST7789`
+    - `BSP_DISPLAY_DRIVER_ILI9341`
+    - `BSP_DISPLAY_DRIVER_GC9A01`
+
+5. Set right rotation of the screen in `menuconfig`
+    - `BSP_DISPLAY_ROTATION_SWAP_XY`
+    - `BSP_DISPLAY_ROTATION_MIRROR_X`
+    - `BSP_DISPLAY_ROTATION_MIRROR_Y`
+
+6. Set other display params in `menuconfig`
+    - `BSP_DISPLAY_CMD_BITS`
+    - `BSP_DISPLAY_PARAM_BITS`
+    - `BSP_DISPLAY_PIXEL_CLOCK`
+    - `BSP_DISPLAY_WIDTH`
+    - `BSP_DISPLAY_HEIGHT`
+    - `BSP_DISPLAY_BRIGHTNESS_LEDC_CH`
+    - `BSP_LCD_DRAW_BUF_HEIGHT`
+    - `BSP_LCD_DRAW_BUF_DOUBLE`
+
+## LCD Touch
+
+1. Enable display touch in `menuconfig`
+    - `BSP_TOUCH_ENABLED`
+
+2. Select communication interface in `menuconfig`
+    - `BSP_TOUCH_INTERFACE_` (only I2C is supported)
+
+3. Set communication pins in `menuconfig`
+    - `BSP_TOUCH_RST_GPIO`
+    - `BSP_TOUCH_INT_GPIO`
+
+4. Select display driver in `menuconfig` (one of these)
+    - `BSP_TOUCH_DRIVER_TT21100`
+    - `BSP_TOUCH_DRIVER_GT1151`
+    - `BSP_TOUCH_DRIVER_GT911`
+    - `BSP_TOUCH_DRIVER_CST816S`
+    - `BSP_TOUCH_DRIVER_FT5X06`
+
+5. Set right rotation of the screen in `menuconfig`
+    - `BSP_TOUCH_ROTATION_SWAP_XY`
+    - `BSP_TOUCH_ROTATION_MIRROR_X`
+    - `BSP_TOUCH_ROTATION_MIRROR_Y`
+
+Example code:
+```
+    /* Initialize display, touch and LVGL */
+    bsp_display_start();
+
+    /* Set display brightness to 100% */
+    bsp_display_backlight_on();
+
+    bsp_display_lock(0);
+    /* === Your LVGL code here === */
+    bsp_display_unlock();
+```

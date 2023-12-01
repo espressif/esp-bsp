@@ -7,7 +7,7 @@ Available LEDs and buttons are initialized with preconfigured settings. The firs
 
 # Build with predefined configuration
 
-Predefined configurations are saved in [generic_button_led](examples/generic_button_led) example.
+Predefined configurations are saved in [generic_button_led](https://github.com/espressif/esp-bsp/tree/master/examples/generic_button_led) example.
 
 ```
     idf.py -p COM4 -D "SDKCONFIG_DEFAULTS=sdkconfig.esp32_s3_devkitc_1" flash monitor
