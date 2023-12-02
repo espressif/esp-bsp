@@ -1,4 +1,4 @@
-version: "2.0.0~2"
+version: "2.1.0"
 description: Board Support Package for ESP32-S3-LCD-EV-Board
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_lcd_ev_board
 
@@ -6,7 +6,7 @@ targets:
   - esp32s3
 
 dependencies:
-  idf: ">=5.0"
+  idf: ">=5.0.1"
 
   esp_lcd_touch_gt1151:
     version: "^1"
@@ -29,7 +29,11 @@ dependencies:
     public: true
 
   esp_lcd_gc9503:
-    version: "^1"
+    matches:
+      - if: "idf_version <5.1.2"
+        version: "^1"
+      - if: "idf_version >=5.1.2"
+        version: "^3"
     public: true
 
   esp_codec_dev:
