@@ -227,7 +227,6 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     disp_ctx->rotation.swap_xy = disp_cfg->rotation.swap_xy;
     disp_ctx->rotation.mirror_x = disp_cfg->rotation.mirror_x;
     disp_ctx->rotation.mirror_y = disp_cfg->rotation.mirror_y;
-    disp_ctx->rotation.sw_rotate = disp_cfg->rotation.sw_rotate;
     disp_ctx->trans_size = disp_cfg->trans_size;
 
     uint32_t buff_caps = MALLOC_CAP_DEFAULT;
@@ -269,8 +268,8 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     disp_ctx->disp_drv.hor_res = disp_cfg->hres;
     disp_ctx->disp_drv.ver_res = disp_cfg->vres;
     disp_ctx->disp_drv.flush_cb = lvgl_port_flush_callback;
-    disp_ctx->disp_drv.sw_rotate = disp_cfg->rotation.sw_rotate;
-    if (disp_cfg->rotation.sw_rotate == false) {
+    disp_ctx->disp_drv.sw_rotate = disp_cfg->sw_rotate;
+    if (disp_ctx->disp_drv.sw_rotate == false) {
         disp_ctx->disp_drv.drv_update_cb = lvgl_port_update_callback;
     }
 

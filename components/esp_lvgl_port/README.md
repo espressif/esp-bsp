@@ -189,10 +189,8 @@ Rotation mode can be selected in the `lvgl_port_display_cfg_t` structure.
 ``` c
     const lvgl_port_display_cfg_t disp_cfg = {
         ...
-        .rotation = {
-            .sw_rotate = true / false, // true: software; false: hardware
-            ...
-        }
+        .sw_rotate = true / false, // true: software; false: hardware
+        ...
     }
 ```
 Display rotation can be changed at runtime.
