@@ -189,8 +189,10 @@ Rotation mode can be selected in the `lvgl_port_display_cfg_t` structure.
 ``` c
     const lvgl_port_display_cfg_t disp_cfg = {
         ...
-        .sw_rotate = true / false, // true: software; false: hardware
-        ...
+        .flags = {
+            ...
+            .sw_rotate = true / false, // true: software; false: hardware
+        }
     }
 ```
 Display rotation can be changed at runtime.
@@ -204,11 +206,15 @@ Display rotation can be changed at runtime.
 
 If the SRAM is insufficient, you can use the PSRAM as a canvas and use a small trans_buffer to carry it, this makes drawing more efficient.
 ``` c
-    .buffer_size = DISP_WIDTH*DISP_HEIGHT, // in PSRAM, not DMA-capable
-    .trans_size = size, // in SRAM, DMA-capable
-    .flags = {
-        .buff_spiram = true,
-        .buff_dma = false,
+    const lvgl_port_display_cfg_t disp_cfg = {
+        ...
+        .buffer_size = DISP_WIDTH * DISP_HEIGHT, // in PSRAM, not DMA-capable
+        .trans_size = size, // in SRAM, DMA-capable
+        .flags = {
+            .buff_spiram = true,
+            .buff_dma = false,
+            ...
+        }
     }
 ```
 
