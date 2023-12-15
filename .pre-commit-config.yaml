@@ -33,3 +33,14 @@ repos:
       - id: flake8
         types: [python]
         args: ['--config=.flake8', '--tee', '--benchmark']
+
+  - repo: local
+    hooks:
+      - id: bsp-dependencies-readme
+        name: Update BSP README with dependencies section
+        entry: .github/ci/update_readme_dependencies.py
+        language: python
+        files: 'bsp\/.*idf_component\.yml|bsp\/.*README\.md' # All idf_component.yml and README.md files in bsp directory
+        additional_dependencies:
+          - idf_component_manager
+          - py-markdown-table
