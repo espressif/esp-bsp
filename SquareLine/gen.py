@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import sys
 import os
@@ -6,6 +6,7 @@ import json
 import shutil
 import argparse
 from zipfile import ZipFile
+from typing import Optional
 
 # Directory of all boards
 BOARDS_DIR = "boards/"
@@ -54,19 +55,23 @@ ANSI_YELLOW = '\033[0;33m'
 ANSI_GREEN = '\033[1;32m'
 ANSI_NORMAL = '\033[0m'
 
+
 # Print colored message
 def color_print(message, color, newline='\n'):  # type: (str, str, Optional[str]) -> None
     """ Print a message to stderr with colored highlighting """
     sys.stderr.write('%s%s%s%s' % (color, message, ANSI_NORMAL, newline))
     sys.stderr.flush()
 
+
 # Print green text
 def print_ok(message):
     color_print(message, ANSI_GREEN)
 
+
 # Print red error
 def print_error(message):
     color_print(message, ANSI_RED)
+
 
 # Remove folder with all inside on specific path
 def remove_folder(path):
@@ -78,10 +83,12 @@ def remove_folder(path):
             os.remove(new_path)
     os.rmdir(path)
 
+
 # When placeholder is not set in JSON, but find in code, it will be ignored (no error and no substituted)
 class SafeDict(dict):
     def __missing__(self, key):
         return '{' + key + '}'
+
 
 # Replace placeholder, which are set in JSON
 def replace_placeholders(file, placeholders):
@@ -92,12 +99,14 @@ def replace_placeholders(file, placeholders):
         with open(file, "w") as f:
             f.write(file_str)
 
+
 # Copy file and replace placeholders in copied file
 def copy_file(src_path, dst_path, placeholders, translate=1):
     print(f"  Copying {src_path} to {dst_path}")
     shutil.copyfile(src_path, dst_path)
     if translate:
         replace_placeholders(dst_path, placeholders)
+
 
 # Copy all files in directory
 def copy_directory(from_dir, to_dir, placeholders, translate=1):
@@ -111,6 +120,7 @@ def copy_directory(from_dir, to_dir, placeholders, translate=1):
         else:
             copy_file(f, out_f, placeholders, translate)
 
+
 # Add folder into ZIP archive recursively
 def zip_add_folder(zip_obj, path, outdir):
     for filename in os.listdir(path):
@@ -121,6 +131,7 @@ def zip_add_folder(zip_obj, path, outdir):
         if os.path.isdir(file):
             zip_add_folder(zip_obj, file, out_file)
 
+
 # Creates ZIP archive
 def make_zip(board_name, path):
     zip_obj = ZipFile(os.path.join(path,  board_name + ".zip"), 'w')
@@ -128,17 +139,20 @@ def make_zip(board_name, path):
     zip_add_folder(zip_obj, zip_dir, SQUARELINE_OUTDIR)
     zip_obj.close()
 
+
 # Check if JSON key exists, if not error and exit the script
 def check_json_key(manifest, key):
     if key not in manifest:
         print_error(f"Missing {key} in manifest JSON file")
         raise SystemExit(1)
 
+
 # Get version in filename format
 def get_board_version(manifest):
     check_json_key(manifest, "version")
     v = manifest["version"].split('.')
     return f"_v{v[0]}_{v[1]}_{v[2]}"
+
 
 # Create SLB file by JSON manifest data
 def create_slb_file(output, output_filename, manifest):
@@ -217,6 +231,7 @@ def process_board(board_name, output, dir):
         print_error(f"ERROR: File '{path}' is not exists!")
         raise SystemExit(1)
 
+
 # Print usage
 def print_help():
     print("Not enough arguments! Usage:")
@@ -224,7 +239,8 @@ def print_help():
     print("\tout: path to the generated output")
     print("\tboard (optional): generate only specific board")
 
-#Create gitignore file into output folder
+
+# Create gitignore file into output folder
 def create_gitignore(path):
     with open(os.path.join(path, ".gitignore"), "w") as f:
         f.write("*")
@@ -251,7 +267,7 @@ def main(outdir, sel_board):
         # Remove all in output directory
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
-        #loop all boards
+        # loop all boards
         for dirname in os.listdir(BOARDS_DIR):
             d = os.path.join(BOARDS_DIR, dirname)
             # checking if it is a file
@@ -264,10 +280,9 @@ def main(outdir, sel_board):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates SquareLine board packages.')
     parser.add_argument("-o", "--outdir", action="store", dest='outdir', default='out',
-                    help='Output directory for generated files (default: out)')
+                        help='Output directory for generated files (default: out)')
     parser.add_argument("-b", "--board", action="store", dest='sel_board', default='',
-                    help='Generate only selected board (default: generates all)')
+                        help='Generate only selected board (default: generates all)')
 
     args = parser.parse_args()
     main(args.outdir, args.sel_board)
-
