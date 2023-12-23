@@ -1,12 +1,14 @@
 # BSP: Display USB HID Example
 
-This example demonstrates usage of the USB HID (keyboard, mouse or GamePad) with Board Support Package. 
+This example demonstrates usage of the USB HID (keyboard, mouse or GamePad) with Board Support Package.
 
 ## How to use the example
 
 ### Hardware Required
 
-* Board ESP32-S3-USB-OTG
+* Board [ESP32-S3-USB-OTG](https://docs.espressif.com/projects/espressif-esp-dev-kits/en/latest/esp32s3/esp32-s3-usb-otg/user_guide.html)
+  - connect 5V USB power supply to the left "USB DEV" connector
+  - connect USB keyboard/mouse to the right "USB Host" connector
 
 ### Compile and flash
 
