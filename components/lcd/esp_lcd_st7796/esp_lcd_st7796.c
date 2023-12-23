@@ -175,12 +175,6 @@ static esp_err_t panel_st7796_reset(esp_lcd_panel_t *panel)
     return ESP_OK;
 }
 
-typedef struct {
-    uint8_t cmd;
-    uint8_t data[16];
-    uint8_t data_bytes; // Length of data in above data array; 0xFF = end of cmds.
-} lcd_init_cmd_t;
-
 static const st7796_lcd_init_cmd_t vendor_specific_init_default[] = {
 //  {cmd, { data }, data_size, delay_ms}
     {0xf0, (uint8_t []){0xc3}, 1, 0},
