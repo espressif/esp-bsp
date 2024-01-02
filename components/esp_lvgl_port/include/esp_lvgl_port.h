@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -60,6 +60,24 @@ typedef struct {
     bool mirror_y; /*!< LCD Screen mirrored Y (in esp_lcd driver) */
 } lvgl_port_rotation_cfg_t;
 
+
+typedef void (*lv_flush_cb)(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map);
+
+typedef void (*lv_update_cb)(lv_disp_drv_t *drv);
+
+typedef BaseType_t (*lv_transdone_cb)(esp_lcd_panel_handle_t panel, void *user_ctx);
+
+typedef struct {
+    esp_lcd_panel_io_handle_t io_handle;    /* LCD panel IO handle */
+    esp_lcd_panel_handle_t    panel_handle; /* LCD panel handle */
+    lvgl_port_rotation_cfg_t  rotation;     /* Default values of the screen rotation */
+    lv_disp_drv_t             disp_drv;     /* LVGL display driver */
+
+    TaskHandle_t              lvgl_task_handle;
+    lv_transdone_cb           lcd_transdone_cb;
+    bool                      lcd_manual_mode;
+} lvgl_port_display_ctx_t;
+
 /**
  * @brief Configuration display structure
  */
@@ -76,7 +94,32 @@ typedef struct {
     struct {
         unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
         unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
+        unsigned int interface_RGB: 1;
     } flags;
+
+    struct {
+        unsigned int full_refresh: 1;
+        unsigned int direct_mode: 1;
+        unsigned int normal_mode: 1;
+    } refresh_mode;
+
+    struct {
+        unsigned int audo_mode: 1;
+        unsigned int manual_mode: 1;
+        unsigned int bb_mode: 1;
+        struct {
+            unsigned int ref_period;
+            unsigned int ref_priority;
+        } flags;
+    } trans_mode;
+
+    lv_flush_cb user_lv_flush_cb;
+    lv_update_cb user_lv_update_cb;
+    lv_transdone_cb user_lcd_transdone_cb;
+
+    void *user_buf1;
+    void *user_buf2;
+
 } lvgl_port_display_cfg_t;
 
 #ifdef ESP_LVGL_PORT_TOUCH_COMPONENT

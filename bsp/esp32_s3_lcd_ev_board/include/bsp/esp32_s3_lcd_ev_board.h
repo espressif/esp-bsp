@@ -21,6 +21,7 @@
 #include "esp_lcd_gc9503.h"
 #include "iot_button.h"
 #include "lvgl.h"
+#include "esp_lvgl_port.h"
 
 #include "sdkconfig.h"
 
@@ -96,7 +97,7 @@ extern "C" {
  *
  */
 typedef struct {
-    void *dummy;    /*!< Prepared for future use. */
+    lvgl_port_cfg_t lvgl_port_cfg;
 } bsp_display_cfg_t;
 
 /**************************************************************************************************

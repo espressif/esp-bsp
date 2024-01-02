@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -14,6 +14,7 @@
 #include "freertos/semphr.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
+#include "esp_lcd_panel_rgb.h"
 #include "esp_lvgl_port.h"
 
 #include "lvgl.h"
@@ -81,11 +82,9 @@ typedef struct lvgl_port_ctx_s {
 } lvgl_port_ctx_t;
 
 typedef struct {
-    esp_lcd_panel_io_handle_t io_handle;    /* LCD panel IO handle */
-    esp_lcd_panel_handle_t    panel_handle; /* LCD panel handle */
-    lvgl_port_rotation_cfg_t  rotation;     /* Default values of the screen rotation */
-    lv_disp_drv_t             disp_drv;     /* LVGL display driver */
-} lvgl_port_display_ctx_t;
+    esp_lcd_panel_handle_t rgb_handle;
+    uint32_t rgb_ref_period;
+} lv_manual_refresh;
 
 #ifdef ESP_LVGL_PORT_TOUCH_COMPONENT
 typedef struct {
@@ -126,6 +125,8 @@ typedef struct {
 *******************************************************************************/
 static lvgl_port_ctx_t lvgl_port_ctx;
 static int lvgl_port_timer_period_ms = 5;
+static TaskHandle_t lvgl_task_handle = NULL;
+static TaskHandle_t lcd_task_handle = NULL;
 
 /*******************************************************************************
 * Function definitions
@@ -136,6 +137,7 @@ static void lvgl_port_task_deinit(void);
 
 // LVGL callbacks
 #if LVGL_PORT_HANDLE_FLUSH_READY
+static bool lvgl_port_rgb_on_vsync_callback(esp_lcd_panel_handle_t panel, const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx);
 static bool lvgl_port_flush_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx);
 #endif
 static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map);
@@ -189,9 +191,9 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
 
     BaseType_t res;
     if (cfg->task_affinity < 0) {
-        res = xTaskCreate(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, NULL);
+        res = xTaskCreate(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, &lvgl_task_handle);
     } else {
-        res = xTaskCreatePinnedToCore(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, NULL, cfg->task_affinity);
+        res = xTaskCreatePinnedToCore(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, &lvgl_task_handle, cfg->task_affinity);
     }
     ESP_GOTO_ON_FALSE(res == pdPASS, ESP_FAIL, err, TAG, "Create LVGL task fail!");
 
@@ -246,6 +248,37 @@ esp_err_t lvgl_port_deinit(void)
     return ESP_OK;
 }
 
+static void lvgl_manual_task(void *arg)
+{
+    TickType_t tick;
+    lv_manual_refresh *refresh = (lv_manual_refresh *)arg;
+
+    ESP_LOGI(TAG, "Starting LCD refresh task");
+
+    for (;;) {
+        esp_lcd_rgb_panel_refresh(refresh->rgb_handle);
+        tick = xTaskGetTickCount();
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        vTaskDelayUntil(&tick, pdMS_TO_TICKS(refresh->rgb_ref_period));
+    }
+}
+
+esp_err_t create_manual_task(const lvgl_port_display_cfg_t *disp_cfg)
+{
+    static lv_manual_refresh refresh;
+
+    refresh.rgb_handle = disp_cfg->panel_handle;
+    refresh.rgb_ref_period = disp_cfg->trans_mode.flags.ref_period;
+
+    BaseType_t ret = xTaskCreate(lvgl_manual_task, "LCD", 2048, &refresh, disp_cfg->trans_mode.flags.ref_priority, &lcd_task_handle);
+    if (ret != pdPASS) {
+        ESP_LOGE(TAG, "Failed to create LCD task");
+        return ESP_FAIL;
+    }
+
+    return ESP_OK;
+}
+
 lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
 {
     esp_err_t ret = ESP_OK;
@@ -268,23 +301,33 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     disp_ctx->rotation.mirror_x = disp_cfg->rotation.mirror_x;
     disp_ctx->rotation.mirror_y = disp_cfg->rotation.mirror_y;
 
-    uint32_t buff_caps = MALLOC_CAP_DEFAULT;
-    if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram) {
-        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "Alloc DMA capable buffer in SPIRAM is not supported!");
-    } else if (disp_cfg->flags.buff_dma) {
-        buff_caps = MALLOC_CAP_DMA;
-    } else if (disp_cfg->flags.buff_spiram) {
-        buff_caps = MALLOC_CAP_SPIRAM;
+    disp_ctx->lcd_transdone_cb = disp_cfg->user_lcd_transdone_cb;
+    disp_ctx->lcd_manual_mode = disp_cfg->trans_mode.manual_mode;
+    disp_ctx->lvgl_task_handle = lvgl_task_handle;
+
+    if (disp_cfg->user_buf1 || disp_cfg->user_buf2) {
+        buf1 = disp_cfg->user_buf1;
+        buf2 = disp_cfg->user_buf2;
+    } else {
+        uint32_t buff_caps = MALLOC_CAP_DEFAULT;
+        if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram) {
+            ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "Alloc DMA capable buffer in SPIRAM is not supported!");
+        } else if (disp_cfg->flags.buff_dma) {
+            buff_caps = MALLOC_CAP_DMA;
+        } else if (disp_cfg->flags.buff_spiram) {
+            buff_caps = MALLOC_CAP_SPIRAM;
+        }
+
+        /* alloc draw buffers used by LVGL */
+        /* it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized */
+        buf1 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color_t), buff_caps);
+        ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
+        if (disp_cfg->double_buffer) {
+            buf2 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color_t), buff_caps);
+            ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
+        }
     }
 
-    /* alloc draw buffers used by LVGL */
-    /* it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized */
-    buf1 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color_t), buff_caps);
-    ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
-    if (disp_cfg->double_buffer) {
-        buf2 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color_t), buff_caps);
-        ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
-    }
     lv_disp_draw_buf_t *disp_buf = malloc(sizeof(lv_disp_draw_buf_t));
     ESP_GOTO_ON_FALSE(disp_buf, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL display buffer allocation!");
 
@@ -295,17 +338,36 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     lv_disp_drv_init(&disp_ctx->disp_drv);
     disp_ctx->disp_drv.hor_res = disp_cfg->hres;
     disp_ctx->disp_drv.ver_res = disp_cfg->vres;
-    disp_ctx->disp_drv.flush_cb = lvgl_port_flush_callback;
-    disp_ctx->disp_drv.drv_update_cb = lvgl_port_update_callback;
+    disp_ctx->disp_drv.flush_cb = (disp_cfg->user_lv_flush_cb) ? disp_cfg->user_lv_flush_cb : lvgl_port_flush_callback;
+    disp_ctx->disp_drv.drv_update_cb = (disp_cfg->user_lv_update_cb) ? disp_cfg->user_lv_update_cb : lvgl_port_update_callback;
+
+    disp_ctx->disp_drv.full_refresh = disp_cfg->refresh_mode.full_refresh;
+    disp_ctx->disp_drv.direct_mode = disp_cfg->refresh_mode.direct_mode;
+
     disp_ctx->disp_drv.draw_buf = disp_buf;
     disp_ctx->disp_drv.user_data = disp_ctx;
 
+    if (disp_cfg->trans_mode.manual_mode) {
+        create_manual_task(disp_cfg);
+    }
+
 #if LVGL_PORT_HANDLE_FLUSH_READY
     /* Register done callback */
-    const esp_lcd_panel_io_callbacks_t cbs = {
-        .on_color_trans_done = lvgl_port_flush_ready_callback,
-    };
-    esp_lcd_panel_io_register_event_callbacks(disp_ctx->io_handle, &cbs, &disp_ctx->disp_drv);
+    if (disp_cfg->flags.interface_RGB) {
+        const esp_lcd_rgb_panel_event_callbacks_t cbs = {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 2) && CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_MODE
+            .on_bounce_frame_finish = lvgl_port_rgb_on_vsync_callback,
+#else
+            .on_vsync = lvgl_port_rgb_on_vsync_callback,
+#endif
+        };
+        esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &cbs, &disp_ctx->disp_drv);
+    } else {
+        const esp_lcd_panel_io_callbacks_t cbs = {
+            .on_color_trans_done = lvgl_port_flush_ready_callback,
+        };
+        esp_lcd_panel_io_register_event_callbacks(disp_ctx->io_handle, &cbs, &disp_ctx->disp_drv);
+    }
 #endif
 
     /* Monochrome display settings */
@@ -718,6 +780,25 @@ static void lvgl_port_task_deinit(void)
 }
 
 #if LVGL_PORT_HANDLE_FLUSH_READY
+IRAM_ATTR static bool lvgl_port_rgb_on_vsync_callback(esp_lcd_panel_handle_t panel_handle, const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx)
+{
+    BaseType_t need_yield = pdFALSE;
+
+    lv_disp_drv_t *disp_drv = (lv_disp_drv_t *)user_ctx;
+    assert(disp_drv != NULL);
+    lvgl_port_display_ctx_t *disp_ctx = disp_drv->user_data;
+
+    if (disp_ctx->lcd_manual_mode) {
+        xTaskNotifyFromISR(lcd_task_handle, ULONG_MAX, eNoAction, &need_yield);
+    }
+
+    if (disp_ctx->lcd_transdone_cb) {
+        need_yield = disp_ctx->lcd_transdone_cb(panel_handle, user_ctx);
+    }
+
+    return (need_yield == pdTRUE);
+}
+
 static bool lvgl_port_flush_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
 {
     lv_disp_drv_t *disp_drv = (lv_disp_drv_t *)user_ctx;
