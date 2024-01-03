@@ -121,7 +121,7 @@ typedef struct {
 *******************************************************************************/
 static lvgl_port_ctx_t lvgl_port_ctx;
 static int lvgl_port_timer_period_ms = 5;
-static TaskHandle_t lvgl_task_handle = NULL;
+static TaskHandle_t lvgl_port_task_handle = NULL;
 
 /*******************************************************************************
 * Function definitions
@@ -185,9 +185,9 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
 
     BaseType_t res;
     if (cfg->task_affinity < 0) {
-        res = xTaskCreate(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, &lvgl_task_handle);
+        res = xTaskCreate(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, &lvgl_port_task_handle);
     } else {
-        res = xTaskCreatePinnedToCore(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, &lvgl_task_handle, cfg->task_affinity);
+        res = xTaskCreatePinnedToCore(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, &lvgl_port_task_handle, cfg->task_affinity);
     }
     ESP_GOTO_ON_FALSE(res == pdPASS, ESP_FAIL, err, TAG, "Create LVGL task fail!");
 
@@ -266,7 +266,7 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
 
     disp_ctx->lcd_transdone_cb = disp_cfg->user_lcd_transdone_cb;
     disp_ctx->lcd_manual_mode = disp_cfg->trans_mode.manual_mode;
-    disp_ctx->lvgl_task_handle = lvgl_task_handle;
+    disp_ctx->lvgl_task_handle = lvgl_port_task_handle;
 
     if (disp_cfg->user_buf1 || disp_cfg->user_buf2) {
         buf1 = disp_cfg->user_buf1;

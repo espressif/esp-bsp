@@ -24,11 +24,11 @@ static const char *TAG = "LV_RGB";
 typedef struct {
     esp_lcd_panel_handle_t rgb_handle;
     uint32_t rgb_ref_period;
-} lv_manual_refresh;
+} lvgl_rgb_manual_ctx_t;
 
-static TaskHandle_t lcd_task_handle = NULL;
+static TaskHandle_t lvgl_rgb_manual_task_handle = NULL;
 
-IRAM_ATTR static bool lvgl_port_rgb_on_vsync_callback(esp_lcd_panel_handle_t panel_handle, const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx)
+IRAM_ATTR static bool lvgl_rgb_on_vsync_callback(esp_lcd_panel_handle_t panel_handle, const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx)
 {
     BaseType_t need_yield = pdFALSE;
 
@@ -37,7 +37,7 @@ IRAM_ATTR static bool lvgl_port_rgb_on_vsync_callback(esp_lcd_panel_handle_t pan
     lvgl_port_display_ctx_t *disp_ctx = disp_drv->user_data;
 
     if (disp_ctx->lcd_manual_mode) {
-        xTaskNotifyFromISR(lcd_task_handle, ULONG_MAX, eNoAction, &need_yield);
+        xTaskNotifyFromISR(lvgl_rgb_manual_task_handle, ULONG_MAX, eNoAction, &need_yield);
     }
 
     if (disp_ctx->lcd_transdone_cb) {
@@ -51,12 +51,12 @@ esp_err_t lvgl_rgb_register_event_callbacks(lvgl_port_display_ctx_t *disp_ctx, c
 {
     /* Register done callback */
     const esp_lcd_rgb_panel_event_callbacks_t vsync_cbs = {
-        .on_vsync = lvgl_port_rgb_on_vsync_callback,
+        .on_vsync = lvgl_rgb_on_vsync_callback,
     };
 
     const esp_lcd_rgb_panel_event_callbacks_t bb_cbs = {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 2) && CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_MODE
-        .on_bounce_frame_finish = lvgl_port_rgb_on_vsync_callback,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 2)
+        .on_bounce_frame_finish = lvgl_rgb_on_vsync_callback,
 #endif
     };
 
@@ -71,7 +71,7 @@ esp_err_t lvgl_rgb_register_event_callbacks(lvgl_port_display_ctx_t *disp_ctx, c
 static void lvgl_rgb_manual_task(void *arg)
 {
     TickType_t tick;
-    lv_manual_refresh *refresh = (lv_manual_refresh *)arg;
+    lvgl_rgb_manual_ctx_t *refresh = (lvgl_rgb_manual_ctx_t *)arg;
 
     ESP_LOGI(TAG, "Starting LCD refresh task");
 
@@ -85,12 +85,12 @@ static void lvgl_rgb_manual_task(void *arg)
 
 esp_err_t lvgl_rgb_create_manual_task(const lvgl_port_display_cfg_t *disp_cfg)
 {
-    static lv_manual_refresh refresh;
+    static lvgl_rgb_manual_ctx_t refresh;
 
     refresh.rgb_handle = disp_cfg->panel_handle;
     refresh.rgb_ref_period = disp_cfg->trans_mode.flags.ref_period;
 
-    BaseType_t ret = xTaskCreate(lvgl_rgb_manual_task, "LCD", 2048, &refresh, disp_cfg->trans_mode.flags.ref_priority, &lcd_task_handle);
+    BaseType_t ret = xTaskCreate(lvgl_rgb_manual_task, "LCD", 2048, &refresh, disp_cfg->trans_mode.flags.ref_priority, &lvgl_rgb_manual_task_handle);
     if (ret != pdPASS) {
         ESP_LOGE(TAG, "Failed to create LCD task");
         return ESP_FAIL;

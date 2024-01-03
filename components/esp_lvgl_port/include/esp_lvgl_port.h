@@ -61,10 +61,22 @@ typedef struct {
 } lvgl_port_rotation_cfg_t;
 
 
+/**
+ * @brief Write the internal buffer (draw_buf) to the display
+ *
+ */
 typedef void (*lv_flush_cb)(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map);
 
+/**
+ * @brief Called when driver parameters are updated
+ *
+ */
 typedef void (*lv_update_cb)(lv_disp_drv_t *drv);
 
+/**
+ * @brief LCD controller transdone interrupt user callback
+ *
+ */
 typedef BaseType_t (*lv_transdone_cb)(esp_lcd_panel_handle_t panel, void *user_ctx);
 
 typedef struct {
@@ -73,9 +85,9 @@ typedef struct {
     lvgl_port_rotation_cfg_t  rotation;     /* Default values of the screen rotation */
     lv_disp_drv_t             disp_drv;     /* LVGL display driver */
 
-    TaskHandle_t              lvgl_task_handle;
-    lv_transdone_cb           lcd_transdone_cb;
-    bool                      lcd_manual_mode;
+    TaskHandle_t              lvgl_task_handle; /* LVGL task handle */
+    lv_transdone_cb           lcd_transdone_cb; /* RGB interface, lcd user transdone event */
+    bool                      lcd_manual_mode;  /* RGB interface, manually refresh or not */
 } lvgl_port_display_ctx_t;
 
 /**
@@ -92,33 +104,32 @@ typedef struct {
     lvgl_port_rotation_cfg_t rotation;    /*!< Default values of the screen rotation */
 
     struct {
-        unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
-        unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
-        unsigned int interface_RGB: 1;
+        unsigned int buff_dma: 1;       /*!< Allocated LVGL buffer will be DMA capable */
+        unsigned int buff_spiram: 1;    /*!< Allocated LVGL buffer will be in PSRAM */
+        unsigned int interface_RGB: 1;  /*!< Interface is RGB_TTL */
     } flags;
 
     struct {
-        unsigned int full_refresh: 1;
-        unsigned int direct_mode: 1;
-        unsigned int normal_mode: 1;
+        unsigned int full_refresh: 1;   /*!< 1: Always make the whole screen redrawn */
+        unsigned int direct_mode: 1;    /*!< 1: Use screen-sized buffers and draw to absolute coordinates */
     } refresh_mode;
 
     struct {
-        unsigned int audo_mode: 1;
-        unsigned int manual_mode: 1;
-        unsigned int bb_mode: 1;
+        unsigned int audo_mode: 1;      /*!< 1: Always make the whole screen redrawn */
+        unsigned int manual_mode: 1;    /*!< 1: The host only refresh the frame buffer when `esp_lcd_panel_draw_bitmap` is called */
+        unsigned int bb_mode: 1;        /*!< 1: The driver allocates two DRAM bounce buffers for DMA use, it's much faster */
         struct {
-            unsigned int ref_period;
-            unsigned int ref_priority;
+            unsigned int ref_period;    /*!< Minimum Period(ms) of LCD refreshing task, depends on manual_mode*/
+            unsigned int ref_priority;  /*!< Priority of LCD refreshing task */
         } flags;
     } trans_mode;
 
-    lv_flush_cb user_lv_flush_cb;
-    lv_update_cb user_lv_update_cb;
-    lv_transdone_cb user_lcd_transdone_cb;
+    lv_flush_cb user_lv_flush_cb;           /*!< OPTIONAL: Write the draw_buf to the display */
+    lv_update_cb user_lv_update_cb;         /*!< OPTIONAL: Called when driver parameters are updated */
+    lv_transdone_cb user_lcd_transdone_cb;  /*!< OPTIONAL: User transmit done event */
 
-    void *user_buf1;
-    void *user_buf2;
+    void *user_buf1;    /*!< OPTIONAL: A buffer to be used by LVGL to draw the image */
+    void *user_buf2;    /*!< OPTIONAL: Optionally specify a second buffer to render and flush */
 
 } lvgl_port_display_cfg_t;
 
