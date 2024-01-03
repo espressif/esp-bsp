@@ -49,7 +49,7 @@ IRAM_ATTR static bool lvgl_port_rgb_on_vsync_callback(esp_lcd_panel_handle_t pan
 
 esp_err_t lvgl_rgb_register_event_callbacks(lvgl_port_display_ctx_t *disp_ctx, const lvgl_port_display_cfg_t *disp_cfg)
 {
-    esp_err_t ret;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
     /* Register done callback */
     const esp_lcd_rgb_panel_event_callbacks_t vsync_cbs = {
         .on_vsync = lvgl_port_rgb_on_vsync_callback,
@@ -66,8 +66,11 @@ esp_err_t lvgl_rgb_register_event_callbacks(lvgl_port_display_ctx_t *disp_ctx, c
     } else {
         ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &vsync_cbs, &disp_ctx->disp_drv));
     }
-
     return ESP_OK;
+#else
+    ESP_LOGE(TAG, "Not supported, it's recommended to develop using ESP-IDF v5.1.2 or later!");
+    return ESP_ERR_NOT_SUPPORTED;
+#endif
 }
 
 static void lvgl_rgb_manual_task(void *arg)
