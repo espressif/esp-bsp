@@ -46,7 +46,7 @@ dependencies:
 
   esp_lvgl_port:
     version: "^1"
-    override_path: '../components/esp_lvgl_port'
+    override_path: '../../components/esp_lvgl_port'
     public: true
 
 examples:
