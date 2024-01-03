@@ -45,7 +45,7 @@ dependencies:
     public: true
 
   esp_lvgl_port:
-    version: "^1"
+    version: "^2"
     override_path: '../../components/esp_lvgl_port'
     public: true
 
