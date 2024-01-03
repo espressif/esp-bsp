@@ -62,9 +62,9 @@ esp_err_t lvgl_rgb_register_event_callbacks(lvgl_port_display_ctx_t *disp_ctx, c
     };
 
     if (disp_cfg->trans_mode.bb_mode && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 2))) {
-        esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &bb_cbs, &disp_ctx->disp_drv);
+        ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &bb_cbs, &disp_ctx->disp_drv));
     } else {
-        esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &vsync_cbs, &disp_ctx->disp_drv);
+        ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &vsync_cbs, &disp_ctx->disp_drv));
     }
 
     return ESP_OK;
@@ -106,11 +106,13 @@ esp_err_t lvgl_rgb_create_manual_task(const lvgl_port_display_cfg_t *disp_cfg)
 esp_err_t lvgl_rgb_register_event_callbacks(lvgl_port_display_ctx_t *disp_ctx, const lvgl_port_display_cfg_t *disp_cfg)
 {
     ESP_LOGE(TAG, "RGB mode not supported!");
+    return ESP_ERR_NOT_SUPPORTED;
 }
 
 esp_err_t lvgl_rgb_create_manual_task(const lvgl_port_display_cfg_t *disp_cfg)
 {
     ESP_LOGE(TAG, "RGB mode not supported!");
+    return ESP_ERR_NOT_SUPPORTED;
 }
 
 #endif
