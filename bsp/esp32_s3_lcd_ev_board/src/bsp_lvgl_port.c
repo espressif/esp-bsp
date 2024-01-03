@@ -417,6 +417,25 @@ void flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color
 }
 #endif
 
+static BaseType_t lcd_trans_done(esp_lcd_panel_handle_t panel, void *user_ctx)
+{
+    BaseType_t need_yield = pdFALSE;
+
+    lvgl_port_display_ctx_t *disp_ctx = ((lv_disp_drv_t *)user_ctx)->user_data;
+    TaskHandle_t lvgl_task_handle = disp_ctx->lvgl_task_handle;
+
+#if CONFIG_BSP_DISPLAY_LVGL_FULL_REFRESH && (CONFIG_BSP_LCD_RGB_BUFFER_NUMS == 3) && (CONFIG_BSP_DISPLAY_LVGL_ROTATION_DEGREE == 0)
+    if (lvgl_port_rgb_next_buf != lvgl_port_rgb_last_buf) {
+        lvgl_port_flush_next_buf = lvgl_port_rgb_last_buf;
+        lvgl_port_rgb_last_buf = lvgl_port_rgb_next_buf;
+    }
+#else
+    // Notify that the current RGB frame buffer has been transmitted
+    xTaskNotifyFromISR(lvgl_task_handle, ULONG_MAX, eNoAction, &need_yield);
+#endif
+    return (need_yield == pdTRUE);
+}
+
 #else
 
 void flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
@@ -461,25 +480,6 @@ static void update_callback(lv_disp_drv_t *drv)
         esp_lcd_panel_mirror(panel_handle, true, false);
         break;
     }
-}
-
-static BaseType_t lcd_trans_done(esp_lcd_panel_handle_t panel, void *user_ctx)
-{
-    BaseType_t need_yield = pdFALSE;
-
-    lvgl_port_display_ctx_t *disp_ctx = ((lv_disp_drv_t *)user_ctx)->user_data;
-    TaskHandle_t lvgl_task_handle = disp_ctx->lvgl_task_handle;
-
-#if CONFIG_BSP_DISPLAY_LVGL_FULL_REFRESH && (CONFIG_BSP_LCD_RGB_BUFFER_NUMS == 3) && (CONFIG_BSP_DISPLAY_LVGL_ROTATION_DEGREE == 0)
-    if (lvgl_port_rgb_next_buf != lvgl_port_rgb_last_buf) {
-        lvgl_port_flush_next_buf = lvgl_port_rgb_last_buf;
-        lvgl_port_rgb_last_buf = lvgl_port_rgb_next_buf;
-    }
-#else
-    // Notify that the current RGB frame buffer has been transmitted
-    xTaskNotifyFromISR(lvgl_task_handle, ULONG_MAX, eNoAction, &need_yield);
-#endif
-    return (need_yield == pdTRUE);
 }
 
 lv_disp_t *bsp_display_lcd_init()
