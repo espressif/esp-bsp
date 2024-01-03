@@ -350,7 +350,7 @@ lv_disp_t *bsp_display_start(void)
     bsp_display_cfg_t cfg = {
         .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG()
     };
-    cfg.lvgl_port_cfg.task_stack = 8092;
+    cfg.lvgl_port_cfg.task_stack = CONFIG_BSP_DISPLAY_LVGL_TASK_STACK_SIZE_KB * 1024;
 
     return bsp_display_start_with_config(&cfg);
 }
