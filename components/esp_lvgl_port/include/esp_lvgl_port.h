@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -41,6 +41,19 @@ extern "C" {
 #endif
 
 /**
+ * @brief Backward compatibility with LVGL 8
+ */
+#if LVGL_VERSION_MAJOR == 8
+typedef lv_disp_t lv_display_t;
+typedef enum {
+    LV_DISPLAY_ROTATION_0 = LV_DISP_ROT_NONE,
+    LV_DISPLAY_ROTATION_90 = LV_DISP_ROT_90,
+    LV_DISPLAY_ROTATION_180 = LV_DISP_ROT_180,
+    LV_DISPLAY_ROTATION_270 = LV_DISP_ROT_270
+} lv_disp_rotation_t;
+#endif
+
+/**
  * @brief Init configuration structure
  */
 typedef struct {
@@ -78,6 +91,7 @@ typedef struct {
         unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
         unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
         unsigned int sw_rotate: 1;   /*!< Use software rotation (slower) */
+        unsigned int swap_bytes: 1;  /*!< Swap bytes in RGB656 (16-bit) before send to LCD driver */
     } flags;
 } lvgl_port_display_cfg_t;
 
@@ -86,7 +100,7 @@ typedef struct {
  * @brief Configuration touch structure
  */
 typedef struct {
-    lv_disp_t *disp;    /*!< LVGL display handle (returned from lvgl_port_add_disp) */
+    lv_display_t *disp;    /*!< LVGL display handle (returned from lvgl_port_add_disp) */
     esp_lcd_touch_handle_t   handle;   /*!< LCD touch IO handle */
 } lvgl_port_touch_cfg_t;
 #endif
@@ -96,7 +110,7 @@ typedef struct {
  * @brief Configuration of the encoder structure
  */
 typedef struct {
-    lv_disp_t *disp;    /*!< LVGL display handle (returned from lvgl_port_add_disp) */
+    lv_display_t *disp;    /*!< LVGL display handle (returned from lvgl_port_add_disp) */
     const knob_config_t *encoder_a_b;
     const button_config_t *encoder_enter;  /*!< Navigation button for enter */
 } lvgl_port_encoder_cfg_t;
@@ -107,7 +121,7 @@ typedef struct {
  * @brief Configuration of the navigation buttons structure
  */
 typedef struct {
-    lv_disp_t *disp;                /*!< LVGL display handle (returned from lvgl_port_add_disp) */
+    lv_display_t *disp;                /*!< LVGL display handle (returned from lvgl_port_add_disp) */
     const button_config_t *button_prev;   /*!< Navigation button for previous */
     const button_config_t *button_next;   /*!< Navigation button for next */
     const button_config_t *button_enter;  /*!< Navigation button for enter */
@@ -119,7 +133,7 @@ typedef struct {
  * @brief Configuration of the mouse input
  */
 typedef struct {
-    lv_disp_t *disp;        /*!< LVGL display handle (returned from lvgl_port_add_disp) */
+    lv_display_t *disp;        /*!< LVGL display handle (returned from lvgl_port_add_disp) */
     uint8_t sensitivity;    /*!< Mouse sensitivity (cannot be zero) */
     lv_obj_t *cursor_img;   /*!< Mouse cursor image, if NULL then used default */
 } lvgl_port_hid_mouse_cfg_t;
@@ -128,7 +142,7 @@ typedef struct {
  * @brief Configuration of the keyboard input
  */
 typedef struct {
-    lv_disp_t *disp;        /*!< LVGL display handle (returned from lvgl_port_add_disp) */
+    lv_display_t *disp;        /*!< LVGL display handle (returned from lvgl_port_add_disp) */
 } lvgl_port_hid_keyboard_cfg_t;
 #endif
 
@@ -139,7 +153,7 @@ typedef struct {
 #define ESP_LVGL_PORT_INIT_CONFIG() \
     {                               \
         .task_priority = 4,       \
-        .task_stack = 4096,       \
+        .task_stack = 5120,       \
         .task_affinity = -1,      \
         .task_max_sleep_ms = 500, \
         .timer_period_ms = 5,     \
@@ -177,7 +191,7 @@ esp_err_t lvgl_port_deinit(void);
  * @param disp_cfg Display configuration structure
  * @return Pointer to LVGL display or NULL when error occured
  */
-lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg);
+lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg);
 
 /**
  * @brief Remove display handling from LVGL
@@ -187,7 +201,7 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg);
  * @return
  *      - ESP_OK                    on success
  */
-esp_err_t lvgl_port_remove_disp(lv_disp_t *disp);
+esp_err_t lvgl_port_remove_disp(lv_display_t *disp);
 
 #ifdef ESP_LVGL_PORT_TOUCH_COMPONENT
 /**
@@ -310,7 +324,7 @@ void lvgl_port_unlock(void);
  *
  * @param disp          LVGL display handle (returned from lvgl_port_add_disp)
  */
-void lvgl_port_flush_ready(lv_disp_t *disp);
+void lvgl_port_flush_ready(lv_display_t *disp);
 
 /**
  * @brief Stop lvgl task

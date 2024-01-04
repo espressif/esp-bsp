@@ -20,6 +20,12 @@ jobs:
     runs-on: ubuntu-20.04
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
+      - name: Upgrade component manager
+        shell: bash
+        run: |
+          . ${IDF_PATH}/export.sh
+          pip install idf-component-manager --upgrade
+
       - uses: actions/checkout@v3
       - name: Build ESP-BSP Test Application
         env:
