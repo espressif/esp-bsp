@@ -16,6 +16,7 @@
 #include "driver/i2s_pdm.h"
 #include "iot_button.h"
 #include "lvgl.h"
+#include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
 
 /**************************************************************************************************

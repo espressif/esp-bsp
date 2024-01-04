@@ -125,7 +125,7 @@ static void app_lvgl_display(void)
 
         /* Input device group */
         lv_indev_t *indev = bsp_display_get_input_dev();
-        if (indev && indev->driver && indev->driver->type == LV_INDEV_TYPE_ENCODER) {
+        if (indev && lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER) {
             lv_group_t *main_group = lv_group_create();
             lv_group_add_obj(main_group, btn_left);
             lv_group_add_obj(main_group, btn_right);
