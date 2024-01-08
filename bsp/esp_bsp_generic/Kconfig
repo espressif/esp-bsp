@@ -1,4 +1,4 @@
-menu "Board Support Package"
+menu "Board Support Package (generic)"
 
     config BSP_ERROR_CHECK
         bool "Enable error check in BSP"
@@ -326,12 +326,6 @@ menu "Board Support Package"
     
 
     menu "LEDs"
-        config BSP_LEDS_NUM
-            int
-            prompt "Number of LEDs in BSP"
-            default 1
-            range 0 5
-            
         choice  
             prompt "LED type"
             default BSP_LED_TYPE_GPIO
@@ -339,25 +333,80 @@ menu "Board Support Package"
                 Select a LED type GPIO or Adressable RGB 
             config BSP_LED_TYPE_GPIO
                 bool "GPIO LED"
+            config BSP_LED_TYPE_RGB_CLASSIC
+                bool "Classic RGB LED"
             config BSP_LED_TYPE_RGB
                 bool "Adressable RGB LED"
         endchoice
+        
+        if BSP_LED_TYPE_GPIO
+            config ENV_MAX_LEDS
+                int
+                default 5
+        endif
+        if BSP_LED_TYPE_RGB_CLASSIC || BSP_LED_TYPE_RGB
+            config ENV_MAX_LEDS
+                int
+                default 1
+        endif
+        
+        config BSP_LEDS_NUM
+            int
+            prompt "Number of LEDs in BSP"
+            default 1
+            range 0 ENV_MAX_LEDS
             
         config BSP_LED_RGB_GPIO
-            depends on BSP_LED_TYPE_RGB
+            depends on BSP_LED_TYPE_RGB && BSP_LEDS_NUM > 0
             int 
             prompt "Adressable RGB LED GPIO"
             default 48
             range -1 ENV_GPIO_OUT_RANGE_MAX
             help
                 The GPIO pin for adressable LEDs.
+                    
+        config BSP_LED_RGB_CLASSIC_LEVEL
+            depends on BSP_LED_TYPE_RGB_CLASSIC && BSP_LEDS_NUM > 0
+            int
+            prompt "Classic RGB LED Active Level"
+            default 0
+            range 0 1
+            help
+                The active level for classic RGB LED. 
+            
+        config BSP_LED_RGB_RED_GPIO
+            depends on BSP_LED_TYPE_RGB_CLASSIC && BSP_LEDS_NUM > 0
+            int 
+            prompt "Classic RGB LED red GPIO"
+            default -1
+            range -1 ENV_GPIO_OUT_RANGE_MAX
+            help
+                The GPIO pin for red color RGB LED.
+            
+        config BSP_LED_RGB_GREEN_GPIO
+            depends on BSP_LED_TYPE_RGB_CLASSIC && BSP_LEDS_NUM > 0
+            int 
+            prompt "Classic RGB LED green GPIO"
+            default -1
+            range -1 ENV_GPIO_OUT_RANGE_MAX
+            help
+                The GPIO pin for green color RGB LED.
+            
+        config BSP_LED_RGB_BLUE_GPIO
+            depends on BSP_LED_TYPE_RGB_CLASSIC && BSP_LEDS_NUM > 0
+            int 
+            prompt "Classic RGB LED blue GPIO"
+            default -1
+            range -1 ENV_GPIO_OUT_RANGE_MAX
+            help
+                The GPIO pin for blue color RGB LED.
 
         config BSP_ESP_IDF_VERSION
             string 
             default "$ESP_IDF_VERSION"
 
         choice BSP_LED_RGB_BACKEND
-            depends on BSP_LED_TYPE_RGB
+            depends on BSP_LED_TYPE_RGB && BSP_LEDS_NUM > 0
             prompt "Adressable RGB LED backend peripheral"
             default BSP_LED_RGB_BACKEND_RMT
             default BSP_LED_RGB_BACKEND_SPI
@@ -376,7 +425,6 @@ menu "Board Support Package"
             depends on BSP_LEDS_NUM > 0 && BSP_LED_TYPE_GPIO
             
             config BSP_LED_1_GPIO
-                depends on BSP_LED_1_TYPE_GPIO
                 int 
                 prompt "LED 1 GPIO"
                 default 0
@@ -385,7 +433,6 @@ menu "Board Support Package"
                     The GPIO pin for LED 1.
                     
             config BSP_LED_1_LEVEL
-                depends on BSP_LED_1_TYPE_GPIO
                 int
                 prompt "LED 1 Active Level"
                 default 1
@@ -398,7 +445,6 @@ menu "Board Support Package"
             depends on BSP_LEDS_NUM > 1 && BSP_LED_TYPE_GPIO
             
             config BSP_LED_2_GPIO
-                depends on BSP_LED_2_TYPE_GPIO
                 int 
                 prompt "LED 2 GPIO"
                 default 0
@@ -406,7 +452,6 @@ menu "Board Support Package"
                 help
                     The GPIO pin for LED 2.
             config BSP_LED_2_LEVEL
-                depends on BSP_LED_2_TYPE_GPIO
                 int
                 prompt "LED 2 Active Level"
                 default 1
@@ -419,7 +464,6 @@ menu "Board Support Package"
             depends on BSP_LEDS_NUM > 2 && BSP_LED_TYPE_GPIO
             
             config BSP_LED_3_GPIO
-                depends on BSP_LED_3_TYPE_GPIO
                 int 
                 prompt "LED 3 GPIO"
                 default 0
@@ -427,7 +471,6 @@ menu "Board Support Package"
                 help
                     The GPIO pin for LED 3.
             config BSP_LED_3_LEVEL
-                depends on BSP_LED_3_TYPE_GPIO
                 int
                 prompt "LED 3 Active Level"
                 default 1
@@ -440,7 +483,6 @@ menu "Board Support Package"
             depends on BSP_LEDS_NUM > 3 && BSP_LED_TYPE_GPIO
             
             config BSP_LED_4_GPIO
-                depends on BSP_LED_4_TYPE_GPIO
                 int 
                 prompt "LED 4 GPIO"
                 default 0
@@ -448,7 +490,6 @@ menu "Board Support Package"
                 help
                     The GPIO pin for LED 4.
             config BSP_LED_4_LEVEL
-                depends on BSP_LED_4_TYPE_GPIO
                 int
                 prompt "LED 4 Active Level"
                 default 1
@@ -461,7 +502,6 @@ menu "Board Support Package"
             depends on BSP_LEDS_NUM > 4 && BSP_LED_TYPE_GPIO
             
             config BSP_LED_5_GPIO
-                depends on BSP_LED_5_TYPE_GPIO
                 int 
                 prompt "LED 5 GPIO"
                 default 0
@@ -469,7 +509,6 @@ menu "Board Support Package"
                 help
                     The GPIO pin for LED 5.
             config BSP_LED_5_LEVEL
-                depends on BSP_LED_5_TYPE_GPIO
                 int
                 prompt "LED 5 Active Level"
                 default 1
@@ -479,7 +518,295 @@ menu "Board Support Package"
         endmenu
             
     endmenu
+    
+
+    menu "Display"
+
+        config BSP_DISPLAY_ENABLED
+            bool "Enable display"
+            default n
+            help
+                Enable using display in BSP
+        
+        menu "Connection"
+            depends on BSP_DISPLAY_ENABLED
+            choice  
+                prompt "Communication interface"
+                help
+                    Select a communication interface
+                config BSP_DISPLAY_INTERFACE_SPI
+                    bool "SPI"
+            endchoice
             
+            config BSP_DISPLAY_SCLK_GPIO
+                depends on BSP_DISPLAY_INTERFACE_SPI
+                int 
+                prompt "Display SPI SCLK GPIO"
+                default 0
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The SCLK pin for SPI display.
+            
+            config BSP_DISPLAY_MOSI_GPIO
+                depends on BSP_DISPLAY_INTERFACE_SPI
+                int 
+                prompt "Display SPI MOSI GPIO"
+                default 0
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The MOSI pin for SPI display.
+            
+            config BSP_DISPLAY_MISO_GPIO
+                depends on BSP_DISPLAY_INTERFACE_SPI
+                int 
+                prompt "Display SPI MISO GPIO"
+                default 0
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The MISO pin for SPI display.
+            
+            config BSP_DISPLAY_CS_GPIO
+                depends on BSP_DISPLAY_INTERFACE_SPI
+                int 
+                prompt "Display SPI CS GPIO"
+                default 0
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The CS pin for SPI display.
+            
+            config BSP_DISPLAY_DC_GPIO
+                depends on BSP_DISPLAY_INTERFACE_SPI
+                int 
+                prompt "Display SPI DC GPIO"
+                default 0
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The DC pin for SPI display.
+            
+            config BSP_DISPLAY_RST_GPIO
+                int 
+                prompt "Display reset GPIO"
+                default 0
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The reset pin for display.
+            
+            config BSP_DISPLAY_BACKLIGHT_GPIO
+                int 
+                prompt "Display backlight GPIO"
+                default -1
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The backlight pin for display.
+            
+        endmenu
+            
+        choice  
+            prompt "Display driver"
+            depends on BSP_DISPLAY_ENABLED
+            help
+                Select a display driver 
+            config BSP_DISPLAY_DRIVER_ST7789
+                depends on BSP_DISPLAY_INTERFACE_SPI
+                bool "ST7789"
+            config BSP_DISPLAY_DRIVER_ILI9341
+                depends on BSP_DISPLAY_INTERFACE_SPI
+                bool "ILI9341"
+            config BSP_DISPLAY_DRIVER_GC9A01
+                depends on BSP_DISPLAY_INTERFACE_SPI
+                bool "GC9A01"
+        endchoice
+        
+        menu "Rotation"
+            depends on BSP_DISPLAY_ENABLED
+
+            config BSP_DISPLAY_ROTATION_SWAP_XY
+                bool "Swap XY"
+                default n
+                help
+                    Swap X and Y axis on the screen.
+
+            config BSP_DISPLAY_ROTATION_MIRROR_X
+                bool "Mirror X"
+                default n
+                help
+                    Mirror X axis on the screen.
+
+            config BSP_DISPLAY_ROTATION_MIRROR_Y
+                bool "Mirror Y"
+                default n
+                help
+                    Mirror Y axis on the screen.
+        endmenu
+            
+        choice  
+            prompt "Color space"
+            depends on BSP_DISPLAY_ENABLED
+            help
+                Select a display color space 
+            config BSP_DISPLAY_COLOR_SPACE_RGB
+                bool "RGB"
+            config BSP_DISPLAY_COLOR_SPACE_BGR
+                bool "BGR"
+        endchoice
+
+        config BSP_DISPLAY_INVERT_COLOR
+            bool "Invert colors"
+            default n
+            help
+                Invert colors of the screen.
+
+        config BSP_DISPLAY_BRIGHTNESS_INVERT
+            bool "Invert brightness level"
+            default n
+            help
+                Invert brightness level of the screen.
+
+        config BSP_DISPLAY_CMD_BITS
+            depends on BSP_DISPLAY_ENABLED
+            int
+            default 8
+            help
+                The command bits of the display.
+
+        config BSP_DISPLAY_PARAM_BITS
+            depends on BSP_DISPLAY_ENABLED
+            int
+            default 8
+            help
+                The param bits of the display.
+            
+        config BSP_DISPLAY_PIXEL_CLOCK
+            depends on BSP_DISPLAY_ENABLED
+            int 
+            prompt "Display pixel clock (MHz)"
+            default 20
+            range 1 40
+            help
+                The pixel clock of the display in MHz.
+            
+        config BSP_DISPLAY_WIDTH
+            depends on BSP_DISPLAY_ENABLED
+            int 
+            prompt "Display width"
+            default 320
+            help
+                The width in pixels of the display.
+            
+        config BSP_DISPLAY_HEIGHT
+            depends on BSP_DISPLAY_ENABLED
+            int 
+            prompt "Display height"
+            default 240
+            help
+                The height in pixels of the display.
+                
+        config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
+            depends on BSP_DISPLAY_ENABLED && BSP_DISPLAY_BACKLIGHT_GPIO != -1
+            int "LEDC channel index for brightness control"
+            default 1
+            range 0 7
+            help
+                LEDC channel is used to generate PWM signal that controls display brightness.
+                Set LEDC index that should be used.
+
+        config BSP_LCD_DRAW_BUF_HEIGHT
+            depends on BSP_DISPLAY_ENABLED
+            int "LCD framebuf height"
+            default 100
+            range 10 240
+            help
+                Framebuf is used for lvgl rendering output (rows).
+
+        config BSP_LCD_DRAW_BUF_DOUBLE
+            depends on BSP_DISPLAY_ENABLED
+            bool "LCD double framebuf"
+            default n
+            help
+                Whether to enable double framebuf.
+        
+    endmenu
+    
+    menu "Display Touch"
+
+        config BSP_TOUCH_ENABLED
+            bool "Enable display touch"
+            default n
+            help
+                Enable using display touch in BSP
+        
+        menu "Connection"
+            depends on BSP_TOUCH_ENABLED
+            choice  
+                prompt "Communication interface"
+                help
+                    Select a communication interface
+                config BSP_TOUCH_INTERFACE_I2C
+                    bool "I2C"
+            endchoice
+            
+            config BSP_TOUCH_RST_GPIO
+                int 
+                prompt "Display touch reset GPIO"
+                default -1
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The reset pin for display touch.
+            
+            config BSP_TOUCH_INT_GPIO
+                int 
+                prompt "Display touch interrupt GPIO"
+                default -1
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The interrupt pin for display touch.
+            
+        endmenu
+            
+        choice  
+            prompt "Display touch driver"
+            depends on BSP_TOUCH_ENABLED
+            help
+                Select a display touch driver 
+            config BSP_TOUCH_DRIVER_TT21100
+                depends on BSP_TOUCH_INTERFACE_I2C
+                bool "TT21100"
+            config BSP_TOUCH_DRIVER_GT1151
+                depends on BSP_TOUCH_INTERFACE_I2C
+                bool "GT1151"
+            config BSP_TOUCH_DRIVER_GT911
+                depends on BSP_TOUCH_INTERFACE_I2C
+                bool "GT911"
+            config BSP_TOUCH_DRIVER_CST816S
+                depends on BSP_TOUCH_INTERFACE_I2C
+                bool "CST816S"
+            config BSP_TOUCH_DRIVER_FT5X06
+                depends on BSP_TOUCH_INTERFACE_I2C
+                bool "FT5X06"
+        endchoice
+        
+        menu "Rotation"
+            depends on BSP_TOUCH_ENABLED
+
+            config BSP_TOUCH_ROTATION_SWAP_XY
+                bool "Swap XY"
+                default n
+                help
+                    Swap X and Y axis on the touch.
+
+            config BSP_TOUCH_ROTATION_MIRROR_X
+                bool "Mirror X"
+                default n
+                help
+                    Mirror X axis on the touch.
+
+            config BSP_TOUCH_ROTATION_MIRROR_Y
+                bool "Mirror Y"
+                default n
+                help
+                    Mirror Y axis on the touch.
+        endmenu
+    endmenu
 
     menu "uSD card - Virtual File System"
         menu "Pins"

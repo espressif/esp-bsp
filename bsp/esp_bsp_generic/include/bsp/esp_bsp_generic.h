@@ -18,34 +18,69 @@
 #include "iot_button.h"
 #include "led_indicator.h"
 
+#if CONFIG_BSP_DISPLAY_ENABLED
+#include "esp_lvgl_port.h"
+#endif //CONFIG_BSP_DISPLAY_ENABLED
+/**************************************************************************************************
+ *  BSP Capabilities
+ **************************************************************************************************/
+
+#if CONFIG_BSP_DISPLAY_ENABLED
+#define BSP_CAPS_DISPLAY    1
+#endif
+#if CONFIG_BSP_TOUCH_ENABLED
+#define BSP_CAPS_TOUCH      1
+#endif
+#if CONFIG_BSP_BUTTONS_NUM > 0
+#define BSP_CAPS_BUTTONS    1
+#endif
+#if CONFIG_BSP_LEDS_NUM > 0
+#define BSP_CAPS_LEDS       1
+#endif
+#define BSP_CAPS_AUDIO          0
+#define BSP_CAPS_AUDIO_SPEAKER  0
+#define BSP_CAPS_AUDIO_MIC      0
+#define BSP_CAPS_SDCARD         0
+#define BSP_CAPS_IMU            0
+
 /**************************************************************************************************
  *  Pinout
  **************************************************************************************************/
 /* I2C */
-#define BSP_I2C_SCL      (CONFIG_BSP_I2C_GPIO_SCL)
-#define BSP_I2C_SDA      (CONFIG_BSP_I2C_GPIO_SDA)
+#define BSP_I2C_SCL         (CONFIG_BSP_I2C_GPIO_SCL)
+#define BSP_I2C_SDA         (CONFIG_BSP_I2C_GPIO_SDA)
 
 /* SD card */
-#define BSP_SD_CMD       (CONFIG_BSP_SD_CMD)
-#define BSP_SD_CLK       (CONFIG_BSP_SD_CLK)
-#define BSP_SD_D0        (CONFIG_BSP_SD_D0)
-#define BSP_SD_D1        (CONFIG_BSP_SD_D1)
-#define BSP_SD_D2        (CONFIG_BSP_SD_D2)
-#define BSP_SD_D3        (CONFIG_BSP_SD_D3)
+#define BSP_SD_CMD          (CONFIG_BSP_SD_CMD)
+#define BSP_SD_CLK          (CONFIG_BSP_SD_CLK)
+#define BSP_SD_D0           (CONFIG_BSP_SD_D0)
+#define BSP_SD_D1           (CONFIG_BSP_SD_D1)
+#define BSP_SD_D2           (CONFIG_BSP_SD_D2)
+#define BSP_SD_D3           (CONFIG_BSP_SD_D3)
+
+/* Display */
+#define BSP_LCD_DATA0       (CONFIG_BSP_DISPLAY_MOSI_GPIO)
+#define BSP_LCD_PCLK        (CONFIG_BSP_DISPLAY_SCLK_GPIO)
+#define BSP_LCD_CS          (CONFIG_BSP_DISPLAY_CS_GPIO)
+#define BSP_LCD_DC          (CONFIG_BSP_DISPLAY_DC_GPIO)
+#define BSP_LCD_RST         (CONFIG_BSP_DISPLAY_RST_GPIO)
+#define BSP_LCD_BACKLIGHT   (CONFIG_BSP_DISPLAY_BACKLIGHT_GPIO)
+#define BSP_LCD_TOUCH_RST   (CONFIG_BSP_TOUCH_RST_GPIO)
+#define BSP_LCD_TOUCH_INT   (CONFIG_BSP_TOUCH_INT_GPIO)
 
 /* Buttons */
-#define BSP_BUTTON_1_IO  (CONFIG_BSP_BUTTON_1_GPIO)
-#define BSP_BUTTON_2_IO  (CONFIG_BSP_BUTTON_2_GPIO)
-#define BSP_BUTTON_3_IO  (CONFIG_BSP_BUTTON_3_GPIO)
-#define BSP_BUTTON_4_IO  (CONFIG_BSP_BUTTON_4_GPIO)
-#define BSP_BUTTON_5_IO  (CONFIG_BSP_BUTTON_5_GPIO)
+#define BSP_BUTTON_1_IO     (CONFIG_BSP_BUTTON_1_GPIO)
+#define BSP_BUTTON_2_IO     (CONFIG_BSP_BUTTON_2_GPIO)
+#define BSP_BUTTON_3_IO     (CONFIG_BSP_BUTTON_3_GPIO)
+#define BSP_BUTTON_4_IO     (CONFIG_BSP_BUTTON_4_GPIO)
+#define BSP_BUTTON_5_IO     (CONFIG_BSP_BUTTON_5_GPIO)
 
 /* Leds */
-#define BSP_LED_1_IO     (CONFIG_BSP_LED_1_GPIO)
-#define BSP_LED_2_IO     (CONFIG_BSP_LED_2_GPIO)
-#define BSP_LED_3_IO     (CONFIG_BSP_LED_3_GPIO)
-#define BSP_LED_4_IO     (CONFIG_BSP_LED_4_GPIO)
-#define BSP_LED_5_IO     (CONFIG_BSP_LED_5_GPIO)
+#define BSP_LED_1_IO        (CONFIG_BSP_LED_1_GPIO)
+#define BSP_LED_2_IO        (CONFIG_BSP_LED_2_GPIO)
+#define BSP_LED_3_IO        (CONFIG_BSP_LED_3_GPIO)
+#define BSP_LED_4_IO        (CONFIG_BSP_LED_4_GPIO)
+#define BSP_LED_5_IO        (CONFIG_BSP_LED_5_GPIO)
 
 /* Buttons */
 typedef enum {
@@ -101,6 +136,16 @@ enum {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if CONFIG_BSP_DISPLAY_ENABLED
+/**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;
+} bsp_display_cfg_t;
+#endif //CONFIG_BSP_DISPLAY_ENABLED
 
 /**************************************************************************************************
  *
@@ -210,6 +255,113 @@ esp_err_t bsp_sdcard_mount(void);
  */
 esp_err_t bsp_sdcard_unmount(void);
 
+
+#if CONFIG_BSP_DISPLAY_ENABLED
+/**************************************************************************************************
+ *
+ * LCD interface
+ *
+ * LVGL is used as graphics library. LVGL is NOT thread safe, therefore the user must take LVGL mutex
+ * by calling bsp_display_lock() before calling and LVGL API (lv_...) and then give the mutex with
+ * bsp_display_unlock().
+ *
+ * Display's backlight must be enabled explicitly by calling bsp_display_backlight_on()
+ **************************************************************************************************/
+#define BSP_LCD_H_RES              (CONFIG_BSP_DISPLAY_WIDTH)
+#define BSP_LCD_V_RES              (CONFIG_BSP_DISPLAY_HEIGHT)
+#define BSP_LCD_PIXEL_CLOCK_HZ     (CONFIG_BSP_DISPLAY_PIXEL_CLOCK * 1000 * 1000)
+#define BSP_LCD_SPI_NUM            (SPI2_HOST)
+
+/**
+ * @brief Initialize display
+ *
+ * This function initializes SPI, display controller and starts LVGL handling task.
+ * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
+ *
+ * @return Pointer to LVGL display or NULL when error occured
+ */
+lv_disp_t *bsp_display_start(void);
+
+/**
+ * @brief Initialize display
+ *
+ * This function initializes SPI, display controller and starts LVGL handling task.
+ * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
+ *
+ * @param cfg display configuration
+ *
+ * @return Pointer to LVGL display or NULL when error occured
+ */
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
+
+/**
+ * @brief Get pointer to input device (touch, buttons, ...)
+ *
+ * @note The LVGL input device is initialized in bsp_display_start() function.
+ *
+ * @return Pointer to LVGL input device or NULL when not initialized
+ */
+lv_indev_t *bsp_display_get_input_dev(void);
+
+/**
+ * @brief Take LVGL mutex
+ *
+ * @param timeout_ms Timeout in [ms]. 0 will block indefinitely.
+ * @return true  Mutex was taken
+ * @return false Mutex was NOT taken
+ */
+bool bsp_display_lock(uint32_t timeout_ms);
+
+/**
+ * @brief Give LVGL mutex
+ *
+ */
+void bsp_display_unlock(void);
+
+/**
+ * @brief Set display's brightness
+ *
+ * Brightness is controlled with PWM signal to a pin controling backlight.
+ *
+ * @param[in] brightness_percent Brightness in [%]
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
+ */
+esp_err_t bsp_display_brightness_set(int brightness_percent);
+
+/**
+ * @brief Turn on display backlight
+ *
+ * Display must be already initialized by calling bsp_display_start()
+ *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
+ */
+esp_err_t bsp_display_backlight_on(void);
+
+/**
+ * @brief Turn off display backlight
+ *
+ * Display must be already initialized by calling bsp_display_start()
+ *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
+ */
+esp_err_t bsp_display_backlight_off(void);
+
+/**
+ * @brief Rotate screen
+ *
+ * Display must be already initialized by calling bsp_display_start()
+ *
+ * @param[in] disp Pointer to LVGL display
+ * @param[in] rotation Angle of the display rotation
+ */
+void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
+#endif //CONFIG_BSP_DISPLAY_ENABLED
 /**************************************************************************************************
  *
  * Button
