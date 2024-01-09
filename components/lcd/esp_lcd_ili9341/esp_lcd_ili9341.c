@@ -171,12 +171,6 @@ static esp_err_t panel_ili9341_reset(esp_lcd_panel_t *panel)
     return ESP_OK;
 }
 
-typedef struct {
-    uint8_t cmd;
-    uint8_t data[16];
-    uint8_t data_bytes; // Length of data in above data array; 0xFF = end of cmds.
-} lcd_init_cmd_t;
-
 static const ili9341_lcd_init_cmd_t vendor_specific_init_default[] = {
 //  {cmd, { data }, data_size, delay_ms}
     /* Power contorl B, power control = 0, DC_ENA = 1 */

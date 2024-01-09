@@ -10,6 +10,7 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "driver/gpio.h"
+#include "soc/soc_caps.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_lcd_panel_ops.h"
@@ -32,7 +33,11 @@
 #define TEST_PIN_NUM_LCD_DATA2      (GPIO_NUM_11)
 #define TEST_PIN_NUM_LCD_DATA3      (GPIO_NUM_14)
 #define TEST_PIN_NUM_LCD_DATA4      (GPIO_NUM_13)
+#if CONFIG_IDF_TARGET_ESP32S2
+#define TEST_PIN_NUM_LCD_DATA5      (GPIO_NUM_8)
+#else
 #define TEST_PIN_NUM_LCD_DATA5      (GPIO_NUM_47)
+#endif
 #define TEST_PIN_NUM_LCD_DATA6      (GPIO_NUM_21)
 #define TEST_PIN_NUM_LCD_DATA7      (GPIO_NUM_45)
 #define TEST_PIN_NUM_LCD_DATA8      (-1)
