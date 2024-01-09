@@ -16,11 +16,18 @@ if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
     set(EXCLUDE_COMPONENTS "es8311" "es7210" "esp_lvgl_port" "ds18b20" "icm42670")
 elseif("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "5.0")
     set(EXCLUDE_COMPONENTS "esp_lcd_touch_stmpe610" "ds18b20" "esp_lcd_ssd1681")
+elseif("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "5.3")
+    set(EXCLUDE_COMPONENTS "esp_lcd_ili9881c")
 endif()
 
 # Test rgb lcd components only in esp32s3
 if(NOT "${IDF_TARGET}" STREQUAL "esp32s3")
     list(APPEND EXCLUDE_COMPONENTS "esp_lcd_gc9503")
+endif()
+
+# Test mipi dsi lcd components only in esp32p4
+if(NOT "${IDF_TARGET}" STREQUAL "esp32p4")
+    list(APPEND EXCLUDE_COMPONENTS "esp_lcd_ili9881c")
 endif()
 
 # Test i80 lcd components only in esp32s2, esp32s3
