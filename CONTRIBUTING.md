@@ -28,7 +28,9 @@ If a pre-commit hook has modified any of the files when you run `git commit`, ad
 
 ## Adding new components
 
-[Pull request template](.github/PULL_REQUEST_TEMPLATE.md) contains a checklist of things we require in new components. Please familiarize yourself with the checklist when developing a new component.
+[Pull request template](.github/PULL_REQUEST_TEMPLATE/pr_template_bsp.md) contains a checklist of things we require in new components. Please familiarize yourself with the checklist when developing a new component.
+
+New Board Support Packages should follow recommendations in [BSP development guide](./BSP_development_guide.md).
 
 ## Supported IDF versions
 
