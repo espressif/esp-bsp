@@ -50,7 +50,8 @@ esp_err_t ssd1306_init(ssd1306_handle_t dev);
  * @return
  *     - device object handle of ssd1306
  */
-ssd1306_handle_t ssd1306_create(i2c_port_t port, uint16_t dev_addr);
+ssd1306_handle_t ssd1306_create(i2c_port_t port, uint16_t dev_addr)
+__attribute__((deprecated("This driver is DEPRECATED. Please use updated SSD1306 driver from ESP-IDF.")));
 
 /**
  * @brief   Delete and release a device object
