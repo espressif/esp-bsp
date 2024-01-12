@@ -36,6 +36,6 @@ if(NOT "${IDF_TARGET}" STREQUAL "esp32s2" AND NOT "${IDF_TARGET}" STREQUAL "esp3
 endif()
 
 # Set the components to include the tests for.
-set(TEST_COMPONENTS bh1750 ssd1306 mpu6050 mag3110 hts221 fbm320 es7210 icm42670 CACHE STRING "List of components to test")
+set(TEST_COMPONENTS bh1750 mpu6050 mag3110 hts221 fbm320 es7210 icm42670 CACHE STRING "List of components to test")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(esp_bsp_test_app)
