@@ -237,7 +237,7 @@ esp_err_t lvgl_port_deinit(void)
     }
 
     /* Stop running task */
-    if (!lvgl_port_ctx.running) {
+    if (lvgl_port_ctx.running) {
         lvgl_port_ctx.running = false;
     } else {
         lvgl_port_task_deinit();
