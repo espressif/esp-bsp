@@ -427,6 +427,12 @@ lv_indev_t *bsp_display_get_input_dev(void)
     return disp_indev;
 }
 
+esp_err_t bsp_display_brightness_init(void)
+{
+    ESP_LOGW(TAG, "This board doesn't support to change brightness of LCD");
+    return ESP_ERR_NOT_SUPPORTED;
+}
+
 esp_err_t bsp_display_brightness_set(int brightness_percent)
 {
     ESP_LOGW(TAG, "This board doesn't support to change brightness of LCD");
@@ -445,7 +451,7 @@ esp_err_t bsp_display_backlight_on(void)
 
 void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation)
 {
-    ESP_LOGE(TAG, "Unable to rotate the display.");
+    lv_disp_set_rotation(disp, rotation);
 }
 
 bool bsp_display_lock(uint32_t timeout_ms)

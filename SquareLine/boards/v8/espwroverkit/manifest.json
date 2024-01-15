@@ -1,0 +1,20 @@
+{
+    "name":"ESP WROVER KIT",
+    "version":"1.0.0",
+    "mcu":"ESP32",
+
+    "screen_width":"240",
+    "screen_height":"320",
+    "screen_color_swap":true,
+
+    "supported_lvgl_version":"8.2.0, 8.3.*",
+
+    "short_description":"ESP-WROVER-KIT is an ESP32-based development board produced by Espressif. This board features an integrated LCD screen and microSD card slot.",
+    "long_description":"The ESP-WROVER-KIT comes with an ESP32-WROVER-E module by default. The I/O pins have been broken out from the ESP32-WROVER-E for easy extension. The board carries an advanced multi-protocol USB bridge (the FTDI FT2232HL), enabling developers to use JTAG directly to debug the ESP32 module through the USB interface. The development board makes secondary development easy and cost-effective.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/esp_wrover_kit.h",
+        "__ESP_BOARD_I2C_INIT__": ""
+    }
+}

@@ -20,6 +20,19 @@
 #else
 #include "driver/i2s_std.h"
 #endif
+/**************************************************************************************************
+ *  BSP Capabilities
+ **************************************************************************************************/
+
+#define BSP_CAPS_DISPLAY        0
+#define BSP_CAPS_TOUCH          0
+#define BSP_CAPS_BUTTONS        1
+#define BSP_CAPS_AUDIO          1
+#define BSP_CAPS_AUDIO_SPEAKER  1
+#define BSP_CAPS_AUDIO_MIC      1
+#define BSP_CAPS_LED            1
+#define BSP_CAPS_SDCARD         1
+#define BSP_CAPS_IMU            0
 
 /**************************************************************************************************
  *  Board pinout

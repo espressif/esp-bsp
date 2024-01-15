@@ -19,6 +19,19 @@
 #include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
 #include "bsp/display.h"
+/**************************************************************************************************
+ *  BSP Capabilities
+ **************************************************************************************************/
+
+#define BSP_CAPS_DISPLAY        1
+#define BSP_CAPS_TOUCH          0
+#define BSP_CAPS_BUTTONS        0
+#define BSP_CAPS_AUDIO          1
+#define BSP_CAPS_AUDIO_SPEAKER  1
+#define BSP_CAPS_AUDIO_MIC      0
+#define BSP_CAPS_LED            1
+#define BSP_CAPS_SDCARD         0
+#define BSP_CAPS_IMU            0
 
 /**************************************************************************************************
  *  ESP32-C3-LCDkit pinout
@@ -93,7 +106,7 @@ typedef struct {
  *
  * @return Pointer to LVGL display or NULL when error occurred
  */
-lv_disp_t *bsp_display_start(void);
+lv_display_t *bsp_display_start(void);
 
 /**
  * @brief Initialize display
@@ -140,7 +153,7 @@ void bsp_display_unlock(void);
  * @param[in] disp Pointer to LVGL display
  * @param[in] rotation Angle of the display rotation
  */
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
+void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 
 /**************************************************************************************************
  *

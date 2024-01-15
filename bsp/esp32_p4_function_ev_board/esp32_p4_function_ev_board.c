@@ -139,7 +139,7 @@ esp_err_t bsp_spiffs_unmount(void)
 // Bit number used to represent command and parameter
 #define LCD_LEDC_CH            CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH
 
-static esp_err_t bsp_display_brightness_init(void)
+esp_err_t bsp_display_brightness_init(void)
 {
     // Setup LEDC peripheral for PWM backlight control
     const ledc_channel_config_t LCD_backlight_channel = {
@@ -360,7 +360,12 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
         .flags = {
             .buff_dma = cfg->flags.buff_dma,
             .buff_spiram = cfg->flags.buff_spiram,
+#if LVGL_VERSION_MAJOR >= 9
             .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
+#endif
+#if LVGL_VERSION_MAJOR == 8
+            .sw_rotate = cfg->flags.sw_rotate, /* Only SW rotation is supported for 90° and 270° */
+#endif
         }
     };
 

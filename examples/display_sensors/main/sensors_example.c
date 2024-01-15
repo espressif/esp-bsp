@@ -43,7 +43,7 @@ static void display_show_signs(void)
     lv_obj_t *label = lv_label_create(main_screen);
     lv_label_set_text_static(label, LV_SYMBOL_WIFI"   "LV_SYMBOL_USB"   "LV_SYMBOL_BELL"   "LV_SYMBOL_GPS"   "LV_SYMBOL_BATTERY_EMPTY);
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_width(label, disp->driver->hor_res);
+    lv_obj_set_width(label, lv_display_get_physical_horizontal_resolution(disp));
     lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
     bsp_display_unlock();
 }
@@ -247,7 +247,7 @@ void app_main(void)
     main_label = lv_label_create(main_screen);
     lv_label_set_text_static(main_label, "Magnetometer\ncalibration");
     lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_width(main_label, disp->driver->hor_res);
+    lv_obj_set_width(main_label, lv_display_get_physical_horizontal_resolution(disp));
     lv_obj_align(main_label, LV_ALIGN_TOP_MID, 0, 15);
     bsp_display_unlock();
 

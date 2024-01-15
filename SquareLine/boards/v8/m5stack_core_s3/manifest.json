@@ -1,0 +1,20 @@
+{
+    "name":"M5Stack CoreS3",
+    "version":"1.0.0",
+    "mcu":"ESP32S3",
+
+    "screen_width":"320",
+    "screen_height":"240",
+    "screen_color_swap":true,
+
+    "supported_lvgl_version":"8.2.0, 8.3.*",
+
+    "short_description":"CoreS3 is the third generation of the M5Stack Core series. Powered by the ESP32-S3 solution, this kit features a dual-core Xtensa LX7 processor running at 240MHz. CoreS3 comes equipped with built-in Wi-Fi functionality, enabling seamless connectivity. It boasts 16MB of onboard flash memory and 8MB of PSRAM, providing ample space for program storage.",
+    "long_description":"CoreS3 offers convenient programming options through its TYPE-C interface, supporting OTG and CDC functions. This allows for easy connection with external USB devices and hassle-free firmware flashing. CoreS3 features a 2.0-inch capacitive touch IPS screen, protected by high-strength glass material. Additionally, a 0.3 megapixel camera GC0308 is integrated at the bottom of the screen, accompanied by a proximity sensor LTR-553ALS-WA for enhanced functionality. Power management is handled by the AXP2101 power management core chip, employing a 4-way power flow control loop for efficient power distribution. The overall design emphasizes low power consumption. CoreS3 also features a 6-axis attitude sensor BMI270 and a magnetometer BMM150 for precise motion detection. With the onboard TF-card (microSD) card slot and BM8563 RTC chip, accurate timing and sleep-timer wake-up functions are readily available.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/esp-bsp.h",
+        "__ESP_BOARD_I2C_INIT__": "/* Initialize I2C (for touch and audio) */\n    bsp_i2c_init();"
+    }
+}

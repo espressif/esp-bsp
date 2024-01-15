@@ -192,7 +192,7 @@ esp_err_t bsp_sdcard_unmount(void)
 #define LVGL_TICK_PERIOD_MS  (CONFIG_BSP_DISPLAY_LVGL_TICK)
 #define LVGL_MAX_SLEEP_MS    (CONFIG_BSP_DISPLAY_LVGL_MAX_SLEEP)
 
-static esp_err_t bsp_display_brightness_init(void)
+esp_err_t bsp_display_brightness_init(void)
 {
     // Setup LEDC peripheral for PWM backlight control
     const ledc_channel_config_t LCD_backlight_channel = {
@@ -302,7 +302,7 @@ err:
 }
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
-static lv_disp_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
+static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
     esp_lcd_panel_io_handle_t io_handle = NULL;
@@ -337,18 +337,21 @@ static lv_disp_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
         .flags = {
             .buff_dma = cfg->flags.buff_dma,
             .buff_spiram = cfg->flags.buff_spiram,
+#if LVGL_VERSION_MAJOR >= 9
+            .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
+#endif
         }
     };
 
     return lvgl_port_add_disp(&disp_cfg);
 }
 
-lv_disp_t *bsp_display_start(void)
+lv_display_t *bsp_display_start(void)
 {
     bsp_display_cfg_t cfg = {
         .lvgl_port_cfg = {
             .task_priority = CONFIG_BSP_DISPLAY_LVGL_TASK_PRIORITY,
-            .task_stack = 4096,
+            .task_stack = 6144,
             .task_affinity = 1,
             .timer_period_ms = LVGL_TICK_PERIOD_MS,
             .task_max_sleep_ms = LVGL_MAX_SLEEP_MS,
@@ -363,9 +366,9 @@ lv_disp_t *bsp_display_start(void)
     return bsp_display_start_with_config(&cfg);
 }
 
-lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
+lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
 {
-    lv_disp_t *disp;
+    lv_display_t *disp;
     assert(cfg != NULL);
     BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
     BSP_NULL_CHECK(disp = bsp_display_lcd_init(cfg), NULL);
@@ -388,7 +391,7 @@ void bsp_display_unlock(void)
     lvgl_port_unlock();
 }
 
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
+void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);
 }

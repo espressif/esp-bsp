@@ -155,7 +155,7 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
 #define LCD_PARAM_BITS       (8)
 #define LCD_LEDC_CH          (CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH)
 
-static esp_err_t bsp_display_brightness_init(void)
+esp_err_t bsp_display_brightness_init(void)
 {
     // Setup LEDC peripheral for PWM backlight control
     const ledc_channel_config_t LCD_backlight_channel = {
@@ -264,7 +264,7 @@ err:
     return ret;
 }
 
-static lv_disp_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
+static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
     esp_lcd_panel_io_handle_t io_handle = NULL;
@@ -303,13 +303,16 @@ static lv_disp_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
         .flags = {
             .buff_dma = cfg->flags.buff_dma,
             .buff_spiram = cfg->flags.buff_spiram,
+#if LVGL_VERSION_MAJOR >= 9
+            .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
+#endif
         }
     };
 
     return lvgl_port_add_disp(&disp_cfg);
 }
 
-lv_disp_t *bsp_display_start(void)
+lv_display_t *bsp_display_start(void)
 {
     bsp_display_cfg_t cfg = {
         .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
@@ -323,9 +326,9 @@ lv_disp_t *bsp_display_start(void)
     return bsp_display_start_with_config(&cfg);
 }
 
-lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
+lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
 {
-    lv_disp_t *disp = NULL;
+    lv_display_t *disp = NULL;
     assert(cfg != NULL);
     BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
     BSP_NULL_CHECK(disp = bsp_display_lcd_init(cfg), NULL);
@@ -337,7 +340,7 @@ lv_indev_t *bsp_display_get_input_dev(void)
     return NULL;
 }
 
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
+void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);
 }

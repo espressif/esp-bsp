@@ -1,0 +1,20 @@
+{
+    "name":"ESP32-S3-Korvo-2",
+    "version":"1.0.0",
+    "mcu":"ESP32S3",
+
+    "screen_width":"320",
+    "screen_height":"240",
+    "screen_color_swap":true,
+
+    "supported_lvgl_version":"8.2.0, 8.3.*",
+
+    "short_description":"The ESP32-S3-Korvo-2 is a multimedia development board based on the ESP32-S3 chip.",
+    "long_description":"The ESP32-S3-Korvo-2 is a multimedia development board based on the ESP32-S3 chip. It is equipped with a two-microphone array which is suitable for voice recognition and near/far-field voice wake-up applications. The board integrates multiple peripherals such as LCD, camera, and microSD card. It also supports JPEG video stream processing. With all of its outstanding features, the board is an ideal choice for the development of low-cost and low-power network-connected audio and video products.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/esp-bsp.h",
+        "__ESP_BOARD_I2C_INIT__": "/* Initialize I2C (for touch and audio) */\n    bsp_i2c_init();"
+    }
+}

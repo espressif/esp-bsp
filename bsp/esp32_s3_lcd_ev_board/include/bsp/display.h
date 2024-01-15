@@ -57,6 +57,14 @@ typedef struct {
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io);
 
 /**
+ * @brief Initialize display's brightness (Useless, just for compatibility)
+ *
+ * @return
+ *      - ESP_ERR_NOT_SUPPORTED: Always
+ */
+esp_err_t bsp_display_brightness_init(void);
+
+/**
  * @brief Set display's brightness (Useless, just for compatibility)
  *
  * @param[in] brightness_percent: Brightness in [%]

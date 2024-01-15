@@ -17,7 +17,7 @@ menu "Board Support Package"
 
         config BSP_LCD_DRAW_BUF_HEIGHT
         int "LCD framebuf height"
-        default 240
+        default 100
         range 10 240
         help
             Framebuf is used for lvgl rendering output.

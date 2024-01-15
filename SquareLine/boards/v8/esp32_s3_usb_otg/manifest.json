@@ -1,0 +1,20 @@
+{
+    "name":"ESP32-S3-USB-OTG",
+    "version":"1.0.0",
+    "mcu":"ESP32S3",
+
+    "screen_width":"240",
+    "screen_height":"240",
+    "screen_color_swap":true,
+
+    "supported_lvgl_version":"8.2.0, 8.3.*",
+
+    "short_description":"ESP32-S3-USB-OTG is a development board produced by Espressif that focuses on USB-OTG function verification and application development.",
+    "long_description":"ESP32-S3-USB-OTG is targeting at applications based on USB interface. It is equipped with the ESP32-S3-MINI-1-N8 module. Combined with the Wi-Fi functionality provided by the SoC, the USB interface can be used for video streaming over Wi-Fi, accessing the Internet through a 4G hotspot, connecting to a wireless USB disk, and many other applications.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/esp32_s3_usb_otg.h",
+        "__ESP_BOARD_I2C_INIT__": ""
+    }
+}

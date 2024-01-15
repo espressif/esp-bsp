@@ -1,0 +1,6 @@
+description: ESP-BSP SquareLine LVGL Example
+targets:
+    - esp32s2
+dependencies:
+  idf: ">=4.4"
+  esp32_s2_kaluga_kit: "==3.0.1"
