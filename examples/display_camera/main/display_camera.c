@@ -49,7 +49,7 @@ void app_main(void)
         pic = esp_camera_fb_get();
         if (pic) {
             bsp_display_lock(0);
-            lv_canvas_set_buffer(camera_canvas, pic->buf, pic->width, pic->height, LV_IMG_CF_TRUE_COLOR);
+            lv_canvas_set_buffer(camera_canvas, pic->buf, pic->width, pic->height, LV_COLOR_FORMAT_RGB565);
             bsp_display_unlock();
             esp_camera_fb_return(pic);
         } else {

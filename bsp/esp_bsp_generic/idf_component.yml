@@ -22,9 +22,10 @@ dependencies:
     version: "^0.9"
     public: true
 
-  esp_lvgl_port:
+  espressif/esp_lvgl_port:
     version: "^1"
     public: true
+    override_path: "../../components/esp_lvgl_port"
 
 examples:
   - path: ../../examples/generic_button_led

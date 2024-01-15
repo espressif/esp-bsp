@@ -99,6 +99,18 @@ typedef struct {
     void *dummy;    /*!< Prepared for future use. */
 } bsp_display_cfg_t;
 
+/**
+ * @brief Backward compatibility for examples made for LVGL9
+ *
+ */
+typedef lv_disp_t lv_display_t;
+typedef enum {
+    LV_DISPLAY_ROTATION_0 = LV_DISP_ROT_NONE,
+    LV_DISPLAY_ROTATION_90 = LV_DISP_ROT_90,
+    LV_DISPLAY_ROTATION_180 = LV_DISP_ROT_180,
+    LV_DISPLAY_ROTATION_270 = LV_DISP_ROT_270
+} lv_disp_rotation_t;
+
 /**************************************************************************************************
  *
  * I2C Interface

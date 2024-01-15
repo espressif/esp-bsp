@@ -8,9 +8,10 @@ targets:
 dependencies:
   idf: ">=4.4.5"
 
-  esp_lvgl_port:
+  espressif/esp_lvgl_port:
     version: ^1
     public: true
+    override_path: "../../components/esp_lvgl_port"
 
   button:
     version: ">=2.5,<4.0"

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -16,6 +16,7 @@
 #include "driver/i2s_pdm.h"
 #include "iot_button.h"
 #include "lvgl.h"
+#include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
 
 /**************************************************************************************************
@@ -79,7 +80,7 @@ extern "C" {
  *
  * @return Pointer to LVGL display or NULL when error occurred
  */
-lv_disp_t *bsp_display_start(void);
+lv_display_t *bsp_display_start(void);
 
 
 /**
@@ -148,7 +149,7 @@ esp_err_t bsp_display_backlight_off(void);
  * @param[in] disp Pointer to LVGL display
  * @param[in] rotation Angle of the display rotation
  */
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
+void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 
 /**************************************************************************************************
  *

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -200,7 +200,7 @@ esp_err_t bsp_spiffs_unmount(void)
     return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
 }
 
-static lv_disp_t *bsp_display_lcd_init(void)
+static lv_display_t *bsp_display_lcd_init(void)
 {
     esp_lcd_panel_io_handle_t io_handle = NULL;
     esp_lcd_panel_handle_t panel_handle = NULL;
@@ -233,13 +233,14 @@ static lv_disp_t *bsp_display_lcd_init(void)
         },
         .flags = {
             .buff_dma = true,
+            .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
         }
     };
 
     return lvgl_port_add_disp(&disp_cfg);
 }
 
-static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
+static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 {
     const lvgl_port_encoder_cfg_t encoder = {
         .disp = disp,
@@ -370,9 +371,9 @@ err:
     return ret;
 }
 
-lv_disp_t *bsp_display_start(void)
+lv_display_t *bsp_display_start(void)
 {
-    lv_disp_t *disp;
+    lv_display_t *disp;
     const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
     BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&lvgl_cfg));
 
@@ -390,7 +391,7 @@ lv_indev_t *bsp_display_get_input_dev(void)
     return disp_indev;
 }
 
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
+void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);
 }
