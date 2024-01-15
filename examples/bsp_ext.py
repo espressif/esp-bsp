@@ -21,7 +21,7 @@ def action_extensions(base_actions, project_path=os.getcwd()):
         red_print('ruamel.yaml package is not installed. No BSP extension is added!')
         return {}
 
-    bsp_sdkconfig_regex = compile('^SDKCONFIG_DEFAULTS=.*sdkconfig\.bsp\.')
+    bsp_sdkconfig_regex = compile(r'^SDKCONFIG_DEFAULTS=.*sdkconfig\.bsp\.')
 
     def global_callback(ctx: Context, global_args: PropertyDict, tasks: List) -> None:
         # In case the user has defined his own BSP configuration, run set-bsp action before anything else
@@ -57,9 +57,10 @@ def action_extensions(base_actions, project_path=os.getcwd()):
             'esp32_c3_lcdkit',
             'esp_bsp_generic',
             'esp32_s3_korvo_1',
-            }
+        }
 
-        if bsp == '': return
+        if bsp == '':
+            return
         if bsp not in bsps:
             print("Invalid BSP configuration " + bsp)
             return
