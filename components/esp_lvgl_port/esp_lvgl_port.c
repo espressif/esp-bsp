@@ -330,6 +330,9 @@ err:
         if (disp_ctx) {
             free(disp_ctx);
         }
+    } else {
+        /* Apply rotation from initial display configuration */
+        lvgl_port_update_callback(&disp_ctx->disp_drv);
     }
 
     return disp;
