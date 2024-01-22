@@ -134,7 +134,10 @@ esp_err_t ds18b20_get_temperature(ds18b20_device_handle_t ds18b20, float *ret_te
 
     const uint8_t lsb_mask[4] = {0x07, 0x03, 0x01, 0x00}; // mask bits not used in low resolution
     uint8_t lsb_masked = scratchpad.temp_lsb & (~lsb_mask[scratchpad.configuration >> 5]);
-    *ret_temperature = (((int16_t)scratchpad.temp_msb << 8) | lsb_masked)  / 16.0f;
+    // Combine the MSB and masked LSB into a signed 16-bit integer
+    int16_t temperature_raw = (((int16_t)scratchpad.temp_msb << 8) | lsb_masked);
+    // Convert the raw temperature to a float,
+    *ret_temperature = temperature_raw / 16.0f;
 
     return ESP_OK;
 }
