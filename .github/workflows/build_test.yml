@@ -20,12 +20,6 @@ jobs:
     runs-on: ubuntu-20.04
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
-      - name: Upgrade component manager
-        shell: bash
-        run: |
-          . ${IDF_PATH}/export.sh
-          pip install idf-component-manager --upgrade
-
       - uses: actions/checkout@v3
       - name: Build ESP-BSP Test Application
         env:
@@ -37,4 +31,5 @@ jobs:
           export PEDANTIC_FLAGS="-DIDF_CI_BUILD -Werror -Werror=deprecated-declarations -Werror=unused-variable -Werror=unused-but-set-variable -Werror=unused-function"
           export EXTRA_CFLAGS="${PEDANTIC_FLAGS} -Wstrict-prototypes"
           export EXTRA_CXXFLAGS="${PEDANTIC_FLAGS}"
+          pip install idf-component-manager --upgrade
           idf.py build
