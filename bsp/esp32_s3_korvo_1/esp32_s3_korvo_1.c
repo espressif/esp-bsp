@@ -1,9 +1,12 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "driver/gpio.h"
+#include "driver/spi_master.h"
+#include "driver/i2c.h"
 #include "esp_err.h"
 #include "esp_log.h"
 
@@ -11,9 +14,129 @@
 #include "bsp/esp-bsp.h"
 #include "bsp_err_check.h"
 #include "esp_spiffs.h"
+#include "esp_codec_dev.h"
+#include "esp_codec_dev_defaults.h"
 #include "led_indicator.h"
+#include "esp_vfs_fat.h"
 
 static const char *TAG = "S3-Korvo-1";
+
+static bool i2c_initialized = false;
+sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
+
+esp_err_t bsp_i2c_init(void)
+{
+    /* I2C was initialized before */
+    if (i2c_initialized) {
+        return ESP_OK;
+    }
+
+    const i2c_config_t i2c_conf = {
+        .mode = I2C_MODE_MASTER,
+        .sda_io_num = BSP_I2C_SDA,
+        .sda_pullup_en = GPIO_PULLUP_ENABLE,
+        .scl_io_num = BSP_I2C_SCL,
+        .scl_pullup_en = GPIO_PULLUP_ENABLE,
+        .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
+    };
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+
+    i2c_initialized = true;
+
+    return ESP_OK;
+}
+
+esp_err_t bsp_i2c_deinit(void)
+{
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    i2c_initialized = false;
+    return ESP_OK;
+}
+
+esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
+{
+    const audio_codec_data_if_t *i2s_data_if = bsp_audio_get_codec_itf_spk();
+    if (i2s_data_if == NULL) {
+        /* Initilize I2C */
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_i2c_init());
+        /* Configure I2S peripheral and Power Amplifier */
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_audio_init(NULL));
+        i2s_data_if = bsp_audio_get_codec_itf_spk();
+    }
+    assert(i2s_data_if);
+
+    const audio_codec_gpio_if_t *gpio_if = audio_codec_new_gpio();
+
+    audio_codec_i2c_cfg_t i2c_cfg = {
+        .port = BSP_I2C_NUM,
+        .addr = ES8311_CODEC_DEFAULT_ADDR,
+    };
+    const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
+    BSP_NULL_CHECK(i2c_ctrl_if, NULL);
+
+    esp_codec_dev_hw_gain_t gain = {
+        .pa_voltage = 5.0,
+        .codec_dac_voltage = 3.3,
+    };
+
+    es8311_codec_cfg_t es8311_cfg = {
+        .ctrl_if = i2c_ctrl_if,
+        .gpio_if = gpio_if,
+        .codec_mode = ESP_CODEC_DEV_WORK_MODE_DAC,
+        .pa_pin = BSP_POWER_AMP_IO,
+        .pa_reverted = false,
+        .master_mode = false,
+        .use_mclk = false,
+        .digital_mic = false,
+        .invert_mclk = false,
+        .invert_sclk = false,
+        .hw_gain = gain,
+    };
+    const audio_codec_if_t *es8311_dev = es8311_codec_new(&es8311_cfg);
+    BSP_NULL_CHECK(es8311_dev, NULL);
+
+    esp_codec_dev_cfg_t codec_dev_cfg = {
+        .dev_type = ESP_CODEC_DEV_TYPE_OUT,
+        .codec_if = es8311_dev,
+        .data_if = i2s_data_if,
+    };
+    return esp_codec_dev_new(&codec_dev_cfg);
+}
+
+esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
+{
+    const audio_codec_data_if_t *i2s_data_if = bsp_audio_get_codec_itf_mic();
+    if (i2s_data_if == NULL) {
+        /* Initilize I2C */
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_i2c_init());
+        /* Configure I2S peripheral and Power Amplifier */
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_audio_init(NULL));
+        i2s_data_if = bsp_audio_get_codec_itf_mic();
+    }
+    assert(i2s_data_if);
+
+    audio_codec_i2c_cfg_t i2c_cfg = {
+        .port = BSP_I2C_NUM,
+        .addr = ES7210_CODEC_DEFAULT_ADDR,
+    };
+    const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
+    BSP_NULL_CHECK(i2c_ctrl_if, NULL);
+
+    es7210_codec_cfg_t es7210_cfg = {
+        .ctrl_if = i2c_ctrl_if,
+        .mic_selected = ES7120_SEL_MIC1 | ES7120_SEL_MIC2,
+    };
+    const audio_codec_if_t *es7210_dev = es7210_codec_new(&es7210_cfg);
+    BSP_NULL_CHECK(es7210_dev, NULL);
+
+    esp_codec_dev_cfg_t codec_es7210_dev_cfg = {
+        .dev_type = ESP_CODEC_DEV_TYPE_IN,
+        .codec_if = es7210_dev,
+        .data_if = i2s_data_if,
+    };
+    return esp_codec_dev_new(&codec_es7210_dev_cfg);
+}
 
 /**
  * @brief led configuration structure
@@ -195,4 +318,42 @@ esp_err_t bsp_spiffs_mount(void)
 esp_err_t bsp_spiffs_unmount(void)
 {
     return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
+}
+
+esp_err_t bsp_sdcard_mount(void)
+{
+    const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
+        .format_if_mount_failed = true,
+#else
+        .format_if_mount_failed = false,
+#endif
+        .max_files = CONFIG_BSP_SD_MAX_FILES,
+        .allocation_unit_size = 16 * 1024
+    };
+
+    const sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    const sdmmc_slot_config_t slot_config = {
+        .clk = BSP_SD_CLK,
+        .cmd = BSP_SD_CMD,
+        .d0 = BSP_SD_D0,
+        .d1 = GPIO_NUM_NC,
+        .d2 = GPIO_NUM_NC,
+        .d3 = GPIO_NUM_NC,
+        .d4 = GPIO_NUM_NC,
+        .d5 = GPIO_NUM_NC,
+        .d6 = GPIO_NUM_NC,
+        .d7 = GPIO_NUM_NC,
+        .cd = SDMMC_SLOT_NO_CD,
+        .wp = SDMMC_SLOT_NO_WP,
+        .width = 1,
+        .flags = 0,
+    };
+
+    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
+}
+
+esp_err_t bsp_sdcard_unmount(void)
+{
+    return esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
 }
