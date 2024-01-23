@@ -85,6 +85,9 @@ typedef struct {
     esp_lcd_panel_handle_t    panel_handle; /* LCD panel handle */
     lvgl_port_rotation_cfg_t  rotation;     /* Default values of the screen rotation */
     lv_disp_drv_t             disp_drv;     /* LVGL display driver */
+    lv_color_t                *trans_buf;   /* Buffer send to driver */
+    uint32_t                  trans_size;   /* Maximum size for one transport */
+    SemaphoreHandle_t         trans_sem;    /* Idle transfer mutex */
 } lvgl_port_display_ctx_t;
 
 #ifdef ESP_LVGL_PORT_TOUCH_COMPONENT
@@ -252,6 +255,8 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     lv_disp_t *disp = NULL;
     lv_color_t *buf1 = NULL;
     lv_color_t *buf2 = NULL;
+    lv_color_t *buf3 = NULL;
+    SemaphoreHandle_t trans_sem = NULL;
     assert(disp_cfg != NULL);
     assert(disp_cfg->io_handle != NULL);
     assert(disp_cfg->panel_handle != NULL);
@@ -267,9 +272,10 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     disp_ctx->rotation.swap_xy = disp_cfg->rotation.swap_xy;
     disp_ctx->rotation.mirror_x = disp_cfg->rotation.mirror_x;
     disp_ctx->rotation.mirror_y = disp_cfg->rotation.mirror_y;
+    disp_ctx->trans_size = disp_cfg->trans_size;
 
     uint32_t buff_caps = MALLOC_CAP_DEFAULT;
-    if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram) {
+    if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram && (0 == disp_cfg->trans_size)) {
         ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "Alloc DMA capable buffer in SPIRAM is not supported!");
     } else if (disp_cfg->flags.buff_dma) {
         buff_caps = MALLOC_CAP_DMA;
@@ -285,6 +291,17 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
         buf2 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color_t), buff_caps);
         ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
     }
+
+    if (disp_cfg->trans_size) {
+        buf3 = heap_caps_malloc(disp_cfg->trans_size * sizeof(lv_color_t), MALLOC_CAP_DMA);
+        ESP_GOTO_ON_FALSE(buf3, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for buffer(transport) allocation!");
+        disp_ctx->trans_buf = buf3;
+
+        trans_sem = xSemaphoreCreateCounting(1, 0);
+        ESP_GOTO_ON_FALSE(trans_sem, ESP_ERR_NO_MEM, err, TAG, "Failed to create transport counting Semaphore");
+        disp_ctx->trans_sem = trans_sem;
+    }
+
     lv_disp_draw_buf_t *disp_buf = malloc(sizeof(lv_disp_draw_buf_t));
     ESP_GOTO_ON_FALSE(disp_buf, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL display buffer allocation!");
 
@@ -296,7 +313,11 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     disp_ctx->disp_drv.hor_res = disp_cfg->hres;
     disp_ctx->disp_drv.ver_res = disp_cfg->vres;
     disp_ctx->disp_drv.flush_cb = lvgl_port_flush_callback;
-    disp_ctx->disp_drv.drv_update_cb = lvgl_port_update_callback;
+    disp_ctx->disp_drv.sw_rotate = disp_cfg->flags.sw_rotate;
+    if (disp_ctx->disp_drv.sw_rotate == false) {
+        disp_ctx->disp_drv.drv_update_cb = lvgl_port_update_callback;
+    }
+
     disp_ctx->disp_drv.draw_buf = disp_buf;
     disp_ctx->disp_drv.user_data = disp_ctx;
 
@@ -326,6 +347,12 @@ err:
         }
         if (buf2) {
             free(buf2);
+        }
+        if (buf3) {
+            free(buf3);
+        }
+        if (trans_sem) {
+            vSemaphoreDelete(trans_sem);
         }
         if (disp_ctx) {
             free(disp_ctx);
@@ -720,9 +747,18 @@ static void lvgl_port_task_deinit(void)
 #if LVGL_PORT_HANDLE_FLUSH_READY
 static bool lvgl_port_flush_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
 {
+    BaseType_t taskAwake = pdFALSE;
+
     lv_disp_drv_t *disp_drv = (lv_disp_drv_t *)user_ctx;
     assert(disp_drv != NULL);
+    lvgl_port_display_ctx_t *disp_ctx = disp_drv->user_data;
+    assert(disp_ctx != NULL);
     lv_disp_flush_ready(disp_drv);
+
+    if (disp_ctx->trans_size && disp_ctx->trans_sem) {
+        xSemaphoreGiveFromISR(disp_ctx->trans_sem, &taskAwake);
+    }
+
     return false;
 }
 #endif
@@ -733,12 +769,56 @@ static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, 
     lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)drv->user_data;
     assert(disp_ctx != NULL);
 
-    const int offsetx1 = area->x1;
-    const int offsetx2 = area->x2;
-    const int offsety1 = area->y1;
-    const int offsety2 = area->y2;
-    // copy a buffer's content to a specific area of the display
-    esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
+    int x_draw_start;
+    int x_draw_end;
+    int y_draw_start;
+    int y_draw_end;
+
+    int y_start_tmp;
+    int y_end_tmp;
+
+    int trans_count;
+    int trans_line;
+    int max_line;
+
+    const int x_start = area->x1;
+    const int x_end = area->x2;
+    const int y_start = area->y1;
+    const int y_end = area->y2;
+    const int width = x_end - x_start + 1;
+    const int height = y_end - y_start + 1;
+
+    lv_color_t *from = color_map;
+    lv_color_t *to = NULL;
+
+    if (0 == disp_ctx->trans_size) {
+        esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, x_start, y_start, x_end + 1, y_end + 1, color_map);
+    } else {
+        y_start_tmp = y_start;
+        max_line = ((disp_ctx->trans_size / width) > height) ? (height) : (disp_ctx->trans_size / width);
+        trans_count = height / max_line + (height % max_line ? (1) : (0));
+
+        for (int i = 0; i < trans_count; i++) {
+            trans_line = (y_end - y_start_tmp + 1) > max_line ? max_line : (y_end - y_start_tmp + 1);
+            y_end_tmp = (y_end - y_start_tmp + 1) > max_line ? (y_start_tmp + max_line - 1) : y_end;
+
+            to = disp_ctx->trans_buf;
+            for (int y = 0; y < trans_line; y++) {
+                for (int x = 0; x < width; x++) {
+                    *(to + y * (width) + x) = *(from + y * (width) + x);
+                }
+            }
+            x_draw_start = x_start;
+            x_draw_end = x_end;
+            y_draw_start = y_start_tmp;
+            y_draw_end = y_end_tmp;
+            esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, x_draw_start, y_draw_start, x_draw_end + 1, y_draw_end + 1, to);
+
+            from += max_line * width;
+            y_start_tmp += max_line;
+            xSemaphoreTake(disp_ctx->trans_sem, portMAX_DELAY);
+        }
+    }
 }
 
 static void lvgl_port_update_callback(lv_disp_drv_t *drv)

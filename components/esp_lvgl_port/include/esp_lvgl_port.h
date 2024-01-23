@@ -68,6 +68,7 @@ typedef struct {
     esp_lcd_panel_handle_t panel_handle;    /*!< LCD panel handle */
     uint32_t    buffer_size;    /*!< Size of the buffer for the screen in pixels */
     bool        double_buffer;  /*!< True, if should be allocated two buffers */
+    uint32_t    trans_size;     /*!< Allocated buffer will be in SRAM to move framebuf */
     uint32_t    hres;           /*!< LCD display horizontal resolution */
     uint32_t    vres;           /*!< LCD display vertical resolution */
     bool        monochrome;     /*!< True, if display is monochrome and using 1bit for 1px */
@@ -76,6 +77,7 @@ typedef struct {
     struct {
         unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
         unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
+        unsigned int sw_rotate: 1;   /*!< Use software rotation (slower) */
     } flags;
 } lvgl_port_display_cfg_t;
 
