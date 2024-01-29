@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -175,7 +175,7 @@ esp_err_t lvgl_port_deinit(void);
  * @note Allocated memory in this function is not free in deinit. You must call lvgl_port_remove_disp for free all memory!
  *
  * @param disp_cfg Display configuration structure
- * @return Pointer to LVGL display or NULL when error occured
+ * @return Pointer to LVGL display or NULL when error occurred
  */
 lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg);
 
@@ -196,7 +196,7 @@ esp_err_t lvgl_port_remove_disp(lv_disp_t *disp);
  * @note Allocated memory in this function is not free in deinit. You must call lvgl_port_remove_touch for free all memory!
  *
  * @param touch_cfg Touch configuration structure
- * @return Pointer to LVGL touch input device or NULL when error occured
+ * @return Pointer to LVGL touch input device or NULL when error occurred
  */
 lv_indev_t *lvgl_port_add_touch(const lvgl_port_touch_cfg_t *touch_cfg);
 
@@ -218,7 +218,7 @@ esp_err_t lvgl_port_remove_touch(lv_indev_t *touch);
  * @note Allocated memory in this function is not free in deinit. You must call lvgl_port_remove_encoder for free all memory!
  *
  * @param encoder_cfg Encoder configuration structure
- * @return Pointer to LVGL encoder input device or NULL when error occured
+ * @return Pointer to LVGL encoder input device or NULL when error occurred
  */
 lv_indev_t *lvgl_port_add_encoder(const lvgl_port_encoder_cfg_t *encoder_cfg);
 
@@ -240,7 +240,7 @@ esp_err_t lvgl_port_remove_encoder(lv_indev_t *encoder);
  * @note Allocated memory in this function is not free in deinit. You must call lvgl_port_remove_navigation_buttons for free all memory!
  *
  * @param buttons_cfg Buttons configuration structure
- * @return Pointer to LVGL buttons input device or NULL when error occured
+ * @return Pointer to LVGL buttons input device or NULL when error occurred
  */
 lv_indev_t *lvgl_port_add_navigation_buttons(const lvgl_port_nav_btns_cfg_t *buttons_cfg);
 
@@ -262,7 +262,7 @@ esp_err_t lvgl_port_remove_navigation_buttons(lv_indev_t *buttons);
  * @note The USB host must be initialized before. Use `usb_host_install` for host initialization.
  *
  * @param mouse_cfg mouse configuration structure
- * @return Pointer to LVGL buttons input device or NULL when error occured
+ * @return Pointer to LVGL buttons input device or NULL when error occurred
  */
 lv_indev_t *lvgl_port_add_usb_hid_mouse_input(const lvgl_port_hid_mouse_cfg_t *mouse_cfg);
 
@@ -272,7 +272,7 @@ lv_indev_t *lvgl_port_add_usb_hid_mouse_input(const lvgl_port_hid_mouse_cfg_t *m
  * @note The USB host must be initialized before. Use `usb_host_install` for host initialization.
  *
  * @param keyboard_cfg keyboard configuration structure
- * @return Pointer to LVGL buttons input device or NULL when error occured
+ * @return Pointer to LVGL buttons input device or NULL when error occurred
  */
 lv_indev_t *lvgl_port_add_usb_hid_keyboard_input(const lvgl_port_hid_keyboard_cfg_t *keyboard_cfg);
 

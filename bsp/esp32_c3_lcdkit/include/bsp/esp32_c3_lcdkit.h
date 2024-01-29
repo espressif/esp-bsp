@@ -77,7 +77,7 @@ extern "C" {
  * This function initializes SPI, display controller and starts LVGL handling task.
  * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
  *
- * @return Pointer to LVGL display or NULL when error occured
+ * @return Pointer to LVGL display or NULL when error occurred
  */
 lv_disp_t *bsp_display_start(void);
 
@@ -215,7 +215,7 @@ esp_err_t bsp_audio_init(const i2s_pdm_tx_config_t *i2s_config, i2s_chan_handle_
 /**
  * @brief Initialize speaker codec device
  *
- * @return Pointer to codec device handle or NULL when error occured
+ * @return Pointer to codec device handle or NULL when error occurred
  */
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
 /**************************************************************************************************

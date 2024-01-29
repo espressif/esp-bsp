@@ -17,7 +17,8 @@
 #include "driver/i2c.h"
 
 /* ES8311 address: CE pin low - 0x18, CE pin high - 0x19 */
-#define ES8311_ADDRRES_0 0x18u
+#define ES8311_ADDRRES_0 0x18u // Leaving this here for backward compatibility
+#define ES8311_ADDRESS_0 0x18u
 #define ES8311_ADDRESS_1 0x19u
 
 #ifdef __cplusplus

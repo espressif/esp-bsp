@@ -2,6 +2,8 @@
 
 [![Component Registry](https://components.espressif.com/components/espressif/es8311/badge.svg)](https://components.espressif.com/components/espressif/es8311)
 
+:warning: **This driver is deprecated. Please use codec drivers from [esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)**
+
 ES8311 low power mono audio codec features:
 * High performance and low power multi-bit delta-sigma audio ADC and DAC
 * I2S/PCM master or slave serial data port

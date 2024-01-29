@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -55,11 +55,6 @@ extern "C" {
  *
  * There are multiple devices connected to I2C peripheral:)
  *  - LCD Touch controller
- *
- * After initialization of I2C, use BSP_I2C_NUM macro when creating I2C devices drivers ie.:
- * \code{.c}
- * es8311_handle_t es8311_dev = es8311_create(BSP_I2C_NUM, ES8311_ADDRRES_0);
- * \endcode
  **************************************************************************************************/
 #define BSP_I2C_NUM             1
 #define BSP_I2C_CLK_SPEED_HZ    400000
@@ -99,7 +94,7 @@ esp_err_t bsp_i2c_deinit(void);
  * This function initializes SPI, display controller and starts LVGL handling task.
  * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
  *
- * @return Pointer to LVGL display or NULL when error occured
+ * @return Pointer to LVGL display or NULL when error occurred
  */
 lv_disp_t *bsp_display_start(void);
 
