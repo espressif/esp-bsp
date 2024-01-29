@@ -278,7 +278,7 @@ esp_err_t bsp_sdcard_unmount(void);
  * This function initializes SPI, display controller and starts LVGL handling task.
  * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
  *
- * @return Pointer to LVGL display or NULL when error occured
+ * @return Pointer to LVGL display or NULL when error occurred
  */
 lv_disp_t *bsp_display_start(void);
 
@@ -290,7 +290,7 @@ lv_disp_t *bsp_display_start(void);
  *
  * @param cfg display configuration
  *
- * @return Pointer to LVGL display or NULL when error occured
+ * @return Pointer to LVGL display or NULL when error occurred
  */
 lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 

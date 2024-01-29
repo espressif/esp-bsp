@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -171,21 +171,21 @@ esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
  * @brief Get codec I2S interface (initialized in bsp_audio_init)
  *
  * @return
- *      - Pointer to codec I2S interface handle or NULL when error occured
+ *      - Pointer to codec I2S interface handle or NULL when error occurred
  */
 const audio_codec_data_if_t *bsp_audio_get_codec_itf(void);
 
 /**
  * @brief Initialize speaker codec device
  *
- * @return Pointer to codec device handle or NULL when error occured
+ * @return Pointer to codec device handle or NULL when error occurred
  */
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
 
 /**
  * @brief Initialize microphone codec device
  *
- * @return Pointer to codec device handle or NULL when error occured
+ * @return Pointer to codec device handle or NULL when error occurred
  */
 esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
 
@@ -194,15 +194,14 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
  * I2C interface
  *
  * There are multiple devices connected to I2C peripheral:
- *  - Codec ES8311 (configuration only)
- *  - ADC ES7210 (configuration only)
- *  - Encryption chip ATECC608A (NOT populated on most boards)
+ *  - Codec ES8156 (configuration only)
+ *  - ADC ES7243E (configuration only)
  *  - LCD Touch controller
- *  - Inertial Measurement Unit ICM-42607-P
+ *  - Inertial Measurement Unit ICM-42607-P (NOT populated on most boards)
  *
  * After initialization of I2C, use BSP_I2C_NUM macro when creating I2C devices drivers ie.:
  * \code{.c}
- * es8311_handle_t es8311_dev = es8311_create(BSP_I2C_NUM, ES8311_ADDRRES_0);
+ * icm42670_handle_t imu = icm42670_create(BSP_I2C_NUM, ICM42670_I2C_ADDRESS);
  * \endcode
  **************************************************************************************************/
 #define BSP_I2C_NUM     CONFIG_BSP_I2C_NUM
@@ -290,7 +289,7 @@ esp_err_t bsp_spiffs_unmount(void);
  * This function initializes SPI, display controller and starts LVGL handling task.
  * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
  *
- * @return Pointer to LVGL display or NULL when error occured
+ * @return Pointer to LVGL display or NULL when error occurred
  */
 lv_disp_t *bsp_display_start(void);
 
@@ -302,7 +301,7 @@ lv_disp_t *bsp_display_start(void);
  *
  * @param cfg display configuration
  *
- * @return Pointer to LVGL display or NULL when error occured
+ * @return Pointer to LVGL display or NULL when error occurred
  */
 lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 
@@ -333,7 +332,7 @@ void bsp_display_unlock(void);
 /**
  * @brief Set display's brightness
  *
- * Brightness is controlled with PWM signal to a pin controling backlight.
+ * Brightness is controlled with PWM signal to a pin controlling backlight.
  *
  * @param[in] brightness_percent Brightness in [%]
  * @return
@@ -421,7 +420,7 @@ adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
  * @return
  *     - ESP_OK               All buttons initialized
  *     - ESP_ERR_INVALID_ARG  btn_array is too small or NULL
- *     - ESP_FAIL             Underlaying iot_button_create failed
+ *     - ESP_FAIL             Underlying iot_button_create failed
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 

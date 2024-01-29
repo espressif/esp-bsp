@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -108,12 +108,6 @@ typedef struct {
  *  - ADC ES7210 (configuration only)
  *  - LCD Touch controller
  *  - IO expander chip TCA9554
- *
- * After initialization of I2C, use `BSP_I2C_NUM` macro when creating I2C devices drivers ie.:
- * \code{.c}
- * es8311_handle_t es8311_dev = es8311_create(BSP_I2C_NUM, ES8311_ADDRRES_0);
- * \endcode
- *
  **************************************************************************************************/
 #define BSP_I2C_NUM             (CONFIG_BSP_I2C_NUM)
 
@@ -190,7 +184,7 @@ esp_err_t bsp_spiffs_unmount(void);
  * @note This function will be called in `bsp_display_start()` when using LCD sub-board 2 with the resolution of 480x480.
  * @note This function will be called in `bsp_audio_init()`.
  *
- * @return Pointer to device handle or NULL when error occured
+ * @return Pointer to device handle or NULL when error occurred
  */
 esp_io_expander_handle_t bsp_io_expander_init(void);
 
@@ -237,7 +231,7 @@ esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
  *
  * @note  This function will call `bsp_audio_init()` if it has not been called already.
  *
- * @return Pointer to codec device handle or NULL when error occured
+ * @return Pointer to codec device handle or NULL when error occurred
  */
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
 
@@ -246,7 +240,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
  *
  * @note  This function will call `bsp_audio_init()` if it has not been called already.
  *
- * @return Pointer to codec device handle or NULL when error occured
+ * @return Pointer to codec device handle or NULL when error occurred
  */
 esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
 
@@ -328,7 +322,7 @@ esp_err_t bsp_audio_poweramp_enable(bool enable);
  * @note This function initializes display controller and starts LVGL handling task.
  * @note Users can get LCD panel handle from `user_data` in returned display.
  *
- * @return Pointer to LVGL display or NULL when error occured
+ * @return Pointer to LVGL display or NULL when error occurred
  */
 lv_disp_t *bsp_display_start(void);
 
@@ -340,7 +334,7 @@ lv_disp_t *bsp_display_start(void);
  *
  * @param cfg display configuration
  *
- * @return Pointer to LVGL display or NULL when error occured
+ * @return Pointer to LVGL display or NULL when error occurred
  */
 lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 
@@ -416,7 +410,7 @@ void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
  *
  * @note  This function should be called after calling `bsp_display_new()` or `bsp_display_start()`
  *
- * @return Horizontal resolution. Return 0 if error occured.
+ * @return Horizontal resolution. Return 0 if error occurred.
  */
 uint16_t bsp_display_get_h_res(void);
 
@@ -425,7 +419,7 @@ uint16_t bsp_display_get_h_res(void);
  *
  * @note  This function should be called after calling `bsp_display_new()` or `bsp_display_start()`
  *
- * @return Vertical resolution. Return 0 if error occured.
+ * @return Vertical resolution. Return 0 if error occurred.
  */
 uint16_t bsp_display_get_v_res(void);
 
