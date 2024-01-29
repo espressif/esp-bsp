@@ -219,7 +219,6 @@ static led_strip_spi_config_t bsp_leds_rgb_spi_config = {
 #endif
 
 static led_indicator_strips_config_t bsp_leds_rgb_config = {
-    .is_active_level_high = 1,
     .led_strip_cfg = bsp_leds_rgb_strip_config,
 #if CONFIG_BSP_LED_RGB_BACKEND_RMT
     .led_strip_driver = LED_STRIP_RMT,
