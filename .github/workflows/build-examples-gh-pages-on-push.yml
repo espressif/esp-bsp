@@ -26,7 +26,7 @@ jobs:
           pip install idf-component-manager --upgrade
 
       - name: Action for building binaries and config.toml
-        uses: espressif/idf-examples-launchpad-ci-action@v1.0
+        uses: espressif/idf-examples-launchpad-ci-action@v1.0.1
         with: 
           idf_version: ${{ matrix.idf_ver }}
 
