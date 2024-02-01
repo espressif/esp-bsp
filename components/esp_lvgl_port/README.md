@@ -12,6 +12,7 @@ This component helps with using LVGL with Espressif's LCD and touch drivers. It 
 * Add/remove touch input (using [`esp_lcd_touch`](https://github.com/espressif/esp-bsp/tree/master/components/lcd_touch))
 * Add/remove navigation buttons input (using [`button`](https://github.com/espressif/esp-iot-solution/tree/master/components/button))
 * Add/remove encoder input (using [`knob`](https://github.com/espressif/esp-iot-solution/tree/master/components/knob))
+* Add/remove USB HID mouse/keyboard input (using [`usb_host_hid`](https://components.espressif.com/components/espressif/usb_host_hid))
 
 ## LVGL Version
 
@@ -275,3 +276,13 @@ If the SRAM is insufficient, you can use the PSRAM as a canvas and use a small t
 ## Performance
 
 Key feature of every graphical application is performance. Recommended settings for improving LCD performance is described in a separate document [here](docs/performance.md).
+
+### Performance monitor
+
+For show performance monitor in LVGL9, please add these lines to sdkconfig.defaults and rebuild all.
+
+```
+CONFIG_LV_USE_OBSERVER=y
+CONFIG_LV_USE_SYSMON=y
+CONFIG_LV_USE_PERF_MONITOR=y
+```

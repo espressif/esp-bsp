@@ -75,6 +75,8 @@ lv_indev_t *lvgl_port_add_encoder(const lvgl_port_encoder_cfg_t *encoder_cfg)
     encoder_ctx->indev = indev;
     lvgl_port_unlock();
 
+    return indev;
+
 err:
     if (ret != ESP_OK) {
         if (encoder_ctx->knob_handle != NULL) {
@@ -89,7 +91,7 @@ err:
             free(encoder_ctx);
         }
     }
-    return encoder_ctx->indev;
+    return NULL;
 }
 
 esp_err_t lvgl_port_remove_encoder(lv_indev_t *encoder)

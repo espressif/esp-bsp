@@ -110,7 +110,7 @@ err:
         }
     }
 
-    return buttons_ctx->indev;
+    return NULL;
 }
 
 esp_err_t lvgl_port_remove_navigation_buttons(lv_indev_t *buttons)
