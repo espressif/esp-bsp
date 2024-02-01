@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -30,7 +30,7 @@ static const char *TAG = "ESP-BOX";
 _Static_assert(CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0, "Touch buttons must be supported for this BSP");
 /** @endcond */
 
-static lv_disp_t *disp;
+static lv_display_t *disp;
 static lv_indev_t *disp_indev = NULL;
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
 static bool i2c_initialized = false;
@@ -318,7 +318,7 @@ err:
     return ret;
 }
 
-static lv_disp_t *bsp_display_lcd_init(void)
+static lv_display_t *bsp_display_lcd_init(void)
 {
     esp_lcd_panel_io_handle_t io_handle = NULL;
     esp_lcd_panel_handle_t panel_handle = NULL;
@@ -351,6 +351,7 @@ static lv_disp_t *bsp_display_lcd_init(void)
         },
         .flags = {
             .buff_dma = true,
+            .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
         }
     };
 
@@ -384,7 +385,7 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     return esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, ret_touch);
 }
 
-static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
+static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 {
     BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(NULL, &tp));
     assert(tp);
@@ -398,7 +399,7 @@ static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
     return lvgl_port_add_touch(&touch_cfg);
 }
 
-lv_disp_t *bsp_display_start(void)
+lv_display_t *bsp_display_start(void)
 {
     bsp_display_cfg_t cfg = {
         .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG()
@@ -406,7 +407,7 @@ lv_disp_t *bsp_display_start(void)
     return bsp_display_start_with_config(&cfg);
 }
 
-lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
+lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
     BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
@@ -425,7 +426,7 @@ lv_indev_t *bsp_display_get_input_dev(void)
     return disp_indev;
 }
 
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
+void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);
 }

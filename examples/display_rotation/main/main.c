@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -18,7 +18,7 @@ LV_IMG_DECLARE(esp_logo)
 
 static lv_disp_t *display;
 static lv_obj_t *lbl_rotation;
-static lv_disp_rot_t rotation = LV_DISP_ROT_NONE;
+static lv_disp_rotation_t rotation = LV_DISPLAY_ROTATION_0;
 #if BSP_CAPS_IMU
 static icm42670_handle_t imu = NULL;
 #endif
@@ -28,16 +28,16 @@ static icm42670_handle_t imu = NULL;
 * Private functions
 *******************************************************************************/
 
-static uint16_t app_lvgl_get_rotation_degrees(lv_disp_rot_t rotation)
+static uint16_t app_lvgl_get_rotation_degrees(lv_disp_rotation_t rotation)
 {
     switch (rotation) {
-    case LV_DISP_ROT_NONE:
+    case LV_DISPLAY_ROTATION_0:
         return 0;
-    case LV_DISP_ROT_90:
+    case LV_DISPLAY_ROTATION_90:
         return 90;
-    case LV_DISP_ROT_180:
+    case LV_DISPLAY_ROTATION_180:
         return 180;
-    case LV_DISP_ROT_270:
+    case LV_DISPLAY_ROTATION_270:
         return 270;
     }
 
@@ -46,8 +46,8 @@ static uint16_t app_lvgl_get_rotation_degrees(lv_disp_rot_t rotation)
 
 static void app_lvgl_btn_right_cb(lv_event_t *e)
 {
-    if (rotation == LV_DISP_ROT_270) {
-        rotation = LV_DISP_ROT_NONE;
+    if (rotation == LV_DISPLAY_ROTATION_270) {
+        rotation = LV_DISPLAY_ROTATION_0;
     } else {
         rotation++;
     }
@@ -62,8 +62,8 @@ static void app_lvgl_btn_right_cb(lv_event_t *e)
 
 static void app_lvgl_btn_left_cb(lv_event_t *e)
 {
-    if (rotation == LV_DISP_ROT_NONE) {
-        rotation = LV_DISP_ROT_270;
+    if (rotation == LV_DISPLAY_ROTATION_0) {
+        rotation = LV_DISPLAY_ROTATION_270;
     } else {
         rotation--;
     }
@@ -125,7 +125,7 @@ static void app_lvgl_display(void)
 
         /* Input device group */
         lv_indev_t *indev = bsp_display_get_input_dev();
-        if (indev && indev->driver && indev->driver->type == LV_INDEV_TYPE_ENCODER) {
+        if (indev && lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER) {
             lv_group_t *main_group = lv_group_create();
             lv_group_add_obj(main_group, btn_left);
             lv_group_add_obj(main_group, btn_right);
@@ -176,32 +176,32 @@ static void app_imu_read(void)
     ESP_LOGI(TAG, "Angle roll: %.2f pitch: %.2f ", angle.roll, angle.pitch);
 
     if (acce_val.x > 5) {
-        if (rotation != LV_DISP_ROT_NONE) {
-            rotation = LV_DISP_ROT_NONE;
+        if (rotation != LV_DISPLAY_ROTATION_0) {
+            rotation = LV_DISPLAY_ROTATION_0;
             bsp_display_lock(0);
             bsp_display_rotate(display, rotation);
             lv_label_set_text_fmt(lbl_rotation, "Rotation %d°", app_lvgl_get_rotation_degrees(rotation));
             bsp_display_unlock();
         }
     } else if (acce_val.x < -5) {
-        if (rotation != LV_DISP_ROT_180) {
-            rotation = LV_DISP_ROT_180;
+        if (rotation != LV_DISPLAY_ROTATION_180) {
+            rotation = LV_DISPLAY_ROTATION_180;
             bsp_display_lock(0);
             bsp_display_rotate(display, rotation);
             lv_label_set_text_fmt(lbl_rotation, "Rotation %d°", app_lvgl_get_rotation_degrees(rotation));
             bsp_display_unlock();
         }
     } else if (acce_val.y > 5) {
-        if (rotation != LV_DISP_ROT_270) {
-            rotation = LV_DISP_ROT_270;
+        if (rotation != LV_DISPLAY_ROTATION_270) {
+            rotation = LV_DISPLAY_ROTATION_270;
             bsp_display_lock(0);
             bsp_display_rotate(display, rotation);
             lv_label_set_text_fmt(lbl_rotation, "Rotation %d°", app_lvgl_get_rotation_degrees(rotation));
             bsp_display_unlock();
         }
     } else if (acce_val.y < -5) {
-        if (rotation != LV_DISP_ROT_90) {
-            rotation = LV_DISP_ROT_90;
+        if (rotation != LV_DISPLAY_ROTATION_90) {
+            rotation = LV_DISPLAY_ROTATION_90;
             bsp_display_lock(0);
             bsp_display_rotate(display, rotation);
             lv_label_set_text_fmt(lbl_rotation, "Rotation %d°", app_lvgl_get_rotation_degrees(rotation));
@@ -214,9 +214,6 @@ static void app_imu_read(void)
 
 void app_main(void)
 {
-    /* Initialize I2C (for touch and audio) */
-    bsp_i2c_init();
-
     /* Initialize display and LVGL */
     display = bsp_display_start();
 

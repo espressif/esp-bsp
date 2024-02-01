@@ -12,9 +12,10 @@ dependencies:
   esp_lcd_touch_gt911: "^1"
   esp_lcd_ili9341: "^1"
 
-  esp_lvgl_port:
+  espressif/esp_lvgl_port:
     version: "^1"
     public: true
+    override_path: "../../components/esp_lvgl_port"
 
   esp_codec_dev:
     version: "^1"

@@ -24,7 +24,7 @@
 /* LCD display color format */
 #define BSP_LCD_COLOR_FORMAT        (ESP_LCD_COLOR_FORMAT_RGB565)
 /* LCD display color bytes endianess */
-#define BSP_LCD_BIGENDIAN           (1)
+#define BSP_LCD_BIGENDIAN           (0)
 /* LCD display color bits */
 #define BSP_LCD_BITS_PER_PIXEL      (16)
 /* LCD display color space */

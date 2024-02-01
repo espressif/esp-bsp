@@ -136,7 +136,7 @@ void app_main(void)
     lv_obj_t *main_label = lv_label_create(main_screen);
     lv_label_set_text_static(main_label, LV_SYMBOL_WIFI"\nWifi\nconnecting...");
     lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_width(main_label, disp->driver->hor_res);
+    lv_obj_set_width(main_label, lv_display_get_physical_horizontal_resolution(disp));
     lv_obj_align(main_label, LV_ALIGN_TOP_MID, 0, 0);
     bsp_display_unlock();
 

@@ -9,9 +9,10 @@ dependencies:
   idf:
     version: ">=5.0.0"
 
-  esp_lvgl_port:
+  espressif/esp_lvgl_port:
     public: true
     version: ^1
+    override_path: "../../components/esp_lvgl_port"
 
   led_strip:
     version: "^2"
