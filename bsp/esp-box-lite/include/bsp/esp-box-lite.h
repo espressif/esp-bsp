@@ -19,6 +19,7 @@
 #include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
 #include "iot_button.h"
+#include "bsp/display.h"
 
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
 #include "driver/i2s.h"
@@ -278,8 +279,6 @@ esp_err_t bsp_spiffs_unmount(void);
  *
  * Display's backlight must be enabled explicitly by calling bsp_display_backlight_on()
  **************************************************************************************************/
-#define BSP_LCD_H_RES              (320)
-#define BSP_LCD_V_RES              (240)
 #define BSP_LCD_PIXEL_CLOCK_HZ     (40 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
 
@@ -328,40 +327,6 @@ bool bsp_display_lock(uint32_t timeout_ms);
  *
  */
 void bsp_display_unlock(void);
-
-/**
- * @brief Set display's brightness
- *
- * Brightness is controlled with PWM signal to a pin controlling backlight.
- *
- * @param[in] brightness_percent Brightness in [%]
- * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Parameter error
- */
-esp_err_t bsp_display_brightness_set(int brightness_percent);
-
-/**
- * @brief Turn on display backlight
- *
- * Display must be already initialized by calling bsp_display_start()
- *
- * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Parameter error
- */
-esp_err_t bsp_display_backlight_on(void);
-
-/**
- * @brief Turn off display backlight
- *
- * Display must be already initialized by calling bsp_display_start()
- *
- * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Parameter error
- */
-esp_err_t bsp_display_backlight_off(void);
 
 /**
  * @brief Rotate screen

@@ -16,6 +16,7 @@
 #include "esp_codec_dev.h"
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
+#include "bsp/display.h"
 
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
 #include "driver/i2s.h"
@@ -422,8 +423,6 @@ esp_err_t bsp_sdcard_unmount(void);
  *
  * Display's backlight must be enabled explicitly by calling bsp_display_backlight_on()
  **************************************************************************************************/
-#define BSP_LCD_H_RES              (320)
-#define BSP_LCD_V_RES              (240)
 #define BSP_LCD_PIXEL_CLOCK_HZ     (40 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
 
@@ -475,39 +474,6 @@ bool bsp_display_lock(uint32_t timeout_ms);
  *
  */
 void bsp_display_unlock(void);
-
-/**
- * @brief Set display's brightness
- *
- * @attention ESP32-S3 Korvo v2 board has backlight control connected through IO expander, so brightness control is not supported.
- *
- * @param[in] brightness_percent Brightness in [%]
- * @return
- *      - ESP_ERR_NOT_SUPPORTED Always
- */
-esp_err_t bsp_display_brightness_set(int brightness_percent);
-
-/**
- * @brief Turn on display backlight
- *
- * @note I2C must be already initialized by bsp_i2c_init()
- *
- * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_STATE Could not init IO expander
- */
-esp_err_t bsp_display_backlight_on(void);
-
-/**
- * @brief Turn off display backlight
- *
- * @note I2C must be already initialized by bsp_i2c_init()
- *
- * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_STATE Could not init IO expander
- */
-esp_err_t bsp_display_backlight_off(void);
 
 /**
  * @brief Rotate screen

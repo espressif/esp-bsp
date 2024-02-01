@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -34,6 +34,9 @@
 #else
 #define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_RGB)
 #endif
+/* LCD definition */
+#define BSP_LCD_H_RES               (240)
+#define BSP_LCD_V_RES               (320)
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,6 +74,41 @@ typedef struct {
  *      - Else           esp_lcd failure
  */
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io);
+
+/**
+ * @brief Set display's brightness
+ *
+ * Brightness is controlled with PWM signal to a pin controlling backlight.
+ * Display must be already initialized by calling bsp_display_new()
+ *
+ * @param[in] brightness_percent Brightness in [%]
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
+ */
+esp_err_t bsp_display_brightness_set(int brightness_percent);
+
+/**
+ * @brief Turn on display backlight
+ *
+ * Display must be already initialized by calling bsp_display_new()
+ *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
+ */
+esp_err_t bsp_display_backlight_on(void);
+
+/**
+ * @brief Turn off display backlight
+ *
+ * Display must be already initialized by calling bsp_display_new()
+ *
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
+ */
+esp_err_t bsp_display_backlight_off(void);
 
 #ifdef __cplusplus
 }

@@ -18,6 +18,7 @@
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
+#include "bsp/display.h"
 
 /**************************************************************************************************
  *  ESP32-C3-LCDkit pinout
@@ -67,8 +68,6 @@ extern "C" {
  *
  * Display's backlight must be enabled explicitly by calling bsp_display_backlight_on()
  **************************************************************************************************/
-#define BSP_LCD_H_RES              (240)
-#define BSP_LCD_V_RES              (240)
 #define BSP_LCD_PIXEL_CLOCK_HZ     (80 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM            (SPI2_HOST)
 
@@ -106,40 +105,6 @@ bool bsp_display_lock(uint32_t timeout_ms);
  *
  */
 void bsp_display_unlock(void);
-
-/**
- * @brief Set display's brightness
- *
- * Brightness is controlled with PWM signal to a pin controling backlight.
- *
- * @param[in] brightness_percent Brightness in [%]
- * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Parameter error
- */
-esp_err_t bsp_display_brightness_set(int brightness_percent);
-
-/**
- * @brief Turn on display backlight
- *
- * Display must be already initialized by calling bsp_display_start()
- *
- * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Parameter error
- */
-esp_err_t bsp_display_backlight_on(void);
-
-/**
- * @brief Turn off display backlight
- *
- * Display must be already initialized by calling bsp_display_start()
- *
- * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Parameter error
- */
-esp_err_t bsp_display_backlight_off(void);
 
 /**
  * @brief Rotate screen

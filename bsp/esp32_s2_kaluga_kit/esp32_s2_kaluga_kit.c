@@ -430,7 +430,6 @@ void bsp_display_unlock(void)
     lvgl_port_unlock();
 }
 
-
 /* Backlight functions are not implemented - Kaluga board doesn't provide backlight control
    These functions are here to provide consistent API with other Board Support Packages */
 esp_err_t bsp_display_backlight_off(void)
@@ -438,6 +437,10 @@ esp_err_t bsp_display_backlight_off(void)
     return ESP_OK;
 }
 esp_err_t bsp_display_backlight_on(void)
+{
+    return ESP_OK;
+}
+esp_err_t bsp_display_brightness_set(int brightness_percent)
 {
     return ESP_OK;
 }
