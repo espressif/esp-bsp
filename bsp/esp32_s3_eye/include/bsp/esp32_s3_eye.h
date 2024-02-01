@@ -27,6 +27,19 @@
 #endif
 
 /**************************************************************************************************
+ *  BSP Capabilities
+ **************************************************************************************************/
+
+#define BSP_CAPS_DISPLAY        1
+#define BSP_CAPS_TOUCH          0
+#define BSP_CAPS_BUTTONS        1
+#define BSP_CAPS_AUDIO          1
+#define BSP_CAPS_AUDIO_SPEAKER  0
+#define BSP_CAPS_AUDIO_MIC      1
+#define BSP_CAPS_SDCARD         1
+#define BSP_CAPS_IMU            0 // There is an IMU, but not supported in this BSP
+
+/**************************************************************************************************
  * ESP32-S3-EYE pinout
  **************************************************************************************************/
 
