@@ -74,6 +74,11 @@ static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
         .adc_button_config.button_index = BSP_BUTTON_UP,
         .adc_button_config.min = 280, // middle is 380mV
         .adc_button_config.max = 480
+    },
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.active_level = 0,
+        .gpio_button_config.gpio_num = BSP_BUTTON_BOOT_IO
     }
 };
 
