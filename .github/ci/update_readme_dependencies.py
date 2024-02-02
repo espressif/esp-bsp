@@ -51,7 +51,7 @@ def check_bsp_readme(file: str) -> Any:
         try:
             start_idx = content.index(DEPENDENCIES_START)
             end_idx = content.index(DEPENDENCIES_END)
-            if set(table.splitlines()) <= set([line[:-1] for line in content]):
+            if set(table.splitlines()) == set([line[:-1] for line in content[start_idx + 1:end_idx]]):
                 # The table exists and is correct, we can return here
                 return 0
             else:
