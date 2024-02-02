@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -29,6 +29,9 @@
 #define BSP_LCD_BITS_PER_PIXEL      (16)
 /* LCD display color space */
 #define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_RGB)
+/* LCD definition */
+#define BSP_LCD_H_RES              (320)
+#define BSP_LCD_V_RES              (240)
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,6 +70,11 @@ typedef struct {
  */
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io);
 
+/* Backlight functions are not implemented - Kaluga board doesn't provide backlight control
+   These functions are here to provide consistent API with other Board Support Packages */
+esp_err_t bsp_display_brightness_set(int brightness_percent);
+esp_err_t bsp_display_backlight_on(void);
+esp_err_t bsp_display_backlight_off(void);
 #ifdef __cplusplus
 }
 #endif

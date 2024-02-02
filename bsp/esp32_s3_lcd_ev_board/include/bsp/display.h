@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -68,10 +68,35 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
  * @param[in] callback The function to be registered. It should return true if need to yield, otherwise return false
  *
  * @return
- *      - ESP_OK               Succsee
+ *      - ESP_OK               Success
  *      - ESP_ERR_INVALID_ARG  Callback function should be placed in IRAM, use `IRAM_ATTR` to define it
  */
 esp_err_t bsp_display_register_trans_done_callback(bsp_display_trans_done_cb_t callback);
+
+/**
+ * @brief Set display's brightness (Useless, just for compatibility)
+ *
+ * @param[in] brightness_percent: Brightness in [%]
+ * @return
+ *      - ESP_ERR_NOT_SUPPORTED: Always
+ */
+esp_err_t bsp_display_brightness_set(int brightness_percent);
+
+/**
+ * @brief Turn on display backlight (Useless, just for compatibility)
+ *
+ * @return
+ *      - ESP_ERR_NOT_SUPPORTED: Always
+ */
+esp_err_t bsp_display_backlight_on(void);
+
+/**
+ * @brief Turn off display backlight (Useless, just for compatibility)
+ *
+ * @return
+ *      - ESP_ERR_NOT_SUPPORTED: Always
+ */
+esp_err_t bsp_display_backlight_off(void);
 
 #ifdef __cplusplus
 }

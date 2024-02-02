@@ -18,6 +18,7 @@
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
+#include "bsp/display.h"
 
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
 #include "driver/i2s.h"
@@ -288,8 +289,6 @@ esp_err_t bsp_spiffs_unmount(void);
  *
  * @note Default SPI clock is set to 40MHz. On some displays shipped with Kaluga kit, 80MHz can be achieved
  **************************************************************************************************/
-#define BSP_LCD_H_RES              (320)
-#define BSP_LCD_V_RES              (240)
 #define BSP_LCD_PIXEL_CLOCK_HZ     (40 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
 
@@ -339,11 +338,6 @@ bool bsp_display_lock(uint32_t timeout_ms);
  *
  */
 void bsp_display_unlock(void);
-
-/* Backlight functions are not implemented - Kaluga board doesn't provide backlight control
-   These functions are here to provide consistent API with other Board Support Packages */
-esp_err_t bsp_display_backlight_on(void);
-esp_err_t bsp_display_backlight_off(void);
 
 /**
  * @brief Rotate screen

@@ -21,6 +21,7 @@
 #include "esp_lcd_gc9503.h"
 #include "iot_button.h"
 #include "lvgl.h"
+#include "bsp/display.h"
 
 #include "sdkconfig.h"
 
@@ -359,31 +360,6 @@ lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
  * @return Pointer to LVGL input device or NULL when not initialized
  */
 lv_indev_t *bsp_display_get_input_dev(void);
-
-/**
- * @brief Set display's brightness (Useless, just for compatibility)
- *
- * @param[in] brightness_percent: Brightness in [%]
- * @return
- *      - ESP_ERR_NOT_SUPPORTED: Always
- */
-esp_err_t bsp_display_brightness_set(int brightness_percent);
-
-/**
- * @brief Turn on display backlight (Useless, just for compatibility)
- *
- * @return
- *      - ESP_ERR_NOT_SUPPORTED: Always
- */
-esp_err_t bsp_display_backlight_on(void);
-
-/**
- * @brief Turn off display backlight (Useless, just for compatibility)
- *
- * @return
- *      - ESP_ERR_NOT_SUPPORTED: Always
- */
-esp_err_t bsp_display_backlight_off(void);
 
 /**
  * @brief Take LVGL mutex

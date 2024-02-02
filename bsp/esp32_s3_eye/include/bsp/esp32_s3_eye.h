@@ -18,12 +18,26 @@
 #include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
 #include "iot_button.h"
+#include "bsp/display.h"
 
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
 #include "driver/i2s.h"
 #else
 #include "driver/i2s_std.h"
 #endif
+
+/**************************************************************************************************
+ *  BSP Capabilities
+ **************************************************************************************************/
+
+#define BSP_CAPS_DISPLAY        1
+#define BSP_CAPS_TOUCH          0
+#define BSP_CAPS_BUTTONS        1
+#define BSP_CAPS_AUDIO          1
+#define BSP_CAPS_AUDIO_SPEAKER  0
+#define BSP_CAPS_AUDIO_MIC      1
+#define BSP_CAPS_SDCARD         1
+#define BSP_CAPS_IMU            0 // There is an IMU, but not supported in this BSP
 
 /**************************************************************************************************
  * ESP32-S3-EYE pinout
@@ -65,7 +79,8 @@
 #define BSP_SD_CMD           (GPIO_NUM_38)
 #define BSP_SD_CLK           (GPIO_NUM_39)
 
-/* Others */
+/* Buttons */
+#define BSP_BUTTON_BOOT_IO   (GPIO_NUM_0)
 #define BSP_BUTTONS_IO       (GPIO_NUM_1) // All 4 buttons mapped to this GPIO
 typedef enum bsp_led_t {
     BSP_LED_GREEN = GPIO_NUM_3,
@@ -96,9 +111,10 @@ typedef struct {
  **************************************************************************************************/
 typedef enum {
     BSP_BUTTON_MENU = 0,
+    BSP_BUTTON_PLAY,
     BSP_BUTTON_DOWN,
     BSP_BUTTON_UP,
-    BSP_BUTTON_PLAY,
+    BSP_BUTTON_BOOT,
     BSP_BUTTON_NUM
 } bsp_button_t;
 
@@ -287,11 +303,8 @@ esp_err_t bsp_sdcard_unmount(void);
  * by calling bsp_display_lock() before calling and LVGL API (lv_...) and then give the mutex with
  * bsp_display_unlock().
  **************************************************************************************************/
-#define BSP_LCD_H_RES              (240)
-#define BSP_LCD_V_RES              (240)
 #define BSP_LCD_PIXEL_CLOCK_HZ     (80 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
-
 #define BSP_LCD_DRAW_BUFF_SIZE     (BSP_LCD_H_RES * BSP_LCD_V_RES)
 #define BSP_LCD_DRAW_BUFF_DOUBLE   (0)
 
@@ -339,41 +352,6 @@ bool bsp_display_lock(uint32_t timeout_ms);
  *
  */
 void bsp_display_unlock(void);
-
-/**
- * @brief Set display's brightness
- *
- * Brightness is controlled with PWM signal to a pin controlling backlight.
- * Display must be already initialized by calling bsp_display_start()
- *
- * @param[in] brightness_percent Brightness in [%]
- * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Parameter error
- */
-esp_err_t bsp_display_brightness_set(int brightness_percent);
-
-/**
- * @brief Turn on display backlight
- *
- * Display must be already initialized by calling bsp_display_start()
- *
- * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Parameter error
- */
-esp_err_t bsp_display_backlight_on(void);
-
-/**
- * @brief Turn off display backlight
- *
- * Display must be already initialized by calling bsp_display_start()
- *
- * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_INVALID_ARG   Parameter error
- */
-esp_err_t bsp_display_backlight_off(void);
 
 /**
  * @brief Rotate screen
