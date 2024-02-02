@@ -14,10 +14,9 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/sdmmc_host.h"
-#include "lvgl.h"
-#include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
 #include "iot_button.h"
+#include "bsp/config.h"
 #include "bsp/display.h"
 
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
@@ -25,6 +24,11 @@
 #else
 #include "driver/i2s_std.h"
 #endif
+
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+#include "lvgl.h"
+#include "esp_lvgl_port.h"
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
  *  BSP Capabilities
@@ -89,14 +93,6 @@ typedef enum bsp_led_t {
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/**
- * @brief BSP display configuration structure
- *
- */
-typedef struct {
-    lvgl_port_cfg_t lvgl_port_cfg;
-} bsp_display_cfg_t;
 
 /**************************************************************************************************
  *
@@ -300,13 +296,24 @@ esp_err_t bsp_sdcard_unmount(void);
  * It features 16-bit colors and 240x240 resolution.
  *
  * LVGL is used as graphics library. LVGL is NOT thread safe, therefore the user must take LVGL mutex
- * by calling bsp_display_lock() before calling and LVGL API (lv_...) and then give the mutex with
+ * by calling bsp_display_lock() before calling any LVGL API (lv_...) and then give the mutex with
  * bsp_display_unlock().
+ *
+ * If you want to use the display without LVGL, see bsp/display.h API and use BSP version with 'noglib' suffix.
  **************************************************************************************************/
 #define BSP_LCD_PIXEL_CLOCK_HZ     (80 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
+
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 #define BSP_LCD_DRAW_BUFF_SIZE     (BSP_LCD_H_RES * BSP_LCD_V_RES)
 #define BSP_LCD_DRAW_BUFF_DOUBLE   (0)
+
+/**
+ * @brief BSP display configuration structure
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;
+} bsp_display_cfg_t;
 
 /**
  * @brief Initialize display
@@ -362,6 +369,7 @@ void bsp_display_unlock(void);
  * @param[in] rotation Angle of the display rotation
  */
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
  *
