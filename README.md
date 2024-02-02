@@ -27,9 +27,9 @@ Board support packages for development boards using Espressif's SoCs, written in
 
 The BSP repository includes a lot of LCD and Touch driver components. The list of available and planned LCDs is [here](LCD.md).
 
-We offer seemless integration of LVGL graphical library into esp-idf applications in [LVGL port](components/esp_lvgl_port) component.
+We offer seamless integration of LVGL graphical library into esp-idf applications in [LVGL port](components/esp_lvgl_port) component.
 
-Moreover, LVGL port includes recommendations and tips for increasing graphical performance.
+Moreover, LVGL port includes recommendations and tips for [increasing graphical performance](components/esp_lvgl_port/docs/performance.md).
 
 ## How to use
 
@@ -48,11 +48,11 @@ Best way to start with ESP-BSP is trying one of the [examples](examples) on your
 | [display_sensors](examples/display_sensors) | Azure-IoT-kit | [Flash display_sensors](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sensors) |
 | [mqtt_example](examples/mqtt_example) | Azure-IoT-kit | - |
 
-### BSP headers
-Each BSP provides its header file in 'bsp' subfolder, so it can be included as follows: `#include "bsp/name-of-the-bsp.h"`.
-For you convenience, each BSP also provides a wrapper header, which has the same name for all BSPs: `#include "bsp/esp-bsp.h"`.
-
-BSPs that contain LCD screen or touchscreen also provide `bsp/display.h` and `bsp/touch.h`. These files provide functions for LCD or touchscreen initialization without LVGL graphics library, which is used by default.
+### BSP headers and options
+* `bsp/name-of-the-bsp.h`: Main include file of the BSP with public API
+* `bsp/esp-bsp.h`: Convenience include file with the same name for all BPSs
+* `bsp/display.h` and `bsp/touch.h`: Only for BSPs with LCD or touch controller. Contain low level initialization functions for usage without LVGL graphical library
+    * By default, BSPs with display are shipped with LVGL, if you are interested in BSP without LVGL you can use BSP versions with `noglib` suffix (eg. `esp32_s3_eye_noglib`). 
 
 > **_NOTE:_** There can be only one BSP in a single esp-idf project.
 
@@ -62,8 +62,6 @@ You can add them to your project via `idf.py add-dependency`, e.g.
 ```
     idf.py add-dependency esp_wrover_kit==1.0.0
 ```
-
-Alternatively, you can create `idf_component.yml` file manually, such as in [this example](examples/display/main/idf_component.yml).
 
 ### Recommendation for custom projects
 
@@ -95,15 +93,17 @@ idf.py -B build/wrover_kit -D SDKCONFIG_DEFAULTS=sdkconfig.bsp.esp_wrover_kit bu
 ```
 > Note: This feature is not yet integrated to idf.py by default. If you want to use it, you must set your environmental variable `IDF_EXTRA_ACTIONS_PATH` to path to `esp-bsp/examples/bsp_ext.py`.
 
-## Additional information
+## Contributing to ESP-BSP
+
+Please check [CONTRIBUTING.md](CONTRIBUTING.md) if you'd like to contribute to ESP-BSP.
+
+Also check [BSP Development Guide](BSP_development_guide.md) to find out more about BSP API and architecture.
+
+### Additional information
 More information about idf-component-manager can be found in [Espressif API guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html)
 or [PyPi registry](https://pypi.org/project/idf-component-manager/).
 
 You can find more information about idf.py extensions [here](https://github.com/espressif/esp-idf/blob/master/tools/idf_py_actions/README.md).
-
-## Contributing to ESP-BSP
-
-Please check [CONTRIBUTING.md](CONTRIBUTING.md) if you'd like to contribute to ESP-BSP.
 
 ## Copyrights and License
 
