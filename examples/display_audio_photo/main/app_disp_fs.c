@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -112,13 +112,12 @@ void app_disp_lvgl_show(void)
     bsp_display_lock(0);
 
     /* Tabview */
-    tabview = lv_tabview_create(lv_scr_act()); //, LV_DIR_TOP, 40
-    lv_tabview_set_tab_bar_size(tabview, 40);
+    tabview = lv_tabview_create(lv_scr_act(), LV_DIR_TOP, 40);
     lv_obj_set_size(tabview, BSP_LCD_H_RES, BSP_LCD_V_RES);
     lv_obj_align(tabview, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_set_style_text_font(tabview, &lv_font_montserrat_14, 0);
     /* Change animation time of moving between tabs */
-    //lv_obj_add_event_cb(lv_tabview_get_content(tabview), scroll_begin_event, LV_EVENT_SCROLL_BEGIN, NULL);
+    lv_obj_add_event_cb(lv_tabview_get_content(tabview), scroll_begin_event, LV_EVENT_SCROLL_BEGIN, NULL);
     lv_obj_add_event_cb(tabview, tab_changed_event, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Tabview buttons style */
@@ -134,7 +133,7 @@ void app_disp_lvgl_show(void)
 
     /* Input device group */
     lv_indev_t *indev = bsp_display_get_input_dev();
-    if (indev && lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER) {
+    if (indev && indev->driver && indev->driver->type == LV_INDEV_TYPE_ENCODER) {
         filesystem_group = lv_group_create();
         recording_group = lv_group_create();
         settings_group = lv_group_create();
@@ -227,11 +226,11 @@ static void show_window(const char *path, app_file_type_t type)
     struct stat st;
     lv_obj_t *label = NULL;
     lv_obj_t *btn;
-    lv_obj_t *win = lv_win_create(lv_scr_act()); //, 40
+    lv_obj_t *win = lv_win_create(lv_scr_act(), 40);
     lv_win_add_title(win, path);
 
     /* Close button */
-    btn = lv_win_add_button(win, LV_SYMBOL_CLOSE, 60);
+    btn = lv_win_add_btn(win, LV_SYMBOL_CLOSE, 60);
     lv_obj_add_event_cb(btn, close_window_handler, LV_EVENT_CLICKED, win);
 
     lv_obj_t *cont = lv_win_get_content(win);   /*Content can be added here*/
@@ -285,7 +284,7 @@ static void show_window(const char *path, app_file_type_t type)
                     esp_jpeg_image_output_t outimg;
                     esp_jpeg_decode(&jpeg_cfg, &outimg);
 
-                    lv_canvas_set_buffer(fs_img, file_buffer, outimg.width, outimg.height, LV_COLOR_FORMAT_RGB565);
+                    lv_canvas_set_buffer(fs_img, file_buffer, outimg.width, outimg.height, LV_IMG_CF_TRUE_COLOR);
                     lv_obj_center(fs_img);
                     lv_obj_invalidate(fs_img);
                 }
@@ -305,7 +304,7 @@ static void show_window(const char *path, app_file_type_t type)
 
     /* Input device group */
     lv_indev_t *indev = bsp_display_get_input_dev();
-    if (indev && lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER) {
+    if (indev && indev->driver && indev->driver->type == LV_INDEV_TYPE_ENCODER) {
         lv_group_t *group = lv_group_create();
         lv_group_add_obj(group, btn);
         lv_indev_set_group(indev, group);
@@ -465,7 +464,7 @@ static void show_window_wav(const char *path)
 {
     lv_obj_t *label;
     lv_obj_t *btn, *stop_btn, *repeat_btn;
-    lv_obj_t *win = lv_win_create(lv_scr_act()); //, 40
+    lv_obj_t *win = lv_win_create(lv_scr_act(), 40);
     lv_win_add_title(win, path);
 
     strcpy(usb_drive_play_file, path);
@@ -476,7 +475,7 @@ static void show_window_wav(const char *path)
     assert(audio_mux);
 
     /* Close button */
-    btn = lv_win_add_button(win, LV_SYMBOL_CLOSE, 60);
+    btn = lv_win_add_btn(win, LV_SYMBOL_CLOSE, 60);
     lv_obj_add_event_cb(btn, close_window_wav_handler, LV_EVENT_CLICKED, win);
 
     lv_obj_t *cont = lv_win_get_content(win);   /*Content can be added here*/
@@ -533,7 +532,7 @@ static void show_window_wav(const char *path)
 
     /* Input device group */
     lv_indev_t *indev = bsp_display_get_input_dev();
-    if (indev && lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER) {
+    if (indev && indev->driver && indev->driver->type == LV_INDEV_TYPE_ENCODER) {
         lv_group_t *group = lv_group_create();
         lv_group_add_obj(group, btn);
         lv_group_add_obj(group, play_btn);
@@ -985,7 +984,7 @@ static void scroll_begin_event(lv_event_t *e)
     if (lv_event_get_code(e) == LV_EVENT_SCROLL_BEGIN) {
         lv_anim_t *a = lv_event_get_param(e);
         if (a) {
-            lv_anim_set_duration(a, 300);
+            a->time = 300;
         }
     }
 }

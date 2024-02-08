@@ -322,7 +322,7 @@ typedef struct {
  *
  * @return Pointer to LVGL display or NULL when error occurred
  */
-lv_display_t *bsp_display_start(void);
+lv_disp_t *bsp_display_start(void);
 
 /**
  * @brief Initialize display
@@ -334,7 +334,7 @@ lv_display_t *bsp_display_start(void);
  *
  * @return Pointer to LVGL display or NULL when error occurred
  */
-lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 
 /**
  * @brief Get pointer to input device (touch, buttons, ...)
@@ -368,7 +368,7 @@ void bsp_display_unlock(void);
  * @param[in] disp Pointer to LVGL display
  * @param[in] rotation Angle of the display rotation
  */
-void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
+void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
