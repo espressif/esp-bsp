@@ -1,4 +1,4 @@
-version: "3.0.0~2"
+version: "3.0.1"
 description: Board Support Package for ESP32-S2-Kaluga kit
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s2_kaluga_kit
 
@@ -7,6 +7,7 @@ targets:
 
 dependencies:
   idf: ">=4.4.5"
+  lvgl/lvgl: "^8"
 
   esp_lvgl_port:
     version: ^1

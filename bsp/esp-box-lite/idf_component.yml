@@ -1,4 +1,4 @@
-version: "2.0.3"
+version: "2.0.4"
 description: Board Support Package for ESP32-S3-BOX-Lite
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box-lite
 
@@ -7,6 +7,7 @@ targets:
 
 dependencies:
   idf: ">=4.4.5"
+  lvgl/lvgl: "^8"
 
   button:
     version: ">=2.4"
