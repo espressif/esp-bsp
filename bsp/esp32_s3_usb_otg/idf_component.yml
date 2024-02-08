@@ -13,6 +13,6 @@ dependencies:
     version: ">=2.5,<4.0"
     public: true
 
-  esp_lvgl_port:
+  espressif/esp_lvgl_port:
     version: ^1
     public: true

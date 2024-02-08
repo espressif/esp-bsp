@@ -9,7 +9,7 @@ dependencies:
   idf: ">=4.4.5"
   lvgl/lvgl: "^8"
 
-  esp_lvgl_port:
+  espressif/esp_lvgl_port:
     version: "^1"
     public: true
 

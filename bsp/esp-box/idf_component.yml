@@ -11,7 +11,7 @@ dependencies:
   esp_lcd_touch_tt21100: "^1"
   lvgl/lvgl: "^8"
 
-  esp_lvgl_port:
+  espressif/esp_lvgl_port:
     version: "^1"
     public: true
 

@@ -22,7 +22,7 @@ dependencies:
     version: "^0.9"
     public: true
 
-  esp_lvgl_port:
+  espressif/esp_lvgl_port:
     version: "^1"
     public: true
 

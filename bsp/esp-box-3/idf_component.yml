@@ -13,7 +13,7 @@ dependencies:
   esp_lcd_ili9341: "^1"
   lvgl/lvgl: "^8"
 
-  esp_lvgl_port:
+  espressif/esp_lvgl_port:
     version: "^1"
     public: true
 

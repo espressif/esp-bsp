@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -424,8 +424,9 @@ err:
     return ret;
 }
 
-static lv_disp_t *bsp_display_lcd_init(void)
+static lv_disp_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
+    assert(cfg != NULL);
     esp_lcd_panel_io_handle_t io_handle = NULL;
     const bsp_display_config_t bsp_disp_cfg = {
         .max_transfer_sz = (BSP_LCD_H_RES * CONFIG_BSP_LCD_DRAW_BUF_HEIGHT) * sizeof(uint16_t),
@@ -439,12 +440,8 @@ static lv_disp_t *bsp_display_lcd_init(void)
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = io_handle,
         .panel_handle = panel_handle,
-        .buffer_size = BSP_LCD_H_RES * CONFIG_BSP_LCD_DRAW_BUF_HEIGHT,
-#if CONFIG_BSP_LCD_DRAW_BUF_DOUBLE
-        .double_buffer = 1,
-#else
-        .double_buffer = 0,
-#endif
+        .buffer_size = cfg->buffer_size,
+        .double_buffer = cfg->double_buffer,
         .hres = BSP_LCD_H_RES,
         .vres = BSP_LCD_V_RES,
         .monochrome = false,
@@ -455,7 +452,8 @@ static lv_disp_t *bsp_display_lcd_init(void)
             .mirror_y = true,
         },
         .flags = {
-            .buff_dma = true,
+            .buff_dma = cfg->flags.buff_dma,
+            .buff_spiram = cfg->flags.buff_spiram,
         }
     };
 
@@ -553,7 +551,17 @@ static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
 lv_disp_t *bsp_display_start(void)
 {
     bsp_display_cfg_t cfg = {
-        .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG()
+        .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
+        .buffer_size = BSP_LCD_H_RES * CONFIG_BSP_LCD_DRAW_BUF_HEIGHT,
+#if CONFIG_BSP_LCD_DRAW_BUF_DOUBLE
+        .double_buffer = 1,
+#else
+        .double_buffer = 0,
+#endif
+        .flags = {
+            .buff_dma = true,
+            .buff_spiram = false,
+        }
     };
     return bsp_display_start_with_config(&cfg);
 }
@@ -565,7 +573,7 @@ lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
 
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_brightness_init());
 
-    BSP_NULL_CHECK(disp = bsp_display_lcd_init(), NULL);
+    BSP_NULL_CHECK(disp = bsp_display_lcd_init(cfg), NULL);
 
     BSP_NULL_CHECK(disp_indev = bsp_display_indev_init(disp), NULL);
 
