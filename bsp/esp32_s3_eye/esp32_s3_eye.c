@@ -24,7 +24,6 @@
 #include "bsp/esp32_s3_eye.h"
 #include "bsp_err_check.h"
 #include "bsp/display.h"
-#include "esp_lvgl_port.h"
 
 static const char *TAG = "S3-EYE";
 
@@ -302,6 +301,7 @@ err:
     return ret;
 }
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *bsp_display_lcd_init(void)
 {
     esp_lcd_panel_io_handle_t io_handle = NULL;
@@ -385,6 +385,7 @@ void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);
 }
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 esp_err_t bsp_leds_init(void)
 {

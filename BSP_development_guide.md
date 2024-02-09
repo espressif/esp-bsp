@@ -48,28 +48,35 @@ esp_err_t bsp_i2c_deinit(void);
 * See any BSP
 
 #### Display
-* BSPs with display are shipped with [LVGL](https://components.espressif.com/components/lvgl/lvgl) component
-* Display functions are divided into two parts. The first part is only HW initialization (include\bsp\display.h) and second part is initialization of the LVGL (BSP header).
-* Functions, which must be defined in BSP *.c file:
+* BSPs with display are shipped with [LVGL](https://components.espressif.com/components/lvgl/lvgl) component by default. For version without LVGL, you can use BSP version with `noglib` suffix (eg. `esp32_s3_eye_noglib`)
+* Display functions are divided into two parts. The first part is HW initialization only (include/bsp/display.h), second part is initialization of the display and LVGL (bsp/esp-bsp.h)
+* HW initialization functions, which must be defined in bsp/display.h file:
 ``` c
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io);
+esp_err_t bsp_display_brightness_set(int brightness_percent);
+esp_err_t bsp_display_backlight_on(void);
+esp_err_t bsp_display_backlight_off(void);
+```
+* LVGL init function, which must be defined in bsp/esp-bsp.h file:
+``` c
 lv_disp_t *bsp_display_start(void);
 lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 bool bsp_display_lock(uint32_t timeout_ms);
 void bsp_display_unlock(void);
-esp_err_t bsp_display_brightness_set(int brightness_percent);
-esp_err_t bsp_display_backlight_on(void);
-esp_err_t bsp_display_backlight_off(void);
 void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
 ```
 * See esp_wrover_kit, esp32_s2_kaluga_kit ...
 
 #### LCD Touch
 * LCD touch drivers are build around base [esp_lcd_touch](https://components.espressif.com/components/espressif/esp_lcd_touch) component
-* LCD touch functions are divided into two parts. The first part is only HW initialization (include\bsp\touch.h) and second part is initialization of the LVGL (BSP header).
-* Functions, which must be defined in BSP *.c file:
+* BSPs with touch display are shipped with [LVGL](https://components.espressif.com/components/lvgl/lvgl) component by default. For version without LVGL, you can use BSP version with `noglib` suffix (eg. `esp32_s3_eye_noglib`)
+* If LVGL is used, the touch controller is initialized together with display. If LVGL is not used you can use HW initialization functions from bsp/touch.h
+* HW initialization function, which must be defined in bsp/touch.h file:
 ``` c
 esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t *ret_touch);
+```
+* LVGL get input device function for advanced scenarios in bsp/esp-bsp.h
+``` c
 lv_indev_t *bsp_display_get_input_dev(void);
 ```
 * See esp-box, esp-box-3 ...
