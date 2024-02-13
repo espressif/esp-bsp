@@ -25,19 +25,3 @@ jobs:
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
           dry_run: ${{ github.ref_name != 'master' || github.repository_owner != 'espressif' }}
-      - name: Upload noglib version of BSPs
-        continue-on-error: true # update_readme_dependencies.py returns error if the readme file was modified
-        # TODO: Extend this part to all BSPs
-        run: |
-          pip install idf-component-manager py-markdown-table --upgrade
-          python .github/ci/bsp_noglib.py
-          python .github/ci/update_readme_dependencies.py bsp/esp32_s3_eye/idf_component.yml || true
-          mkdir -p bsp/esp32_s3_eye_noglib
-          mv bsp/esp32_s3_eye/* bsp/esp32_s3_eye_noglib
-      - uses: espressif/upload-components-ci-action@v1
-        with:
-          directories: >
-            bsp/esp32_s3_eye_noglib
-          namespace: "espressif"
-          api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
-          dry_run: ${{ github.ref_name != 'master' || github.repository_owner != 'espressif' }}
