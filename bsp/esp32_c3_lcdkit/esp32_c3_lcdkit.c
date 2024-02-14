@@ -200,8 +200,9 @@ esp_err_t bsp_spiffs_unmount(void)
     return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
 }
 
-static lv_display_t *bsp_display_lcd_init(void)
+static lv_disp_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
+    assert(cfg != NULL);
     esp_lcd_panel_io_handle_t io_handle = NULL;
     esp_lcd_panel_handle_t panel_handle = NULL;
     const bsp_display_config_t bsp_disp_cfg = {
@@ -216,12 +217,8 @@ static lv_display_t *bsp_display_lcd_init(void)
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = io_handle,
         .panel_handle = panel_handle,
-        .buffer_size = BSP_LCD_H_RES * CONFIG_BSP_LCD_DRAW_BUF_HEIGHT,
-#if CONFIG_BSP_LCD_DRAW_BUF_DOUBLE
-        .double_buffer = 1,
-#else
-        .double_buffer = 0,
-#endif
+        .buffer_size = cfg->buffer_size,
+        .double_buffer = cfg->double_buffer,
         .hres = BSP_LCD_H_RES,
         .vres = BSP_LCD_V_RES,
         .monochrome = false,
@@ -232,15 +229,15 @@ static lv_display_t *bsp_display_lcd_init(void)
             .mirror_y = false,
         },
         .flags = {
-            .buff_dma = true,
-            .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
+            .buff_dma = cfg->flags.buff_dma,
+            .buff_spiram = cfg->flags.buff_spiram,
         }
     };
 
     return lvgl_port_add_disp(&disp_cfg);
 }
 
-static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
+static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
 {
     const lvgl_port_encoder_cfg_t encoder = {
         .disp = disp,
@@ -371,16 +368,30 @@ err:
     return ret;
 }
 
-lv_display_t *bsp_display_start(void)
+lv_disp_t *bsp_display_start(void)
 {
-    lv_display_t *disp;
-    const lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
-    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&lvgl_cfg));
+    bsp_display_cfg_t cfg = {
+        .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
+        .buffer_size = BSP_LCD_H_RES * CONFIG_BSP_LCD_DRAW_BUF_HEIGHT,
+#if CONFIG_BSP_LCD_DRAW_BUF_DOUBLE
+        .double_buffer = 1,
+#else
+        .double_buffer = 0,
+#endif
+        .flags = {
+            .buff_dma = true,
+            .buff_spiram = false,
+        }
+    };
+    return bsp_display_start_with_config(&cfg);
+}
 
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
+{
+    lv_disp_t *disp;
+    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_brightness_init());
-
-    BSP_NULL_CHECK(disp = bsp_display_lcd_init(), NULL);
-
+    BSP_NULL_CHECK(disp = bsp_display_lcd_init(cfg), NULL);
     BSP_NULL_CHECK(disp_indev = bsp_display_indev_init(disp), NULL);
 
     return disp;
@@ -391,7 +402,7 @@ lv_indev_t *bsp_display_get_input_dev(void)
     return disp_indev;
 }
 
-void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation)
+void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);
 }

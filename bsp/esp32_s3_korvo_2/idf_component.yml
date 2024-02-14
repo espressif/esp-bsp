@@ -1,4 +1,4 @@
-version: "2.1.1~2"
+version: "2.1.2"
 description: Board Support Package for ESP32-S3-Korvo-2
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_korvo_2
 
@@ -9,6 +9,7 @@ dependencies:
   idf: ">=4.4.5"
   esp_lcd_ili9341: "^1"
   esp_lcd_touch_tt21100: "^1"
+  lvgl/lvgl: "^8"
 
   esp_io_expander_tca9554:
     version: "^1"
@@ -29,4 +30,3 @@ dependencies:
   espressif/esp_lvgl_port:
     version: ^1
     public: true
-    override_path: "../../components/esp_lvgl_port"

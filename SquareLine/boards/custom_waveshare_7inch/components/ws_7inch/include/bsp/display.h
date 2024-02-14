@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -28,10 +28,10 @@
 /* LCD display color bits */
 #define BSP_LCD_BITS_PER_PIXEL      (16)
 /* LCD display color space */
-#define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_RGB)
-/* LCD display definition */
-#define BSP_LCD_H_RES              (240)
-#define BSP_LCD_V_RES              (240)
+#define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_BGR)
+/* LCD definition */
+#define BSP_LCD_H_RES              (800)
+#define BSP_LCD_V_RES              (480)
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,5 +1,5 @@
 
-version: "3.0.4"
+version: "3.0.5"
 description: Board Support Package for ESP-BOX
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box
 
@@ -9,11 +9,11 @@ targets:
 dependencies:
   idf: ">=4.4.5"
   esp_lcd_touch_tt21100: "^1"
+  lvgl/lvgl: "^8"
 
   espressif/esp_lvgl_port:
     version: "^1"
     public: true
-    override_path: "../../components/esp_lvgl_port"
 
   esp_codec_dev:
     version: "^1.0.3"

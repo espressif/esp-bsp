@@ -312,7 +312,13 @@ esp_err_t bsp_sdcard_unmount(void);
  * @brief BSP display configuration structure
  */
 typedef struct {
-    lvgl_port_cfg_t lvgl_port_cfg;
+    lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
+    uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
+    bool            double_buffer;  /*!< True, if should be allocated two buffers */
+    struct {
+        unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
+        unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
+    } flags;
 } bsp_display_cfg_t;
 
 /**
@@ -322,7 +328,7 @@ typedef struct {
  *
  * @return Pointer to LVGL display or NULL when error occurred
  */
-lv_display_t *bsp_display_start(void);
+lv_disp_t *bsp_display_start(void);
 
 /**
  * @brief Initialize display
@@ -334,7 +340,7 @@ lv_display_t *bsp_display_start(void);
  *
  * @return Pointer to LVGL display or NULL when error occurred
  */
-lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
+lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 
 /**
  * @brief Get pointer to input device (touch, buttons, ...)
@@ -368,7 +374,7 @@ void bsp_display_unlock(void);
  * @param[in] disp Pointer to LVGL display
  * @param[in] rotation Angle of the display rotation
  */
-void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
+void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
