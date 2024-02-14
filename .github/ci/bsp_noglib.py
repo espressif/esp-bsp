@@ -36,12 +36,16 @@ def remove_esp_lvgl_port(bsp_name):
     manager = ManifestManager(bsp_path, 'bsp')
     try:
         del manager.manifest_tree["dependencies"]["espressif/esp_lvgl_port"]
-        manager.manifest_tree["description"] = manager.manifest_tree["description"] + ' with no graphical library'
-        manager.dump()
-        return 0
     except KeyError:
         print("{}: could not remove esp_lvgl_port".format(bsp_name))
         return 1
+    try:
+        del manager.manifest_tree["dependencies"]["lvgl/lvgl"]
+    except KeyError:
+        print("{}: no lvgl dependency found".format(bsp_name))
+    manager.manifest_tree["description"] = manager.manifest_tree["description"] + ' with no graphical library'
+    manager.dump()
+    return 0
 
 
 def add_notice_to_readme(bsp_name):
