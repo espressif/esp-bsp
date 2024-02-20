@@ -1,4 +1,4 @@
-version: "0.1.0"
+version: "0.2.0"
 description: ESP LCD ILI9881C (MIPI DSI)
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_ili9881c
 dependencies:
