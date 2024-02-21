@@ -39,8 +39,11 @@ def get_dependencies_table(manifest):
     return table
 
 
-def check_bsp_readme(file: str) -> Any:
-    bsp_path = os.path.dirname(file)  # File can be idf_component.yml or README.md
+def check_bsp_readme(bsp: str) -> Any:
+    bsp_path = bsp
+    if not os.path.isdir(bsp):
+        # In case idf_component.yml or README.md is passed here (e.g. from pre-commit)
+        bsp_path = os.path.dirname(bsp)
     # Get list of dependencies of this BSP
     manager = ManifestManager(bsp_path, 'bsp')
     table = get_dependencies_table(manager.load())
@@ -72,16 +75,16 @@ def check_bsp_readme(file: str) -> Any:
     return 1
 
 
-def check_all_bsps():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('filenames', nargs='*', help='Filenames to check.')
-    args = parser.parse_args()
+def check_all_bsps(filenames):
     ret = 0
-    for f in args.filenames:
+    for f in filenames:
         ret += check_bsp_readme(f)
     return ret
 
 
 if __name__ == '__main__':
     os.environ["IDF_VERSION"] = "5.3.0"  # Let's assume IDF v5.3.0 for optional dependencies
-    sys.exit(check_all_bsps())
+    parser = argparse.ArgumentParser()
+    parser.add_argument('bsps', nargs='*', help='BSPs to check. Can be BSP path or a file in BSP.')
+    args = parser.parse_args()
+    sys.exit(check_all_bsps(args.bsps))

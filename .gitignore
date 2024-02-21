@@ -6,3 +6,4 @@ dependencies.lock
 .vscode
 doxygen_output/**
 dist
+__pycache__
