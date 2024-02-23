@@ -6,6 +6,7 @@
 
 - Divided into files per feature
 - Added support for LVGL9
+- Added support for MIPI-DSI display
 
 ## 1.4.0
 

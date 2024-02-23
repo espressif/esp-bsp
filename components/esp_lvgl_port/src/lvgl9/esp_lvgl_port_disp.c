@@ -10,6 +10,7 @@
 #include "esp_heap_caps.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
+#include "esp_lcd_mipi_dsi.h"
 #include "esp_lvgl_port.h"
 
 #if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(4, 4, 4)) || (ESP_IDF_VERSION == ESP_IDF_VERSION_VAL(5, 0, 0))
@@ -27,6 +28,7 @@ static const char *TAG = "LVGL";
 typedef struct {
     esp_lcd_panel_io_handle_t io_handle;      /* LCD panel IO handle */
     esp_lcd_panel_handle_t    panel_handle;   /* LCD panel handle */
+    esp_lcd_panel_handle_t    control_handle; /* LCD panel control handle */
     lvgl_port_rotation_cfg_t  rotation;       /* Default values of the screen rotation */
     lv_color16_t              *draw_buffs[2]; /* Display draw buffers */
     lv_display_t              *disp_drv;      /* LVGL display driver */
@@ -41,7 +43,8 @@ typedef struct {
 *******************************************************************************/
 
 #if LVGL_PORT_HANDLE_FLUSH_READY
-static bool lvgl_port_flush_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx);
+static bool lvgl_port_flush_io_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx);
+static bool lvgl_port_flush_panel_ready_callback(esp_lcd_panel_handle_t panel_io, esp_lcd_dpi_panel_event_data_t *edata, void *user_ctx);
 #endif
 static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, uint8_t *color_map);
 static void lvgl_port_disp_size_update_callback(lv_event_t *e);
@@ -68,6 +71,7 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     ESP_GOTO_ON_FALSE(disp_ctx, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for display context allocation!");
     disp_ctx->io_handle = disp_cfg->io_handle;
     disp_ctx->panel_handle = disp_cfg->panel_handle;
+    disp_ctx->control_handle = disp_cfg->control_handle;
     disp_ctx->rotation.swap_xy = disp_cfg->rotation.swap_xy;
     disp_ctx->rotation.mirror_x = disp_cfg->rotation.mirror_x;
     disp_ctx->rotation.mirror_y = disp_cfg->rotation.mirror_y;
@@ -118,11 +122,19 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     disp_ctx->disp_drv = disp;
 
 #if LVGL_PORT_HANDLE_FLUSH_READY
-    /* Register done callback */
-    const esp_lcd_panel_io_callbacks_t cbs = {
-        .on_color_trans_done = lvgl_port_flush_ready_callback,
-    };
-    esp_lcd_panel_io_register_event_callbacks(disp_ctx->io_handle, &cbs, disp_ctx->disp_drv);
+    if (disp_cfg->mipi_dsi) {
+        /* Register done callback (MIPI-DSI) */
+        const esp_lcd_dpi_panel_event_callbacks_t cbs = {
+            .on_color_trans_done = lvgl_port_flush_panel_ready_callback,
+        };
+        esp_lcd_dpi_panel_register_event_callbacks(disp_ctx->panel_handle, &cbs, disp_ctx->disp_drv);
+    } else {
+        /* Register done callback */
+        const esp_lcd_panel_io_callbacks_t cbs = {
+            .on_color_trans_done = lvgl_port_flush_io_ready_callback,
+        };
+        esp_lcd_panel_io_register_event_callbacks(disp_ctx->io_handle, &cbs, disp_ctx->disp_drv);
+    }
 #endif
 
     lvgl_port_unlock();
@@ -176,7 +188,14 @@ void lvgl_port_flush_ready(lv_display_t *disp)
 *******************************************************************************/
 
 #if LVGL_PORT_HANDLE_FLUSH_READY
-static bool lvgl_port_flush_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
+static bool lvgl_port_flush_io_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
+{
+    lv_display_t *disp_drv = (lv_display_t *)user_ctx;
+    assert(disp_drv != NULL);
+    lv_disp_flush_ready(disp_drv);
+    return false;
+}
+static bool lvgl_port_flush_panel_ready_callback(esp_lcd_panel_handle_t panel_io, esp_lcd_dpi_panel_event_data_t *edata, void *user_ctx)
 {
     lv_display_t *disp_drv = (lv_display_t *)user_ctx;
     assert(disp_drv != NULL);
@@ -256,36 +275,36 @@ static void lvgl_port_disp_size_update_callback(lv_event_t *e)
     assert(e);
     lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)e->user_data;
     assert(disp_ctx != NULL);
-    esp_lcd_panel_handle_t panel_handle = disp_ctx->panel_handle;
+    esp_lcd_panel_handle_t control_handle = (disp_ctx->control_handle ? disp_ctx->control_handle : disp_ctx->panel_handle);
 
     /* Solve rotation screen and touch */
     switch (lv_display_get_rotation(disp_ctx->disp_drv)) {
     case LV_DISPLAY_ROTATION_0:
         /* Rotate LCD display */
-        esp_lcd_panel_swap_xy(panel_handle, disp_ctx->rotation.swap_xy);
-        esp_lcd_panel_mirror(panel_handle, disp_ctx->rotation.mirror_x, disp_ctx->rotation.mirror_y);
+        esp_lcd_panel_swap_xy(control_handle, disp_ctx->rotation.swap_xy);
+        esp_lcd_panel_mirror(control_handle, disp_ctx->rotation.mirror_x, disp_ctx->rotation.mirror_y);
         break;
     case LV_DISPLAY_ROTATION_90:
         /* Rotate LCD display */
-        esp_lcd_panel_swap_xy(panel_handle, !disp_ctx->rotation.swap_xy);
+        esp_lcd_panel_swap_xy(control_handle, !disp_ctx->rotation.swap_xy);
         if (disp_ctx->rotation.swap_xy) {
-            esp_lcd_panel_mirror(panel_handle, !disp_ctx->rotation.mirror_x, disp_ctx->rotation.mirror_y);
+            esp_lcd_panel_mirror(control_handle, !disp_ctx->rotation.mirror_x, disp_ctx->rotation.mirror_y);
         } else {
-            esp_lcd_panel_mirror(panel_handle, disp_ctx->rotation.mirror_x, !disp_ctx->rotation.mirror_y);
+            esp_lcd_panel_mirror(control_handle, disp_ctx->rotation.mirror_x, !disp_ctx->rotation.mirror_y);
         }
         break;
     case LV_DISPLAY_ROTATION_180:
         /* Rotate LCD display */
-        esp_lcd_panel_swap_xy(panel_handle, disp_ctx->rotation.swap_xy);
-        esp_lcd_panel_mirror(panel_handle, !disp_ctx->rotation.mirror_x, !disp_ctx->rotation.mirror_y);
+        esp_lcd_panel_swap_xy(control_handle, disp_ctx->rotation.swap_xy);
+        esp_lcd_panel_mirror(control_handle, !disp_ctx->rotation.mirror_x, !disp_ctx->rotation.mirror_y);
         break;
     case LV_DISPLAY_ROTATION_270:
         /* Rotate LCD display */
-        esp_lcd_panel_swap_xy(panel_handle, !disp_ctx->rotation.swap_xy);
+        esp_lcd_panel_swap_xy(control_handle, !disp_ctx->rotation.swap_xy);
         if (disp_ctx->rotation.swap_xy) {
-            esp_lcd_panel_mirror(panel_handle, disp_ctx->rotation.mirror_x, !disp_ctx->rotation.mirror_y);
+            esp_lcd_panel_mirror(control_handle, disp_ctx->rotation.mirror_x, !disp_ctx->rotation.mirror_y);
         } else {
-            esp_lcd_panel_mirror(panel_handle, !disp_ctx->rotation.mirror_x, disp_ctx->rotation.mirror_y);
+            esp_lcd_panel_mirror(control_handle, !disp_ctx->rotation.mirror_x, disp_ctx->rotation.mirror_y);
         }
         break;
     }

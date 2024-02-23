@@ -39,12 +39,18 @@ typedef struct {
 typedef struct {
     esp_lcd_panel_io_handle_t io_handle;    /*!< LCD panel IO handle */
     esp_lcd_panel_handle_t panel_handle;    /*!< LCD panel handle */
+    esp_lcd_panel_handle_t control_handle;  /*!< LCD panel control handle */
+
     uint32_t    buffer_size;    /*!< Size of the buffer for the screen in pixels */
     bool        double_buffer;  /*!< True, if should be allocated two buffers */
     uint32_t    trans_size;     /*!< Allocated buffer will be in SRAM to move framebuf */
+
     uint32_t    hres;           /*!< LCD display horizontal resolution */
     uint32_t    vres;           /*!< LCD display vertical resolution */
+
     bool        monochrome;     /*!< True, if display is monochrome and using 1bit for 1px */
+    bool        mipi_dsi;       /*!< True, if display is MIPI-DSI */
+
     lvgl_port_rotation_cfg_t rotation;    /*!< Default values of the screen rotation */
 
     struct {

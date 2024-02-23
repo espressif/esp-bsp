@@ -60,6 +60,7 @@ Add an LCD screen to the LVGL. It can be called multiple times for adding multip
         .hres = DISP_WIDTH,
         .vres = DISP_HEIGHT,
         .monochrome = false,
+        .mipi_dsi = false,
         /* Rotation values must be same as used in esp_lcd for initial settings of the screen */
         .rotation = {
             .swap_xy = false,
