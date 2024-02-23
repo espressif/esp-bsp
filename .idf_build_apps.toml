@@ -5,6 +5,7 @@ manifest_file = ".build-test-rules.yml"
 check_warnings = true
 ignore_warning_file = ".ignore_build_warnings.txt"
 config = "sdkconfig.bsp.*"
+default_build_targets = ["esp32", "esp32s2", "esp32s3", "esp32c2", "esp32c3", "esp32c5", "esp32c6", "esp32h2", "esp32p4"]
 
 # build related options
 build_dir = "build_@w"

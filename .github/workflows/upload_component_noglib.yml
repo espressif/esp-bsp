@@ -16,14 +16,15 @@ jobs:
       - name: Upload noglib version of BSPs
         # TODO: Extend this part to all BSPs
         env:
-          BSPs: "bsp/esp32_s3_eye"
+          BSPs: "bsp/esp32_s3_eye bsp/esp32_p4_function_ev_board"
         run: |
           pip install idf-component-manager py-markdown-table --upgrade
           python .github/ci/bsp_noglib.py ${BSPs}
       - uses: espressif/upload-components-ci-action@v1
         with:
           directories: >
-            bsp/esp32_s3_eye_noglib
+            bsp/esp32_s3_eye_noglib;
+            bsp/esp32_p4_function_ev_board_noglib;
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
           dry_run: ${{ github.ref_name != 'master' || github.repository_owner != 'espressif' }}
