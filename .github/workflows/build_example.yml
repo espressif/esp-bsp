@@ -35,9 +35,12 @@ jobs:
           submodules: 'recursive'
       - name: Build ESP-BSP examples
         shell: bash
+        env:
+          extra_arguments: "${{ matrix.idf_ver == 'latest' && '--default-build-targets esp32 esp32s2 esp32s3 esp32c2 esp32c3 esp32c5 esp32c6 esp32h2 esp32p4' || '' }}"
         run: |
           export IDF_EXTRA_ACTIONS_PATH=${GITHUB_WORKSPACE}/examples
           . ${IDF_PATH}/export.sh
           pip install idf-component-manager ruamel.yaml idf-build-apps --upgrade
-          idf-build-apps find
-          idf-build-apps build --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }}
+          echo idf-build-apps extra arguments: ${{ env.extra_arguments }}
+          idf-build-apps find ${{ env.extra_arguments }}
+          idf-build-apps build --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }} ${{ env.extra_arguments }}
