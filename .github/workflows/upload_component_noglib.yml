@@ -29,3 +29,4 @@ jobs:
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
           dry_run: ${{ github.ref_name != 'master' || github.repository_owner != 'espressif' }}
+          commit_sha: ''

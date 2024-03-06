@@ -15,7 +15,6 @@ dependencies:
   lvgl/lvgl: "^8"
 
   espressif/esp_lvgl_port:
-    version: fix/lvgl_port_9
+    version: "^2"
     public: true
-    path: "components/esp_lvgl_port/"
-    git: https://github.com/espressif/esp-bsp.git
+    override_path: "../../components/esp_lvgl_port"

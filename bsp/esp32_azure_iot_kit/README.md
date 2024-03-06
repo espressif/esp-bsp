@@ -18,7 +18,7 @@ Please refer to specific README.md files in in examples folder.
 |----------------------------------------------------------------------------------------------|----------|
 |       [espressif/bh1750](https://components.espressif.com/components/espressif/bh1750)       |  ^1.0.0  |
 |       [espressif/button](https://components.espressif.com/components/espressif/button)       |>=2.5,<4.0|
-|[espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)|    ^1    |
+|[espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)|    ^2    |
 |       [espressif/fbm320](https://components.espressif.com/components/espressif/fbm320)       |  ^1.0.0  |
 |       [espressif/hts221](https://components.espressif.com/components/espressif/hts221)       |  ^1.1.1  |
 |      [espressif/mag3110](https://components.espressif.com/components/espressif/mag3110)      |  ^1.0.0  |
