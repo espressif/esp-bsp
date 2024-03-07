@@ -1,10 +1,13 @@
 
 version: "3.0.5"
-description: Board Support Package for ESP-BOX
+description: Board Support Package (BSP) for ESP-BOX
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box
 
 targets:
   - esp32s3
+
+tags:
+  - bsp
 
 dependencies:
   idf: ">=4.4.5"

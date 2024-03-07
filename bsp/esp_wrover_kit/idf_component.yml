@@ -1,9 +1,12 @@
 version: "1.5.1"
-description: Board Support Package for ESP-WROVER-KIT
+description: Board Support Package (BSP) for ESP-WROVER-KIT
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp_wrover_kit
 
 targets:
     - esp32
+
+tags:
+   - bsp
 
 dependencies:
   idf: ">=4.4.5"

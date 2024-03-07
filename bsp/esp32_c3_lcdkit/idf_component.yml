@@ -1,9 +1,12 @@
 version: "1.0.1"
-description: Board Support Package for esp32_c3_lcdkit
+description: Board Support Package (BSP) for esp32_c3_lcdkit
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_c3_lcdkit
 
 targets:
   - esp32c3
+
+tags:
+  - bsp  
 
 dependencies:
   idf: ">=5.0.0"
