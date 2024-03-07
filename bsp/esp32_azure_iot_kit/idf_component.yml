@@ -1,9 +1,12 @@
 version: "2.0.1"
-description: Board Support Package for ESP32-Azure-IoT-Kit
+description: Board Support Package (BSP) for ESP32-Azure-IoT-Kit
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_azure_iot_kit
 
 targets:
     - esp32
+
+tags:
+   - bsp
 
 dependencies:
   idf: ">=4.4.5"

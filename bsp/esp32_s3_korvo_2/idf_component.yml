@@ -1,9 +1,12 @@
 version: "2.1.2"
-description: Board Support Package for ESP32-S3-Korvo-2
+description: Board Support Package (BSP) for ESP32-S3-Korvo-2
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_korvo_2
 
 targets:
   - esp32s3
+
+tags:
+  - bsp  
 
 dependencies:
   idf: ">=4.4.5"

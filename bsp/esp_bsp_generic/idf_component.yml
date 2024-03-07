@@ -1,7 +1,10 @@
 
 version: "1.1.2"
-description: Generig Board Support Package
+description: Generic Board Support Package (BSP)
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp_bsp_generic
+
+tags:
+  - bsp
 
 dependencies:
   idf: ">=4.4.2"
