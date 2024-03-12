@@ -345,6 +345,7 @@ static void play_file(void *arg)
         .sample_rate = wav_header.sample_rate,
         .channel = wav_header.num_channels,
         .bits_per_sample = wav_header.bits_per_sample,
+        .mclk_multiple = I2S_MCLK_MULTIPLE_384,
     };
     esp_codec_dev_open(spk_codec_dev, &fs);
 
@@ -793,6 +794,7 @@ static void rec_file(void *arg)
         .sample_rate = SAMPLE_RATE,
         .channel = 1,
         .bits_per_sample = 16,
+        .mclk_multiple = I2S_MCLK_MULTIPLE_384,
     };
     esp_codec_dev_open(mic_codec_dev, &fs);
 
