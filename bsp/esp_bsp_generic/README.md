@@ -228,7 +228,7 @@ Example code:
 | [espressif/esp_lcd_touch_gt1151](https://components.espressif.com/components/espressif/esp_lcd_touch_gt1151) |    ^1    |
 |  [espressif/esp_lcd_touch_gt911](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911)  |    ^1    |
 |[espressif/esp_lcd_touch_tt21100](https://components.espressif.com/components/espressif/esp_lcd_touch_tt21100)|    ^1    |
-|        [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)        |    ^1    |
+|        [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)        |    ^2    |
 |        [espressif/led_indicator](https://components.espressif.com/components/espressif/led_indicator)        |   ^0.9   |
 |                                                      idf                                                     |  >=4.4.2 |
 |                      [lvgl/lvgl](https://components.espressif.com/components/lvgl/lvgl)                      |    ^8    |

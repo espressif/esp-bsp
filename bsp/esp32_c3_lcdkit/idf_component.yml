@@ -14,7 +14,8 @@ dependencies:
 
   espressif/esp_lvgl_port:
     public: true
-    version: ^1
+    version: "^2"
+    override_path: "../../components/esp_lvgl_port"
 
   led_strip:
     version: "^2"

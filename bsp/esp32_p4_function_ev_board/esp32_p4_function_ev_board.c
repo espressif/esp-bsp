@@ -29,6 +29,7 @@ static const char *TAG = "ESP32_P4_EV";
 static lv_indev_t *disp_indev = NULL;
 #endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
+sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
 static bool i2c_initialized = false;
 static TaskHandle_t usb_host_task;  // USB Host Library task
@@ -72,10 +73,11 @@ esp_err_t bsp_sdcard_mount(void)
         .format_if_mount_failed = false,
 #endif
         .max_files = 5,
-        .allocation_unit_size = 16 * 1024
+        .allocation_unit_size = 64 * 1024
     };
 
-    const sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
     const sdmmc_slot_config_t slot_config = {
         .clk = BSP_SD_CLK,
         .cmd = BSP_SD_CMD,

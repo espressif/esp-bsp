@@ -12,6 +12,24 @@ This component helps with using LVGL with Espressif's LCD and touch drivers. It 
 * Add/remove touch input (using [`esp_lcd_touch`](https://github.com/espressif/esp-bsp/tree/master/components/lcd_touch))
 * Add/remove navigation buttons input (using [`button`](https://github.com/espressif/esp-iot-solution/tree/master/components/button))
 * Add/remove encoder input (using [`knob`](https://github.com/espressif/esp-iot-solution/tree/master/components/knob))
+* Add/remove USB HID mouse/keyboard input (using [`usb_host_hid`](https://components.espressif.com/components/espressif/usb_host_hid))
+
+## LVGL Version
+
+> [!WARNING]
+> LVGL9 is not stable and it not recommended to use it.
+
+This component supports **LVGL8** and **LVGL9**. By default, it selects the latest LVGL version. If you want to use a specific version (e.g. latest LVGL8), you can easily put into `idf_component.yml` in your project like this:
+
+```
+  lvgl/lvgl:
+    version: "^8"
+    public: true
+```
+
+### LVGL Version Compatibility
+
+This component is fully compatible with LVGL version 9. All types and functions are used from LVGL9. Some LVGL9 types are not supported in LVGL8 and there are retyping in [`esp_lvgl_port_compatibility.h`](include/esp_lvgl_port_compatibility.h) header file. **Please, be aware, that some draw and object functions are not compatible between LVGL8 and LVGL9.**
 
 ## Usage
 
@@ -45,6 +63,7 @@ Add an LCD screen to the LVGL. It can be called multiple times for adding multip
         .hres = DISP_WIDTH,
         .vres = DISP_HEIGHT,
         .monochrome = false,
+        .mipi_dsi = false,
         /* Rotation values must be same as used in esp_lcd for initial settings of the screen */
         .rotation = {
             .swap_xy = false,
@@ -53,6 +72,7 @@ Add an LCD screen to the LVGL. It can be called multiple times for adding multip
         },
         .flags = {
             .buff_dma = true,
+            .swap_bytes = false,
         }
     };
     disp_handle = lvgl_port_add_disp(&disp_cfg);
@@ -219,6 +239,7 @@ Every LVGL calls must be protected with these lock/unlock commands:
 ```
 
 ### Rotating screen
+
 LVGL port supports rotation of the display. You can select whether you'd like software rotation or hardware rotation.
 Software rotation requires no additional logic in your `flush_cb` callback.
 
@@ -233,6 +254,7 @@ Rotation mode can be selected in the `lvgl_port_display_cfg_t` structure.
     }
 ```
 Display rotation can be changed at runtime.
+
 ``` c
     lv_disp_set_rotation(disp_handle, LV_DISP_ROT_90);
 ```
@@ -258,3 +280,13 @@ If the SRAM is insufficient, you can use the PSRAM as a canvas and use a small t
 ## Performance
 
 Key feature of every graphical application is performance. Recommended settings for improving LCD performance is described in a separate document [here](docs/performance.md).
+
+### Performance monitor
+
+For show performance monitor in LVGL9, please add these lines to sdkconfig.defaults and rebuild all.
+
+```
+CONFIG_LV_USE_OBSERVER=y
+CONFIG_LV_USE_SYSMON=y
+CONFIG_LV_USE_PERF_MONITOR=y
+```

@@ -13,8 +13,9 @@ dependencies:
   lvgl/lvgl: "^8"
 
   espressif/esp_lvgl_port:
-    version: "^1"
+    version: "^2"
     public: true
+    override_path: "../../components/esp_lvgl_port"
 
   button:
     version: ">=2.5,<4.0"

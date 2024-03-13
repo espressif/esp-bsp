@@ -28,7 +28,7 @@ Please refer to README.md in examples folder.
 |       [espressif/button](https://components.espressif.com/components/espressif/button)       |>=2.5,<4.0|
 | [espressif/esp32-camera](https://components.espressif.com/components/espressif/esp32-camera) |  ^2.0.2  |
 |[espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)|  ^1.0.3  |
-|[espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)|    ^1    |
+|[espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)|    ^2    |
 |    [espressif/led_strip](https://components.espressif.com/components/espressif/led_strip)    |   ^2.5   |
 |                                              idf                                             |  >=4.4.5 |
 |              [lvgl/lvgl](https://components.espressif.com/components/lvgl/lvgl)              |    ^8    |

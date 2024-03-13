@@ -13,8 +13,9 @@ dependencies:
   lvgl/lvgl: "^8"
 
   espressif/esp_lvgl_port:
-    version: "^1"
+    version: "^2"
     public: true
+    override_path: "../../components/esp_lvgl_port"
 
   esp32-camera:
     version: "^2.0.2"
