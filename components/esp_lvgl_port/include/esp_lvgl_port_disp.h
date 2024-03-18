@@ -45,11 +45,15 @@ typedef struct {
     bool        double_buffer;  /*!< True, if should be allocated two buffers */
     uint32_t    trans_size;     /*!< Allocated buffer will be in SRAM to move framebuf */
 
+    void *user_buf1;    /*!< OPTIONAL: A buffer to be used by LVGL to draw the image */
+    void *user_buf2;    /*!< OPTIONAL: Optionally specify a second buffer to render and flush */
+
     uint32_t    hres;           /*!< LCD display horizontal resolution */
     uint32_t    vres;           /*!< LCD display vertical resolution */
 
     bool        monochrome;     /*!< True, if display is monochrome and using 1bit for 1px */
     bool        mipi_dsi;       /*!< True, if display is MIPI-DSI */
+    bool        RGB;            /*!< True, if display is RGB */
 
     lvgl_port_rotation_cfg_t rotation;    /*!< Default values of the screen rotation */
 
@@ -58,6 +62,10 @@ typedef struct {
         unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
         unsigned int sw_rotate: 1;   /*!< Use software rotation (slower) */
         unsigned int swap_bytes: 1;  /*!< Swap bytes in RGB656 (16-bit) before send to LCD driver */
+
+        unsigned int full_refresh: 1;   /*!< 1: Always make the whole screen redrawn */
+        unsigned int direct_mode: 1;    /*!< 1: Use screen-sized buffers and draw to absolute coordinates */
+        unsigned int bb_mode: 1;        /*!< 1: The driver allocates two DRAM bounce buffers for DMA use, it's much faster */
     } flags;
 } lvgl_port_display_cfg_t;
 

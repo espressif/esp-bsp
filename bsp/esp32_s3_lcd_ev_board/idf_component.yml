@@ -24,7 +24,7 @@ dependencies:
     public: true
 
   lvgl/lvgl:
-    version: "^8"
+    version: ">8"
     public: true
 
   esp_lcd_panel_io_additions:
@@ -45,6 +45,11 @@ dependencies:
 
   button:
     version: ">=2.5,<4.0"
+    public: true
+
+  esp_lvgl_port:
+    version: "^2"
+    override_path: '../../components/esp_lvgl_port'
     public: true
 
 examples:

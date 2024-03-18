@@ -18,6 +18,9 @@
 #if (CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
 #include "esp_lcd_mipi_dsi.h"
 #endif
+#if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#include "esp_lcd_panel_rgb.h"
+#endif
 
 #if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(4, 4, 4)) || (ESP_IDF_VERSION == ESP_IDF_VERSION_VAL(5, 0, 0))
 #define LVGL_PORT_HANDLE_FLUSH_READY 0
@@ -50,6 +53,9 @@ typedef struct {
 static bool lvgl_port_flush_io_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx);
 #if (CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
 static bool lvgl_port_flush_panel_ready_callback(esp_lcd_panel_handle_t panel_io, esp_lcd_dpi_panel_event_data_t *edata, void *user_ctx);
+#endif
+#if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+static bool lvgl_port_flush_vsync_ready_callback(esp_lcd_panel_handle_t panel_io, const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx);
 #endif
 #endif
 static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map);
@@ -86,32 +92,37 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     disp_ctx->rotation.mirror_y = disp_cfg->rotation.mirror_y;
     disp_ctx->trans_size = disp_cfg->trans_size;
 
-    uint32_t buff_caps = MALLOC_CAP_DEFAULT;
-    if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram && (0 == disp_cfg->trans_size)) {
-        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "Alloc DMA capable buffer in SPIRAM is not supported!");
-    } else if (disp_cfg->flags.buff_dma) {
-        buff_caps = MALLOC_CAP_DMA;
-    } else if (disp_cfg->flags.buff_spiram) {
-        buff_caps = MALLOC_CAP_SPIRAM;
-    }
+    if (disp_cfg->user_buf1 || disp_cfg->user_buf2) {
+        buf1 = disp_cfg->user_buf1;
+        buf2 = disp_cfg->user_buf2;
+    } else {
+        uint32_t buff_caps = MALLOC_CAP_DEFAULT;
+        if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram && (0 == disp_cfg->trans_size)) {
+            ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "Alloc DMA capable buffer in SPIRAM is not supported!");
+        } else if (disp_cfg->flags.buff_dma) {
+            buff_caps = MALLOC_CAP_DMA;
+        } else if (disp_cfg->flags.buff_spiram) {
+            buff_caps = MALLOC_CAP_SPIRAM;
+        }
 
-    if (disp_cfg->trans_size) {
-        buf3 = heap_caps_malloc(disp_cfg->trans_size * sizeof(lv_color_t), MALLOC_CAP_DMA);
-        ESP_GOTO_ON_FALSE(buf3, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for buffer(transport) allocation!");
-        disp_ctx->trans_buf = buf3;
+        if (disp_cfg->trans_size) {
+            buf3 = heap_caps_malloc(disp_cfg->trans_size * sizeof(lv_color_t), MALLOC_CAP_DMA);
+            ESP_GOTO_ON_FALSE(buf3, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for buffer(transport) allocation!");
+            disp_ctx->trans_buf = buf3;
 
-        trans_sem = xSemaphoreCreateCounting(1, 0);
-        ESP_GOTO_ON_FALSE(trans_sem, ESP_ERR_NO_MEM, err, TAG, "Failed to create transport counting Semaphore");
-        disp_ctx->trans_sem = trans_sem;
-    }
+            trans_sem = xSemaphoreCreateCounting(1, 0);
+            ESP_GOTO_ON_FALSE(trans_sem, ESP_ERR_NO_MEM, err, TAG, "Failed to create transport counting Semaphore");
+            disp_ctx->trans_sem = trans_sem;
+        }
 
-    /* alloc draw buffers used by LVGL */
-    /* it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized */
-    buf1 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color_t), buff_caps);
-    ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
-    if (disp_cfg->double_buffer) {
-        buf2 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color_t), buff_caps);
-        ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
+        /* alloc draw buffers used by LVGL */
+        /* it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized */
+        buf1 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color_t), buff_caps);
+        ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
+        if (disp_cfg->double_buffer) {
+            buf2 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color_t), buff_caps);
+            ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
+        }
     }
     lv_disp_draw_buf_t *disp_buf = malloc(sizeof(lv_disp_draw_buf_t));
     ESP_GOTO_ON_FALSE(disp_buf, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL display buffer allocation!");
@@ -123,6 +134,8 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     lv_disp_drv_init(&disp_ctx->disp_drv);
     disp_ctx->disp_drv.hor_res = disp_cfg->hres;
     disp_ctx->disp_drv.ver_res = disp_cfg->vres;
+    disp_ctx->disp_drv.full_refresh = disp_cfg->flags.full_refresh;
+    disp_ctx->disp_drv.direct_mode = disp_cfg->flags.direct_mode;
     disp_ctx->disp_drv.flush_cb = lvgl_port_flush_callback;
     disp_ctx->disp_drv.draw_buf = disp_buf;
     disp_ctx->disp_drv.user_data = disp_ctx;
@@ -142,6 +155,27 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
         esp_lcd_dpi_panel_register_event_callbacks(disp_ctx->panel_handle, &cbs, &disp_ctx->disp_drv);
 #else
         ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "MIPI-DSI is supported only on ESP32P4 and from IDF 5.3!");
+#endif
+    } else if (disp_cfg->RGB) {
+#if (CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+        /* Register done callback */
+        const esp_lcd_rgb_panel_event_callbacks_t vsync_cbs = {
+            .on_vsync = lvgl_port_flush_vsync_ready_callback,
+        };
+
+        const esp_lcd_rgb_panel_event_callbacks_t bb_cbs = {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 2)
+            .on_bounce_frame_finish = lvgl_port_flush_vsync_ready_callback,
+#endif
+        };
+
+        if (disp_cfg->flags.bb_mode && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 2))) {
+            ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &bb_cbs, &disp_ctx->disp_drv));
+        } else {
+            ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &vsync_cbs, &disp_ctx->disp_drv));
+        }
+#else
+        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "RGB is supported only on ESP32S3 and from IDF 5.0!");
 #endif
     } else {
         /* Register done callback */
@@ -260,6 +294,19 @@ static bool lvgl_port_flush_panel_ready_callback(esp_lcd_panel_handle_t panel_io
     return false;
 }
 #endif
+#if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+static bool lvgl_port_flush_vsync_ready_callback(esp_lcd_panel_handle_t panel_io, const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx)
+{
+    BaseType_t need_yield = pdFALSE;
+
+    lv_disp_drv_t *disp_drv = (lv_disp_drv_t *)user_ctx;
+    assert(disp_drv != NULL);
+    // lvgl_port_display_ctx_t *disp_ctx = disp_drv->user_data;
+    lv_disp_flush_ready(disp_drv);
+
+    return (need_yield == pdTRUE);
+}
+#endif
 #endif
 
 static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
@@ -291,7 +338,13 @@ static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, 
     lv_color_t *to = NULL;
 
     if (0 == disp_ctx->trans_size) {
-        esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, x_start, y_start, x_end + 1, y_end + 1, color_map);
+        if ((0 == drv->direct_mode) && (0 == drv->full_refresh)) {
+            if (lv_disp_flush_is_last(drv)) {
+                esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, x_start, y_start, x_end + 1, y_end + 1, color_map);
+            }
+        } else {
+            esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, x_start, y_start, x_end + 1, y_end + 1, color_map);
+        }
     } else {
         y_start_tmp = y_start;
         max_line = ((disp_ctx->trans_size / width) > height) ? (height) : (disp_ctx->trans_size / width);

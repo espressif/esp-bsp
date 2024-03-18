@@ -22,6 +22,7 @@
 #include "iot_button.h"
 #include "lvgl.h"
 #include "bsp/display.h"
+#include "esp_lvgl_port.h"
 
 #include "sdkconfig.h"
 
@@ -98,6 +99,7 @@ extern "C" {
  */
 typedef struct {
     void *dummy;    /*!< Prepared for future use. */
+    lvgl_port_cfg_t lvgl_port_cfg;
 } bsp_display_cfg_t;
 
 /**************************************************************************************************
@@ -379,7 +381,7 @@ void bsp_display_unlock(void);
  * @param[in] disp:     Pointer to LVGL display
  * @param[in] rotation: Angle of the display rotation
  */
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
+// void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
 
 /**
  * @brief Get display horizontal resolution

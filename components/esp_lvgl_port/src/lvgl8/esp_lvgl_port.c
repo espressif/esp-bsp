@@ -165,7 +165,7 @@ static void lvgl_port_task(void *arg)
     lvgl_port_task_deinit();
 
     /* Close task */
-    vTaskDelete( NULL );
+    vTaskDelete(NULL);
 }
 
 static void lvgl_port_task_deinit(void)
