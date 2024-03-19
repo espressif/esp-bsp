@@ -2,9 +2,11 @@
 
 [![Component Registry](https://components.espressif.com/components/espressif/esp_bsp_generic/badge.svg)](https://components.espressif.com/components/espressif/esp_bsp_generic)
 
+### Overview
+
 This is a generic BSP, which is configurable from `menuconfig`. The generic BSP can provide consistent API for simple boards, such as Espressif's DevKits. Predefined settings for selected DevKits are in [generic_button_led](examples/generic_button_led).
 
-Supported features:
+**Supported features:**
 - I2C
 - SPIFFS
 - SD card
