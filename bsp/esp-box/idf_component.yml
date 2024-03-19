@@ -12,7 +12,8 @@ tags:
 dependencies:
   idf: ">=4.4.5"
   esp_lcd_touch_tt21100: "^1"
-  lvgl/lvgl: "^8"
+  lvgl/lvgl: "^9"
+  # lvgl/lvgl: "^8"
 
   espressif/esp_lvgl_port:
     version: "^2"

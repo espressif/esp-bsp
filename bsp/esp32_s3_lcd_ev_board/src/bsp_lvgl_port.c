@@ -57,6 +57,9 @@ lv_disp_t *bsp_display_lcd_init()
 
         .RGB = true,
         .flags = {
+#if CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_MODE
+            .bb_mode = 1,
+#endif
 #if CONFIG_BSP_DISPLAY_LVGL_FULL_REFRESH
             .full_refresh = 1,
 #elif CONFIG_BSP_DISPLAY_LVGL_DIRECT_MODE

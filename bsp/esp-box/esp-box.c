@@ -349,6 +349,9 @@ static lv_disp_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
         .flags = {
             .buff_dma = cfg->flags.buff_dma,
             .buff_spiram = cfg->flags.buff_spiram,
+#if LVGL_VERSION_MAJOR == 9
+            .swap_bytes = true,
+#endif
         }
     };
 
@@ -433,10 +436,13 @@ lv_indev_t *bsp_display_get_input_dev(void)
     return disp_indev;
 }
 
+#if LVGL_VERSION_MAJOR == 8
 void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);
 }
+#endif
+
 
 bool bsp_display_lock(uint32_t timeout_ms)
 {

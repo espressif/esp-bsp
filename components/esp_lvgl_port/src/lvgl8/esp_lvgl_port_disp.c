@@ -43,6 +43,10 @@ typedef struct {
     lv_color_t                *trans_buf;   /* Buffer send to driver */
     uint32_t                  trans_size;   /* Maximum size for one transport */
     SemaphoreHandle_t         trans_sem;    /* Idle transfer mutex */
+
+    struct {
+        unsigned int flush_byself: 1;
+    } flags;
 } lvgl_port_display_ctx_t;
 
 /*******************************************************************************
@@ -84,6 +88,7 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     /* Display context */
     lvgl_port_display_ctx_t *disp_ctx = malloc(sizeof(lvgl_port_display_ctx_t));
     ESP_GOTO_ON_FALSE(disp_ctx, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for display context allocation!");
+    memset(disp_ctx, 0, sizeof(lvgl_port_display_ctx_t));
     disp_ctx->io_handle = disp_cfg->io_handle;
     disp_ctx->panel_handle = disp_cfg->panel_handle;
     disp_ctx->control_handle = disp_cfg->control_handle;
@@ -134,8 +139,6 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     lv_disp_drv_init(&disp_ctx->disp_drv);
     disp_ctx->disp_drv.hor_res = disp_cfg->hres;
     disp_ctx->disp_drv.ver_res = disp_cfg->vres;
-    disp_ctx->disp_drv.full_refresh = disp_cfg->flags.full_refresh;
-    disp_ctx->disp_drv.direct_mode = disp_cfg->flags.direct_mode;
     disp_ctx->disp_drv.flush_cb = lvgl_port_flush_callback;
     disp_ctx->disp_drv.draw_buf = disp_buf;
     disp_ctx->disp_drv.user_data = disp_ctx;
@@ -157,6 +160,7 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
         ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "MIPI-DSI is supported only on ESP32P4 and from IDF 5.3!");
 #endif
     } else if (disp_cfg->RGB) {
+        disp_ctx->flags.flush_byself = true;
 #if (CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
         /* Register done callback */
         const esp_lcd_rgb_panel_event_callbacks_t vsync_cbs = {
@@ -193,6 +197,16 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
 
         disp_ctx->disp_drv.full_refresh = 1;
         disp_ctx->disp_drv.set_px_cb = lvgl_port_pix_monochrome_callback;
+    } else if (disp_cfg->flags.direct_mode) {
+        /* When using direct_mode, there must be used full bufer! */
+        ESP_GOTO_ON_FALSE((disp_cfg->hres * disp_cfg->vres == disp_cfg->buffer_size), ESP_ERR_INVALID_ARG, err, TAG, "Direct_mode must using full buffer!");
+
+        disp_ctx->disp_drv.direct_mode = 1;
+    } else if (disp_cfg->flags.full_refresh) {
+        /* When using full_refresh, there must be used full bufer! */
+        ESP_GOTO_ON_FALSE((disp_cfg->hres * disp_cfg->vres == disp_cfg->buffer_size), ESP_ERR_INVALID_ARG, err, TAG, "Full_fresh must using full buffer!");
+
+        disp_ctx->disp_drv.full_refresh = 1;
     }
 
     disp = lv_disp_drv_register(&disp_ctx->disp_drv);
@@ -299,10 +313,9 @@ static bool lvgl_port_flush_vsync_ready_callback(esp_lcd_panel_handle_t panel_io
 {
     BaseType_t need_yield = pdFALSE;
 
-    lv_disp_drv_t *disp_drv = (lv_disp_drv_t *)user_ctx;
+    lv_display_t *disp_drv = (lv_display_t *)user_ctx;
     assert(disp_drv != NULL);
-    // lvgl_port_display_ctx_t *disp_ctx = disp_drv->user_data;
-    lv_disp_flush_ready(disp_drv);
+    need_yield = lvgl_port_task_notify();
 
     return (need_yield == pdTRUE);
 }
@@ -337,13 +350,23 @@ static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, 
     lv_color_t *from = color_map;
     lv_color_t *to = NULL;
 
+    // ESP_LOGI(TAG, "draw[%d] %p, [%d:%d, %d:%d]", lv_disp_flush_is_last(drv), color_map, x_start, y_start, x_end, y_end);
+
     if (0 == disp_ctx->trans_size) {
-        if ((0 == drv->direct_mode) && (0 == drv->full_refresh)) {
+        if (drv->direct_mode || drv->full_refresh) {
             if (lv_disp_flush_is_last(drv)) {
+                /* If the interface is I80 or SPI, this step cannot be used for drawing. */
                 esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, x_start, y_start, x_end + 1, y_end + 1, color_map);
+                /* Waiting for the last frame buffer to complete transmission */
+                ulTaskNotifyValueClear(NULL, ULONG_MAX);
+                ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
             }
         } else {
             esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, x_start, y_start, x_end + 1, y_end + 1, color_map);
+        }
+
+        if (disp_ctx->flags.flush_byself) {
+            lv_disp_flush_ready(drv);
         }
     } else {
         y_start_tmp = y_start;
