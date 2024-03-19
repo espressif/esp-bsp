@@ -31,6 +31,13 @@ repos:
         additional_dependencies:
           - idf_component_manager==1.4.2
           - py-markdown-table
+      - id: bsp-capabilities-readme
+        name: Update BSP README with capabilities section
+        entry: .github/ci/update_readme_capabilities.py
+        language: python
+        files: 'bsp\/.*\/include\/.*\.h|bsp\/.*README\.md' # All *.h and README.md files in bsp directory
+        additional_dependencies:
+          - py-markdown-table
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.3.0
