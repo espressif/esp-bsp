@@ -6,14 +6,13 @@ body:
     attributes:
       value: |
         * We welcome any ideas or feature requests! It is helpful if you can explain exactly why the feature would be useful.
-        * There are usually some outstanding feature requests in the [existing issues list](https://github.com/espressif/arduino-esp32/issues?q=is%3Aopen+is%3Aissue+label%3A%22Type%3A+Feature+request%22), feel free to add comments to them.
-        * If you would like to contribute, please read the [contributions guide](https://docs.espressif.com/projects/arduino-esp32/en/latest/contributing.html).
+        * There are usually some outstanding feature requests in the [Existing issues list](https://github.com/espressif/esp-bsp/issues?q=is%3Aopen+is%3Aissue+label%3A%22Type%3A+Feature+request%22), feel free to add comments to them.
   - type: input
     id: Area
     attributes:
       label: Related area
       description: Please briefly explain the area of your Feature Request.
-      placeholder: eg. Board support, specific Peripheral, BT, Wifi...
+      placeholder: eg. Display, peripheral, etc.
     validations:
       required: true
   - type: input
