@@ -10,7 +10,6 @@ ESP32-S3-BOX comes with 16MB of QSPI flash and 8MB of Octal PSRAM. ESP32-S3-BOX 
 
 ESP32-S3-BOX also uses a Type-C USB connector that provides 5 V of power input, while also supporting serial and JTAG debugging, as well as a programming interface; all through the same connector.
 
-
 * [Hardware Reference](https://github.com/espressif/esp-box/tree/master/hardware)
 
 ![image](pic.png)
