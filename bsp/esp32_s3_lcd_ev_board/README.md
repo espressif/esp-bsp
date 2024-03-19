@@ -2,19 +2,24 @@
 
 [![Component Registry](https://components.espressif.com/components/espressif/esp32_s3_lcd_ev_board/badge.svg)](https://components.espressif.com/components/espressif/esp32_s3_lcd_ev_board)
 
-* [User Guide](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-lcd-ev-board/user_guide.html)
+### Overview
+
+ESP32-S3-LCD-EV-Board is a development board for evaluating and verifying ESP32-S3 screen interactive applications. It has the functions of touch screen interaction and voice interaction.
+
+* [Hardware reference](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-lcd-ev-board/user_guide.html)
 
 <div align=center><img src="https://docs.espressif.com/projects/esp-dev-kits/zh_CN/latest/_images/ESP32-S3-LCD-EV-Board_480x480.png" width=600/></div>
 
 <div align=center><img src="https://docs.espressif.com/projects/esp-dev-kits/zh_CN/latest/_images/ESP32-S3-LCD-EV-Board_800x480.png" width=600/></div>
 
-ESP32-S3-LCD-EV-Board is a development board for evaluating and verifying ESP32-S3 screen interactive applications. It has the functions of touch screen interaction and voice interaction. The development board has the following characteristics:
-
+**The development board has the following characteristics:**
 * Onboard ESP32-S3-WROOM-1 module, with built-in 16 MB Flash + 8/16 MB PSRAM
 * Onboard audio codec + audio amplifier
 * Onboard dual microphone pickup
 * USB type-C interface download and debugging
 * It can be used with different screen sub boards, and supports `RGB`, `8080`, `SPI`, `I2C` interface screens, as below:
+
+
 
 |         Board Name         | Screen Size (inch) | Resolution | LCD Driver IC (Interface) | Touch Driver IC |                                                                            Schematic                                                                            | Support |
 | -------------------------- | ------------------ | ---------- | ------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
