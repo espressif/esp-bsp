@@ -78,6 +78,4 @@ body:
       description: You agree to check all the resources above before opening a new issue.
       options:
         - label: I confirm I have checked existing issues, online documentation and Troubleshooting guide.
-    validations:
-       required: true
           required: true
