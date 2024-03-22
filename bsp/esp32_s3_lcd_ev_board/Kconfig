@@ -87,27 +87,11 @@ menu "Board Support Package"
                 bool "Auto refresh mode"
                 help
                     Refresh the LCD in the most common way.
-            config BSP_LCD_RGB_REFRESH_MANUALLY
-                bool "Manually refresh mode"
-                help
-                    Refresh the LCD in a specific task instead of automatically refreshing.
             config BSP_LCD_RGB_BOUNCE_BUFFER_MODE
                 bool "Bounce buffer mode"
                 help
                     Enable bounce buffer mode can achieve higher PCLK frequency at the cost of higher CPU consumption.
         endchoice
-
-        config BSP_LCD_RGB_REFRESH_TASK_PERIOD
-            int "Minimum Period(ms) of LCD refreshing task"
-            depends on BSP_LCD_RGB_REFRESH_MANUALLY
-            default 10
-            help
-               This configuration does not necessarily represent the actual refresh cycle of the RGB interface.
-
-        config BSP_LCD_RGB_REFRESH_TASK_PRIORITY
-            int "Priority of LCD refreshing task"
-            depends on BSP_LCD_RGB_REFRESH_MANUALLY
-            default 2
 
         config BSP_LCD_RGB_BOUNCE_BUFFER_HEIGHT
             depends on BSP_LCD_RGB_BOUNCE_BUFFER_MODE
@@ -118,39 +102,6 @@ menu "Board Support Package"
     endmenu
 
     menu "Display"
-        config BSP_DISPLAY_LVGL_TASK_PRIORITY
-            int "LVGL task priority"
-            default 2
-            help
-                The Board Support Package will create a task that will periodically handle LVGL operation in lv_timer_handler().
-
-        config BSP_DISPLAY_LVGL_TASK_CORE_ID
-            int "LVGL task pinned core ID"
-            default -1
-            range -1 1
-            help
-                Core to pin LVGL task. -1 means no pinning.
-
-        config BSP_DISPLAY_LVGL_TASK_DELAY
-            int "LVGL task minimum delay time (ms)"
-            default 10
-            range 1 100
-            help
-                Minimum delay time for LVGL task. It should be larger if the task watchdog is triggered frequently.
-
-        config BSP_DISPLAY_LVGL_TASK_STACK_SIZE_KB
-            int "LVGL task stack size (KB)"
-            default 4
-            help
-                Size(KB) of LVGL task stack.
-
-        config BSP_DISPLAY_LVGL_TICK
-            int "LVGL tick period"
-            default 5
-            range 1 100
-            help
-                Period of LVGL tick timer.
-
         config BSP_DISPLAY_LVGL_AVOID_TEAR
             bool "Avoid tearing effect"
             depends on BSP_LCD_RGB_BUFFER_NUMS > 1
@@ -167,30 +118,6 @@ menu "Board Support Package"
             config BSP_DISPLAY_LVGL_DIRECT_MODE
                 bool "Direct mode"
         endchoice
-
-        choice BSP_DISPLAY_LVGL_ROTATION
-            depends on BSP_DISPLAY_LVGL_AVOID_TEAR
-            depends on BSP_LCD_RGB_BUFFER_NUMS = 3
-            prompt "Select rotation"
-            default BSP_DISPLAY_LVGL_ROTATION_NONE
-            config BSP_DISPLAY_LVGL_ROTATION_NONE
-                bool "Rotation 0"
-            config BSP_DISPLAY_LVGL_ROTATION_90
-                bool "Rotation 90"
-            config BSP_DISPLAY_LVGL_ROTATION_180
-                bool "Rotation 180"
-            config BSP_DISPLAY_LVGL_ROTATION_270
-                bool "Rotation 270"
-            help
-                Rotate screen when avoid tearing effect is enabled. Need to set BSP_LCD_RGB_BUFFER_NUMS to 3.
-        endchoice
-
-        config BSP_DISPLAY_LVGL_ROTATION_DEGREE
-            int
-            default 0 if BSP_DISPLAY_LVGL_ROTATION_NONE
-            default 1 if BSP_DISPLAY_LVGL_ROTATION_90
-            default 2 if BSP_DISPLAY_LVGL_ROTATION_180
-            default 3 if BSP_DISPLAY_LVGL_ROTATION_270
 
         choice BSP_DISPLAY_LVGL_BUF_CAPS
             depends on !BSP_DISPLAY_LVGL_AVOID_TEAR

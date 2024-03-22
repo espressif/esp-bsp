@@ -33,6 +33,7 @@ typedef struct lvgl_port_ctx_s {
 * Local variables
 *******************************************************************************/
 static lvgl_port_ctx_t lvgl_port_ctx;
+static TaskHandle_t lvgl_port_task_handle;
 
 /*******************************************************************************
 * Function definitions
@@ -68,9 +69,9 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
 
     BaseType_t res;
     if (cfg->task_affinity < 0) {
-        res = xTaskCreate(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, NULL);
+        res = xTaskCreate(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, &lvgl_port_task_handle);
     } else {
-        res = xTaskCreatePinnedToCore(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, NULL, cfg->task_affinity);
+        res = xTaskCreatePinnedToCore(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, &lvgl_port_task_handle, cfg->task_affinity);
     }
     ESP_GOTO_ON_FALSE(res == pdPASS, ESP_FAIL, err, TAG, "Create LVGL task fail!");
 
@@ -139,6 +140,15 @@ void lvgl_port_unlock(void)
     xSemaphoreGiveRecursive(lvgl_port_ctx.lvgl_mux);
 }
 
+IRAM_ATTR bool lvgl_port_task_notify(void)
+{
+    BaseType_t need_yield = pdFALSE;
+
+    // Notify that the current RGB frame buffer has been transmitted
+    xTaskNotifyFromISR(lvgl_port_task_handle, ULONG_MAX, eNoAction, &need_yield);
+
+    return (need_yield == pdTRUE);
+}
 /*******************************************************************************
 * Private functions
 *******************************************************************************/
@@ -165,7 +175,7 @@ static void lvgl_port_task(void *arg)
     lvgl_port_task_deinit();
 
     /* Close task */
-    vTaskDelete( NULL );
+    vTaskDelete(NULL);
 }
 
 static void lvgl_port_task_deinit(void)

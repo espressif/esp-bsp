@@ -358,10 +358,10 @@ static void lvgl_port_usb_hid_task(void *arg)
                         .callback_arg = ctx
                     };
 
-                    ESP_ERROR_CHECK( hid_host_device_open(hid_device_handle, &dev_config) );
-                    ESP_ERROR_CHECK( hid_class_request_set_idle(hid_device_handle, 0, 0) );
-                    ESP_ERROR_CHECK( hid_class_request_set_protocol(hid_device_handle, HID_REPORT_PROTOCOL_BOOT) );
-                    ESP_ERROR_CHECK( hid_host_device_start(hid_device_handle) );
+                    ESP_ERROR_CHECK(hid_host_device_open(hid_device_handle, &dev_config));
+                    ESP_ERROR_CHECK(hid_class_request_set_idle(hid_device_handle, 0, 0));
+                    ESP_ERROR_CHECK(hid_class_request_set_protocol(hid_device_handle, HID_REPORT_PROTOCOL_BOOT));
+                    ESP_ERROR_CHECK(hid_host_device_start(hid_device_handle));
                 }
                 break;
             default:

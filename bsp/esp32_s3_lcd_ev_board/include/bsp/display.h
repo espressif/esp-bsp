@@ -32,12 +32,6 @@ typedef struct {
 } bsp_display_config_t;
 
 /**
- * @brief LCD transmit done callback function type
- *
- */
-typedef bool (*bsp_display_trans_done_cb_t)(esp_lcd_panel_handle_t handle);
-
-/**
  * @brief Create new display panel
  *
  * For maximum flexibility, this function performs only reset and initialization of the display.
@@ -61,17 +55,6 @@ typedef bool (*bsp_display_trans_done_cb_t)(esp_lcd_panel_handle_t handle);
  *      - Else           esp_lcd failure
  */
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io);
-
-/**
- * @brief Register a callback function which will be called when finish refreshing
- *
- * @param[in] callback The function to be registered. It should return true if need to yield, otherwise return false
- *
- * @return
- *      - ESP_OK               Success
- *      - ESP_ERR_INVALID_ARG  Callback function should be placed in IRAM, use `IRAM_ATTR` to define it
- */
-esp_err_t bsp_display_register_trans_done_callback(bsp_display_trans_done_cb_t callback);
 
 /**
  * @brief Set display's brightness (Useless, just for compatibility)

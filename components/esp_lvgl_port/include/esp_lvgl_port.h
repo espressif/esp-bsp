@@ -120,6 +120,8 @@ esp_err_t lvgl_port_stop(void);
  */
 esp_err_t lvgl_port_resume(void);
 
+bool lvgl_port_task_notify(void);
+
 #ifdef __cplusplus
 }
 #endif
