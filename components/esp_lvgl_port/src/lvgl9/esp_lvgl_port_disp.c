@@ -74,7 +74,6 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     lv_color16_t *buf1 = NULL;
     lv_color16_t *buf2 = NULL;
     assert(disp_cfg != NULL);
-    assert(disp_cfg->io_handle != NULL);
     assert(disp_cfg->panel_handle != NULL);
     assert(disp_cfg->buffer_size > 0);
     assert(disp_cfg->hres > 0);
@@ -192,6 +191,7 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
         const esp_lcd_panel_io_callbacks_t cbs = {
             .on_color_trans_done = lvgl_port_flush_io_ready_callback,
         };
+        assert(disp_ctx->io_handle != NULL);
         esp_lcd_panel_io_register_event_callbacks(disp_ctx->io_handle, &cbs, disp_ctx->disp_drv);
     }
 #endif

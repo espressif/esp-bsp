@@ -79,7 +79,6 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     lv_color_t *buf3 = NULL;
     SemaphoreHandle_t trans_sem = NULL;
     assert(disp_cfg != NULL);
-    assert(disp_cfg->io_handle != NULL);
     assert(disp_cfg->panel_handle != NULL);
     assert(disp_cfg->buffer_size > 0);
     assert(disp_cfg->hres > 0);
@@ -186,6 +185,7 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
         const esp_lcd_panel_io_callbacks_t cbs = {
             .on_color_trans_done = lvgl_port_flush_io_ready_callback,
         };
+        assert(disp_ctx->io_handle != NULL);
         esp_lcd_panel_io_register_event_callbacks(disp_ctx->io_handle, &cbs, &disp_ctx->disp_drv);
     }
 #endif
@@ -349,8 +349,6 @@ static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, 
 
     lv_color_t *from = color_map;
     lv_color_t *to = NULL;
-
-    // ESP_LOGI(TAG, "draw[%d] %p, [%d:%d, %d:%d]", lv_disp_flush_is_last(drv), color_map, x_start, y_start, x_end, y_end);
 
     if (0 == disp_ctx->trans_size) {
         if (drv->direct_mode || drv->full_refresh) {

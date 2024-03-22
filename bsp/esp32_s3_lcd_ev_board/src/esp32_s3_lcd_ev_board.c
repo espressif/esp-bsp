@@ -340,7 +340,6 @@ lv_disp_t *bsp_display_start(void)
     bsp_display_cfg_t cfg = {
         .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG()
     };
-    cfg.lvgl_port_cfg.task_stack = CONFIG_BSP_DISPLAY_LVGL_TASK_STACK_SIZE_KB * 1024;
 
     return bsp_display_start_with_config(&cfg);
 }
@@ -376,16 +375,6 @@ esp_err_t bsp_display_backlight_on(void)
 {
     return bsp_display_brightness_set(100);
 }
-
-// void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
-// {
-// #if CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR
-//     ESP_LOGE(TAG, "Unable to rotate the display using the `bsp_display_rotate()` function when the anti-tearing function is enabled. Please use the `BSP_DISPLAY_LVGL_ROTATION` configuration instead.");
-// #else
-//     // lv_disp_set_rotation(disp, rotation);
-//     ESP_LOGE(TAG, "Not support now!");
-// #endif
-// }
 
 bool bsp_display_lock(uint32_t timeout_ms)
 {

@@ -102,39 +102,6 @@ menu "Board Support Package"
     endmenu
 
     menu "Display"
-        config BSP_DISPLAY_LVGL_TASK_PRIORITY
-            int "LVGL task priority"
-            default 2
-            help
-                The Board Support Package will create a task that will periodically handle LVGL operation in lv_timer_handler().
-
-        config BSP_DISPLAY_LVGL_TASK_CORE_ID
-            int "LVGL task pinned core ID"
-            default -1
-            range -1 1
-            help
-                Core to pin LVGL task. -1 means no pinning.
-
-        config BSP_DISPLAY_LVGL_TASK_DELAY
-            int "LVGL task minimum delay time (ms)"
-            default 10
-            range 1 100
-            help
-                Minimum delay time for LVGL task. It should be larger if the task watchdog is triggered frequently.
-
-        config BSP_DISPLAY_LVGL_TASK_STACK_SIZE_KB
-            int "LVGL task stack size (KB)"
-            default 4
-            help
-                Size(KB) of LVGL task stack.
-
-        config BSP_DISPLAY_LVGL_TICK
-            int "LVGL tick period"
-            default 5
-            range 1 100
-            help
-                Period of LVGL tick timer.
-
         config BSP_DISPLAY_LVGL_AVOID_TEAR
             bool "Avoid tearing effect"
             depends on BSP_LCD_RGB_BUFFER_NUMS > 1
