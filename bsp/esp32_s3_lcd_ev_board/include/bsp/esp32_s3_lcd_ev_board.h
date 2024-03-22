@@ -372,6 +372,17 @@ bool bsp_display_lock(uint32_t timeout_ms);
 void bsp_display_unlock(void);
 
 /**
+ * @brief Rotate screen
+ *
+ * @note  Display must be already initialized by calling `bsp_display_start()`
+ * @note  This function can't work with the anti-tearing function. Please use the `BSP_DISPLAY_LVGL_ROTATION` configuration instead.
+ *
+ * @param[in] disp:     Pointer to LVGL display
+ * @param[in] rotation: Angle of the display rotation
+ */
+void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
+
+/**
  * @brief Get display horizontal resolution
  *
  * @note  This function should be called after calling `bsp_display_new()` or `bsp_display_start()`

@@ -23,7 +23,6 @@
 #include "bsp/esp32_s3_lcd_ev_board.h"
 #include "bsp/touch.h"
 #include "bsp_err_check.h"
-#include "bsp_lvgl_port.h"
 #include "bsp_probe.h"
 
 #include "esp_lvgl_port.h"
@@ -316,6 +315,59 @@ esp_err_t bsp_audio_poweramp_enable(bool enable)
     return ESP_OK;
 }
 
+static lv_disp_t *bsp_display_lcd_init()
+{
+    esp_lcd_panel_io_handle_t io_handle = NULL;
+    esp_lcd_panel_handle_t panel_handle = NULL;           // LCD panel handle
+
+    bsp_display_config_t disp_config = { 0 };
+
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&disp_config, &panel_handle, &io_handle));
+
+    // alloc draw buffers used by LVGL
+    void *buf1 = NULL;
+    void *buf2 = NULL;
+    int buffer_size = 0;
+
+    ESP_LOGD(TAG, "Malloc memory for LVGL buffer");
+#ifndef CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR
+    // Normmaly, for RGB LCD, we just use one buffer for LVGL rendering
+    buffer_size = BSP_LCD_H_RES * LVGL_BUFFER_HEIGHT;
+    buf1 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), LVGL_BUFFER_MALLOC);
+    BSP_NULL_CHECK(buf1, NULL);
+    ESP_LOGI(TAG, "LVGL buffer size: %dKB", buffer_size * sizeof(lv_color_t) / 1024);
+#else
+    // To avoid the tearing effect, we should use at least two frame buffers: one for LVGL rendering and another for RGB output
+    buffer_size = BSP_LCD_H_RES * BSP_LCD_V_RES;
+    BSP_ERROR_CHECK_RETURN_NULL(esp_lcd_rgb_panel_get_frame_buffer(panel_handle, 2, &buf1, &buf2));
+#endif /* CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR */
+
+    const lvgl_port_display_cfg_t disp_cfg = {
+        .io_handle = io_handle,
+        .panel_handle = panel_handle,
+        .buffer_size = buffer_size,
+        .user_buf1 = buf1,
+        .user_buf2 = buf2,
+
+        .hres = BSP_LCD_H_RES,
+        .vres = BSP_LCD_V_RES,
+
+        .RGB = true,
+        .flags = {
+#if CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_MODE
+            .bb_mode = 1,
+#endif
+#if CONFIG_BSP_DISPLAY_LVGL_FULL_REFRESH
+            .full_refresh = 1,
+#elif CONFIG_BSP_DISPLAY_LVGL_DIRECT_MODE
+            .direct_mode = 1,
+#endif
+        }
+    };
+
+    return lvgl_port_add_disp(&disp_cfg);
+}
+
 static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
 {
     BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(NULL, &tp));
@@ -374,6 +426,11 @@ esp_err_t bsp_display_backlight_off(void)
 esp_err_t bsp_display_backlight_on(void)
 {
     return bsp_display_brightness_set(100);
+}
+
+void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
+{
+    ESP_LOGE(TAG, "Unable to rotate the display.");
 }
 
 bool bsp_display_lock(uint32_t timeout_ms)
