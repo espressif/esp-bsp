@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -35,45 +35,12 @@
 #endif
 
 static const char *TAG = "bsp_sub_board";
-static bsp_display_trans_done_cb_t trans_done = NULL;
-#if CONFIG_BSP_LCD_RGB_REFRESH_MANUALLY
-static TaskHandle_t lcd_task_handle = NULL;
-#endif
 
 /**************************************************************************************************
  *
  * Display Panel Function
  *
  **************************************************************************************************/
-IRAM_ATTR static bool rgb_lcd_on_vsync_event(esp_lcd_panel_handle_t panel, const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx)
-{
-    BaseType_t need_yield = pdFALSE;
-#if CONFIG_BSP_LCD_RGB_REFRESH_MANUALLY
-    xTaskNotifyFromISR(lcd_task_handle, ULONG_MAX, eNoAction, &need_yield);
-#endif
-    if (trans_done) {
-        if (trans_done(panel)) {
-            need_yield = pdTRUE;
-        }
-    }
-
-    return (need_yield == pdTRUE);
-}
-
-#if CONFIG_BSP_LCD_RGB_REFRESH_MANUALLY
-static void lcd_task(void *arg)
-{
-    ESP_LOGI(TAG, "Starting LCD refresh task");
-
-    TickType_t tick;
-    for (;;) {
-        esp_lcd_rgb_panel_refresh((esp_lcd_panel_handle_t)arg);
-        tick = xTaskGetTickCount();
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        vTaskDelayUntil(&tick, pdMS_TO_TICKS(CONFIG_BSP_LCD_RGB_REFRESH_TASK_PERIOD));
-    }
-}
-#endif
 
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
 {
@@ -165,9 +132,6 @@ drift, please enable `ESP32S3_DATA_CACHE_LINE_32B` instead");
             },
             .timings = SUB_BOARD2_480_480_PANEL_60HZ_RGB_TIMING(),
             .flags.fb_in_psram = 1,
-#if CONFIG_BSP_LCD_RGB_REFRESH_MANUALLY
-            .flags.refresh_on_demand = 1,
-#endif
             .num_fbs = CONFIG_BSP_LCD_RGB_BUFFER_NUMS,
 #if CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_MODE
             .bounce_buffer_size_px = BSP_LCD_SUB_BOARD_2_H_RES * CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_HEIGHT,
@@ -196,14 +160,6 @@ drift, please enable `ESP32S3_DATA_CACHE_LINE_32B` instead");
 #else
         BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_new_panel_gc9503(io_handle, &rgb_conf, &panel_handle));
 #endif
-        esp_lcd_rgb_panel_event_callbacks_t cbs = {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 2) && CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_MODE
-            .on_bounce_frame_finish = rgb_lcd_on_vsync_event,
-#else
-            .on_vsync = rgb_lcd_on_vsync_event,
-#endif
-        };
-        esp_lcd_rgb_panel_register_event_callbacks(panel_handle, &cbs, NULL);
         break;
     }
     case SUB_BOARD_TYPE_3_800_480: {
@@ -238,9 +194,6 @@ drift, please enable `ESP32S3_DATA_CACHE_LINE_32B` instead");
             },
             .timings = SUB_BOARD3_800_480_PANEL_35HZ_RGB_TIMING(),
             .flags.fb_in_psram = 1,
-#if CONFIG_BSP_LCD_RGB_REFRESH_MANUALLY
-            .flags.refresh_on_demand = 1,
-#endif
             .num_fbs = CONFIG_BSP_LCD_RGB_BUFFER_NUMS,
 #if CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_MODE
             .bounce_buffer_size_px = BSP_LCD_SUB_BOARD_3_H_RES * CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_HEIGHT,
@@ -252,14 +205,6 @@ drift, please enable `ESP32S3_DATA_CACHE_LINE_32B` instead");
             panel_conf.data_gpio_nums[7] = BSP_LCD_SUB_BOARD_2_3_DATA7_R16;
         }
         BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_new_rgb_panel(&panel_conf, &panel_handle));
-        esp_lcd_rgb_panel_event_callbacks_t cbs = {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 2) && CONFIG_BSP_LCD_RGB_BOUNCE_BUFFER_MODE
-            .on_bounce_frame_finish = rgb_lcd_on_vsync_event,
-#else
-            .on_vsync = rgb_lcd_on_vsync_event,
-#endif
-        };
-        esp_lcd_rgb_panel_register_event_callbacks(panel_handle, &cbs, NULL);
         break;
     }
     default:
@@ -267,33 +212,12 @@ drift, please enable `ESP32S3_DATA_CACHE_LINE_32B` instead");
     }
     BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_panel_init(panel_handle));
 
-#if CONFIG_BSP_LCD_RGB_REFRESH_MANUALLY
-    ESP_LOGI(TAG, "Create LCD task");
-    BaseType_t ret = xTaskCreate(lcd_task, "LCD", 2048, panel_handle, CONFIG_BSP_LCD_RGB_REFRESH_TASK_PRIORITY, &lcd_task_handle);
-    if (ret != pdPASS) {
-        ESP_LOGE(TAG, "Failed to create LCD task");
-        return ESP_FAIL;
-    }
-#endif
-
     if (ret_panel) {
         *ret_panel = panel_handle;
     }
     if (ret_io) {
         *ret_io = io_handle;
     }
-
-    return ESP_OK;
-}
-
-esp_err_t bsp_display_register_trans_done_callback(bsp_display_trans_done_cb_t callback)
-{
-#if CONFIG_LCD_RGB_ISR_IRAM_SAFE
-    if (callback) {
-        ESP_RETURN_ON_FALSE(esp_ptr_in_iram(callback), ESP_ERR_INVALID_ARG, TAG, "Callback not in IRAM");
-    }
-#endif
-    trans_done = callback;
 
     return ESP_OK;
 }

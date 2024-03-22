@@ -22,6 +22,7 @@
 #include "iot_button.h"
 #include "lvgl.h"
 #include "bsp/display.h"
+#include "esp_lvgl_port.h"
 
 #include "sdkconfig.h"
 
@@ -98,6 +99,7 @@ extern "C" {
  */
 typedef struct {
     void *dummy;    /*!< Prepared for future use. */
+    lvgl_port_cfg_t lvgl_port_cfg;
 } bsp_display_cfg_t;
 
 /**************************************************************************************************
@@ -309,7 +311,6 @@ esp_err_t bsp_audio_poweramp_enable(bool enable);
 #define BSP_LCD_V_RES   bsp_display_get_v_res()
 
 /* LVGL related parameters */
-#define LVGL_TICK_PERIOD_MS         (CONFIG_BSP_DISPLAY_LVGL_TICK)
 #define LVGL_BUFFER_HEIGHT          (CONFIG_BSP_DISPLAY_LVGL_BUF_HEIGHT)
 #if CONFIG_BSP_DISPLAY_LVGL_PSRAM
 #define LVGL_BUFFER_MALLOC          (MALLOC_CAP_SPIRAM)
@@ -369,17 +370,6 @@ bool bsp_display_lock(uint32_t timeout_ms);
  *
  */
 void bsp_display_unlock(void);
-
-/**
- * @brief Rotate screen
- *
- * @note  Display must be already initialized by calling `bsp_display_start()`
- * @note  This function can't work with the anti-tearing function. Please use the `BSP_DISPLAY_LVGL_ROTATION` configuration instead.
- *
- * @param[in] disp:     Pointer to LVGL display
- * @param[in] rotation: Angle of the display rotation
- */
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
 
 /**
  * @brief Get display horizontal resolution

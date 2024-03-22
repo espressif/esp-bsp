@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -25,6 +25,8 @@
 #include "bsp_err_check.h"
 #include "bsp_lvgl_port.h"
 #include "bsp_probe.h"
+
+#include "esp_lvgl_port.h"
 
 #define BSP_ES7210_CODEC_ADDR   (0x82)
 
@@ -58,8 +60,11 @@ static const audio_codec_data_if_t *i2s_data_if = NULL;  /* Codec data interface
 static i2s_chan_handle_t i2s_tx_chan = NULL;
 static i2s_chan_handle_t i2s_rx_chan = NULL;
 static esp_io_expander_handle_t io_expander = NULL; // IO expander tca9554 handle
-static lv_indev_t *disp_indev = NULL;
 static adc_oneshot_unit_handle_t bsp_adc_handle = NULL;
+
+static lv_disp_t *disp;
+static lv_indev_t *disp_indev = NULL;
+static esp_lcd_touch_handle_t tp;   // LCD touch handle
 
 static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
@@ -311,6 +316,20 @@ esp_err_t bsp_audio_poweramp_enable(bool enable)
     return ESP_OK;
 }
 
+static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
+{
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(NULL, &tp));
+    assert(tp);
+
+    /* Add touch input (for selected screen) */
+    const lvgl_port_touch_cfg_t touch_cfg = {
+        .disp = disp,
+        .handle = tp,
+    };
+
+    return lvgl_port_add_touch(&touch_cfg);
+}
+
 /**********************************************************************************************************
  *
  * Display Function
@@ -318,20 +337,20 @@ esp_err_t bsp_audio_poweramp_enable(bool enable)
  **********************************************************************************************************/
 lv_disp_t *bsp_display_start(void)
 {
-    return bsp_display_start_with_config(NULL);
+    bsp_display_cfg_t cfg = {
+        .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG()
+    };
+
+    return bsp_display_start_with_config(&cfg);
 }
 
 lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
 {
-    (void)cfg;
-    bsp_display_config_t disp_config = { 0 };
-    esp_lcd_panel_handle_t lcd = NULL;           // LCD panel handle
-    esp_lcd_touch_handle_t tp = NULL;            // LCD touch panel handle
-    lv_disp_t *disp = NULL;
+    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg)); /* lvgl task, tick etc*/
 
-    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&disp_config, &lcd, NULL));
-    BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(NULL, &tp));
-    BSP_ERROR_CHECK_RETURN_NULL(bsp_lvgl_port_init(lcd, tp, &disp, &disp_indev));
+    BSP_NULL_CHECK(disp = bsp_display_lcd_init(), NULL);
+
+    BSP_NULL_CHECK(disp_indev = bsp_display_indev_init(disp), NULL);
 
     return disp;
 }
@@ -357,23 +376,14 @@ esp_err_t bsp_display_backlight_on(void)
     return bsp_display_brightness_set(100);
 }
 
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
-{
-#if CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR
-    ESP_LOGE(TAG, "Unable to rotate the display using the `bsp_display_rotate()` function when the anti-tearing function is enabled. Please use the `BSP_DISPLAY_LVGL_ROTATION` configuration instead.");
-#else
-    lv_disp_set_rotation(disp, rotation);
-#endif
-}
-
 bool bsp_display_lock(uint32_t timeout_ms)
 {
-    return bsp_lvgl_port_lock(timeout_ms);
+    return lvgl_port_lock(timeout_ms);
 }
 
 void bsp_display_unlock(void)
 {
-    bsp_lvgl_port_unlock();
+    lvgl_port_unlock();
 }
 
 /**************************************************************************************************
