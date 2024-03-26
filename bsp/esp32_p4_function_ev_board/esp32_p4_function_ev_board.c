@@ -12,7 +12,7 @@
 #include "esp_spiffs.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_mipi_dsi.h"
-#include "esp_private/esp_ldo.h"
+#include "esp_ldo_regulator.h"
 #include "esp_lcd_ili9881c.h"
 #include "esp_vfs_fat.h"
 #include "usb/usb_host.h"
@@ -192,20 +192,16 @@ esp_err_t bsp_display_backlight_on(void)
 
 static esp_err_t bsp_enable_dsi_phy_power(void)
 {
+#if BSP_MIPI_DSI_PHY_PWR_LDO_CHAN > 0
     // Turn on the power for MIPI DSI PHY, so it can go from "No Power" state to "Shutdown" state
-    esp_ldo_unit_handle_t phy_pwr_unit = NULL;
-#if BSP_MIPI_DSI_PHY_PWR_LDO_UNIT > 0
-    esp_ldo_unit_init_cfg_t ldo_cfg = {
-        .unit_id = BSP_MIPI_DSI_PHY_PWR_LDO_UNIT,
-        .cfg = {
-            .voltage_mv = BSP_MIPI_DSI_PHY_PWR_LDO_VOLTAGE_MV,
-        },
+    static esp_ldo_unit_handle_t phy_pwr_chan = NULL;
+    esp_ldo_channel_config_t ldo_cfg = {
+        .chan_id = BSP_MIPI_DSI_PHY_PWR_LDO_CHAN,
+        .voltage_mv = BSP_MIPI_DSI_PHY_PWR_LDO_VOLTAGE_MV,
     };
-    ESP_RETURN_ON_ERROR(esp_ldo_init_unit(&ldo_cfg, &phy_pwr_unit), TAG, "LDO init failed");
-    ESP_RETURN_ON_ERROR(esp_ldo_enable_unit(phy_pwr_unit), TAG, "LDO enable failed");
-
+    ESP_RETURN_ON_ERROR(esp_ldo_acquire_channel(&ldo_cfg, &phy_pwr_chan), TAG, "Acquire LDO channel for DPHY failed");
     ESP_LOGI(TAG, "MIPI DSI PHY Powered on");
-#endif
+#endif // BSP_MIPI_DSI_PHY_PWR_LDO_CHAN > 0
 
     return ESP_OK;
 }
