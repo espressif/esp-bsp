@@ -53,6 +53,7 @@ static bool lvgl_port_flush_panel_ready_callback(esp_lcd_panel_handle_t panel_io
 #endif
 static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, uint8_t *color_map);
 static void lvgl_port_disp_size_update_callback(lv_event_t *e);
+static void lvgl_port_disp_rotation_update(lvgl_port_display_ctx_t *disp_ctx);
 
 /*******************************************************************************
 * Public API functions
@@ -145,6 +146,9 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
         esp_lcd_panel_io_register_event_callbacks(disp_ctx->io_handle, &cbs, disp_ctx->disp_drv);
     }
 #endif
+
+    /* Apply rotation from initial display configuration */
+    lvgl_port_disp_rotation_update(disp_ctx);
 
     lvgl_port_unlock();
 
@@ -281,10 +285,8 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
     esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
 }
 
-static void lvgl_port_disp_size_update_callback(lv_event_t *e)
+static void lvgl_port_disp_rotation_update(lvgl_port_display_ctx_t *disp_ctx)
 {
-    assert(e);
-    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)e->user_data;
     assert(disp_ctx != NULL);
     esp_lcd_panel_handle_t control_handle = (disp_ctx->control_handle ? disp_ctx->control_handle : disp_ctx->panel_handle);
 
@@ -319,4 +321,11 @@ static void lvgl_port_disp_size_update_callback(lv_event_t *e)
         }
         break;
     }
+}
+
+static void lvgl_port_disp_size_update_callback(lv_event_t *e)
+{
+    assert(e);
+    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)e->user_data;
+    lvgl_port_disp_rotation_update(disp_ctx);
 }

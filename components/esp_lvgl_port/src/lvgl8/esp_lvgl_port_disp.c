@@ -163,6 +163,9 @@ lv_disp_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
 
     disp = lv_disp_drv_register(&disp_ctx->disp_drv);
 
+    /* Apply rotation from initial display configuration */
+    lvgl_port_update_callback(&disp_ctx->disp_drv);
+
 err:
     if (ret != ESP_OK) {
         if (buf1) {
