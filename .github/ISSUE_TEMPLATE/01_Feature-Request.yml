@@ -12,7 +12,7 @@ body:
     attributes:
       label: Related area
       description: Please briefly explain the area of your Feature Request.
-      placeholder: eg. Display, peripheral, etc.
+      placeholder: eg. Component, BSP package, Driver ,Display, peripheral, etc.
     validations:
       required: true
   - type: input
