@@ -12,7 +12,7 @@ dependencies:
   idf: ">=5.3"
   esp_lcd_ili9881c: ">=0.2.0"
   esp_lcd_touch_gt911: "^1"
-  lvgl/lvgl: "^8"
+  lvgl/lvgl: ">=8,<10"
 
   espressif/esp_lvgl_port:
     version: "^2"
