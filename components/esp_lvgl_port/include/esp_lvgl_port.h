@@ -72,6 +72,7 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg);
  *
  * @return
  *      - ESP_OK                    on success
+ *      - ESP_ERR_TIMEOUT           when stopping the LVGL task times out
  */
 esp_err_t lvgl_port_deinit(void);
 

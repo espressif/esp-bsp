@@ -17,12 +17,15 @@
 
 static const char *TAG = "LVGL";
 
+#define ESP_LVGL_PORT_TASK_MUX_DELAY_MS    10000
+
 /*******************************************************************************
 * Types definitions
 *******************************************************************************/
 
 typedef struct lvgl_port_ctx_s {
     SemaphoreHandle_t   lvgl_mux;
+    SemaphoreHandle_t   task_mux;
     esp_timer_handle_t  tick_timer;
     bool                running;
     int                 task_max_sleep_ms;
@@ -63,8 +66,12 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
     if (lvgl_port_ctx.task_max_sleep_ms == 0) {
         lvgl_port_ctx.task_max_sleep_ms = 500;
     }
+    /* LVGL semaphore */
     lvgl_port_ctx.lvgl_mux = xSemaphoreCreateRecursiveMutex();
     ESP_GOTO_ON_FALSE(lvgl_port_ctx.lvgl_mux, ESP_ERR_NO_MEM, err, TAG, "Create LVGL mutex fail!");
+    /* Task semaphore */
+    lvgl_port_ctx.task_mux = xSemaphoreCreateMutex();
+    ESP_GOTO_ON_FALSE(lvgl_port_ctx.task_mux, ESP_ERR_NO_MEM, err, TAG, "Create LVGL task sem fail!");
 
     BaseType_t res;
     if (cfg->task_affinity < 0) {
@@ -118,9 +125,16 @@ esp_err_t lvgl_port_deinit(void)
     /* Stop running task */
     if (lvgl_port_ctx.running) {
         lvgl_port_ctx.running = false;
-    } else {
-        lvgl_port_task_deinit();
     }
+
+    /* Wait for stop task */
+    if (xSemaphoreTake(lvgl_port_ctx.task_mux, pdMS_TO_TICKS(ESP_LVGL_PORT_TASK_MUX_DELAY_MS)) != pdTRUE) {
+        ESP_LOGE(TAG, "Failed to stop LVGL task");
+        return ESP_ERR_TIMEOUT;
+    }
+    ESP_LOGI(TAG, "Stopped LVGL task");
+
+    lvgl_port_task_deinit();
 
     return ESP_OK;
 }
@@ -147,6 +161,13 @@ static void lvgl_port_task(void *arg)
 {
     uint32_t task_delay_ms = lvgl_port_ctx.task_max_sleep_ms;
 
+    /* Take the task semaphore */
+    if (xSemaphoreTake(lvgl_port_ctx.task_mux, 0) != pdTRUE) {
+        ESP_LOGE(TAG, "Failed to take LVGL task sem");
+        lvgl_port_task_deinit();
+        vTaskDelete( NULL );
+    }
+
     ESP_LOGI(TAG, "Starting LVGL task");
     lvgl_port_ctx.running = true;
     while (lvgl_port_ctx.running) {
@@ -162,7 +183,8 @@ static void lvgl_port_task(void *arg)
         vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
     }
 
-    lvgl_port_task_deinit();
+    /* Give semaphore back */
+    xSemaphoreGive(lvgl_port_ctx.task_mux);
 
     /* Close task */
     vTaskDelete( NULL );
@@ -172,6 +194,9 @@ static void lvgl_port_task_deinit(void)
 {
     if (lvgl_port_ctx.lvgl_mux) {
         vSemaphoreDelete(lvgl_port_ctx.lvgl_mux);
+    }
+    if (lvgl_port_ctx.task_mux) {
+        vSemaphoreDelete(lvgl_port_ctx.task_mux);
     }
     memset(&lvgl_port_ctx, 0, sizeof(lvgl_port_ctx));
 #if LV_ENABLE_GC || !LV_MEM_CUSTOM
