@@ -6,6 +6,7 @@
 - Added unit test
 - Allow to sleep main LVGL task
 - Wake LVGL task from touch and display, when set big maximum sleep
+- Allow to select display color mode (only with LVGL9)
 
 ### Fixes
 - Apply display rotation from configuration

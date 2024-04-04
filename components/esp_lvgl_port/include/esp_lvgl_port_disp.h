@@ -51,13 +51,17 @@ typedef struct {
     bool        monochrome;     /*!< True, if display is monochrome and using 1bit for 1px */
     bool        mipi_dsi;       /*!< True, if display is MIPI-DSI */
 
-    lvgl_port_rotation_cfg_t rotation;    /*!< Default values of the screen rotation */
-
+    lvgl_port_rotation_cfg_t rotation;      /*!< Default values of the screen rotation */
+#if LVGL_VERSION_MAJOR >= 9
+    lv_color_format_t        color_format;  /*!< The color format of the display */
+#endif
     struct {
         unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
         unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
         unsigned int sw_rotate: 1;   /*!< Use software rotation (slower) */
-        unsigned int swap_bytes: 1;  /*!< Swap bytes in RGB656 (16-bit) before send to LCD driver */
+#if LVGL_VERSION_MAJOR >= 9
+        unsigned int swap_bytes: 1;  /*!< Swap bytes in RGB656 (16-bit) color format before send to LCD driver */
+#endif
     } flags;
 } lvgl_port_display_cfg_t;
 

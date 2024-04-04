@@ -65,7 +65,7 @@ Add an LCD screen to the LVGL. It can be called multiple times for adding multip
         .vres = DISP_HEIGHT,
         .monochrome = false,
         .mipi_dsi = false,
-        /* Rotation values must be same as used in esp_lcd for initial settings of the screen */
+        .color_format = LV_COLOR_FORMAT_RGB565,
         .rotation = {
             .swap_xy = false,
             .mirror_x = false,
@@ -83,6 +83,8 @@ Add an LCD screen to the LVGL. It can be called multiple times for adding multip
     /* If deinitializing LVGL port, remember to delete all displays: */
     lvgl_port_remove_disp(disp_handle);
 ```
+
+**Note:** DMA buffer can be used only When you use color format LV_COLOR_FORMAT_RGB565. 
 
 ### Add touch input
 
