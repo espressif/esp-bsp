@@ -28,6 +28,15 @@ extern "C" {
 #endif
 
 /**
+ * @brief LVGL Port task events
+ */
+typedef enum {
+    LVGL_PORT_EVENT_DISPLAY = 1,
+    LVGL_PORT_EVENT_TOUCH   = 2,
+    LVGL_PORT_EVENT_USER    = 99,
+} lvgl_port_event_t;
+
+/**
  * @brief Init configuration structure
  */
 typedef struct {
@@ -102,7 +111,7 @@ void lvgl_port_unlock(void);
 void lvgl_port_flush_ready(lv_display_t *disp);
 
 /**
- * @brief Stop lvgl task
+ * @brief Stop lvgl timer
  *
  *
  * @return
@@ -112,7 +121,7 @@ void lvgl_port_flush_ready(lv_display_t *disp);
 esp_err_t lvgl_port_stop(void);
 
 /**
- * @brief Resume lvgl task
+ * @brief Resume lvgl timer
  *
  *
  * @return
@@ -120,6 +129,19 @@ esp_err_t lvgl_port_stop(void);
  *      - ESP_ERR_INVALID_STATE if the timer is not running
  */
 esp_err_t lvgl_port_resume(void);
+
+/**
+ * @brief Notify LVGL task, that display need reload
+ *
+ * @note It is called from LVGL events and touch interrupts
+ *
+ * @param isr          true, when called from interrupt
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_NOT_SUPPORTED if it is not implemented
+ *      - ESP_ERR_INVALID_STATE if queue is not initialized (can be returned after LVGL deinit)
+ */
+esp_err_t lvgl_port_task_wake(lvgl_port_event_t event, bool isr);
 
 #ifdef __cplusplus
 }

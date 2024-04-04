@@ -8,6 +8,7 @@ This component helps with using LVGL with Espressif's LCD and touch drivers. It 
 * Initialization of the LVGL
     * Create task and timer
     * Handle rotating
+    * Power saving
 * Add/remove display (using [`esp_lcd`](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html))
 * Add/remove touch input (using [`esp_lcd_touch`](https://github.com/espressif/esp-bsp/tree/master/components/lcd_touch))
 * Add/remove navigation buttons input (using [`button`](https://github.com/espressif/esp-iot-solution/tree/master/components/button))
@@ -275,6 +276,35 @@ If the SRAM is insufficient, you can use the PSRAM as a canvas and use a small t
             ...
         }
     }
+```
+
+## Power Saving
+
+The LVGL port can be optimized for power saving mode. There are two main features.
+
+### LVGL task sleep
+
+The LVGL task can sleep till these situations:
+* LVGL display invalidate
+* LVGL animation in process
+* Touch interrupt
+* Timeout (`task_max_sleep_ms` in configuration structure)
+* User wake (by function `lvgl_port_task_wake`)
+
+**Note:** Don't forget to set the interrupt pin in LCD touch when you set a big time for sleep in `task_max_sleep_ms`.
+
+### Stopping the timer
+
+For sleep, you can stop LVGL timer by function:
+
+```
+lvgl_port_stop();
+```
+
+and resume LVGL timer by function:
+
+```
+lvgl_port_resume();
 ```
 
 ## Performance

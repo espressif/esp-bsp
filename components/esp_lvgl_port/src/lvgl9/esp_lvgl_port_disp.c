@@ -8,6 +8,7 @@
 #include "esp_err.h"
 #include "esp_check.h"
 #include "esp_heap_caps.h"
+#include "esp_idf_version.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lvgl_port.h"
@@ -54,6 +55,7 @@ static bool lvgl_port_flush_panel_ready_callback(esp_lcd_panel_handle_t panel_io
 static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, uint8_t *color_map);
 static void lvgl_port_disp_size_update_callback(lv_event_t *e);
 static void lvgl_port_disp_rotation_update(lvgl_port_display_ctx_t *disp_ctx);
+static void lvgl_port_display_invalidate_callback(lv_event_t *e);
 
 /*******************************************************************************
 * Public API functions
@@ -123,6 +125,7 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
 
     lv_display_set_flush_cb(disp, lvgl_port_flush_callback);
     lv_display_add_event_cb(disp, lvgl_port_disp_size_update_callback, LV_EVENT_RESOLUTION_CHANGED, disp_ctx);
+    lv_display_add_event_cb(disp, lvgl_port_display_invalidate_callback, LV_EVENT_INVALIDATE_AREA, disp_ctx);
 
     lv_display_set_user_data(disp, disp_ctx);
     disp_ctx->disp_drv = disp;
@@ -328,4 +331,10 @@ static void lvgl_port_disp_size_update_callback(lv_event_t *e)
     assert(e);
     lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)e->user_data;
     lvgl_port_disp_rotation_update(disp_ctx);
+}
+
+static void lvgl_port_display_invalidate_callback(lv_event_t *e)
+{
+    /* Wake LVGL task, if needed */
+    lvgl_port_task_wake(LVGL_PORT_EVENT_DISPLAY, false);
 }

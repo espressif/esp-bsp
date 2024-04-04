@@ -153,6 +153,12 @@ void lvgl_port_unlock(void)
     xSemaphoreGiveRecursive(lvgl_port_ctx.lvgl_mux);
 }
 
+esp_err_t lvgl_port_task_wake(lvgl_port_event_t event, bool isr)
+{
+    ESP_LOGE(TAG, "Task wake is not supported, when used LVGL8!");
+    return ESP_ERR_NOT_SUPPORTED;
+}
+
 /*******************************************************************************
 * Private functions
 *******************************************************************************/
