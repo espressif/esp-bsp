@@ -17,9 +17,6 @@ static char *TAG = "app_main";
 
 void app_main(void)
 {
-    /* Initialize I2C (for touch and audio) */
-    bsp_i2c_init();
-
     /* Initialize display and LVGL */
     bsp_display_start();
 
