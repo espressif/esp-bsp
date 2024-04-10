@@ -21,6 +21,7 @@ function(lvgl_port_create_c_image image_path output_path color_format compressio
 
     #Create C array image by LVGL version
     if(lvgl_ver VERSION_LESS "9.0.0")
+
         if(CONFIG_LV_COLOR_16_SWAP)
             set(color_format "RGB565SWAP")
         else()
@@ -29,7 +30,9 @@ function(lvgl_port_create_c_image image_path output_path color_format compressio
 
         execute_process(COMMAND git clone https://github.com/W-Mai/lvgl_image_converter.git "${CMAKE_BINARY_DIR}/lvgl_image_converter")
         execute_process(COMMAND git checkout 9174634e9dcc1b21a63668969406897aad650f35 WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/lvgl_image_converter" OUTPUT_QUIET)
-        execute_process(COMMAND python -m pip install -r "${CMAKE_BINARY_DIR}/lvgl_image_converter/requirements.txt")
+        execute_process(COMMAND python -m pip install --upgrade pip)
+        execute_process(COMMAND python -m pip install pillow==10.3.0)
+        #execute_process(COMMAND python -m pip install -r "${CMAKE_BINARY_DIR}/lvgl_image_converter/requirements.txt")
         execute_process(COMMAND ${PYTHON} "${CMAKE_BINARY_DIR}/lvgl_image_converter/lv_img_conv.py"
                 -ff C
                 -f true_color_alpha

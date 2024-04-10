@@ -58,7 +58,10 @@ lv_indev_t *lvgl_port_add_touch(const lvgl_port_touch_cfg_t *touch_cfg)
     /* Register a touchpad input device */
     indev = lv_indev_create();
     lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
-    lv_indev_set_mode(indev, LV_INDEV_MODE_EVENT);
+    /* Event mode can be set only, when touch interrupt enabled */
+    if (touch_ctx->handle->config.int_gpio_num != GPIO_NUM_NC) {
+        lv_indev_set_mode(indev, LV_INDEV_MODE_EVENT);
+    }
     lv_indev_set_read_cb(indev, lvgl_port_touchpad_read);
     lv_indev_set_disp(indev, touch_cfg->disp);
     lv_indev_set_user_data(indev, touch_ctx);

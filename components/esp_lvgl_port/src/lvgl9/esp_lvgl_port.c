@@ -14,6 +14,7 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "esp_lvgl_port.h"
+#include "esp_lvgl_port_priv.h"
 #include "lvgl.h"
 
 static const char *TAG = "LVGL";
@@ -25,6 +26,7 @@ static const char *TAG = "LVGL";
 *******************************************************************************/
 
 typedef struct lvgl_port_ctx_s {
+    TaskHandle_t        lvgl_task;
     SemaphoreHandle_t   lvgl_mux;
     QueueHandle_t       lvgl_queue;
     SemaphoreHandle_t   task_init_mux;
@@ -75,14 +77,14 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
     lvgl_port_ctx.task_init_mux = xSemaphoreCreateMutex();
     ESP_GOTO_ON_FALSE(lvgl_port_ctx.task_init_mux, ESP_ERR_NO_MEM, err, TAG, "Create LVGL task sem fail!");
     /* Task queue */
-    lvgl_port_ctx.lvgl_queue = xQueueCreate(10, sizeof(lvgl_port_event_t));
+    lvgl_port_ctx.lvgl_queue = xQueueCreate(100, sizeof(lvgl_port_event_t));
     ESP_GOTO_ON_FALSE(lvgl_port_ctx.lvgl_queue, ESP_ERR_NO_MEM, err, TAG, "Create LVGL queue fail!");
 
     BaseType_t res;
     if (cfg->task_affinity < 0) {
-        res = xTaskCreate(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, NULL);
+        res = xTaskCreate(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, &lvgl_port_ctx.lvgl_task);
     } else {
-        res = xTaskCreatePinnedToCore(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, NULL, cfg->task_affinity);
+        res = xTaskCreatePinnedToCore(lvgl_port_task, "LVGL task", cfg->task_stack, NULL, cfg->task_priority, &lvgl_port_ctx.lvgl_task, cfg->task_affinity);
     }
     ESP_GOTO_ON_FALSE(res == pdPASS, ESP_FAIL, err, TAG, "Create LVGL task fail!");
 
@@ -182,6 +184,20 @@ esp_err_t lvgl_port_task_wake(lvgl_port_event_type_t event, void *param)
     return ESP_OK;
 }
 
+IRAM_ATTR bool lvgl_port_task_notify(uint32_t value)
+{
+    BaseType_t need_yield = pdFALSE;
+
+    // Notify LVGL task
+    if (xPortInIsrContext() == pdTRUE) {
+        xTaskNotifyFromISR(lvgl_port_ctx.lvgl_task, value, eNoAction, &need_yield);
+    } else {
+        xTaskNotify(lvgl_port_ctx.lvgl_task, value, eNoAction);
+    }
+
+    return (need_yield == pdTRUE);
+}
+
 /*******************************************************************************
 * Private functions
 *******************************************************************************/
@@ -204,12 +220,12 @@ static void lvgl_port_task(void *arg)
     while (lvgl_port_ctx.running) {
         /* Wait for queue or timeout (sleep task) */
         TickType_t wait = (pdMS_TO_TICKS(task_delay_ms) >= 1 ? pdMS_TO_TICKS(task_delay_ms) : 1);
-        BaseType_t ret = xQueueReceive(lvgl_port_ctx.lvgl_queue, &event, wait);
+        xQueueReceive(lvgl_port_ctx.lvgl_queue, &event, wait);
 
         if (lv_display_get_default() && lvgl_port_lock(0)) {
 
             /* Call read input devices */
-            if (event.type == LVGL_PORT_EVENT_TOUCH || ret == pdFALSE) {
+            if (event.type == LVGL_PORT_EVENT_TOUCH) {
                 if (event.param != NULL) {
                     lv_indev_read(event.param);
                 } else {

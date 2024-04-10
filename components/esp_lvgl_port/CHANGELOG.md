@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.2.0
+
+### Features
+- Added RGB display support
+- Added support for direct mode and full refresh mode
+
+### Breaking changes
+- Removed MIPI-DSI from display configuration structure - use `lvgl_port_add_disp_dsi` instead
+
 ## 2.1.0
 
 ### Features

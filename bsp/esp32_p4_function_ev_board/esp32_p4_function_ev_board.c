@@ -351,7 +351,6 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
         .hres = BSP_LCD_V_RES,
         .vres = BSP_LCD_H_RES,
         .monochrome = false,
-        .mipi_dsi = true,
         /* Rotation values must be same as used in esp_lcd for initial settings of the screen */
         .rotation = {
             .swap_xy = false,
@@ -365,7 +364,7 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
         }
     };
 
-    return lvgl_port_add_disp(&disp_cfg);
+    return lvgl_port_add_disp_dsi(&disp_cfg, NULL);
 }
 
 static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)

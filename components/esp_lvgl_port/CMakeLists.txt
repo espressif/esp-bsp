@@ -22,7 +22,12 @@ endif()
 
 set(PORT_PATH "src/${PORT_FOLDER}")
 
-idf_component_register(SRCS "${PORT_PATH}/esp_lvgl_port.c" "${PORT_PATH}/esp_lvgl_port_disp.c" INCLUDE_DIRS "include" REQUIRES "esp_lcd" PRIV_REQUIRES "esp_timer")
+idf_component_register(
+        SRCS "${PORT_PATH}/esp_lvgl_port.c" "${PORT_PATH}/esp_lvgl_port_disp.c" 
+        INCLUDE_DIRS "include" 
+        PRIV_INCLUDE_DIRS "priv_include"
+        REQUIRES "esp_lcd" 
+        PRIV_REQUIRES "esp_timer")
 
 set(ADD_SRCS "")
 set(ADD_LIBS "")
