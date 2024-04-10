@@ -10,6 +10,7 @@
 #include "esp_check.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/portmacro.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "esp_lvgl_port.h"
@@ -157,20 +158,25 @@ void lvgl_port_unlock(void)
     xSemaphoreGiveRecursive(lvgl_port_ctx.lvgl_mux);
 }
 
-esp_err_t lvgl_port_task_wake(lvgl_port_event_t event, bool isr)
+esp_err_t lvgl_port_task_wake(lvgl_port_event_type_t event, void *param)
 {
     if (!lvgl_port_ctx.lvgl_queue) {
         return ESP_ERR_INVALID_STATE;
     }
 
-    if (isr) {
+    lvgl_port_event_t ev = {
+        .type = event,
+        .param = param,
+    };
+
+    if (xPortInIsrContext() == pdTRUE) {
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-        xQueueSendFromISR(lvgl_port_ctx.lvgl_queue, &event, &xHigherPriorityTaskWoken);
+        xQueueSendFromISR(lvgl_port_ctx.lvgl_queue, &ev, &xHigherPriorityTaskWoken);
         if (xHigherPriorityTaskWoken) {
             portYIELD_FROM_ISR( );
         }
     } else {
-        xQueueSend(lvgl_port_ctx.lvgl_queue, &event, 0);
+        xQueueSend(lvgl_port_ctx.lvgl_queue, &ev, 0);
     }
 
     return ESP_OK;
@@ -182,8 +188,9 @@ esp_err_t lvgl_port_task_wake(lvgl_port_event_t event, bool isr)
 
 static void lvgl_port_task(void *arg)
 {
-    lvgl_port_event_t event = 0;
+    lvgl_port_event_t event;
     uint32_t task_delay_ms = 0;
+    lv_indev_t *indev = NULL;
 
     /* Take the task semaphore */
     if (xSemaphoreTake(lvgl_port_ctx.task_init_mux, 0) != pdTRUE) {
@@ -196,20 +203,32 @@ static void lvgl_port_task(void *arg)
     lvgl_port_ctx.running = true;
     while (lvgl_port_ctx.running) {
         /* Wait for queue or timeout (sleep task) */
-        xQueueReceive(lvgl_port_ctx.lvgl_queue, &event, pdMS_TO_TICKS(task_delay_ms));
+        TickType_t wait = (pdMS_TO_TICKS(task_delay_ms) >= 1 ? pdMS_TO_TICKS(task_delay_ms) : 1);
+        BaseType_t ret = xQueueReceive(lvgl_port_ctx.lvgl_queue, &event, wait);
 
         if (lv_display_get_default() && lvgl_port_lock(0)) {
+
+            /* Call read input devices */
+            if (event.type == LVGL_PORT_EVENT_TOUCH || ret == pdFALSE) {
+                if (event.param != NULL) {
+                    lv_indev_read(event.param);
+                } else {
+                    indev = lv_indev_get_next(NULL);
+                    while (indev != NULL) {
+                        lv_indev_read(indev);
+                        indev = lv_indev_get_next(indev);
+                    }
+                }
+            }
+
+            /* Handle LVGL */
             task_delay_ms = lv_timer_handler();
             lvgl_port_unlock();
-        }
-        if ((task_delay_ms > lvgl_port_ctx.task_max_sleep_ms) || (1 == task_delay_ms)) {
-            task_delay_ms = lvgl_port_ctx.task_max_sleep_ms;
-        } else if (task_delay_ms < 1) {
-            task_delay_ms = 1;
+        } else {
+            task_delay_ms = 1; /*Keep trying*/
         }
 
-        /* Sleep task, when everything done */
-        if (lv_anim_count_running() == 0 && lv_display_get_inactive_time(NULL) > 2 * LV_DEF_REFR_PERIOD) {
+        if (task_delay_ms == LV_NO_TIMER_READY) {
             task_delay_ms = lvgl_port_ctx.task_max_sleep_ms;
         }
     }

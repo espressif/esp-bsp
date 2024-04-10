@@ -280,30 +280,60 @@ If the SRAM is insufficient, you can use the PSRAM as a canvas and use a small t
     }
 ```
 
+### Generating images (C Array)
+
+Images can be generated during build by adding these lines to end of the main CMakeLists.txt:
+```
+# Generate C array for each image
+lvgl_port_create_c_image("images/logo.png" "images/" "ARGB8888" "NONE")    
+lvgl_port_create_c_image("images/image.png" "images/" "ARGB8888" "NONE")
+# Add generated images to build
+lvgl_port_add_images(${COMPONENT_LIB} "images/")
+```
+
+Usage of create C image function:
+```
+lvgl_port_create_c_image(input_image output_folder color_format compression)   
+```
+
+Available color formats:
+L8,I1,I2,I4,I8,A1,A2,A4,A8,ARGB8888,XRGB8888,RGB565,RGB565A8,RGB888,TRUECOLOR,TRUECOLOR_ALPHA,AUTO
+
+Available compression:
+NONE,RLE,LZ4
+
+**Note:** Parameters `color_format` and `compression` are used only in LVGL 9.
+
 ## Power Saving
 
 The LVGL port can be optimized for power saving mode. There are two main features.
 
 ### LVGL task sleep
 
+For optimization power saving, the LVGL task should sleep, when it does nothing. Set `task_max_sleep_ms` to big value, the LVGL task will wait for events only.
+
 The LVGL task can sleep till these situations:
 * LVGL display invalidate
 * LVGL animation in process
 * Touch interrupt
+* Button interrupt
+* Knob interrupt
+* USB mouse/keyboard interrupt
 * Timeout (`task_max_sleep_ms` in configuration structure)
 * User wake (by function `lvgl_port_task_wake`)
 
+**Warning:** This feature is available from LVGL 9.
 **Note:** Don't forget to set the interrupt pin in LCD touch when you set a big time for sleep in `task_max_sleep_ms`.
 
 ### Stopping the timer
 
-For sleep, you can stop LVGL timer by function:
+Timers can still work during light-sleep mode. You can stop LVGL timer before use light-sleep by function:
 
 ```
 lvgl_port_stop();
 ```
 
-and resume LVGL timer by function:
+and resume LVGL timer after wake by function:
 
 ```
 lvgl_port_resume();

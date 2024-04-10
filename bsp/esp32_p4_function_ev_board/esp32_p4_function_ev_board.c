@@ -348,7 +348,6 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
         .control_handle = lcd_panels.control,
         .buffer_size = cfg->buffer_size,
         .double_buffer = cfg->double_buffer,
-        .trans_size = (cfg->flags.sw_rotate ? BSP_LCD_H_RES * 50 : 0),
         .hres = BSP_LCD_V_RES,
         .vres = BSP_LCD_H_RES,
         .monochrome = false,
@@ -363,7 +362,6 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
             .buff_dma = cfg->flags.buff_dma,
             .buff_spiram = cfg->flags.buff_spiram,
             .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
-            .sw_rotate = cfg->flags.sw_rotate, /* Only SW rotation is supported for 90° and 270° */
         }
     };
 
@@ -393,7 +391,6 @@ lv_display_t *bsp_display_start(void)
         .flags = {
             .buff_dma = true,
             .buff_spiram = false,
-            .sw_rotate = false,  /* When SPIRAM used for buffer, only SW rotation is supported; For 90° and 270° is not supported HW rotation in this driver. */
         }
     };
     return bsp_display_start_with_config(&cfg);

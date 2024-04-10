@@ -138,6 +138,7 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
     lv_display_set_flush_cb(disp, lvgl_port_flush_callback);
     lv_display_add_event_cb(disp, lvgl_port_disp_size_update_callback, LV_EVENT_RESOLUTION_CHANGED, disp_ctx);
     lv_display_add_event_cb(disp, lvgl_port_display_invalidate_callback, LV_EVENT_INVALIDATE_AREA, disp_ctx);
+    lv_display_add_event_cb(disp, lvgl_port_display_invalidate_callback, LV_EVENT_REFR_REQUEST, disp_ctx);
 
     lv_display_set_user_data(disp, disp_ctx);
     disp_ctx->disp_drv = disp;
@@ -337,7 +338,7 @@ static void lvgl_port_disp_rotation_update(lvgl_port_display_ctx_t *disp_ctx)
     }
 
     /* Wake LVGL task, if needed */
-    lvgl_port_task_wake(LVGL_PORT_EVENT_DISPLAY, false);
+    lvgl_port_task_wake(LVGL_PORT_EVENT_DISPLAY, disp_ctx->disp_drv);
 }
 
 static void lvgl_port_disp_size_update_callback(lv_event_t *e)
@@ -350,5 +351,5 @@ static void lvgl_port_disp_size_update_callback(lv_event_t *e)
 static void lvgl_port_display_invalidate_callback(lv_event_t *e)
 {
     /* Wake LVGL task, if needed */
-    lvgl_port_task_wake(LVGL_PORT_EVENT_DISPLAY, false);
+    lvgl_port_task_wake(LVGL_PORT_EVENT_DISPLAY, NULL);
 }

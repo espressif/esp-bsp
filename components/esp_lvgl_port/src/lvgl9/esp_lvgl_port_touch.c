@@ -50,7 +50,7 @@ lv_indev_t *lvgl_port_add_touch(const lvgl_port_touch_cfg_t *touch_cfg)
 
     if (touch_ctx->handle->config.int_gpio_num != GPIO_NUM_NC) {
         /* Register touch interrupt callback */
-        ret = esp_lcd_touch_register_interrupt_callback(touch_ctx->handle, lvgl_port_touch_interrupt_callback);
+        ret = esp_lcd_touch_register_interrupt_callback_with_data(touch_ctx->handle, lvgl_port_touch_interrupt_callback, touch_ctx);
         ESP_GOTO_ON_ERROR(ret, err, TAG, "Error in register touch interrupt.");
     }
 
@@ -58,6 +58,7 @@ lv_indev_t *lvgl_port_add_touch(const lvgl_port_touch_cfg_t *touch_cfg)
     /* Register a touchpad input device */
     indev = lv_indev_create();
     lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
+    lv_indev_set_mode(indev, LV_INDEV_MODE_EVENT);
     lv_indev_set_read_cb(indev, lvgl_port_touchpad_read);
     lv_indev_set_disp(indev, touch_cfg->disp);
     lv_indev_set_user_data(indev, touch_ctx);
@@ -126,8 +127,10 @@ static void lvgl_port_touchpad_read(lv_indev_t *indev_drv, lv_indev_data_t *data
     }
 }
 
-static void lvgl_port_touch_interrupt_callback(esp_lcd_touch_handle_t tp)
+static void IRAM_ATTR lvgl_port_touch_interrupt_callback(esp_lcd_touch_handle_t tp)
 {
+    lvgl_port_touch_ctx_t *touch_ctx = (lvgl_port_touch_ctx_t *) tp->config.user_data;
+
     /* Wake LVGL task, if needed */
-    lvgl_port_task_wake(LVGL_PORT_EVENT_TOUCH, true);
+    lvgl_port_task_wake(LVGL_PORT_EVENT_TOUCH, touch_ctx->indev);
 }

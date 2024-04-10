@@ -28,12 +28,20 @@ extern "C" {
 #endif
 
 /**
- * @brief LVGL Port task events
+ * @brief LVGL Port task event type
  */
 typedef enum {
     LVGL_PORT_EVENT_DISPLAY = 1,
     LVGL_PORT_EVENT_TOUCH   = 2,
     LVGL_PORT_EVENT_USER    = 99,
+} lvgl_port_event_type_t;
+
+/**
+ * @brief LVGL Port task events
+ */
+typedef struct {
+    lvgl_port_event_type_t type;
+    void *param;
 } lvgl_port_event_t;
 
 /**
@@ -135,13 +143,14 @@ esp_err_t lvgl_port_resume(void);
  *
  * @note It is called from LVGL events and touch interrupts
  *
- * @param isr          true, when called from interrupt
+ * @param event     event type
+ * @param param     user param
  * @return
  *      - ESP_OK on success
  *      - ESP_ERR_NOT_SUPPORTED if it is not implemented
  *      - ESP_ERR_INVALID_STATE if queue is not initialized (can be returned after LVGL deinit)
  */
-esp_err_t lvgl_port_task_wake(lvgl_port_event_t event, bool isr);
+esp_err_t lvgl_port_task_wake(lvgl_port_event_type_t event, void *param);
 
 #ifdef __cplusplus
 }
