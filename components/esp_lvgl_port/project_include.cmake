@@ -31,7 +31,6 @@ function(lvgl_port_create_c_image image_path output_path color_format compressio
 
     #Create C array image by LVGL version
     if(lvgl_ver VERSION_LESS "9.0.0")
-
         if(CONFIG_LV_COLOR_16_SWAP)
             set(color_format "RGB565SWAP")
         else()
