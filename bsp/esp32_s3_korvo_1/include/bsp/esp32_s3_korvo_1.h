@@ -35,6 +35,7 @@
 #define BSP_CAPS_AUDIO_MIC      1
 #define BSP_CAPS_SDCARD         1
 #define BSP_CAPS_IMU            0
+#define BSP_CAPS_LED            1
 
 /**************************************************************************************************
  *  ESP32-S3-Korvo-1 pinout
