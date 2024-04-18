@@ -41,6 +41,11 @@ capability_dict = {
     'BAT': r'(^idf$)',  # Battery (ADC driver) is native to ESP-IDF
     'CAMERA': r'(esp32-camera$)',  # esp32-camera component
     'KNOB': r'(knob$)',  # knob component
+    'SENSOR_TEMPERATURE': r'(hts221$|ds18b20$)',
+    'SENSOR_HUMIDITY': r'(hts221$)',
+    'SENSOR_PRESSURE': r'(fbm320$)',
+    'SENSOR_LIGHT': r'(bh1750$)',
+    'SENSOR_MAG': r'(mag3110$)',
     'LVGL_PORT': r'(esp_lvgl_port$)',
 }
 
