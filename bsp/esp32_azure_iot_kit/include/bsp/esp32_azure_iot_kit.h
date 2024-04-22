@@ -20,6 +20,25 @@
 #include "bsp/display.h"
 
 /**************************************************************************************************
+ *  BSP Capabilities
+ **************************************************************************************************/
+
+#define BSP_CAPS_DISPLAY            1
+#define BSP_CAPS_TOUCH              0
+#define BSP_CAPS_BUTTONS            1
+#define BSP_CAPS_AUDIO              0
+#define BSP_CAPS_AUDIO_SPEAKER      0
+#define BSP_CAPS_AUDIO_MIC          0
+#define BSP_CAPS_LED                1
+#define BSP_CAPS_SDCARD             1
+#define BSP_CAPS_IMU                1
+#define BSP_CAPS_SENSOR_TEMPERATURE 1
+#define BSP_CAPS_SENSOR_HUMIDITY    1
+#define BSP_CAPS_SENSOR_PRESSURE    1
+#define BSP_CAPS_SENSOR_LIGHT       1
+#define BSP_CAPS_SENSOR_MAG         1
+
+/**************************************************************************************************
  *  Pinout
  **************************************************************************************************/
 
