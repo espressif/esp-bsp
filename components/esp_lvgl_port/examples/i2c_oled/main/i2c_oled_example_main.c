@@ -92,7 +92,7 @@ void app_main(void)
 #endif
     };
 #if CONFIG_EXAMPLE_LCD_CONTROLLER_SSD1306
-#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5,0,0))
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5,3,0))
     esp_lcd_panel_ssd1306_config_t ssd1306_config = {
         .height = EXAMPLE_LCD_V_RES,
     };
