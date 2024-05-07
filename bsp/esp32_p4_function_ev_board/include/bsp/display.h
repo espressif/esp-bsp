@@ -47,6 +47,12 @@
 #define BSP_LCD_MIPI_DSI_LCD_VSYNC    (635)
 #define BSP_LCD_MIPI_DSI_LCD_VBP      (23)
 #define BSP_LCD_MIPI_DSI_LCD_VFP      (12)
+
+#elif CONFIG_BSP_LCD_TYPE_HDMI
+/* LCD display definition 1280x720 */
+#define BSP_LCD_H_RES              (1280)
+#define BSP_LCD_V_RES              (720)
+
 #else
 /* LCD display definition 1280x800 */
 #define BSP_LCD_H_RES              (800)
