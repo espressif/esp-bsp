@@ -31,15 +31,17 @@
 /* LCD display color space */
 #define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_RGB)
 /* LCD display definition */
-#define BSP_LCD_H_RES              (1280)
-#define BSP_LCD_V_RES              (800)
+#define BSP_LCD_H_RES              (720)
+#define BSP_LCD_V_RES              (1280)
 
-#define BSP_LCD_MIPI_DSI_LCD_HSYNC    (40)
-#define BSP_LCD_MIPI_DSI_LCD_HBP      (140)
-#define BSP_LCD_MIPI_DSI_LCD_HFP      (40)
-#define BSP_LCD_MIPI_DSI_LCD_VSYNC    (4)
-#define BSP_LCD_MIPI_DSI_LCD_VBP      (16)
-#define BSP_LCD_MIPI_DSI_LCD_VFP      (16)
+//1920x1080      // 800x600
+#define BSP_LCD_MIPI_DSI_PX_CLOCK_MHZ  (40)     //(148.5)         //(40)
+#define BSP_LCD_MIPI_DSI_LCD_HSYNC     (128)    //(44)            //(128)
+#define BSP_LCD_MIPI_DSI_LCD_HBP       (88)     //(148)           //(88)
+#define BSP_LCD_MIPI_DSI_LCD_HFP       (48)     //(88)            //(48)
+#define BSP_LCD_MIPI_DSI_LCD_VSYNC     (4)      //(5)             //(4)
+#define BSP_LCD_MIPI_DSI_LCD_VBP       (23)     //(36)            //(23)
+#define BSP_LCD_MIPI_DSI_LCD_VFP       (1)      //(4)             //(1)
 
 #define BSP_LCD_MIPI_DSI_LANE_NUM          (2)    // 2 data lanes
 #define BSP_LCD_MIPI_DSI_LANE_BITRATE_MBPS (1000) // 1Gbps

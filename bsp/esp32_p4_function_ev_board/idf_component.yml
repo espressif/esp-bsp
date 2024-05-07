@@ -18,3 +18,7 @@ dependencies:
     version: "^2"
     public: true
     override_path: "../../components/esp_lvgl_port"
+
+  espressif/esp_lcd_lt8912b:
+    version: ">=0.1.0"
+    override_path: "../../components/lcd/esp_lcd_lt8912b"

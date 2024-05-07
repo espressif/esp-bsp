@@ -45,6 +45,7 @@
 
 /* Display */
 #define BSP_LCD_BACKLIGHT     (GPIO_NUM_23)
+#define BSP_LCD_DISP_INT      (GPIO_NUM_21)
 #define BSP_LCD_TOUCH_INT     (GPIO_NUM_NC)
 
 /* uSD card */
@@ -180,7 +181,7 @@ esp_err_t bsp_sdcard_unmount(void);
  *
  * Display's backlight must be enabled explicitly by calling bsp_display_backlight_on()
  **************************************************************************************************/
-#define BSP_LCD_PIXEL_CLOCK_MHZ     (80)
+
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
