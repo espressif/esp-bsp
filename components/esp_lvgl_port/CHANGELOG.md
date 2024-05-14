@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.0
+
+### Features
+- Added LVGL sleep feature: The esp_lvgl_port handling can sleep if the display and touch are inactive (only with LVGL9)
+- Added support for different display color modes (only with LVGL9)
+- Added script for generating C array images during build (depends on LVGL version)
+
+### Fixes
+- Applied initial display rotation from configuration https://github.com/espressif/esp-bsp/pull/278
+- Added blocking wait for LVGL task stop during esp_lvgl_port de-initialization https://github.com/espressif/esp-bsp/issues/277
+- Added missing esp_idf_version.h include
+
 ## 2.0.0
 
 ### Features

@@ -1,8 +1,9 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: CC0-1.0
  */
+
 
 #include "esp_err.h"
 #include "esp_log.h"
@@ -16,6 +17,8 @@
 #include "esp_lvgl_port.h"
 
 #include "esp_lcd_touch_tt21100.h"
+
+#include "unity.h"
 
 /* LCD size */
 #define EXAMPLE_LCD_H_RES   (320)
@@ -49,14 +52,12 @@
 #define EXAMPLE_TOUCH_I2C_SDA       (GPIO_NUM_8)
 #define EXAMPLE_TOUCH_GPIO_INT      (GPIO_NUM_3)
 
-static const char *TAG = "EXAMPLE";
-
-// LVGL image declare
-LV_IMG_DECLARE(esp_logo)
+static char *TAG = "test";
 
 /* LCD IO and panel */
 static esp_lcd_panel_io_handle_t lcd_io = NULL;
 static esp_lcd_panel_handle_t lcd_panel = NULL;
+static esp_lcd_panel_io_handle_t tp_io_handle = NULL;
 static esp_lcd_touch_handle_t touch_handle = NULL;
 
 /* LVGL display and touch */
@@ -127,6 +128,15 @@ err:
     return ret;
 }
 
+static esp_err_t app_lcd_deinit(void)
+{
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_del(lcd_panel), TAG, "LCD panel deinit failed");
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_del(lcd_io), TAG, "LCD IO deinit failed");
+    ESP_RETURN_ON_ERROR(spi_bus_free(EXAMPLE_LCD_SPI_NUM), TAG, "SPI BUS free failed");
+    ESP_RETURN_ON_ERROR(gpio_reset_pin(EXAMPLE_LCD_GPIO_BL), TAG, "Reset BL pin failed");
+    return ESP_OK;
+}
+
 static esp_err_t app_touch_init(void)
 {
     /* Initilize I2C */
@@ -157,10 +167,17 @@ static esp_err_t app_touch_init(void)
             .mirror_y = 0,
         },
     };
-    esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)EXAMPLE_TOUCH_I2C_NUM, &tp_io_config, &tp_io_handle), TAG, "");
     return esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, &touch_handle);
+}
+
+static esp_err_t app_touch_deinit(void)
+{
+    ESP_RETURN_ON_ERROR(esp_lcd_touch_del(touch_handle), TAG, "Touch deinit failed");
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_del(tp_io_handle), TAG, "Touch IO deinit failed");
+    ESP_RETURN_ON_ERROR(i2c_driver_delete(EXAMPLE_TOUCH_I2C_NUM), TAG, "I2C deinit failed");
+    return ESP_OK;
 }
 
 static esp_err_t app_lvgl_init(void)
@@ -180,14 +197,12 @@ static esp_err_t app_lvgl_init(void)
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = lcd_io,
         .panel_handle = lcd_panel,
-        .buffer_size = EXAMPLE_LCD_H_RES * EXAMPLE_LCD_DRAW_BUFF_HEIGHT,
+        .buffer_size = EXAMPLE_LCD_H_RES * EXAMPLE_LCD_DRAW_BUFF_HEIGHT * sizeof(uint16_t),
         .double_buffer = EXAMPLE_LCD_DRAW_BUFF_DOUBLE,
         .hres = EXAMPLE_LCD_H_RES,
         .vres = EXAMPLE_LCD_V_RES,
         .monochrome = false,
-#if LVGL_VERSION_MAJOR >= 9
-        .color_format = LV_COLOR_FORMAT_RGB565,
-#endif
+        /* Rotation values must be same as used in esp_lcd for initial settings of the screen */
         .rotation = {
             .swap_xy = false,
             .mirror_x = true,
@@ -208,6 +223,17 @@ static esp_err_t app_lvgl_init(void)
         .handle = touch_handle,
     };
     lvgl_touch_indev = lvgl_port_add_touch(&touch_cfg);
+
+    return ESP_OK;
+}
+
+static esp_err_t app_lvgl_deinit(void)
+{
+    ESP_RETURN_ON_ERROR(lvgl_port_remove_touch(lvgl_touch_indev), TAG, "LVGL touch removing failed");
+    gpio_uninstall_isr_service();
+
+    ESP_RETURN_ON_ERROR(lvgl_port_remove_disp(lvgl_disp), TAG, "LVGL disp removing failed");
+    ESP_RETURN_ON_ERROR(lvgl_port_deinit(), TAG, "LVGL deinit failed");
 
     return ESP_OK;
 }
@@ -233,11 +259,6 @@ static void app_main_display(void)
 
     /* Your LVGL objects code here .... */
 
-    /* Create image */
-    lv_obj_t *img_logo = lv_img_create(scr);
-    lv_img_set_src(img_logo, &esp_logo);
-    lv_obj_align(img_logo, LV_ALIGN_TOP_MID, 0, 20);
-
     /* Label */
     lv_obj_t *label = lv_label_create(scr);
     lv_obj_set_width(label, EXAMPLE_LCD_H_RES);
@@ -248,7 +269,7 @@ static void app_main_display(void)
 #else
     lv_label_set_text(label, LV_SYMBOL_BELL" Hello world Espressif and LVGL "LV_SYMBOL_BELL"\n "LV_SYMBOL_WARNING" For simplier initialization, use BSP "LV_SYMBOL_WARNING);
 #endif
-    lv_obj_align(label, LV_ALIGN_CENTER, 0, 20);
+    lv_obj_align(label, LV_ALIGN_CENTER, 0, -30);
 
     /* Button */
     lv_obj_t *btn = lv_btn_create(scr);
@@ -261,17 +282,75 @@ static void app_main_display(void)
     lvgl_port_unlock();
 }
 
-void app_main(void)
+// Some resources are lazy allocated in the LCD driver, the threadhold is left for that case
+#define TEST_MEMORY_LEAK_THRESHOLD (50)
+
+static void check_leak(size_t start_free, size_t end_free, const char *type)
 {
+    ssize_t delta = start_free - end_free;
+    printf("MALLOC_CAP_%s: Before %u bytes free, After %u bytes free (delta %d)\n", type, start_free, end_free, delta);
+    TEST_ASSERT_GREATER_OR_EQUAL_MESSAGE (delta, TEST_MEMORY_LEAK_THRESHOLD, "memory leak");
+}
+
+TEST_CASE("Main test LVGL port", "[lvgl port]")
+{
+    size_t start_freemem_8bit = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    size_t start_freemem_32bit = heap_caps_get_free_size(MALLOC_CAP_32BIT);
+
+    ESP_LOGI(TAG, "Initilize LCD.");
+
     /* LCD HW initialization */
-    ESP_ERROR_CHECK(app_lcd_init());
+    TEST_ASSERT_EQUAL(app_lcd_init(), ESP_OK);
 
     /* Touch initialization */
-    ESP_ERROR_CHECK(app_touch_init());
+    TEST_ASSERT_EQUAL(app_touch_init(), ESP_OK);
+
+    size_t start_lvgl_freemem_8bit = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    size_t start_lvgl_freemem_32bit = heap_caps_get_free_size(MALLOC_CAP_32BIT);
+
+    ESP_LOGI(TAG, "Initilize LVGL.");
 
     /* LVGL initialization */
-    ESP_ERROR_CHECK(app_lvgl_init());
+    TEST_ASSERT_EQUAL(app_lvgl_init(), ESP_OK);
 
     /* Show LVGL objects */
     app_main_display();
+
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
+
+    /* LVGL deinit */
+    TEST_ASSERT_EQUAL(app_lvgl_deinit(), ESP_OK);
+
+    /* When using LVGL8, it takes some time to release all memory */
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    ESP_LOGI(TAG, "LVGL deinitialized.");
+
+    size_t end_lvgl_freemem_8bit = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    size_t end_lvgl_freemem_32bit = heap_caps_get_free_size(MALLOC_CAP_32BIT);
+    check_leak(start_lvgl_freemem_8bit, end_lvgl_freemem_8bit, "8BIT LVGL");
+    check_leak(start_lvgl_freemem_32bit, end_lvgl_freemem_32bit, "32BIT LVGL");
+
+    /* Touch deinit */
+    TEST_ASSERT_EQUAL(app_touch_deinit(), ESP_OK);
+
+    /* LCD deinit */
+    TEST_ASSERT_EQUAL(app_lcd_deinit(), ESP_OK);
+
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    ESP_LOGI(TAG, "LCD deinitilized.");
+
+    size_t end_freemem_8bit = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    size_t end_freemem_32bit = heap_caps_get_free_size(MALLOC_CAP_32BIT);
+    check_leak(start_freemem_8bit, end_freemem_8bit, "8BIT");
+    check_leak(start_freemem_32bit, end_freemem_32bit, "32BIT");
+
+
+}
+
+void app_main(void)
+{
+    printf("TEST ESP LVGL port\n\r");
+    unity_run_menu();
 }

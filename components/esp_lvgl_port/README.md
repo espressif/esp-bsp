@@ -8,6 +8,7 @@ This component helps with using LVGL with Espressif's LCD and touch drivers. It 
 * Initialization of the LVGL
     * Create task and timer
     * Handle rotating
+    * Power saving
 * Add/remove display (using [`esp_lcd`](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html))
 * Add/remove touch input (using [`esp_lcd_touch`](https://github.com/espressif/esp-bsp/tree/master/components/lcd_touch))
 * Add/remove navigation buttons input (using [`button`](https://github.com/espressif/esp-iot-solution/tree/master/components/button))
@@ -64,7 +65,7 @@ Add an LCD screen to the LVGL. It can be called multiple times for adding multip
         .vres = DISP_HEIGHT,
         .monochrome = false,
         .mipi_dsi = false,
-        /* Rotation values must be same as used in esp_lcd for initial settings of the screen */
+        .color_format = LV_COLOR_FORMAT_RGB565,
         .rotation = {
             .swap_xy = false,
             .mirror_x = false,
@@ -82,6 +83,8 @@ Add an LCD screen to the LVGL. It can be called multiple times for adding multip
     /* If deinitializing LVGL port, remember to delete all displays: */
     lvgl_port_remove_disp(disp_handle);
 ```
+
+**Note:** DMA buffer can be used only When you use color format LV_COLOR_FORMAT_RGB565. 
 
 ### Add touch input
 
@@ -275,6 +278,65 @@ If the SRAM is insufficient, you can use the PSRAM as a canvas and use a small t
             ...
         }
     }
+```
+
+### Generating images (C Array)
+
+Images can be generated during build by adding these lines to end of the main CMakeLists.txt:
+```
+# Generate C array for each image
+lvgl_port_create_c_image("images/logo.png" "images/" "ARGB8888" "NONE")    
+lvgl_port_create_c_image("images/image.png" "images/" "ARGB8888" "NONE")
+# Add generated images to build
+lvgl_port_add_images(${COMPONENT_LIB} "images/")
+```
+
+Usage of create C image function:
+```
+lvgl_port_create_c_image(input_image output_folder color_format compression)   
+```
+
+Available color formats:
+L8,I1,I2,I4,I8,A1,A2,A4,A8,ARGB8888,XRGB8888,RGB565,RGB565A8,RGB888,TRUECOLOR,TRUECOLOR_ALPHA,AUTO
+
+Available compression:
+NONE,RLE,LZ4
+
+**Note:** Parameters `color_format` and `compression` are used only in LVGL 9.
+
+## Power Saving
+
+The LVGL port can be optimized for power saving mode. There are two main features.
+
+### LVGL task sleep
+
+For optimization power saving, the LVGL task should sleep, when it does nothing. Set `task_max_sleep_ms` to big value, the LVGL task will wait for events only.
+
+The LVGL task can sleep till these situations:
+* LVGL display invalidate
+* LVGL animation in process
+* Touch interrupt
+* Button interrupt
+* Knob interrupt
+* USB mouse/keyboard interrupt
+* Timeout (`task_max_sleep_ms` in configuration structure)
+* User wake (by function `lvgl_port_task_wake`)
+
+**Warning:** This feature is available from LVGL 9.
+**Note:** Don't forget to set the interrupt pin in LCD touch when you set a big time for sleep in `task_max_sleep_ms`.
+
+### Stopping the timer
+
+Timers can still work during light-sleep mode. You can stop LVGL timer before use light-sleep by function:
+
+```
+lvgl_port_stop();
+```
+
+and resume LVGL timer after wake by function:
+
+```
+lvgl_port_resume();
 ```
 
 ## Performance

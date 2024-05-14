@@ -378,7 +378,6 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
 
     esp_lcd_panel_reset(*ret_panel);
     esp_lcd_panel_init(*ret_panel);
-    esp_lcd_panel_mirror(*ret_panel, true, true);
     esp_lcd_panel_invert_color(*ret_panel, true);
     return ret;
 
@@ -409,8 +408,8 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
         },
         .flags = {
             .swap_xy = 0,
-            .mirror_x = 1,
-            .mirror_y = 1,
+            .mirror_x = 0,
+            .mirror_y = 0,
         },
     };
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
@@ -445,8 +444,8 @@ static lv_disp_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
         /* Rotation values must be same as used in esp_lcd for initial settings of the screen */
         .rotation = {
             .swap_xy = false,
-            .mirror_x = true,
-            .mirror_y = true,
+            .mirror_x = false,
+            .mirror_y = false,
         },
         .flags = {
             .buff_dma = cfg->flags.buff_dma,

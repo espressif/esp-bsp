@@ -8,6 +8,7 @@
 #include "esp_err.h"
 #include "esp_check.h"
 #include "esp_heap_caps.h"
+#include "esp_idf_version.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lvgl_port.h"
@@ -33,7 +34,7 @@ typedef struct {
     esp_lcd_panel_handle_t    panel_handle;   /* LCD panel handle */
     esp_lcd_panel_handle_t    control_handle; /* LCD panel control handle */
     lvgl_port_rotation_cfg_t  rotation;       /* Default values of the screen rotation */
-    lv_color16_t              *draw_buffs[2]; /* Display draw buffers */
+    lv_color_t                *draw_buffs[2]; /* Display draw buffers */
     lv_display_t              *disp_drv;      /* LVGL display driver */
     struct {
         unsigned int monochrome: 1;  /* True, if display is monochrome and using 1bit for 1px */
@@ -53,6 +54,8 @@ static bool lvgl_port_flush_panel_ready_callback(esp_lcd_panel_handle_t panel_io
 #endif
 static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, uint8_t *color_map);
 static void lvgl_port_disp_size_update_callback(lv_event_t *e);
+static void lvgl_port_disp_rotation_update(lvgl_port_display_ctx_t *disp_ctx);
+static void lvgl_port_display_invalidate_callback(lv_event_t *e);
 
 /*******************************************************************************
 * Public API functions
@@ -62,14 +65,28 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
 {
     esp_err_t ret = ESP_OK;
     lv_display_t *disp = NULL;
-    lv_color16_t *buf1 = NULL;
-    lv_color16_t *buf2 = NULL;
+    lv_color_t *buf1 = NULL;
+    lv_color_t *buf2 = NULL;
     assert(disp_cfg != NULL);
     assert(disp_cfg->io_handle != NULL);
     assert(disp_cfg->panel_handle != NULL);
     assert(disp_cfg->buffer_size > 0);
     assert(disp_cfg->hres > 0);
     assert(disp_cfg->vres > 0);
+
+    /* Check supported display color formats */
+    ESP_RETURN_ON_FALSE(disp_cfg->color_format == 0 || disp_cfg->color_format == LV_COLOR_FORMAT_RGB565 || disp_cfg->color_format == LV_COLOR_FORMAT_RGB888 || disp_cfg->color_format == LV_COLOR_FORMAT_XRGB8888 || disp_cfg->color_format == LV_COLOR_FORMAT_ARGB8888, NULL, TAG, "Not supported display color format!");
+
+    lv_color_format_t display_color_format = (disp_cfg->color_format != 0 ? disp_cfg->color_format : LV_COLOR_FORMAT_RGB565);
+    if (disp_cfg->flags.swap_bytes) {
+        /* Swap bytes can be used only in RGB656 color format */
+        ESP_RETURN_ON_FALSE(display_color_format == LV_COLOR_FORMAT_RGB565, NULL, TAG, "Swap bytes can be used only in display color format RGB565!");
+    }
+
+    if (disp_cfg->flags.buff_dma) {
+        /* DMA buffer can be used only in RGB656 color format */
+        ESP_RETURN_ON_FALSE(display_color_format == LV_COLOR_FORMAT_RGB565, NULL, TAG, "DMA buffer can be used only in display color format RGB565 (not alligned copy)!");
+    }
 
     /* Display context */
     lvgl_port_display_ctx_t *disp_ctx = malloc(sizeof(lvgl_port_display_ctx_t));
@@ -93,10 +110,10 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
 
     /* alloc draw buffers used by LVGL */
     /* it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized */
-    buf1 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color16_t), buff_caps);
+    buf1 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color_t), buff_caps);
     ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
     if (disp_cfg->double_buffer) {
-        buf2 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color16_t), buff_caps);
+        buf2 = heap_caps_malloc(disp_cfg->buffer_size * sizeof(lv_color_t), buff_caps);
         ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
     }
 
@@ -112,16 +129,16 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
         ESP_GOTO_ON_FALSE((disp_cfg->hres * disp_cfg->vres == disp_cfg->buffer_size), ESP_ERR_INVALID_ARG, err, TAG, "Monochromatic display must using full buffer!");
 
         disp_ctx->flags.monochrome = 1;
-
-        //lv_display_set_color_format(disp, LV_COLOR_FORMAT_RGB565);
-        lv_display_set_buffers(disp, buf1, buf2, disp_cfg->buffer_size * sizeof(lv_color16_t), LV_DISPLAY_RENDER_MODE_FULL);
+        lv_display_set_buffers(disp, buf1, buf2, disp_cfg->buffer_size * sizeof(lv_color_t), LV_DISPLAY_RENDER_MODE_FULL);
     } else {
-        lv_display_set_buffers(disp, buf1, buf2, disp_cfg->buffer_size * sizeof(lv_color16_t), LV_DISPLAY_RENDER_MODE_PARTIAL);
+        lv_display_set_buffers(disp, buf1, buf2, disp_cfg->buffer_size * sizeof(lv_color_t), LV_DISPLAY_RENDER_MODE_PARTIAL);
     }
 
-
+    lv_display_set_color_format(disp, display_color_format);
     lv_display_set_flush_cb(disp, lvgl_port_flush_callback);
     lv_display_add_event_cb(disp, lvgl_port_disp_size_update_callback, LV_EVENT_RESOLUTION_CHANGED, disp_ctx);
+    lv_display_add_event_cb(disp, lvgl_port_display_invalidate_callback, LV_EVENT_INVALIDATE_AREA, disp_ctx);
+    lv_display_add_event_cb(disp, lvgl_port_display_invalidate_callback, LV_EVENT_REFR_REQUEST, disp_ctx);
 
     lv_display_set_user_data(disp, disp_ctx);
     disp_ctx->disp_drv = disp;
@@ -145,6 +162,9 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
         esp_lcd_panel_io_register_event_callbacks(disp_ctx->io_handle, &cbs, disp_ctx->disp_drv);
     }
 #endif
+
+    /* Apply rotation from initial display configuration */
+    lvgl_port_disp_rotation_update(disp_ctx);
 
     lvgl_port_unlock();
 
@@ -218,7 +238,7 @@ static bool lvgl_port_flush_panel_ready_callback(esp_lcd_panel_handle_t panel_io
 static void _lvgl_port_transform_monochrome(lv_display_t *display, const lv_area_t *area, uint8_t *color_map)
 {
     uint8_t *buf = color_map;
-    lv_color16_t *color = (lv_color16_t *)color_map;
+    lv_color_t *color = (lv_color_t *)color_map;
     uint16_t hor_res = lv_display_get_physical_horizontal_resolution(display);
     uint16_t ver_res = lv_display_get_physical_vertical_resolution(display);
     uint16_t res = hor_res;
@@ -262,7 +282,6 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
     lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_display_get_user_data(drv);
     assert(disp_ctx != NULL);
 
-    //TODO: try to use SPI_SWAP_DATA_RX from https://docs.espressif.com/projects/esp-idf/en/v5.1/esp32s3/api-reference/peripherals/spi_master.html#c.SPI_SWAP_DATA_TX
     if (disp_ctx->flags.swap_bytes) {
         size_t len = lv_area_get_size(area);
         lv_draw_sw_rgb565_swap(color_map, len);
@@ -281,10 +300,8 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
     esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
 }
 
-static void lvgl_port_disp_size_update_callback(lv_event_t *e)
+static void lvgl_port_disp_rotation_update(lvgl_port_display_ctx_t *disp_ctx)
 {
-    assert(e);
-    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)e->user_data;
     assert(disp_ctx != NULL);
     esp_lcd_panel_handle_t control_handle = (disp_ctx->control_handle ? disp_ctx->control_handle : disp_ctx->panel_handle);
 
@@ -319,4 +336,20 @@ static void lvgl_port_disp_size_update_callback(lv_event_t *e)
         }
         break;
     }
+
+    /* Wake LVGL task, if needed */
+    lvgl_port_task_wake(LVGL_PORT_EVENT_DISPLAY, disp_ctx->disp_drv);
+}
+
+static void lvgl_port_disp_size_update_callback(lv_event_t *e)
+{
+    assert(e);
+    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)e->user_data;
+    lvgl_port_disp_rotation_update(disp_ctx);
+}
+
+static void lvgl_port_display_invalidate_callback(lv_event_t *e)
+{
+    /* Wake LVGL task, if needed */
+    lvgl_port_task_wake(LVGL_PORT_EVENT_DISPLAY, NULL);
 }
