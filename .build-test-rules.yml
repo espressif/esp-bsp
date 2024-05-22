@@ -13,3 +13,8 @@ components/lcd/esp_lcd_ssd1681:
   disable:
     - if: IDF_VERSION_MAJOR < 5
       reason: Component is supported only for IDF >= 5.0
+
+components/esp_lvgl_port/examples/rgb_lcd:
+  disable:
+    - if: IDF_VERSION_MAJOR < 5
+      reason: Example for RGB LCD is supported only for IDF >= 5.0
