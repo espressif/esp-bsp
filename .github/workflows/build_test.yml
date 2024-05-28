@@ -12,15 +12,15 @@ jobs:
   build:
     strategy:
       matrix:
-        idf_ver: ["release-v4.3", "release-v4.4", "latest"]
+        idf_ver: ["release-v4.4", "release-v5.1", "release-v5.2", "release-v5.3", "latest"]
         idf_target: ["esp32", "esp32s2", "esp32c3", "esp32s3", "esp32p4"]
         exclude:
-          - idf_ver: "release-v4.3"
-            idf_target: esp32p4 # ESP32P4 support started with version 5.2
           - idf_ver: "release-v4.4"
             idf_target: esp32p4 # ESP32P4 support started with version 5.2
-          - idf_ver: "release-v4.3"
-            idf_target: esp32s3 # ESP32S3 support started with version 4.4
+          - idf_ver: "release-v5.0"
+            idf_target: esp32p4 # ESP32P4 support started with version 5.2
+          - idf_ver: "release-v5.1"
+            idf_target: esp32p4 # ESP32P4 support started with version 5.2
     runs-on: ubuntu-20.04
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
