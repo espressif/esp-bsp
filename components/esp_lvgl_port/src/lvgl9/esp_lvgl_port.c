@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <string.h>
 #include "esp_system.h"
 #include "esp_log.h"
 #include "esp_err.h"
@@ -247,6 +248,9 @@ static void lvgl_port_task(void *arg)
         if (task_delay_ms == LV_NO_TIMER_READY) {
             task_delay_ms = lvgl_port_ctx.task_max_sleep_ms;
         }
+
+        /* Minimal dealy for the task. When there is too much events, it takes time for other tasks and interrupts. */
+        vTaskDelay(1);
     }
 
     /* Give semaphore back */
