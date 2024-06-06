@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.2.1
+
+### Fixes
+- Added missing includes
+- Fixed watchdog error in some cases in LVGL9
+
 ## 2.2.0
 
 ### Features
