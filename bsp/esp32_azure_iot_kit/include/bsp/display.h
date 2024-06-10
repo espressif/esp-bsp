@@ -73,6 +73,7 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
 
 /* Backlight functions are not implemented - Azure kit doesn't provide backlight control
    These functions are here to provide consistent API with other Board Support Packages */
+esp_err_t bsp_display_brightness_init(void);
 esp_err_t bsp_display_brightness_set(int brightness_percent);
 esp_err_t bsp_display_backlight_on(void);
 esp_err_t bsp_display_backlight_off(void);

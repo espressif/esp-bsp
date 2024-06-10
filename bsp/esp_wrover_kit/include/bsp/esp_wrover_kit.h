@@ -18,6 +18,19 @@
 #include "iot_button.h"
 #include "esp_lvgl_port.h"
 #include "bsp/display.h"
+/**************************************************************************************************
+ *  BSP Capabilities
+ **************************************************************************************************/
+
+#define BSP_CAPS_DISPLAY        1
+#define BSP_CAPS_TOUCH          0
+#define BSP_CAPS_BUTTONS        1
+#define BSP_CAPS_AUDIO          0
+#define BSP_CAPS_AUDIO_SPEAKER  0
+#define BSP_CAPS_AUDIO_MIC      0
+#define BSP_CAPS_LED            1
+#define BSP_CAPS_SDCARD         1
+#define BSP_CAPS_IMU            0
 
 /**************************************************************************************************
  * ESP-WROVER-KIT pinout
@@ -254,7 +267,7 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
  *
  * @return Pointer to LVGL display or NULL when error occurred
  */
-lv_disp_t *bsp_display_start(void);
+lv_display_t *bsp_display_start(void);
 
 /**
  * @brief Initialize display
@@ -266,7 +279,7 @@ lv_disp_t *bsp_display_start(void);
  *
  * @return Pointer to LVGL display or NULL when error occurred
  */
-lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
+lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 
 /**
  * @brief Get pointer to input device (touch, buttons, ...)
@@ -300,7 +313,7 @@ void bsp_display_unlock(void);
  * @param[in] disp Pointer to LVGL display
  * @param[in] rotation Angle of the display rotation
  */
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
+void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 
 #ifdef __cplusplus
 }

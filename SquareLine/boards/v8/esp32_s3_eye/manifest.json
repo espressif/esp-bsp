@@ -1,0 +1,20 @@
+{
+    "name":"ESP32-S3-EYE",
+    "version":"1.0.0",
+    "mcu":"ESP32S3",
+
+    "screen_width":"240",
+    "screen_height":"240",
+    "screen_color_swap":true,
+
+    "supported_lvgl_version":"8.2.0, 8.3.*",
+
+    "short_description":"The ESP32-S3-EYE is a small-sized AI development board produced by Espressif. It is based on the ESP32-S3 SoC and ESP-WHO.",
+    "long_description":"ESP32-S3-EYE features a 2-Megapixel camera, an LCD display, and a microphone, which are used for image recognition and audio processing. ESP32-S3-EYE offers plenty of storage, with an 8 MB Octal PSRAM and a 8 MB flash. It also supports image transmission via Wi-Fi and debugging through a Micro-USB port.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/esp32_s3_eye.h",
+        "__ESP_BOARD_I2C_INIT__": ""
+    }
+}

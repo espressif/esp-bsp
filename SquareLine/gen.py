@@ -40,7 +40,7 @@ SLB_FILE = {
     "color_depth": "",
     "lvgl_export_path": "",
     "lvgl_include_path": "lvgl.h",
-    "supported_lvgl_version": "8.2.0, 8.3.3",
+    "supported_lvgl_version": "9.1.*",
     "pattern_match_files": "./CMakeLists.txt",
     "language":"C",
     "ui_export_path":"./main/ui",
@@ -164,6 +164,7 @@ def create_slb_file(output, output_filename, manifest):
     check_json_key(manifest, "screen_color_swap")
     check_json_key(manifest, "short_description")
     check_json_key(manifest, "long_description")
+    check_json_key(manifest, "supported_lvgl_version")
 
     SLB_FILE["version"] = manifest["version"]
     SLB_FILE["title"] = manifest["name"]
@@ -180,6 +181,7 @@ def create_slb_file(output, output_filename, manifest):
         SLB_FILE["color_depth"] = "16"
     SLB_FILE["short_description"] = manifest["short_description"]
     SLB_FILE["long_description"] = manifest["long_description"]
+    SLB_FILE["supported_lvgl_version"] = manifest["supported_lvgl_version"]
 
     out_slb_json = json.dumps(SLB_FILE, indent=4)
     slb_file = os.path.join(output, output_filename + ".slb")
@@ -267,9 +269,15 @@ def main(outdir, sel_board):
         # Remove all in output directory
         if os.path.exists(output_folder):
             shutil.rmtree(output_folder)
-        # loop all boards
-        for dirname in os.listdir(BOARDS_DIR):
-            d = os.path.join(BOARDS_DIR, dirname)
+        # loop all boards V8
+        for dirname in os.listdir(BOARDS_DIR + "v8/"):
+            d = os.path.join(BOARDS_DIR, "v8/" + dirname)
+            # checking if it is a file
+            if os.path.isdir(d) and "custom" not in dirname:
+                process_board(dirname, os.path.join(output_folder, dirname), d)
+        # loop all boards V9
+        for dirname in os.listdir(BOARDS_DIR + "v9/"):
+            d = os.path.join(BOARDS_DIR, "v9/" + dirname)
             # checking if it is a file
             if os.path.isdir(d) and "custom" not in dirname:
                 process_board(dirname, os.path.join(output_folder, dirname), d)

@@ -355,7 +355,7 @@ err:
     return ret;
 }
 
-static lv_disp_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
+static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
     esp_lcd_panel_io_handle_t io_handle = NULL;
@@ -386,6 +386,9 @@ static lv_disp_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
         .flags = {
             .buff_dma = cfg->flags.buff_dma,
             .buff_spiram = cfg->flags.buff_spiram,
+#if LVGL_VERSION_MAJOR >= 9
+            .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
+#endif
         }
     };
 
@@ -417,7 +420,7 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     return esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, ret_touch);
 }
 
-static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
+static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 {
     if (tp == NULL) {
         BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(NULL, &tp));
@@ -431,6 +434,12 @@ static lv_indev_t *bsp_display_indev_init(lv_disp_t *disp)
     };
 
     return lvgl_port_add_touch(&touch_cfg);
+}
+
+esp_err_t bsp_display_brightness_init(void)
+{
+    ESP_LOGW(TAG, "This board doesn't support to change brightness of LCD");
+    return ESP_ERR_NOT_SUPPORTED;
 }
 
 esp_err_t bsp_display_brightness_set(int brightness_percent)
@@ -451,7 +460,7 @@ esp_err_t bsp_display_backlight_on(void)
     return esp_io_expander_set_level(io_expander, BSP_LCD_IO_BACKLIGHT, 1);
 }
 
-lv_disp_t *bsp_display_start(void)
+lv_display_t *bsp_display_start(void)
 {
     bsp_display_cfg_t cfg = {
         .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
@@ -465,9 +474,9 @@ lv_disp_t *bsp_display_start(void)
     return bsp_display_start_with_config(&cfg);
 }
 
-lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
+lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
 {
-    lv_disp_t *disp = NULL;
+    lv_display_t *disp = NULL;
     assert(cfg != NULL);
     BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
 
@@ -483,7 +492,7 @@ lv_indev_t *bsp_display_get_input_dev(void)
     return disp_indev;
 }
 
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
+void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);
 }

@@ -356,7 +356,7 @@ err:
     return ret;
 }
 
-static lv_disp_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
+static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
     esp_lcd_panel_io_handle_t io_handle = NULL;
@@ -387,13 +387,16 @@ static lv_disp_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
         .flags = {
             .buff_dma = cfg->flags.buff_dma,
             .buff_spiram = cfg->flags.buff_spiram,
+#if LVGL_VERSION_MAJOR >= 9
+            .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
+#endif
         }
     };
 
     return lvgl_port_add_disp(&disp_cfg);
 }
 
-lv_disp_t *bsp_display_start(void)
+lv_display_t *bsp_display_start(void)
 {
     bsp_display_cfg_t cfg = {
         .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
@@ -407,9 +410,9 @@ lv_disp_t *bsp_display_start(void)
     return bsp_display_start_with_config(&cfg);
 }
 
-lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
+lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
 {
-    lv_disp_t *disp = NULL;
+    lv_display_t *disp = NULL;
     BSP_NULL_CHECK(cfg, NULL);
 
     BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
@@ -422,7 +425,7 @@ lv_indev_t *bsp_display_get_input_dev(void)
     return NULL;
 }
 
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation)
+void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);
 }
@@ -439,6 +442,10 @@ void bsp_display_unlock(void)
 
 /* Backlight functions are not implemented - Kaluga board doesn't provide backlight control
    These functions are here to provide consistent API with other Board Support Packages */
+esp_err_t bsp_display_brightness_init(void)
+{
+    return ESP_OK;
+}
 esp_err_t bsp_display_backlight_off(void)
 {
     return ESP_OK;

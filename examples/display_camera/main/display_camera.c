@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -34,12 +34,18 @@ void app_main(void)
         return;
     }
     sensor_t *s = esp_camera_sensor_get();
-    s->set_vflip(s, 1);
+    s->set_vflip(s, BSP_CAMERA_VFLIP);
+    s->set_hmirror(s, BSP_CAMERA_HMIRROR);
     ESP_LOGI(TAG, "Camera Init done");
+
+    uint32_t cam_buff_size = BSP_LCD_H_RES * BSP_LCD_V_RES * 2;
+    uint8_t *cam_buff = heap_caps_malloc(cam_buff_size, MALLOC_CAP_SPIRAM);
+    assert(cam_buff);
 
     // Create LVGL canvas for camera image
     bsp_display_lock(0);
     lv_obj_t *camera_canvas = lv_canvas_create(lv_scr_act());
+    lv_canvas_set_buffer(camera_canvas, cam_buff, BSP_LCD_H_RES, BSP_LCD_V_RES, LV_COLOR_FORMAT_RGB565);
     assert(camera_canvas);
     lv_obj_center(camera_canvas);
     bsp_display_unlock();
@@ -48,12 +54,18 @@ void app_main(void)
     while (1) {
         pic = esp_camera_fb_get();
         if (pic) {
-            bsp_display_lock(0);
-            lv_canvas_set_buffer(camera_canvas, pic->buf, pic->width, pic->height, LV_IMG_CF_TRUE_COLOR);
-            bsp_display_unlock();
             esp_camera_fb_return(pic);
+            bsp_display_lock(0);
+            memcpy(cam_buff, pic->buf, cam_buff_size);
+            if (BSP_LCD_BIGENDIAN) {
+                /* Swap bytes in RGB565 */
+                lv_draw_sw_rgb565_swap(cam_buff, cam_buff_size);
+            }
+            lv_obj_invalidate(camera_canvas);
+            bsp_display_unlock();
         } else {
             ESP_LOGE(TAG, "Get frame failed");
         }
+        vTaskDelay(1);
     }
 }

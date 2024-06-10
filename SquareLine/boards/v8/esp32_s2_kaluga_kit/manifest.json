@@ -1,0 +1,20 @@
+{
+    "name":"ESP32-S2-Kaluga Kit",
+    "version":"1.0.0",
+    "mcu":"ESP32S2",
+
+    "screen_width":"320",
+    "screen_height":"240",
+    "screen_color_swap":true,
+
+    "supported_lvgl_version":"8.2.0, 8.3.*",
+
+    "short_description":"The ESP32-S2-Kaluga-1 development kit produced by Espressif. It integrates the ESP32-S2-WROVER module and all the connectors for extension boards.",
+    "long_description":"Multimedia development board ESP32-S2-Kaluga-1 kit based on ESP32-S2 has various functions, such as an LCD screen display, touch panel control, camera image acquisition, audio playback, etc. It can be flexibly assembled and disassembled, thus fulfilling a variety of customized requirements.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/esp32_s2_kaluga_kit.h",
+        "__ESP_BOARD_I2C_INIT__": ""
+    }
+}

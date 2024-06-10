@@ -43,6 +43,7 @@
 #define BSP_CAPS_AUDIO_MIC      1
 #define BSP_CAPS_SDCARD         1
 #define BSP_CAPS_IMU            0
+#define BSP_CAPS_CAMERA         1
 
 /**************************************************************************************************
  *  M5Stack-Core-S3 pinout
@@ -245,6 +246,9 @@ esp_err_t bsp_i2c_deinit(void);
         .sccb_i2c_port = BSP_I2C_NUM,     \
     }
 
+#define BSP_CAMERA_VFLIP        0
+#define BSP_CAMERA_HMIRROR      0
+
 /**************************************************************************************************
  *
  * SPIFFS
@@ -365,7 +369,7 @@ typedef struct {
  *
  * @return Pointer to LVGL display or NULL when error occured
  */
-lv_disp_t *bsp_display_start(void);
+lv_display_t *bsp_display_start(void);
 
 /**
  * @brief Initialize display
@@ -377,7 +381,7 @@ lv_disp_t *bsp_display_start(void);
  *
  * @return Pointer to LVGL display or NULL when error occured
  */
-lv_disp_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
+lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
 
 /**
  * @brief Get pointer to input device (touch, buttons, ...)
@@ -411,7 +415,7 @@ void bsp_display_unlock(void);
  * @param[in] disp Pointer to LVGL display
  * @param[in] rotation Angle of the display rotation
  */
-void bsp_display_rotate(lv_disp_t *disp, lv_disp_rot_t rotation);
+void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation);
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 #ifdef __cplusplus

@@ -1,0 +1,20 @@
+{
+    "name":"Custom WaveShare 7inch",
+    "version":"1.0.0",
+    "mcu":"ESP32",
+
+    "screen_width":"800",
+    "screen_height":"480",
+    "screen_color_swap":true,
+
+    "supported_lvgl_version":"8.2.0, 8.3.*",
+
+    "short_description":"Internal custom board with WaveShare 7inch Display made by Espressif.",
+    "long_description":"Example of the custom BSP and custom LCD made by Espressif for various Demos.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/ws_7inch.h",
+        "__ESP_BOARD_I2C_INIT__": "/* Initialize I2C (for touch) */\n    bsp_i2c_init();"
+    }
+}

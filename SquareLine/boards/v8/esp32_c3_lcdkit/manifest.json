@@ -1,0 +1,20 @@
+{
+    "name":"ESP32-C3-LCDKit",
+    "version":"1.0.0",
+    "mcu":"ESP32C3",
+
+    "screen_width":"240",
+    "screen_height":"240",
+    "screen_color_swap":true,
+
+    "supported_lvgl_version":"8.2.0, 8.3.*",
+
+    "short_description":"ESP32-C3-LCDKit is a HMI development kit with encoder, that is based on Espressif's ESP32-C3.",
+    "long_description":"ESP32-C3-LCDkit is an ESP32-C3-based evaluation development board with an SPI interface display. It also has an integrated rotary encoder switch and features screen interaction. Due to its low cost, low power consumption, and high performance, ESP32-C3 satisfies the basic GUI interaction needs, gaining ground in scenarios with small screen sizes.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/esp-bsp.h",
+        "__ESP_BOARD_I2C_INIT__": ""
+    }
+}
