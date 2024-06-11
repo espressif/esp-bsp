@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.2
+
+### Fixes
+- Fixed missing callback in IDF4.4.3 and lower for LVGL port
+
 ## 2.2.1
 
 ### Fixes
