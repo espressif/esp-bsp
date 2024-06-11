@@ -40,8 +40,10 @@ typedef enum {
     BSP_FEATURE_CAMERA,
 } bsp_feature_t;
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *disp;
 static lv_indev_t *disp_indev = NULL;
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
 sdmmc_card_t *bsp_sdcard = NULL;    // Global SD card handler
 static bool i2c_initialized = false;
