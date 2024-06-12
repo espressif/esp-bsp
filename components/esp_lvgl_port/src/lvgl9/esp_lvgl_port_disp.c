@@ -86,11 +86,14 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
         disp_ctx->disp_type = LVGL_PORT_DISP_TYPE_OTHER;
 
         assert(disp_cfg->io_handle != NULL);
+
+#if LVGL_PORT_HANDLE_FLUSH_READY
         const esp_lcd_panel_io_callbacks_t cbs = {
             .on_color_trans_done = lvgl_port_flush_io_ready_callback,
         };
         /* Register done callback */
         esp_lcd_panel_io_register_event_callbacks(disp_ctx->io_handle, &cbs, disp);
+#endif
 
         /* Apply rotation from initial display configuration */
         lvgl_port_disp_rotation_update(disp_ctx);
