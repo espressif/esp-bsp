@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -40,6 +40,14 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
  */
 #define ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS          (0x5D)
 #define ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS_BACKUP   (0x14)
+
+/**
+ * @brief GT911 Configuration Type
+ *
+ */
+typedef struct {
+    uint8_t dev_addr;  /*!< I2C device address */
+} esp_lcd_touch_io_gt911_config_t;
 
 /**
  * @brief Touch IO configuration structure

@@ -64,6 +64,8 @@ typedef struct {
     esp_lcd_touch_interrupt_callback_t interrupt_callback;
     /*!< User data passed to callback */
     void *user_data;
+    /*!< User data passed to driver */
+    void *driver_data;
 } esp_lcd_touch_config_t;
 
 typedef struct {

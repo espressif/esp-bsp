@@ -25,6 +25,10 @@ Initialization of the touch component.
 ```
     esp_lcd_panel_io_i2c_config_t io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
 
+    esp_lcd_touch_io_gt911_config_t tp_gt911_config = {
+        .dev_addr = io_config.dev_addr,
+    };
+
     esp_lcd_touch_config_t tp_cfg = {
         .x_max = CONFIG_LCD_HRES,
         .y_max = CONFIG_LCD_VRES,
@@ -39,6 +43,7 @@ Initialization of the touch component.
             .mirror_x = 0,
             .mirror_y = 0,
         },
+        .driver_data = &tp_gt911_config,
     };
 
     esp_lcd_touch_handle_t tp;
