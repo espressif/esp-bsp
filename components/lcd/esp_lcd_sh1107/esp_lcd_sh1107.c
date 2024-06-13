@@ -142,7 +142,7 @@ static const uint8_t vendor_specific_init[] = {
     0x7f,   /* duty = 1/64 */
 
     0xd3,   /* set display offset */
-    0x60,
+    0x00,
 
     0xd5,   /* set osc division */
     0x51,
