@@ -4,6 +4,8 @@ examples:
       reason: Example depends on BSP, which is supported only for IDF >= 5.0
     - if: IDF_VERSION_MAJOR < 5 and IDF_TARGET in ["esp32c2", "esp32p4", "esp32c5", "esp32c6"]
       reason: Example depends on target, which is supported only for IDF >= 5.0
+    - if: IDF_VERSION_MAJOR < 5 and IDF_VERSION_MINOR < 3 and CONFIG_NAME == "esp32_p4_function_ev_board"
+      reason: Example depends on BSP, which is supported only for IDF >= 5.3
 
 components/lcd/esp_lcd_gc9503:
   disable:
