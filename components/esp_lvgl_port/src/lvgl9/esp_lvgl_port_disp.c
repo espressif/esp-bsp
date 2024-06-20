@@ -19,6 +19,12 @@
 #include "esp_lvgl_port.h"
 #include "esp_lvgl_port_priv.h"
 
+#define LVGL_PORT_PPA   (CONFIG_LVGL_PORT_ENABLE_PPA)
+
+#if LVGL_PORT_PPA
+#include "../common/ppa/lcd_ppa.h"
+#endif
+
 #if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 #include "esp_lcd_panel_rgb.h"
 #endif
@@ -54,6 +60,9 @@ typedef struct {
     lv_display_t              *disp_drv;      /* LVGL display driver */
     lv_display_rotation_t     current_rotation;
     SemaphoreHandle_t         trans_sem;      /* Idle transfer mutex */
+#if LVGL_PORT_PPA
+    lvgl_port_ppa_handle_t    ppa_handle;
+#endif //LVGL_PORT_PPA
     struct {
         unsigned int monochrome: 1;  /* True, if display is monochrome and using 1bit for 1px */
         unsigned int swap_bytes: 1;  /* Swap bytes in RGB656 (16-bit) before send to LCD driver */
@@ -140,6 +149,7 @@ lv_display_t *lvgl_port_add_disp_dsi(const lvgl_port_display_cfg_t *disp_cfg, co
 
         /* Apply rotation from initial display configuration */
         lvgl_port_disp_rotation_update(disp_ctx);
+
 #else
         ESP_RETURN_ON_FALSE(false, NULL, TAG, "MIPI-DSI is supported only on ESP32P4 and from IDF 5.3!");
 #endif
@@ -220,6 +230,11 @@ esp_err_t lvgl_port_remove_disp(lv_display_t *disp)
     if (disp_ctx->trans_sem) {
         vSemaphoreDelete(disp_ctx->trans_sem);
     }
+#if LVGL_PORT_PPA
+    if (disp_ctx->ppa_handle) {
+        lvgl_port_ppa_delete(disp_ctx->ppa_handle);
+    }
+#endif //LVGL_PORT_PPA
 
     free(disp_ctx);
 
@@ -377,8 +392,30 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
 
     /* Use SW rotation */
     if (disp_cfg->flags.sw_rotate) {
+#if LVGL_PORT_PPA
+        ESP_LOGI(TAG, "Setting PPA context for SW rotation");
+        uint32_t pixel_format = COLOR_PIXEL_RGB565;
+        if (disp_cfg->color_format == LV_COLOR_FORMAT_RGB888) {
+            pixel_format = COLOR_PIXEL_RGB888;
+        }
+
+        /* Create LCD PPA for rotation */
+        lvgl_port_ppa_cfg_t ppa_cfg = {
+            .buffer_size = disp_cfg->buffer_size * color_bytes,
+            .color_space = COLOR_SPACE_RGB,
+            .pixel_format = pixel_format,
+            .flags = {
+                .buff_dma = disp_cfg->flags.buff_dma,
+                .buff_spiram = disp_cfg->flags.buff_spiram,
+            }
+        };
+        disp_ctx->ppa_handle = lvgl_port_ppa_create(&ppa_cfg);
+        assert(disp_ctx->ppa_handle != NULL);
+#else
         disp_ctx->draw_buffs[2] = heap_caps_malloc(buffer_size * color_bytes, buff_caps);
         ESP_GOTO_ON_FALSE(disp_ctx->draw_buffs[2], ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (rotation buffer) allocation!");
+
+#endif //LVGL_PORT_PPA
     }
 
 
@@ -574,6 +611,39 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
 
     /* SW rotation enabled */
     if (disp_ctx->flags.sw_rotate && (disp_ctx->current_rotation > LV_DISPLAY_ROTATION_0)) {
+#if LVGL_PORT_PPA
+        if (disp_ctx->ppa_handle) {
+            /* Screen vertical size */
+            int32_t hres = lv_display_get_horizontal_resolution(drv);
+            int32_t vres = lv_display_get_vertical_resolution(drv);
+            lvgl_port_ppa_disp_rotate_t rotate_cfg = {
+                .in_buff = color_map,
+                .area = {
+                    .x1 = area->x1,
+                    .x2 = area->x2,
+                    .y1 = area->y1,
+                    .y2 = area->y2,
+                },
+                .disp_size = {
+                    .hres = hres,
+                    .vres = vres,
+                },
+                .rotation = disp_ctx->current_rotation,
+                .ppa_mode = PPA_TRANS_MODE_BLOCKING,
+                .swap_bytes = (disp_ctx->flags.swap_bytes ? true : false),
+                .user_data = disp_ctx
+            };
+            /* Do operation */
+            esp_err_t err = lvgl_port_ppa_rotate(disp_ctx->ppa_handle, &rotate_cfg);
+            if (err == ESP_OK) {
+                color_map = lvgl_port_ppa_get_output_buffer(disp_ctx->ppa_handle);
+                offsetx1 = rotate_cfg.area.x1;
+                offsetx2 = rotate_cfg.area.x2;
+                offsety1 = rotate_cfg.area.y1;
+                offsety2 = rotate_cfg.area.y2;
+            }
+        }
+#else
         /* SW rotation */
         if (disp_ctx->draw_buffs[2]) {
             int32_t ww = lv_area_get_width(area);
@@ -595,13 +665,13 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
             offsety1 = area->y1;
             offsety2 = area->y2;
         }
+#endif //LVGL_PORT_PPA
     }
 
     if (disp_ctx->flags.swap_bytes) {
         size_t len = lv_area_get_size(area);
         lv_draw_sw_rgb565_swap(color_map, len);
     }
-
     /* Transfer data in buffer for monochromatic screen */
     if (disp_ctx->flags.monochrome) {
         _lvgl_port_transform_monochrome(drv, area, &color_map);
