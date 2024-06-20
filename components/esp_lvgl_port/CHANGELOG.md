@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.0
+- Fixed LVGL port for using with LVGL9 OS FreeRTOS enabled
+- Fixed bad handled touch due to synchronization timer task
+
+### Features
+- Added support for SW rotation in LVGL9
+
 ## 2.2.2
 
 ### Fixes

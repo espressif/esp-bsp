@@ -30,7 +30,6 @@ static lv_indev_t *disp_indev = NULL;
 #endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
-static esp_lcd_touch_handle_t tp;   // LCD touch handle
 static bool i2c_initialized = false;
 static TaskHandle_t usb_host_task;  // USB Host Library task
 
@@ -357,15 +356,14 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
             .mirror_x = true,
             .mirror_y = true,
         },
+        .color_format = LV_COLOR_FORMAT_RGB565,
         .flags = {
             .buff_dma = cfg->flags.buff_dma,
             .buff_spiram = cfg->flags.buff_spiram,
 #if LVGL_VERSION_MAJOR >= 9
             .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
 #endif
-#if LVGL_VERSION_MAJOR == 8
             .sw_rotate = cfg->flags.sw_rotate, /* Only SW rotation is supported for 90° and 270° */
-#endif
         }
     };
 
@@ -374,6 +372,7 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 
 static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 {
+    esp_lcd_touch_handle_t tp;
     BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(NULL, &tp));
     assert(tp);
 
@@ -395,6 +394,7 @@ lv_display_t *bsp_display_start(void)
         .flags = {
             .buff_dma = true,
             .buff_spiram = false,
+            .sw_rotate = true,
         }
     };
     return bsp_display_start_with_config(&cfg);

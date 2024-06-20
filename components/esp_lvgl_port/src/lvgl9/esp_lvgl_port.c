@@ -29,6 +29,7 @@ static const char *TAG = "LVGL";
 typedef struct lvgl_port_ctx_s {
     TaskHandle_t        lvgl_task;
     SemaphoreHandle_t   lvgl_mux;
+    SemaphoreHandle_t   timer_mux;
     QueueHandle_t       lvgl_queue;
     SemaphoreHandle_t   task_init_mux;
     esp_timer_handle_t  tick_timer;
@@ -61,16 +62,16 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
 
     memset(&lvgl_port_ctx, 0, sizeof(lvgl_port_ctx));
 
-    /* LVGL init */
-    lv_init();
     /* Tick init */
     lvgl_port_ctx.timer_period_ms = cfg->timer_period_ms;
-    ESP_RETURN_ON_ERROR(lvgl_port_tick_init(), TAG, "");
     /* Create task */
     lvgl_port_ctx.task_max_sleep_ms = cfg->task_max_sleep_ms;
     if (lvgl_port_ctx.task_max_sleep_ms == 0) {
         lvgl_port_ctx.task_max_sleep_ms = 500;
     }
+    /* Timer semaphore */
+    lvgl_port_ctx.timer_mux = xSemaphoreCreateMutex();
+    ESP_GOTO_ON_FALSE(lvgl_port_ctx.timer_mux, ESP_ERR_NO_MEM, err, TAG, "Create timer mutex fail!");
     /* LVGL semaphore */
     lvgl_port_ctx.lvgl_mux = xSemaphoreCreateRecursiveMutex();
     ESP_GOTO_ON_FALSE(lvgl_port_ctx.lvgl_mux, ESP_ERR_NO_MEM, err, TAG, "Create LVGL mutex fail!");
@@ -216,6 +217,11 @@ static void lvgl_port_task(void *arg)
         vTaskDelete( NULL );
     }
 
+    /* LVGL init */
+    lv_init();
+    /* Tick init */
+    lvgl_port_tick_init();
+
     ESP_LOGI(TAG, "Starting LVGL task");
     lvgl_port_ctx.running = true;
     while (lvgl_port_ctx.running) {
@@ -227,6 +233,7 @@ static void lvgl_port_task(void *arg)
 
             /* Call read input devices */
             if (event.type == LVGL_PORT_EVENT_TOUCH) {
+                xSemaphoreTake(lvgl_port_ctx.timer_mux, portMAX_DELAY);
                 if (event.param != NULL) {
                     lv_indev_read(event.param);
                 } else {
@@ -236,6 +243,7 @@ static void lvgl_port_task(void *arg)
                         indev = lv_indev_get_next(indev);
                     }
                 }
+                xSemaphoreGive(lvgl_port_ctx.timer_mux);
             }
 
             /* Handle LVGL */
@@ -262,6 +270,9 @@ static void lvgl_port_task(void *arg)
 
 static void lvgl_port_task_deinit(void)
 {
+    if (lvgl_port_ctx.timer_mux) {
+        vSemaphoreDelete(lvgl_port_ctx.timer_mux);
+    }
     if (lvgl_port_ctx.lvgl_mux) {
         vSemaphoreDelete(lvgl_port_ctx.lvgl_mux);
     }
@@ -280,8 +291,10 @@ static void lvgl_port_task_deinit(void)
 
 static void lvgl_port_tick_increment(void *arg)
 {
+    xSemaphoreTake(lvgl_port_ctx.timer_mux, portMAX_DELAY);
     /* Tell LVGL how many milliseconds have elapsed */
     lv_tick_inc(lvgl_port_ctx.timer_period_ms);
+    xSemaphoreGive(lvgl_port_ctx.timer_mux);
 }
 
 static esp_err_t lvgl_port_tick_init(void)

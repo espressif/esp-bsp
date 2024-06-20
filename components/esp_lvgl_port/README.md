@@ -265,8 +265,8 @@ Display rotation can be changed at runtime.
     lv_disp_set_rotation(disp_handle, LV_DISP_ROT_90);
 ```
 
-> [!WARNING]
-> Software rotation is available only in LVGL 8.
+> [!NOTE]
+> This feature consume more RAM.
 
 > [!NOTE]
 > During the hardware rotating, the component call [`esp_lcd`](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html) API. When using software rotation, you cannot use neither `direct_mode` nor `full_refresh` in the driver. See [LVGL documentation](https://docs.lvgl.io/8.3/porting/display.html?highlight=sw_rotate) for more info.
