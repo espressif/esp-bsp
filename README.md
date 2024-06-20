@@ -21,6 +21,7 @@ Board support packages for development boards using Espressif's SoCs, written in
 | [ESP-BOX-3](bsp/esp-box-3) | ESP32-S3 | LCD display with touch, audio codec + power amplifier,<br>accelerometer and gyroscope | <img src="docu/pics/esp32_s3_box_3.png" width="150"> |
 | [ESP32-S3-KORVO-1](bsp/esp32_s3_korvo_1) | ESP32-S3 | uSD card slot, microphone, audio codec + power amplifier, RGB led strip | <img src="docu/pics/esp32_s3_korvo_1.png" width="150"> |
 | [M5Stack CoreS3](bsp/m5stack_core_s3) | ESP32-S3 | LCD display with touch, uSD card slot, microphone, audio codec | <img src="docu/pics/m5stack_cores3.webp" width="150"> |
+| [M5Dial](bsp/m5dial) | ESP32-S3 | LCD display with touch and encoder | <img src="docu/pics/m5dial.webp" width="150"> |
 ## LCD displays and TOUCH
 
 | [LVGL port](components/esp_lvgl_port) | [LCD drivers](LCD.md) |
@@ -53,7 +54,7 @@ Best way to start with ESP-BSP is trying one of the [examples](examples) on your
 * `bsp/name-of-the-bsp.h`: Main include file of the BSP with public API
 * `bsp/esp-bsp.h`: Convenience include file with the same name for all BPSs
 * `bsp/display.h` and `bsp/touch.h`: Only for BSPs with LCD or touch controller. Contain low level initialization functions for usage without LVGL graphical library
-    * By default, BSPs with display are shipped with LVGL, if you are interested in BSP without LVGL you can use BSP versions with `noglib` suffix (eg. `esp32_s3_eye_noglib`). 
+    * By default, BSPs with display are shipped with LVGL, if you are interested in BSP without LVGL you can use BSP versions with `noglib` suffix (eg. `esp32_s3_eye_noglib`).
 
 > **_NOTE:_** There can be only one BSP in a single esp-idf project.
 

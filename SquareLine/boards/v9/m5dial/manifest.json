@@ -1,0 +1,20 @@
+{
+    "name":"M5Dial",
+    "version":"1.0.0",
+    "mcu":"ESP32S3",
+
+    "screen_width":"240",
+    "screen_height":"240",
+    "screen_color_swap":true,
+
+    "supported_lvgl_version":"9.1.*",
+
+    "short_description":"As a versatile embedded development board, M5Dial integrates the necessary features and sensors for various smart home control applications. It features a 1.28-inch round TFT touchscreen, a rotary encoder, an RFID detection module, an RTC circuit, a buzzer, and under-screen buttons, enabling users to easily implement a wide range of creative projects.",
+    "long_description":"As a versatile embedded development board, M5Dial integrates the necessary features and sensors for various smart home control applications. It features a 1.28-inch round TFT touchscreen, a rotary encoder, an RFID detection module, an RTC circuit, a buzzer, and under-screen buttons, enabling users to easily implement a wide range of creative projects.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/esp-bsp.h",
+        "__ESP_BOARD_I2C_INIT__": "/* Initialize I2C (for touch and audio) */\n    bsp_i2c_init();"
+    }
+}
