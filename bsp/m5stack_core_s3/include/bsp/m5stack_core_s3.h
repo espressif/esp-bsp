@@ -316,7 +316,7 @@ extern sdmmc_card_t *bsp_sdcard;
 esp_err_t bsp_sdcard_mount(void);
 
 /**
- * @brief Unmount micorSD card from virtual file system
+ * @brief Unmount microSD card from virtual file system
  *
  * @return
  *      - ESP_OK on success
