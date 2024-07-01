@@ -1,0 +1,22 @@
+version: "1.0.0"
+description: Board Support Package (BSP) for M5Stack Core2
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5stack_core_2
+
+targets:
+  - esp32
+
+tags:
+  - bsp
+
+dependencies:
+  idf: ">=5.0"
+  esp_lcd_ili9341: "^1"
+  esp_lcd_touch_ft5x06: "^1"
+
+  espressif/esp_lvgl_port:
+    version: "^2"
+    public: true
+
+  esp_codec_dev:
+    version: "^1.1"
+    public: true
