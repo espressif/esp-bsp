@@ -22,10 +22,10 @@ static const audio_codec_data_if_t *i2s_data_if = NULL; /* Codec data interface 
         .invert_flags = {                                                                    \
             .mclk_inv = false,                                                               \
             .bclk_inv = false,                                                               \
-            .ws_inv   = false,                                                               \
+            .ws_inv   = true,                                                                \
         },                                                                                   \
+        .mclk = BSP_I2S_MCLK,                                                                \
     }
-//  .mclk = BSP_I2S_MCLK,
 /* This configuration is used by default in bsp_audio_init() */
 #define BSP_I2S_DUPLEX_MONO_CFG(_sample_rate)                                                         \
     {                                                                                                 \
@@ -49,7 +49,6 @@ esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config)
 
     /* Setup I2S channels */
     i2s_std_config_t std_cfg_default   = BSP_I2S_DUPLEX_MONO_CFG(44100);
-    std_cfg_default.slot_cfg.slot_mask = I2S_STD_SLOT_RIGHT;
 
     const i2s_std_config_t *p_i2s_cfg = &std_cfg_default;
     if (i2s_config != NULL) {

@@ -51,7 +51,7 @@
 #define BSP_I2C_SDA           (GPIO_NUM_21)
 /* Audio */
 #define BSP_I2S_SCLK          (GPIO_NUM_12) //I2S_BCK
-#define BSP_I2S_MCLK          (GPIO_NUM_0)
+#define BSP_I2S_MCLK          (GPIO_NUM_NC)
 #define BSP_I2S_LCLK          (GPIO_NUM_0) //I2S_WCK
 #define BSP_I2S_DOUT          (GPIO_NUM_2)
 #define BSP_I2S_DSIN          (GPIO_NUM_34)
