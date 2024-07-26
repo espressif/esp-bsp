@@ -76,6 +76,27 @@ if("usb_host_hid" IN_LIST build_components)
     list(APPEND ADD_LIBS idf::usb_host_hid)
 endif()
 
+# Include SIMD assembly source code for rendering, only for (9.1.0 <= LVG_version < 9.2.0) and only for esp32 and esp32s3
+if((lvgl_ver VERSION_GREATER_EQUAL "9.1.0") AND (lvgl_ver VERSION_LESS "9.2.0"))
+    if(CONFIG_IDF_TARGET_ESP32 OR CONFIG_IDF_TARGET_ESP32S3)
+        message(VERBOSE "Compiling SIMD")
+        if(CONFIG_IDF_TARGET_ESP32S3)
+            file(GLOB_RECURSE ASM_SRCS ${PORT_PATH}/simd/*_esp32s3.S)    # Select only esp32s3 related files
+        else()
+            file(GLOB_RECURSE ASM_SRCS ${PORT_PATH}/simd/*_esp32.S)      # Select only esp32 related files
+        endif()
+        list(APPEND ADD_SRCS ${ASM_SRCS})
+
+        # Include component libraries, so lvgl component would see lvgl_port includes
+        idf_component_get_property(lvgl_lib ${lvgl_name} COMPONENT_LIB)
+        target_include_directories(${lvgl_lib} PRIVATE "include")
+
+        # Force link .S files
+        set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_argb8888_esp")
+        set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_rgb565_esp")
+    endif()
+endif()
+
 # Here we create the real lvgl_port_lib
 add_library(lvgl_port_lib STATIC
     ${PORT_PATH}/esp_lvgl_port.c
