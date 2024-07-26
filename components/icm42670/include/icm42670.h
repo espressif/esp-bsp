@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -10,7 +10,11 @@
 extern "C" {
 #endif
 
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+#include "driver/i2c_master.h"
+#else
 #include "driver/i2c.h"
+#endif
 
 #define ICM42670_I2C_ADDRESS         0x68 /*!< I2C address with AD0 pin low */
 #define ICM42670_I2C_ADDRESS_1       0x69 /*!< I2C address with AD0 pin high */
@@ -96,14 +100,18 @@ typedef void *icm42670_handle_t;
 /**
  * @brief Create and init sensor object and return a sensor handle
  *
- * @param port I2C port number
+ * @param i2c_bus I2C bus
  * @param dev_addr I2C device address of sensor
  *
  * @return
  *     - NULL Fail
  *     - Others Success
  */
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+icm42670_handle_t icm42670_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_addr);
+#else
 icm42670_handle_t icm42670_create(i2c_port_t port, const uint8_t dev_addr);
+#endif
 
 /**
  * @brief Delete and release a sensor object

@@ -1,17 +1,25 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <string.h>
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
 #include <sys/time.h>
 #include "esp_system.h"
 #include "esp_check.h"
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+#include "driver/i2c_master.h"
+#else
 #include "driver/i2c.h"
+#endif
+#include "esp_heap_caps.h"
 #include "icm42670.h"
+
+#define I2C_CLK_SPEED 400000
 
 #define ALPHA                       0.99f        /*!< Weight of gyroscope */
 #define RAD_TO_DEG                  57.27272727f /*!< Radians to degrees */
@@ -46,8 +54,12 @@
 *******************************************************************************/
 
 typedef struct {
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+    i2c_master_dev_handle_t i2c_handle;
+#else
     i2c_port_t bus;
     uint8_t dev_addr;
+#endif
     uint32_t counter;
     float dt;  /*!< delay time between two measurements, dt should be small (ms level) */
     struct timeval *timer;
@@ -70,14 +82,31 @@ static const char *TAG = "ICM42670";
 * Public API functions
 *******************************************************************************/
 
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+icm42670_handle_t icm42670_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_addr)
+#else
 icm42670_handle_t icm42670_create(i2c_port_t port, const uint8_t dev_addr)
+#endif
 {
     icm42670_dev_t *sensor = (icm42670_dev_t *) heap_caps_calloc(1, sizeof(icm42670_dev_t), MALLOC_CAP_DEFAULT);
-    sensor->bus = port;
-    sensor->dev_addr = dev_addr;
+
     sensor->counter = 0;
     sensor->dt = 0;
     sensor->timer = (struct timeval *) calloc(1, sizeof(struct timeval));
+
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+    esp_err_t ret = ESP_OK;
+    ESP_RETURN_ON_FALSE(heap_caps_check_integrity_addr((intptr_t)i2c_bus, false), NULL, TAG, "Please use I2C driver NG and put I2C bus handle as a first argument.");
+
+    i2c_device_config_t i2c_dev_cfg = {
+        .device_address = dev_addr,
+        .scl_speed_hz = I2C_CLK_SPEED,
+    };
+    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg, &sensor->i2c_handle), err, TAG, "i2c add device fail");
+#else
+    sensor->bus = port;
+    sensor->dev_addr = dev_addr;
+#endif
 
     uint8_t dev_id = 0;
     icm42670_get_deviceid(sensor, &dev_id);
@@ -87,13 +116,26 @@ icm42670_handle_t icm42670_create(i2c_port_t port, const uint8_t dev_addr)
     }
 
     ESP_LOGI(TAG, "Found device %s, ID: 0x%02x", (dev_id == ICM42607_ID ? "ICM42607" : "ICM42670"), dev_id);
-
     return (icm42670_handle_t) sensor;
+
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+err:
+    if (ret != ESP_OK) {
+        icm42670_delete(sensor);
+    }
+    return NULL;
+#endif
 }
 
 void icm42670_delete(icm42670_handle_t sensor)
 {
     icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
+
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+    if (sens->i2c_handle) {
+        i2c_master_bus_rm_device(sens->i2c_handle);
+    }
+#endif
 
     if (sens->timer) {
         free(sens->timer);
@@ -343,10 +385,16 @@ static esp_err_t icm42670_get_raw_value(icm42670_handle_t sensor, uint8_t reg, i
 static esp_err_t icm42670_write(icm42670_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *data_buf, const uint8_t data_len)
 {
     icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
-    esp_err_t  ret;
-
     assert(sens);
 
+
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+    assert(data_len < 5);
+    uint8_t write_buff[5] = {reg_start_addr};
+    memcpy(&write_buff[1], data_buf, data_len);
+    return i2c_master_transmit(sens->i2c_handle, write_buff, data_len + 1, -1);
+#else
+    esp_err_t  ret;
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     ret = i2c_master_start(cmd);
     assert(ESP_OK == ret);
@@ -360,19 +408,23 @@ static esp_err_t icm42670_write(icm42670_handle_t sensor, const uint8_t reg_star
     assert(ESP_OK == ret);
     ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
-
     return ret;
+#endif
 }
 
 static esp_err_t icm42670_read(icm42670_handle_t sensor, const uint8_t reg_start_addr, uint8_t *data_buf, const uint8_t data_len)
 {
-    icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
     uint8_t reg_buff[] = {reg_start_addr};
-
+    icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
     assert(sens);
 
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+    /* Write register number and read data */
+    return i2c_master_transmit_receive(sens->i2c_handle, reg_buff, sizeof(reg_buff), data_buf, data_len, -1);
+#else
     /* Write register number and read data */
     return i2c_master_write_read_device(sens->bus, sens->dev_addr, reg_buff, sizeof(reg_buff), data_buf, data_len, 1000 / portTICK_PERIOD_MS);
+#endif
 }
 
 esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670_value_t *const acce_value,
