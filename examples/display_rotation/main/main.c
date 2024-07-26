@@ -140,7 +140,7 @@ static void app_lvgl_display(void)
 #if BSP_CAPS_IMU
 static void app_imu_init(void)
 {
-    imu = icm42670_create(BSP_I2C_NUM, ICM42670_I2C_ADDRESS);
+    imu = icm42670_create(bsp_i2c_get_handle(), ICM42670_I2C_ADDRESS);
     if (imu) {
         /* Configuration of the acceleremeter and gyroscope */
         const icm42670_cfg_t imu_cfg = {
