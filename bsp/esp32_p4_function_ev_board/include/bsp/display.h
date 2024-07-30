@@ -17,22 +17,40 @@
 #pragma once
 #include "esp_lcd_types.h"
 #include "esp_lcd_mipi_dsi.h"
+#include "sdkconfig.h"
 
 /* LCD color formats */
 #define ESP_LCD_COLOR_FORMAT_RGB565    (1)
 #define ESP_LCD_COLOR_FORMAT_RGB888    (2)
 
 /* LCD display color format */
+#if CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
+#define BSP_LCD_COLOR_FORMAT        (ESP_LCD_COLOR_FORMAT_RGB888)
+#else
 #define BSP_LCD_COLOR_FORMAT        (ESP_LCD_COLOR_FORMAT_RGB565)
+#endif
 /* LCD display color bytes endianess */
 #define BSP_LCD_BIGENDIAN           (0)
 /* LCD display color bits */
 #define BSP_LCD_BITS_PER_PIXEL      (16)
 /* LCD display color space */
 #define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_RGB)
-/* LCD display definition */
-#define BSP_LCD_H_RES              (1280)
-#define BSP_LCD_V_RES              (800)
+
+#if CONFIG_BSP_LCD_TYPE_1024_600
+/* LCD display definition 1024x600 */
+#define BSP_LCD_H_RES              (1024)
+#define BSP_LCD_V_RES              (600)
+
+#define BSP_LCD_MIPI_DSI_LCD_HSYNC    (1344)
+#define BSP_LCD_MIPI_DSI_LCD_HBP      (160)
+#define BSP_LCD_MIPI_DSI_LCD_HFP      (160)
+#define BSP_LCD_MIPI_DSI_LCD_VSYNC    (635)
+#define BSP_LCD_MIPI_DSI_LCD_VBP      (23)
+#define BSP_LCD_MIPI_DSI_LCD_VFP      (12)
+#else
+/* LCD display definition 1280x800 */
+#define BSP_LCD_H_RES              (800)
+#define BSP_LCD_V_RES              (1280)
 
 #define BSP_LCD_MIPI_DSI_LCD_HSYNC    (40)
 #define BSP_LCD_MIPI_DSI_LCD_HBP      (140)
@@ -40,6 +58,7 @@
 #define BSP_LCD_MIPI_DSI_LCD_VSYNC    (4)
 #define BSP_LCD_MIPI_DSI_LCD_VBP      (16)
 #define BSP_LCD_MIPI_DSI_LCD_VFP      (16)
+#endif
 
 #define BSP_LCD_MIPI_DSI_LANE_NUM          (2)    // 2 data lanes
 #define BSP_LCD_MIPI_DSI_LANE_BITRATE_MBPS (1000) // 1Gbps
