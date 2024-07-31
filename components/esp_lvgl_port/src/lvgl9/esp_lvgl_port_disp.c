@@ -10,12 +10,20 @@
 #include "esp_check.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 #include "esp_heap_caps.h"
 #include "esp_idf_version.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lvgl_port.h"
 #include "esp_lvgl_port_priv.h"
+#include "rom/ets_sys.h"
+
+#define LVGL_PORT_PPA   (SOC_PPA_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+
+#if LVGL_PORT_PPA
+#include "../common/ppa/lcd_ppa.h"
+#endif
 
 #if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 #include "esp_lcd_panel_rgb.h"
@@ -43,13 +51,18 @@ typedef struct {
     esp_lcd_panel_handle_t    panel_handle;   /* LCD panel handle */
     esp_lcd_panel_handle_t    control_handle; /* LCD panel control handle */
     lvgl_port_rotation_cfg_t  rotation;       /* Default values of the screen rotation */
-    lv_color_t                *draw_buffs[2]; /* Display draw buffers */
+    lv_color_t                *draw_buffs[3]; /* Display draw buffers */
     lv_display_t              *disp_drv;      /* LVGL display driver */
+    lv_display_rotation_t     current_rotation;
+#if LVGL_PORT_PPA
+    lcd_ppa_handle_t          ppa_handle;
+#endif //LVGL_PORT_PPA
     struct {
         unsigned int monochrome: 1;  /* True, if display is monochrome and using 1bit for 1px */
         unsigned int swap_bytes: 1;  /* Swap bytes in RGB656 (16-bit) before send to LCD driver */
         unsigned int full_refresh: 1;   /* Always make the whole screen redrawn */
         unsigned int direct_mode: 1;    /* Use screen-sized buffers and draw to absolute coordinates */
+        unsigned int sw_rotate: 1;    /* Use software rotation (slower) or PPA if available */
     } flags;
 } lvgl_port_display_ctx_t;
 
@@ -122,6 +135,7 @@ lv_display_t *lvgl_port_add_disp_dsi(const lvgl_port_display_cfg_t *disp_cfg, co
 
         /* Apply rotation from initial display configuration */
         lvgl_port_disp_rotation_update(disp_ctx);
+
 #else
         ESP_RETURN_ON_FALSE(false, NULL, TAG, "MIPI-DSI is supported only on ESP32P4 and from IDF 5.3!");
 #endif
@@ -191,6 +205,16 @@ esp_err_t lvgl_port_remove_disp(lv_display_t *disp)
         free(disp_ctx->draw_buffs[1]);
     }
 
+    if (disp_ctx->draw_buffs[2]) {
+        free(disp_ctx->draw_buffs[2]);
+    }
+
+#if LVGL_PORT_PPA
+    if (disp_ctx->ppa_handle) {
+        esp_lcd_ppa_delete(disp_ctx->ppa_handle);
+    }
+#endif //LVGL_PORT_PPA
+
     free(disp_ctx);
 
     return ESP_OK;
@@ -246,6 +270,24 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
     disp_ctx->rotation.mirror_x = disp_cfg->rotation.mirror_x;
     disp_ctx->rotation.mirror_y = disp_cfg->rotation.mirror_y;
     disp_ctx->flags.swap_bytes = disp_cfg->flags.swap_bytes;
+    disp_ctx->flags.sw_rotate = disp_cfg->flags.sw_rotate;
+    disp_ctx->current_rotation = LV_DISPLAY_ROTATION_0;
+
+    uint32_t buff_caps = 0;
+#if SOC_PSRAM_DMA_CAPABLE == 0
+    if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram) {
+        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "Alloc DMA capable buffer in SPIRAM is not supported!");
+    }
+#endif
+    if (disp_cfg->flags.buff_dma) {
+        buff_caps |= MALLOC_CAP_DMA;
+    }
+    if (disp_cfg->flags.buff_spiram) {
+        buff_caps |= MALLOC_CAP_SPIRAM;
+    }
+    if (buff_caps == 0) {
+        buff_caps |= MALLOC_CAP_DEFAULT;
+    }
 
     /* Use RGB internal buffers for avoid tearing effect */
     if (priv_cfg && priv_cfg->avoid_tearing) {
@@ -254,15 +296,6 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
         ESP_GOTO_ON_ERROR(esp_lcd_rgb_panel_get_frame_buffer(disp_cfg->panel_handle, 2, (void *)&buf1, (void *)&buf2), err, TAG, "Get RGB buffers failed");
 #endif
     } else {
-        uint32_t buff_caps = MALLOC_CAP_DEFAULT;
-        if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram) {
-            ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "Alloc DMA capable buffer in SPIRAM is not supported!");
-        } else if (disp_cfg->flags.buff_dma) {
-            buff_caps = MALLOC_CAP_DMA;
-        } else if (disp_cfg->flags.buff_spiram) {
-            buff_caps = MALLOC_CAP_SPIRAM;
-        }
-
         /* alloc draw buffers used by LVGL */
         /* it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized */
         buf1 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), buff_caps);
@@ -310,6 +343,34 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
     lv_display_set_user_data(disp, disp_ctx);
     disp_ctx->disp_drv = disp;
 
+    /* Use SW rotation */
+    if (disp_cfg->flags.sw_rotate) {
+#if LVGL_PORT_PPA
+        uint32_t pixel_format = COLOR_PIXEL_RGB565;
+        if (disp_cfg->color_format == LV_COLOR_FORMAT_RGB888) {
+            pixel_format = COLOR_PIXEL_RGB888;
+        }
+
+        /* Create LCD PPA for rotation */
+        lcd_ppa_cfg_t lcd_ppa_cfg = {
+            .buffer_size = disp_cfg->buffer_size * sizeof(lv_color_t),
+            .color_space = COLOR_SPACE_RGB,
+            .pixel_format = pixel_format,
+            .flags = {
+                .buff_dma = disp_cfg->flags.buff_dma,
+                .buff_spiram = disp_cfg->flags.buff_spiram,
+            }
+        };
+        disp_ctx->ppa_handle = esp_lcd_ppa_create(&lcd_ppa_cfg);
+        assert(disp_ctx->ppa_handle != NULL);
+#else
+        disp_ctx->draw_buffs[2] = heap_caps_malloc(buffer_size * sizeof(lv_color_t), buff_caps);
+        ESP_GOTO_ON_FALSE(disp_ctx->draw_buffs[2], ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (rotation buffer) allocation!");
+
+#endif //LVGL_PORT_PPA
+    }
+
+
 err:
     if (ret != ESP_OK) {
         if (buf1) {
@@ -317,6 +378,9 @@ err:
         }
         if (buf2) {
             free(buf2);
+        }
+        if (disp_ctx->draw_buffs[2]) {
+            free(disp_ctx->draw_buffs[2]);
         }
         if (disp_ctx) {
             free(disp_ctx);
@@ -401,27 +465,216 @@ static void _lvgl_port_transform_monochrome(lv_display_t *display, const lv_area
     }
 }
 
+void lv_display_rotate_area(lv_display_t *disp, lv_area_t *area)
+{
+    lv_display_rotation_t rotation = lv_display_get_rotation(disp);
+
+    int32_t w = lv_area_get_width(area);
+    int32_t h = lv_area_get_height(area);
+
+    int32_t hres = lv_display_get_horizontal_resolution(disp);
+    int32_t vres = lv_display_get_vertical_resolution(disp);
+
+    /*int x1 = area->x1;
+    int x2 = area->x2;
+    int y1 = area->y1;
+    int y2 = area->y2;*/
+
+    /* Rotate coordinates */
+    /*switch (rotation) {
+    case LV_DISPLAY_ROTATION_0:
+        break;
+    case LV_DISPLAY_ROTATION_90:
+        x1 = area->y1;
+        x2 = area->y2;
+        y1 = hres - area->x2;
+        y2 = hres - area->x1;
+        break;
+    case LV_DISPLAY_ROTATION_180:
+        x1 = hres - area->x2 - 1;
+        x2 = hres - area->x1 - 1;
+        y1 = vres - area->y2;
+        y2 = vres - area->y1;
+        break;
+    case LV_DISPLAY_ROTATION_270:
+        x1 = vres - area->y2 - 1;
+        x2 = vres - area->y1 - 1;
+        y1 = area->x1;
+        y2 = area->x2;
+        break;
+    }*/
+    /* Return new coordinates */
+    /*area->x1 = x1;
+    area->x2 = x2;
+    area->y1 = y1;
+    area->y2 = y2;*/
+
+
+    if (rotation == LV_DISPLAY_ROTATION_90 || rotation == LV_DISPLAY_ROTATION_270) {
+        vres = lv_display_get_horizontal_resolution(disp);
+        hres = lv_display_get_vertical_resolution(disp);
+    }
+
+    switch (rotation) {
+    case LV_DISPLAY_ROTATION_0:
+        return;
+    case LV_DISPLAY_ROTATION_90:
+        area->y2 = vres - area->x1 - 1;
+        area->x1 = area->y1;
+        area->x2 = area->x1 + h - 1;
+        area->y1 = area->y2 - w + 1;
+        break;
+    case LV_DISPLAY_ROTATION_180:
+        area->y2 = vres - area->y1 - 1;
+        area->y1 = area->y2 - h + 1;
+        area->x2 = hres - area->x1 - 1;
+        area->x1 = area->x2 - w + 1;
+        break;
+    case LV_DISPLAY_ROTATION_270:
+        area->x1 = hres - area->y2 - 1;
+        area->y2 = area->x2;
+        area->x2 = area->x1 + h - 1;
+        area->y1 = area->y2 - w + 1;
+        break;
+    }
+}
+
 static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, uint8_t *color_map)
 {
     assert(drv != NULL);
+    assert(area != NULL);
+    assert(color_map != NULL);
     lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_display_get_user_data(drv);
     assert(disp_ctx != NULL);
 
-    if (disp_ctx->flags.swap_bytes) {
+    int offsetx1 = area->x1;
+    int offsetx2 = area->x2;
+    int offsety1 = area->y1;
+    int offsety2 = area->y2;
+
+    /* SW rotation enabled */
+    if (disp_ctx->flags.sw_rotate && (disp_ctx->current_rotation > LV_DISPLAY_ROTATION_0 || disp_ctx->flags.swap_bytes)) {
+#if LVGL_PORT_PPA
+        if (disp_ctx->ppa_handle) {
+            /* Screen vertical size */
+            int32_t hres = lv_display_get_horizontal_resolution(drv);
+            int32_t vres = lv_display_get_vertical_resolution(drv);
+            lcd_ppa_disp_rotate_t rotate_cfg = {
+                .in_buff = color_map,
+                .area = {
+                    .x1 = area->x1,
+                    .x2 = area->x2,
+                    .y1 = area->y1,
+                    .y2 = area->y2,
+                },
+                .disp_size = {
+                    .hres = hres,
+                    .vres = vres,
+                },
+                .rotation = disp_ctx->current_rotation,
+                .ppa_mode = PPA_TRANS_MODE_BLOCKING,
+                .swap_bytes = (disp_ctx->flags.swap_bytes ? true : false),
+                .user_data = disp_ctx
+            };
+            /* Do operation */
+            esp_err_t err = esp_lcd_ppa_rotate(disp_ctx->ppa_handle, &rotate_cfg);
+            if (err == ESP_OK) {
+                color_map = esp_lcd_ppa_get_output_buffer(disp_ctx->ppa_handle);
+                offsetx1 = rotate_cfg.area.x1;
+                offsetx2 = rotate_cfg.area.x2;
+                offsety1 = rotate_cfg.area.y1;
+                offsety2 = rotate_cfg.area.y2;
+            }
+        }
+#else
+        /* SW rotation */
+        if (disp_ctx->draw_buffs[2]) {
+            int32_t ww = lv_area_get_width(area);
+            int32_t hh = lv_area_get_height(area);
+            lv_color_format_t cf = lv_display_get_color_format(drv);
+            uint32_t w_stride = lv_draw_buf_width_to_stride(ww, cf);
+            uint32_t h_stride = lv_draw_buf_width_to_stride(hh, cf);
+            if (disp_ctx->current_rotation == LV_DISPLAY_ROTATION_180) {
+                lv_draw_sw_rotate(color_map, disp_ctx->draw_buffs[2], hh, ww, h_stride, h_stride, LV_DISPLAY_ROTATION_180, cf);
+            } else if (disp_ctx->current_rotation == LV_DISPLAY_ROTATION_90) {
+                lv_draw_sw_rotate(color_map, disp_ctx->draw_buffs[2], ww, hh, w_stride, h_stride, LV_DISPLAY_ROTATION_270, cf);
+            } else if (disp_ctx->current_rotation == LV_DISPLAY_ROTATION_270) {
+                lv_draw_sw_rotate(color_map, disp_ctx->draw_buffs[2], ww, hh, w_stride, h_stride, LV_DISPLAY_ROTATION_90, cf);
+            }
+            color_map = (uint8_t *)disp_ctx->draw_buffs[2];
+            lv_display_rotate_area(drv, (lv_area_t *)area);
+            offsetx1 = area->x1;
+            offsetx2 = area->x2;
+            offsety1 = area->y1;
+            offsety2 = area->y2;
+        }
+#endif //LVGL_PORT_PPA
+    } else if (disp_ctx->flags.swap_bytes) {
         size_t len = lv_area_get_size(area);
         lv_draw_sw_rgb565_swap(color_map, len);
     }
 
-    /* Transfor data in buffer for monochromatic screen */
+
+#if 0 //SW_ROTATION
+    if (disp_ctx->ppa_rotation != LV_DISPLAY_ROTATION_0) {
+        int32_t ww = lv_area_get_width(area);
+        int32_t hh = lv_area_get_height(area);
+        lv_color_format_t cf = lv_display_get_color_format(drv);
+        uint32_t w_stride = lv_draw_buf_width_to_stride(ww, cf);
+        uint32_t h_stride = lv_draw_buf_width_to_stride(hh, cf);
+        lv_draw_sw_rotate(color_map, disp_ctx->ppa_buffer, ww, hh, w_stride, h_stride, disp_ctx->ppa_rotation, cf);
+        lv_display_rotate_area(drv, (lv_area_t *)area);
+        color_map = disp_ctx->ppa_buffer;
+    }
+    offsetx1 = area->x1;
+    offsetx2 = area->x2;
+    offsety1 = area->y1;
+    offsety2 = area->y2;
+
+
+    /* Screen vertical size */
+    /*int32_t hres = lv_display_get_horizontal_resolution(drv);
+    int32_t vres = lv_display_get_vertical_resolution(drv);
+    switch (disp_ctx->ppa_rotation) {
+    case LV_DISPLAY_ROTATION_0:
+        offsetx1 = area->x1;
+        offsetx2 = area->x2;
+        offsety1 = area->y1;
+        offsety2 = area->y2;
+        break;
+    case LV_DISPLAY_ROTATION_90:
+        offsetx1 = area->y1;
+        offsetx2 = area->y2;
+        offsety1 = hres - area->x2 - 1;
+        offsety2 = hres - area->x1 - 1;
+        break;
+    case LV_DISPLAY_ROTATION_180:
+        offsetx1 = hres - area->x2 - 1;
+        offsetx2 = hres - area->x1 - 1;
+        offsety1 = vres - area->y2;
+        offsety2 = vres - area->y1;
+        break;
+    case LV_DISPLAY_ROTATION_270:
+        offsetx1 = vres - area->y2 - 1;
+        offsetx2 = vres - area->y1 - 1;
+        offsety1 = area->x1;
+        offsety2 = area->x2;
+        break;
+    }*/
+
+    /* offsetx1 = area->y2;
+     offsetx2 = area->y1;
+     offsety1 = hres - area->x2;
+     offsety2 = hres - area->x1;*/
+
+#endif
+
+    /* Transfer data in buffer for monochromatic screen */
     if (disp_ctx->flags.monochrome) {
         _lvgl_port_transform_monochrome(drv, area, color_map);
     }
 
-    const int offsetx1 = area->x1;
-    const int offsetx2 = area->x2;
-    const int offsety1 = area->y1;
-    const int offsety2 = area->y2;
-
+    /* RGB LCD */
     if (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB && (disp_ctx->flags.full_refresh || disp_ctx->flags.direct_mode)) {
         if (lv_disp_flush_is_last(drv)) {
             /* If the interface is I80 or SPI, this step cannot be used for drawing. */
@@ -442,8 +695,13 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
 static void lvgl_port_disp_rotation_update(lvgl_port_display_ctx_t *disp_ctx)
 {
     assert(disp_ctx != NULL);
-    esp_lcd_panel_handle_t control_handle = (disp_ctx->control_handle ? disp_ctx->control_handle : disp_ctx->panel_handle);
 
+    disp_ctx->current_rotation = lv_display_get_rotation(disp_ctx->disp_drv);
+    if (disp_ctx->flags.sw_rotate) {
+        return;
+    }
+
+    esp_lcd_panel_handle_t control_handle = (disp_ctx->control_handle ? disp_ctx->control_handle : disp_ctx->panel_handle);
     /* Solve rotation screen and touch */
     switch (lv_display_get_rotation(disp_ctx->disp_drv)) {
     case LV_DISPLAY_ROTATION_0:

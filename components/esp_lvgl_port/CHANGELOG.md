@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.0
+- Fixed LVGL port for using with LVGL9 OS FreeRTOS enabled
+- Added support for SW rotation in LVGL9
+- Added support for PPA rotation in LVGL9 (available for ESP32P4)
+
 ## 2.2.2
 
 ### Fixes

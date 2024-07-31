@@ -22,12 +22,20 @@ endif()
 
 set(PORT_PATH "src/${PORT_FOLDER}")
 
+
+set(PRIV_REQUIRES "esp_timer")
+set(PPA_PATH "")
+if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "5.3")
+    list(APPEND PRIV_REQUIRES "esp_driver_ppa")
+    list(APPEND PPA_PATH "src/common/ppa/lcd_ppa.c")
+endif()
+
 idf_component_register(
-        SRCS "${PORT_PATH}/esp_lvgl_port.c" "${PORT_PATH}/esp_lvgl_port_disp.c" 
+        SRCS "${PORT_PATH}/esp_lvgl_port.c" "${PORT_PATH}/esp_lvgl_port_disp.c" "${PPA_PATH}"
         INCLUDE_DIRS "include" 
         PRIV_INCLUDE_DIRS "priv_include"
         REQUIRES "esp_lcd" 
-        PRIV_REQUIRES "esp_timer")
+        PRIV_REQUIRES "${PRIV_REQUIRES}")
 
 set(ADD_SRCS "")
 set(ADD_LIBS "")

@@ -61,11 +61,8 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
 
     memset(&lvgl_port_ctx, 0, sizeof(lvgl_port_ctx));
 
-    /* LVGL init */
-    lv_init();
     /* Tick init */
     lvgl_port_ctx.timer_period_ms = cfg->timer_period_ms;
-    ESP_RETURN_ON_ERROR(lvgl_port_tick_init(), TAG, "");
     /* Create task */
     lvgl_port_ctx.task_max_sleep_ms = cfg->task_max_sleep_ms;
     if (lvgl_port_ctx.task_max_sleep_ms == 0) {
@@ -215,6 +212,11 @@ static void lvgl_port_task(void *arg)
         lvgl_port_task_deinit();
         vTaskDelete( NULL );
     }
+
+    /* LVGL init */
+    lv_init();
+    /* Tick init */
+    lvgl_port_tick_init();
 
     ESP_LOGI(TAG, "Starting LVGL task");
     lvgl_port_ctx.running = true;
