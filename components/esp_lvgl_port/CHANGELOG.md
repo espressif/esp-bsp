@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Fixed LVGL version resolution if LVGL is not a managed component
+
 ## 2.3.0
 - Fixed LVGL port for using with LVGL9 OS FreeRTOS enabled
 - Fixed bad handled touch due to synchronization timer task
