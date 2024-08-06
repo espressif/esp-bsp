@@ -164,10 +164,12 @@ void app_audio_init(void)
     esp_codec_dev_set_out_vol(spk_codec_dev, DEFAULT_VOLUME);
 
     /* Initialize microphone */
+#if BSP_CAPS_AUDIO_MIC
     mic_codec_dev = bsp_audio_codec_microphone_init();
     assert(mic_codec_dev);
     /* Microphone input gain */
     esp_codec_dev_set_in_gain(mic_codec_dev, 50.0);
+#endif
 }
 
 void app_disp_fs_init(void)
@@ -766,6 +768,7 @@ static void rec_stop_event_cb(lv_event_t *e)
 
 static void rec_file(void *arg)
 {
+#if BSP_CAPS_AUDIO_MIC
     char *path = arg;
     FILE *record_file = NULL;
     int16_t *recording_buffer = heap_caps_malloc(BUFFER_SIZE, MALLOC_CAP_DEFAULT);
@@ -834,6 +837,9 @@ END:
     }
 
     vTaskDelete(NULL);
+#else
+    ESP_LOGI(TAG, "Recording not supported!");
+#endif
 }
 
 /* Stop playing recorded audio file */

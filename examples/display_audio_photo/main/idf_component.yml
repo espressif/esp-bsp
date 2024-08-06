@@ -1,6 +1,6 @@
 description: BSP Display Audio Photo Example
 dependencies:
-  esp_jpeg: "*"
-  esp-box:
-    version: "*"
-    override_path: "../../../bsp/esp-box"
+  m5stack_core_2:
+    version: '*'
+    override_path: ../../../bsp/m5stack_core_2
+  esp_jpeg: '*'
