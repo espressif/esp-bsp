@@ -57,9 +57,7 @@ typedef struct {
     struct {
         unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
         unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
-#if LVGL_VERSION_MAJOR == 8
-        unsigned int sw_rotate: 1;   /*!< Use software rotation (slower) */
-#endif
+        unsigned int sw_rotate: 1;   /*!< Use software rotation (slower) or PPA if available */
 #if LVGL_VERSION_MAJOR >= 9
         unsigned int swap_bytes: 1;  /*!< Swap bytes in RGB656 (16-bit) color format before send to LCD driver */
 #endif
