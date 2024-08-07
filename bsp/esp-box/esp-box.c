@@ -7,6 +7,7 @@
 #include "driver/gpio.h"
 #include "driver/ledc.h"
 #include "driver/spi_master.h"
+#include "driver/i2c_master.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_check.h"
@@ -30,6 +31,9 @@ static const char *TAG = "ESP-BOX";
 _Static_assert(CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0, "Touch buttons must be supported for this BSP");
 /** @endcond */
 
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+static i2c_master_bus_handle_t i2c_handle = NULL;  // I2C Handle
+#endif
 static lv_display_t *disp;
 static lv_indev_t *disp_indev = NULL;
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
@@ -67,16 +71,28 @@ esp_err_t bsp_i2c_init(void)
         return ESP_OK;
     }
 
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+    i2c_master_bus_config_t i2c_bus_config = {
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .i2c_port = BSP_I2C_NUM,
+        .scl_io_num = BSP_I2C_SCL,
+        .sda_io_num = BSP_I2C_SDA,
+        .flags.enable_internal_pullup = true,
+        .glitch_ignore_cnt = 7,
+    };
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_bus_config, &i2c_handle));
+#else
     const i2c_config_t i2c_conf = {
         .mode = I2C_MODE_MASTER,
         .sda_io_num = BSP_I2C_SDA,
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_io_num = BSP_I2C_SCL,
+        .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_pullup_en = GPIO_PULLUP_DISABLE,
         .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
     };
     BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
     BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+#endif
 
     i2c_initialized = true;
 
@@ -85,9 +101,21 @@ esp_err_t bsp_i2c_init(void)
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    if (i2c_initialized) {
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
+        i2c_handle = NULL;
+#else
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+#endif
+    }
     i2c_initialized = false;
     return ESP_OK;
+}
+
+i2c_master_bus_handle_t bsp_i2c_get_handle(void)
+{
+    return i2c_handle;
 }
 
 esp_err_t bsp_spiffs_mount(void)
@@ -138,8 +166,12 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     const audio_codec_gpio_if_t *gpio_if = audio_codec_new_gpio();
 
     audio_codec_i2c_cfg_t i2c_cfg = {
-        .port = BSP_I2C_NUM,
         .addr = ES8311_CODEC_DEFAULT_ADDR,
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+        .bus_handle = i2c_handle,
+#else
+        .port = BSP_I2C_NUM,
+#endif
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);
@@ -186,8 +218,12 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
     assert(i2s_data_if);
 
     audio_codec_i2c_cfg_t i2c_cfg = {
-        .port = BSP_I2C_NUM,
         .addr = ES7210_CODEC_DEFAULT_ADDR,
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+        .bus_handle = i2c_handle,
+#else
+        .port = BSP_I2C_NUM,
+#endif
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);
@@ -380,8 +416,13 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
         },
     };
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-    const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
+    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+    tp_io_config.scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ;
+    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c_v2(i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
+#else
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle), TAG, "");
+#endif
     return esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, ret_touch);
 }
 

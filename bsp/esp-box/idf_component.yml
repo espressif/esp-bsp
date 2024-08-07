@@ -1,5 +1,5 @@
 
-version: "3.1.0"
+version: "3.2.0"
 description: Board Support Package (BSP) for ESP-BOX
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box
 
@@ -19,7 +19,7 @@ dependencies:
     override_path: "../../components/esp_lvgl_port"
 
   esp_codec_dev:
-    version: "^1.0.3"
+    version: "^1.2"
     public: true
 
   button:
@@ -27,7 +27,7 @@ dependencies:
     public: true
 
   icm42670:
-    version: "^1"
+    version: "^2"
     public: true
 
 examples:
