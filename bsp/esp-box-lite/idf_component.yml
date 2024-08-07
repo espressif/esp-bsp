@@ -1,4 +1,4 @@
-version: "2.1.0"
+version: "2.1.0~1"
 description: Board Support Package (BSP) for ESP32-S3-BOX-Lite
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box-lite
 
@@ -9,10 +9,10 @@ tags:
   - bsp
 
 dependencies:
-  idf: ">=4.4.5"
+  idf: ">=4.4.5,<6.0"
 
   button:
-    version: ">=2.4"
+    version: "^2.4"
     public: true
 
   espressif/esp_lvgl_port:
@@ -21,5 +21,5 @@ dependencies:
     override_path: "../../components/esp_lvgl_port"
 
   esp_codec_dev:
-    version: "^1.0.3"
+    version: "~1.1"
     public: true
