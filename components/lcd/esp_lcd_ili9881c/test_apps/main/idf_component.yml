@@ -1,0 +1,8 @@
+## IDF Component Manager Manifest File
+targets:
+  - esp32p4
+dependencies:
+  esp_lcd_ili9881c:
+    version: "*"
+    path: "../../../esp_lcd_ili9881c"
+  idf: ">=5.3"

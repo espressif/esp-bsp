@@ -1,7 +1,8 @@
-version: "1.2.1"
+version: "1.3.0"
 targets:
   - esp32s2
   - esp32s3
+  - esp32p4
 description: ESP LCD ST7796 driver
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_st7796
 dependencies:
