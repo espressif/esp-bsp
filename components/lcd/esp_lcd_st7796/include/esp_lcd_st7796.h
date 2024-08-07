@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -12,6 +12,10 @@
 
 #include "hal/lcd_types.h"
 #include "esp_lcd_panel_vendor.h"
+#include "esp_idf_version.h"
+#if SOC_MIPI_DSI_SUPPORTED
+#include "esp_lcd_mipi_dsi.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,6 +44,15 @@ typedef struct {
                                                  *   Please refer to `vendor_specific_init_default` in source file.
                                                  */
     uint16_t init_cmds_size;                    /*<! Number of commands in above array */
+#if SOC_MIPI_DSI_SUPPORTED
+    struct {
+        esp_lcd_dsi_bus_handle_t dsi_bus;               /*!< MIPI-DSI bus configuration */
+        const esp_lcd_dpi_panel_config_t *dpi_config;   /*!< MIPI-DPI panel configuration */
+    } mipi_config;
+#endif
+    struct {
+        unsigned int use_mipi_interface: 1;         /*<! Set to 1 if using MIPI interface, default is SPI/I80 interface */
+    } flags;
 } st7796_vendor_config_t;
 
 /**
@@ -56,6 +69,10 @@ typedef struct {
  *          - ESP_OK                on success
  */
 esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// Default Configuration Macros for I80 Interface /////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * @brief LCD panel bus configuration structure
@@ -123,6 +140,65 @@ esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp
         .user_ctx = cb_ctx,                         \
         .lcd_cmd_bits = 8,                          \
         .lcd_param_bits = 8,                        \
+    }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////// Default Configuration Macros for MIPI-DSI Interface //////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief MIPI-DSI bus configuration structure
+ *
+ * @param[in] lane_num Number of data lanes
+ * @param[in] lane_mbps Lane bit rate in Mbps
+ *
+ */
+#define ST7796_PANEL_BUS_DSI_1CH_CONFIG()                \
+    {                                                    \
+        .bus_id = 0,                                     \
+        .num_data_lanes = 1,                             \
+        .phy_clk_src = MIPI_DSI_PHY_CLK_SRC_DEFAULT,     \
+        .lane_bit_rate_mbps = 250,                       \
+    }
+
+/**
+ * @brief MIPI-DBI panel IO configuration structure
+ *
+ */
+#define ST7796_PANEL_IO_DBI_CONFIG()  \
+    {                                 \
+        .virtual_channel = 0,         \
+        .lcd_cmd_bits = 8,            \
+        .lcd_param_bits = 8,          \
+    }
+
+/**
+ * @brief MIPI DPI configuration structure
+ *
+ * @note  refresh_rate = (dpi_clock_freq_mhz * 1000000) / (h_res + hsync_pulse_width + hsync_back_porch + hsync_front_porch)
+ *                                                      / (v_res + vsync_pulse_width + vsync_back_porch + vsync_front_porch)
+ *
+ * @param[in] px_format Pixel format of the panel
+ *
+ */
+#define ST7796_320_480_PANEL_60HZ_DPI_CONFIG(px_format)  \
+    {                                                    \
+        .dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT,     \
+        .dpi_clock_freq_mhz = 10,                        \
+        .virtual_channel = 0,                            \
+        .pixel_format = px_format,                       \
+        .num_fbs = 1,                                    \
+        .video_timing = {                                \
+            .h_size = 320,                               \
+            .v_size = 480,                               \
+            .hsync_back_porch = 10,                      \
+            .hsync_pulse_width = 10,                     \
+            .hsync_front_porch = 20,                     \
+            .vsync_back_porch = 10,                      \
+            .vsync_pulse_width = 10,                     \
+            .vsync_front_porch = 10,                     \
+        },                                               \
+        .flags.use_dma2d = true,                         \
     }
 
 #ifdef __cplusplus
