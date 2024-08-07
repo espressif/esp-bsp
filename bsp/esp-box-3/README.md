@@ -22,7 +22,7 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 |  LVGL_PORT  |:heavy_check_mark:|      [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)      |   ^2  |
 |    TOUCH    |:heavy_check_mark:|[espressif/esp_lcd_touch_gt911](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911)|   ^1  |
 |   BUTTONS   |:heavy_check_mark:|             [espressif/button](https://components.espressif.com/components/espressif/button)             | >=2.5 |
-|    AUDIO    |:heavy_check_mark:|      [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)      |   ^1  |
+|    AUDIO    |:heavy_check_mark:|      [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)      |^1,<1.2|
 |AUDIO_SPEAKER|:heavy_check_mark:|                                                                                                          |       |
 |  AUDIO_MIC  |:heavy_check_mark:|                                                                                                          |       |
 |    SDCARD   |:heavy_check_mark:|                                                    idf                                                   |>=4.4.5|

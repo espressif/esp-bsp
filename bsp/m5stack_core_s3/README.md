@@ -24,7 +24,7 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 |  LVGL_PORT  |:heavy_check_mark:|       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |   ^2  |
 |    TOUCH    |:heavy_check_mark:|[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|   ^1  |
 |   BUTTONS   |        :x:       |                                                                                                            |       |
-|    AUDIO    |:heavy_check_mark:|       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |  ^1.1 |
+|    AUDIO    |:heavy_check_mark:|       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |  ~1.1 |
 |AUDIO_SPEAKER|:heavy_check_mark:|                                                                                                            |       |
 |  AUDIO_MIC  |:heavy_check_mark:|                                                                                                            |       |
 |    SDCARD   |:heavy_check_mark:|                                                     idf                                                    | >=5.0 |
