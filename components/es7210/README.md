@@ -1,6 +1,7 @@
 # Component: ES7210
 
 [![Component Registry](https://components.espressif.com/components/espressif/es7210/badge.svg)](https://components.espressif.com/components/espressif/es7210)
+![maintenance-status](https://img.shields.io/badge/maintenance-deprecated-red.svg)
 
 :warning: **This driver is deprecated. Please use codec drivers from [esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)**
 

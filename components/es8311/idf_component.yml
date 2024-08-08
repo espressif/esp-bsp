@@ -1,5 +1,5 @@
-version: "1.0.0"
+version: "1.0.0~1"
 description: Low power mono audio codec ES8311
 url: https://github.com/espressif/esp-bsp/tree/master/components/es8311
 dependencies:
-  idf : ">=4.4"
+  idf : ">=4.4,<6.0"

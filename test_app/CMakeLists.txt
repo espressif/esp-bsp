@@ -3,11 +3,11 @@
 cmake_minimum_required(VERSION 3.5)
 
 set(EXTRA_COMPONENT_DIRS "../components")
-set(EXCLUDE_COMPONENTS "")
+set(EXCLUDE_COMPONENTS "es8311 es7210") # Deprecated components
 
 include($ENV{IDF_PATH}/tools/cmake/version.cmake) # $ENV{IDF_VERSION} was added after v4.3...
 
-# Components only for IDF5.0 and greater 
+# Components only for IDF5.0 and greater
 if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "5.0")
     list(APPEND EXCLUDE_COMPONENTS "esp_lcd_touch_stmpe610" "ds18b20" "esp_lcd_ssd1681")
 elseif("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "5.3")
@@ -35,6 +35,6 @@ if(NOT "${IDF_TARGET}" STREQUAL "esp32s2" AND NOT "${IDF_TARGET}" STREQUAL "esp3
 endif()
 
 # Set the components to include the tests for.
-set(TEST_COMPONENTS bh1750 mpu6050 mag3110 hts221 fbm320 es7210 icm42670 CACHE STRING "List of components to test")
+set(TEST_COMPONENTS bh1750 mpu6050 mag3110 hts221 fbm320 icm42670 CACHE STRING "List of components to test")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(esp_bsp_test_app)
