@@ -428,7 +428,7 @@ static void _lvgl_port_transform_monochrome(lv_display_t *display, const lv_area
     }
 }
 
-void lv_display_rotate_area(lv_display_t *disp, lv_area_t *area)
+void lvgl_port_rotate_area(lv_display_t *disp, lv_area_t *area)
 {
     lv_display_rotation_t rotation = lv_display_get_rotation(disp);
 
@@ -437,42 +437,6 @@ void lv_display_rotate_area(lv_display_t *disp, lv_area_t *area)
 
     int32_t hres = lv_display_get_horizontal_resolution(disp);
     int32_t vres = lv_display_get_vertical_resolution(disp);
-
-    /*int x1 = area->x1;
-    int x2 = area->x2;
-    int y1 = area->y1;
-    int y2 = area->y2;*/
-
-    /* Rotate coordinates */
-    /*switch (rotation) {
-    case LV_DISPLAY_ROTATION_0:
-        break;
-    case LV_DISPLAY_ROTATION_90:
-        x1 = area->y1;
-        x2 = area->y2;
-        y1 = hres - area->x2;
-        y2 = hres - area->x1;
-        break;
-    case LV_DISPLAY_ROTATION_180:
-        x1 = hres - area->x2 - 1;
-        x2 = hres - area->x1 - 1;
-        y1 = vres - area->y2;
-        y2 = vres - area->y1;
-        break;
-    case LV_DISPLAY_ROTATION_270:
-        x1 = vres - area->y2 - 1;
-        x2 = vres - area->y1 - 1;
-        y1 = area->x1;
-        y2 = area->x2;
-        break;
-    }*/
-    /* Return new coordinates */
-    /*area->x1 = x1;
-    area->x2 = x2;
-    area->y1 = y1;
-    area->y2 = y2;*/
-
-
     if (rotation == LV_DISPLAY_ROTATION_90 || rotation == LV_DISPLAY_ROTATION_270) {
         vres = lv_display_get_horizontal_resolution(disp);
         hres = lv_display_get_vertical_resolution(disp);
@@ -532,7 +496,7 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
                 lv_draw_sw_rotate(color_map, disp_ctx->draw_buffs[2], ww, hh, w_stride, h_stride, LV_DISPLAY_ROTATION_90, cf);
             }
             color_map = (uint8_t *)disp_ctx->draw_buffs[2];
-            lv_display_rotate_area(drv, (lv_area_t *)area);
+            lvgl_port_rotate_area(drv, (lv_area_t *)area);
             offsetx1 = area->x1;
             offsetx2 = area->x2;
             offsety1 = area->y1;
