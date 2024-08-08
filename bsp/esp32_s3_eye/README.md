@@ -26,7 +26,7 @@ The ESP32-S3-EYE board consists of two parts: the main board (ESP32-S3-EYE-MB) t
 |  LVGL_PORT  |:heavy_check_mark:|[espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)|    ^2    |
 |    TOUCH    |        :x:       |                                                                                              |          |
 |   BUTTONS   |:heavy_check_mark:|       [espressif/button](https://components.espressif.com/components/espressif/button)       |>=2.5,<4.0|
-|    AUDIO    |:heavy_check_mark:|[espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)|    ^1    |
+|    AUDIO    |:heavy_check_mark:|[espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)|  ^1,<1.2 |
 |AUDIO_SPEAKER|        :x:       |                                                                                              |          |
 |  AUDIO_MIC  |:heavy_check_mark:|                                                                                              |          |
 |    SDCARD   |:heavy_check_mark:|                                              idf                                             |  >=4.4.5 |

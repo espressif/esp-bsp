@@ -57,7 +57,7 @@ Based on the above configurations, there are three different anti-tearing modes 
 |  LVGL_PORT  |:heavy_check_mark:|       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |    ^2    |
 |    TOUCH    |:heavy_check_mark:|[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|    ^1    |
 |   BUTTONS   |:heavy_check_mark:|              [espressif/button](https://components.espressif.com/components/espressif/button)              |>=2.5,<4.0|
-|    AUDIO    |:heavy_check_mark:|       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |    ^1    |
+|    AUDIO    |:heavy_check_mark:|       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |  ^1,<1.2 |
 |AUDIO_SPEAKER|:heavy_check_mark:|                                                                                                            |          |
 |  AUDIO_MIC  |:heavy_check_mark:|                                                                                                            |          |
 |    SDCARD   |        :x:       |                                                                                                            |          |
