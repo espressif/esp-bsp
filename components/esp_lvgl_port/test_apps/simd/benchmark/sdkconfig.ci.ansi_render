@@ -1,0 +1,3 @@
+# Disabling Assembly rendering in LVGL SW Draw
+
+CONFIG_LV_DRAW_SW_ASM_CUSTOM=n

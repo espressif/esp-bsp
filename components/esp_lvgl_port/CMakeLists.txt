@@ -22,12 +22,35 @@ endif()
 
 set(PORT_PATH "src/${PORT_FOLDER}")
 
+# Include SIMD assembly source code for rendering
+if(CONFIG_IDF_TARGET_ESP32 OR CONFIG_IDF_TARGET_ESP32S3)
+    if (lvgl_ver VERSION_GREATER_EQUAL "9.0.0")
+        message(VERBOSE "Compiling SIMD")
+        if(CONFIG_IDF_TARGET_ESP32S3)
+            file(GLOB_RECURSE ASM_SOURCES ${PORT_PATH}/simd/*_esp32s3.S)    # Select only esp32s3 related files
+        else()
+            file(GLOB_RECURSE ASM_SOURCES ${PORT_PATH}/simd/*_esp32.S)      # Select only esp32 related files
+        endif()
+    endif()
+endif()
+
 idf_component_register(
-        SRCS "${PORT_PATH}/esp_lvgl_port.c" "${PORT_PATH}/esp_lvgl_port_disp.c" 
+        SRCS "${PORT_PATH}/esp_lvgl_port.c" "${PORT_PATH}/esp_lvgl_port_disp.c" ${ASM_SOURCES}
         INCLUDE_DIRS "include" 
         PRIV_INCLUDE_DIRS "priv_include"
         REQUIRES "esp_lcd" 
         PRIV_REQUIRES "esp_timer")
+
+set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_argb8888_esp")
+set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_rgb565_esp")
+
+#Get LVGL target 
+idf_component_get_property(lvgl_lib lvgl__lvgl COMPONENT_LIB)
+if(lvgl_lib EQUAL "")
+    idf_component_get_property(lvgl_lib lvgl COMPONENT_LIB)
+endif()
+
+target_include_directories(${lvgl_lib} PRIVATE include)
 
 set(ADD_SRCS "")
 set(ADD_LIBS "")

@@ -7,3 +7,4 @@ dependencies.lock
 doxygen_output/**
 dist
 __pycache__
+gdbinit
