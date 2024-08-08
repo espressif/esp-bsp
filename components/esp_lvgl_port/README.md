@@ -1,6 +1,7 @@
 # LVGL ESP Portation
 
 [![Component Registry](https://components.espressif.com/components/espressif/esp_lvgl_port/badge.svg)](https://components.espressif.com/components/espressif/esp_lvgl_port)
+![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
 
 This component helps with using LVGL with Espressif's LCD and touch drivers. It can be used with any project with LCD display.
 
@@ -17,10 +18,7 @@ This component helps with using LVGL with Espressif's LCD and touch drivers. It 
 
 ## LVGL Version
 
-> [!WARNING]
-> LVGL9 is not stable and it not recommended to use it.
-
-This component supports **LVGL8** and **LVGL9**. By default, it selects the latest LVGL version. If you want to use a specific version (e.g. latest LVGL8), you can easily put into `idf_component.yml` in your project like this:
+This component supports **LVGL8** and **LVGL9**. By default, it selects the latest LVGL version. If you want to use a specific version (e.g. latest LVGL8), you can easily define this requirement in `idf_component.yml` in your project like this:
 
 ```
   lvgl/lvgl:
@@ -30,7 +28,7 @@ This component supports **LVGL8** and **LVGL9**. By default, it selects the l
 
 ### LVGL Version Compatibility
 
-This component is fully compatible with LVGL version 9. All types and functions are used from LVGL9. Some LVGL9 types are not supported in LVGL8 and there are retyping in [`esp_lvgl_port_compatibility.h`](include/esp_lvgl_port_compatibility.h) header file. **Please, be aware, that some draw and object functions are not compatible between LVGL8 and LVGL9.**
+This component is fully compatible with LVGL version 9. All types and functions are used from LVGL9. Some LVGL9 types are not supported in LVGL8 and there are retyped in [`esp_lvgl_port_compatibility.h`](include/esp_lvgl_port_compatibility.h) header file. **Please, be aware, that some draw and object functions are not compatible between LVGL8 and LVGL9.**
 
 ## Usage
 
