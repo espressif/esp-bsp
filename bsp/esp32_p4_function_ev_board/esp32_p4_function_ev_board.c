@@ -16,6 +16,7 @@
 #include "esp_ldo_regulator.h"
 #include "esp_vfs_fat.h"
 #include "usb/usb_host.h"
+#include "sd_pwr_ctrl_by_on_chip_ldo.h"
 
 
 #if CONFIG_BSP_LCD_TYPE_1024_600
@@ -84,6 +85,18 @@ esp_err_t bsp_sdcard_mount(void)
 
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
     host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
+
+    sd_pwr_ctrl_ldo_config_t ldo_config = {
+        .ldo_chan_id = 4,
+    };
+    sd_pwr_ctrl_handle_t pwr_ctrl_handle = NULL;
+    esp_err_t ret = sd_pwr_ctrl_new_on_chip_ldo(&ldo_config, &pwr_ctrl_handle);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to create a new on-chip LDO power control driver");
+        return ret;
+    }
+    host.pwr_ctrl_handle = pwr_ctrl_handle;
+
     const sdmmc_slot_config_t slot_config = {
         .clk = BSP_SD_CLK,
         .cmd = BSP_SD_CMD,
