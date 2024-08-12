@@ -3,12 +3,22 @@
 # Create a C array of image for using with LVGL
 function(lvgl_port_create_c_image image_path output_path color_format compression)
 
+    #Get Python
+    idf_build_get_property(python PYTHON)
+
     #Get LVGL version
-    idf_component_get_property(lvgl_ver lvgl__lvgl COMPONENT_VERSION)
-    set(LVGL_NAME "lvgl__lvgl")
-    if(lvgl_ver EQUAL "")
-        idf_component_get_property(lvgl_ver lvgl COMPONENT_VERSION)
-    set(LVGL_NAME "lvgl")
+    idf_build_get_property(build_components BUILD_COMPONENTS)
+    if(lvgl IN_LIST build_components)
+        set(lvgl_name lvgl) # Local component
+        set(lvgl_ver $ENV{LVGL_VERSION}) # Get the version from env variable (set from LVGL v9.2)
+    else()
+        set(lvgl_name lvgl__lvgl) # Managed component
+        idf_component_get_property(lvgl_ver ${lvgl_name} COMPONENT_VERSION) # Get the version from esp-idf build system
+    endif()
+
+    if("${lvgl_ver}" STREQUAL "")
+        message("Could not determine LVGL version, assuming v9.x")
+        set(lvgl_ver "9.0.0")
     endif()
 
     get_filename_component(image_full_path ${image_path} ABSOLUTE)
@@ -30,22 +40,22 @@ function(lvgl_port_create_c_image image_path output_path color_format compressio
 
         execute_process(COMMAND git clone https://github.com/W-Mai/lvgl_image_converter.git "${CMAKE_BINARY_DIR}/lvgl_image_converter")
         execute_process(COMMAND git checkout 9174634e9dcc1b21a63668969406897aad650f35 WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/lvgl_image_converter" OUTPUT_QUIET)
-        execute_process(COMMAND python -m pip install --upgrade pip)
-        execute_process(COMMAND python -m pip install pillow==10.3.0)
+        execute_process(COMMAND ${python} -m pip install --upgrade pip)
+        execute_process(COMMAND ${python} -m pip install pillow==10.3.0)
         #execute_process(COMMAND python -m pip install -r "${CMAKE_BINARY_DIR}/lvgl_image_converter/requirements.txt")
-        execute_process(COMMAND ${PYTHON} "${CMAKE_BINARY_DIR}/lvgl_image_converter/lv_img_conv.py"
+        execute_process(COMMAND ${python} "${CMAKE_BINARY_DIR}/lvgl_image_converter/lv_img_conv.py"
                 -ff C
                 -f true_color_alpha
                 -cf ${color_format}
                 -o ${output_full_path}
                 ${image_full_path})
     else()
-        idf_component_get_property(lvgl_dir ${LVGL_NAME} COMPONENT_DIR)
+        idf_component_get_property(lvgl_dir ${lvgl_name} COMPONENT_DIR)
         get_filename_component(script_path ${lvgl_dir}/scripts/LVGLImage.py ABSOLUTE)
-        set(lvglimage_py ${PYTHON} ${script_path})
+        set(lvglimage_py ${python} ${script_path})
 
         #Install dependencies
-        execute_process(COMMAND python -m pip install pypng lz4)
+        execute_process(COMMAND ${python} -m pip install pypng lz4 OUTPUT_QUIET)
 
         execute_process(COMMAND ${lvglimage_py}
                 --ofmt=C
