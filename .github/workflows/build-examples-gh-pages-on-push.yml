@@ -23,11 +23,11 @@ jobs:
         shell: bash
         run: |
           . ${IDF_PATH}/export.sh
-          pip install idf-component-manager --upgrade
+          pip install idf-component-manager==1.* --upgrade
 
       - name: Action for building binaries and config.toml
         uses: espressif/idf-examples-launchpad-ci-action@v1.0.1
-        with: 
+        with:
           idf_version: ${{ matrix.idf_ver }}
 
       - name: Upload Artifact
@@ -40,7 +40,7 @@ jobs:
     needs: build
 
     permissions:
-      pages: write      
+      pages: write
       id-token: write
 
     environment:

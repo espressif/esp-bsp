@@ -16,7 +16,7 @@ from update_readme_dependencies import check_bsp_readme
 DEFINE_NOGLIB_OFF = '#define BSP_CONFIG_NO_GRAPHIC_LIB (0)'
 DEFINE_NOGLIB_ON = '#define BSP_CONFIG_NO_GRAPHIC_LIB (1)'
 ESP_REGISTRY_URL = 'https://components.espressif.com/components/'
-README_NOGLIB_NOTICE = '> :warning: This is **No Graphical version** of {} BSP. If you want to use this BSP with LVGL use [{}]({}) component.\n'
+README_NOGLIB_NOTICE = '> :warning: This is **No Graphical Library version** of {} BSP. If you want to use this BSP with LVGL use [{}]({}) component.\n'
 
 
 def select_bsp_config_no_graphic_lib(bsp_path):
