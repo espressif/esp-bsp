@@ -19,7 +19,6 @@
 #include "bsp/esp_wrover_kit.h"
 #include "bsp/display.h"
 #include "bsp_err_check.h"
-#include "esp_lvgl_port.h"
 
 static const char *TAG = "Wrover";
 
@@ -264,6 +263,7 @@ err:
     return ret;
 }
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
@@ -354,3 +354,4 @@ void bsp_display_unlock(void)
 {
     lvgl_port_unlock();
 }
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
