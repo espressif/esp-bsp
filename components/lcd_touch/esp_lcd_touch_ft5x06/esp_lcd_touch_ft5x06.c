@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -79,7 +79,7 @@ static const char *TAG = "FT5x06";
 * Function definitions
 *******************************************************************************/
 static esp_err_t esp_lcd_touch_ft5x06_read_data(esp_lcd_touch_handle_t tp);
-static bool esp_lcd_touch_ft5x06_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+static bool esp_lcd_touch_ft5x06_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *track_id, uint8_t *point_num, uint8_t max_point_num);
 static esp_err_t esp_lcd_touch_ft5x06_del(esp_lcd_touch_handle_t tp);
 
 /* I2C read */
@@ -196,6 +196,7 @@ static esp_err_t esp_lcd_touch_ft5x06_read_data(esp_lcd_touch_handle_t tp)
 
     /* Fill all coordinates */
     for (i = 0; i < points; i++) {
+        tp->data.coords[i].track_id = ((data[(i * 6) + 2] & 0xf0) >> 4);
         tp->data.coords[i].x = (((uint16_t)data[(i * 6) + 0] & 0x0f) << 8) + data[(i * 6) + 1];
         tp->data.coords[i].y = (((uint16_t)data[(i * 6) + 2] & 0x0f) << 8) + data[(i * 6) + 3];
     }
@@ -205,7 +206,7 @@ static esp_err_t esp_lcd_touch_ft5x06_read_data(esp_lcd_touch_handle_t tp)
     return ESP_OK;
 }
 
-static bool esp_lcd_touch_ft5x06_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)
+static bool esp_lcd_touch_ft5x06_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *track_id, uint8_t *point_num, uint8_t max_point_num)
 {
     assert(tp != NULL);
     assert(x != NULL);
@@ -224,6 +225,10 @@ static bool esp_lcd_touch_ft5x06_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, 
 
         if (strength) {
             strength[i] = tp->data.coords[i].strength;
+        }
+
+        if (track_id) {
+            track_id[i] = tp->data.coords[i].track_id;
         }
     }
 

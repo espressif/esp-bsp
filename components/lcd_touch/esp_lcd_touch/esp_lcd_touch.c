@@ -58,7 +58,7 @@ esp_err_t esp_lcd_touch_read_data(esp_lcd_touch_handle_t tp)
     return tp->read_data(tp);
 }
 
-bool esp_lcd_touch_get_coordinates(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)
+bool esp_lcd_touch_get_coordinates(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *track_id, uint8_t *point_num, uint8_t max_point_num)
 {
     bool touched = false;
 
@@ -67,14 +67,14 @@ bool esp_lcd_touch_get_coordinates(esp_lcd_touch_handle_t tp, uint16_t *x, uint1
     assert(y != NULL);
     assert(tp->get_xy != NULL);
 
-    touched = tp->get_xy(tp, x, y, strength, point_num, max_point_num);
+    touched = tp->get_xy(tp, x, y, strength, track_id, point_num, max_point_num);
     if (!touched) {
         return false;
     }
 
     /* Process coordinates by user */
     if (tp->config.process_coordinates != NULL) {
-        tp->config.process_coordinates(tp, x, y, strength, point_num, max_point_num);
+        tp->config.process_coordinates(tp, x, y, strength, track_id, point_num, max_point_num);
     }
 
     /* Software coordinates adjustment needed */
