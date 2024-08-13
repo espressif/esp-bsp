@@ -21,8 +21,8 @@ Board support packages for development boards using Espressif's SoCs, written in
 | [ESP-BOX-3](bsp/esp-box-3)                           | ESP32-S3 | LCD display with touch, audio codec + power amplifier,<br>accelerometer and gyroscope                             | <img src="docu/pics/esp32_s3_box_3.png" width="150">                |
 | [ESP32-S3-KORVO-1](bsp/esp32_s3_korvo_1)             | ESP32-S3 | uSD card slot, microphone, audio codec + power amplifier, RGB led strip                                           | <img src="docu/pics/esp32_s3_korvo_1.png" width="150">              |
 | [M5Stack CoreS3](bsp/m5stack_core_s3)                | ESP32-S3 | LCD display with touch, uSD card slot, microphone, audio codec                                                    | <img src="docu/pics/m5stack_cores3.webp" width="150">               |
-| [M5Stack Core2](bsp/m5stack_core_2)                  | ESP32    | LCD display with touch, uSD card slot                                                                             | <img src="docu/pics/m5stack_cores3.webp" width="150">               |
-| [M5Dial](bsp/m5dial)                                 | ESP32-S3 | LCD display with touch and encoder                                                                                | <img src="docu/pics/m5stack_cores2.webp" width="150">               |
+| [M5Stack Core2](bsp/m5stack_core_2)                  | ESP32    | LCD display with touch, uSD card slot                                                                             | <img src="docu/pics/m5stack_core2.webp" width="150">                |
+| [M5Dial](bsp/m5dial)                                 | ESP32-S3 | LCD display with touch and encoder                                                                                | <img src="docu/pics/m5dial.webp" width="150">                       |
 ## LCD displays and TOUCH
 
 | [LVGL port](components/esp_lvgl_port) | [LCD drivers](LCD.md) |
