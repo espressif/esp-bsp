@@ -579,7 +579,7 @@ static void lvgl_port_disp_rotation_update(lvgl_port_display_ctx_t *disp_ctx)
 static void lvgl_port_disp_size_update_callback(lv_event_t *e)
 {
     assert(e);
-    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)e->user_data;
+    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_event_get_user_data(e);
     lvgl_port_disp_rotation_update(disp_ctx);
 }
 
