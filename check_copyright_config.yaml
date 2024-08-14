@@ -32,7 +32,7 @@ examples_and_unit_tests:
    - 'examples/'
    - 'components/**/test/**'
    - 'components/**/test_apps/**'
-   - 'test_app/'
+   - 'test_apps/'
    - 'SquareLine/'
   allowed_licenses:
   - Apache-2.0
