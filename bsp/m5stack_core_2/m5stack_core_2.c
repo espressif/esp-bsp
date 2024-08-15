@@ -91,7 +91,7 @@ uint8_t read8bit(uint8_t sub_addr)
     return reg_data[0];
 }
 
-static esp_err_t bsp_enable_feature(bsp_feature_t feature)
+static esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
 {
     esp_err_t err = ESP_OK;
 
@@ -104,14 +104,17 @@ static esp_err_t bsp_enable_feature(bsp_feature_t feature)
     case BSP_FEATURE_SD:
 #if defined(CONFIG_BSP_PMU_AXP2101)
         /* AXP ALDO4 voltage / SD Card / Touch Pad / 3V3 */
-        const uint8_t feature_ctr[] = {0x95, 0b00011100};  // axp: lcd logic and sdcard voltage preset to 3.3v
+        const uint8_t aldo4_value = enable ? 0x1C : 0x00;
+        const uint8_t feature_ctr[] = {0x95, aldo4_value};  // axp: lcd logic and sdcard voltage preset to 3.3v
         err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, feature_ctr, sizeof(feature_ctr),
                                           1000 / portTICK_PERIOD_MS);
 
 #elif defined(CONFIG_BSP_PMU_AXP192)
-        const uint8_t pmu_ldo2[] = {
-            0x28, (read8bit(0x28) & 0x0f) | 0xf0
-        };  // axp: lcd logic and sdcard voltage preset to 3.3v
+        const uint8_t pmu_value = enable ? (read8bit(0x28) & 0x0f) | 0xf0 : (read8bit(0x28) & 0x0f);
+        const uint8_t  pmu_ldo2[] = {
+            0x28, pmu_value
+        };
+
         err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_ldo2, sizeof(pmu_ldo2),
                                           1000 / portTICK_PERIOD_MS);
 #endif
@@ -119,11 +122,13 @@ static esp_err_t bsp_enable_feature(bsp_feature_t feature)
     case BSP_FEATURE_SPEAKER:
 #if defined(CONFIG_BSP_PMU_AXP2101)
         /* AXP ALDO3 voltage / Codec+Mic / 3V3 */
-        const uint8_t spk_ctr[] = {0x94, 0b00011100};  // axp: lcd logic and sdcard voltage preset to 3.3v
+        const uint8_t aldo3_value = enable ? 0x1C : 0x00;
+        const uint8_t spk_ctr[] = {0x94, aldo3_value};  // axp: lcd logic and sdcard voltage preset to 3.3v
         err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, spk_ctr, sizeof(spk_ctr),
                                           1000 / portTICK_PERIOD_MS);
 #elif defined(CONFIG_BSP_PMU_AXP192)
-        const uint8_t led_gpio_set[] = {0x94, (read8bit(0x94) | 0x04)};
+        const uint8_t led_gpio_value = enable ? (read8bit(0x94) | 0x04) | 0xf0 : (read8bit(0x94) & ~0x04);
+        const uint8_t led_gpio_set[] = {0x94, led_gpio_value};
         ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, led_gpio_set,
                             sizeof(led_gpio_set), 1000 / portTICK_PERIOD_MS),
                             TAG, "I2C write failed");
@@ -191,7 +196,7 @@ esp_err_t bsp_spiffs_unmount(void)
 
 esp_err_t bsp_sdcard_mount(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(bsp_enable_feature(BSP_FEATURE_SD));
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_SD, true));
 
     const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
 #ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
@@ -231,7 +236,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     }
     assert(i2s_data_if);
 
-    BSP_ERROR_CHECK_RETURN_ERR(bsp_enable_feature(BSP_FEATURE_SPEAKER));
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_SPEAKER, true));
 
     esp_codec_dev_cfg_t codec_dev_cfg = {
         .dev_type = ESP_CODEC_DEV_TYPE_OUT,
@@ -408,7 +413,7 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
     esp_err_t ret = ESP_OK;
     assert(config != NULL && config->max_transfer_sz > 0);
 
-    BSP_ERROR_CHECK_RETURN_ERR(bsp_enable_feature(BSP_FEATURE_LCD));
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_LCD, true));
 
     /* Initialize SPI */
     ESP_RETURN_ON_ERROR(bsp_spi_init(config->max_transfer_sz), TAG, "");
@@ -453,7 +458,7 @@ err:
 
 esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t *ret_touch)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(bsp_enable_feature(BSP_FEATURE_TOUCH));
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_TOUCH, true));
 
     /* Initialize touch */
     const esp_lcd_touch_config_t tp_cfg = {
