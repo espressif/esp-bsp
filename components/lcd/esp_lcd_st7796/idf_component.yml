@@ -6,5 +6,5 @@ targets:
 description: ESP LCD ST7796 driver
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_st7796
 dependencies:
-  idf: ">=4.4"
+  idf: ">=5.0"
   cmake_utilities: "0.*"
