@@ -14,10 +14,15 @@
 #include "driver/gpio.h"
 #include "driver/sdmmc_host.h"
 #include "sdkconfig.h"
-#include "lvgl.h"
 #include "iot_button.h"
-#include "esp_lvgl_port.h"
+#include "bsp/config.h"
 #include "bsp/display.h"
+
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+#include "lvgl.h"
+#include "esp_lvgl_port.h"
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
+
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
@@ -31,6 +36,7 @@
 #define BSP_CAPS_LED            1
 #define BSP_CAPS_SDCARD         1
 #define BSP_CAPS_IMU            0
+#define BSP_CAPS_CAMERA         0
 
 /**************************************************************************************************
  * ESP-WROVER-KIT pinout
@@ -76,20 +82,6 @@ typedef enum {
     BSP_BUTTON_BOOT,
     BSP_BUTTON_NUM
 } bsp_button_t;
-
-/**
- * @brief BSP display configuration structure
- *
- */
-typedef struct {
-    lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
-    uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
-    bool            double_buffer;  /*!< True, if should be allocated two buffers */
-    struct {
-        unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
-        unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
-    } flags;
-} bsp_display_cfg_t;
 
 /**************************************************************************************************
  *
@@ -257,8 +249,22 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
 #define BSP_LCD_PIXEL_CLOCK_HZ      (40 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM             (SPI2_HOST)
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 #define BSP_LCD_DRAW_BUFF_SIZE      (BSP_LCD_H_RES * 30)
 #define BSP_LCD_DRAW_BUFF_DOUBLE    (1)
+
+/**
+ * @brief BSP display configuration structure
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
+    uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
+    bool            double_buffer;  /*!< True, if should be allocated two buffers */
+    struct {
+        unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
+        unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
+    } flags;
+} bsp_display_cfg_t;
 
 /**
  * @brief Initialize display
@@ -314,6 +320,7 @@ void bsp_display_unlock(void);
  * @param[in] rotation Angle of the display rotation
  */
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 #ifdef __cplusplus
 }
