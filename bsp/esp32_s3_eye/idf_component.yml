@@ -27,3 +27,8 @@ dependencies:
   esp_codec_dev:
     version: "^1,<1.2"
     public: true
+
+  qma6100p:
+    version: "1.*"
+    override_path: "../../components/qma6100p"
+    public: true
