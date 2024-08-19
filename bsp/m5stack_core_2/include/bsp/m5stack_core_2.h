@@ -328,6 +328,38 @@ void bsp_display_unlock(void);
 void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation);
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
+/**************************************************************************************************
+ *
+ * BSP Features
+ *
+ * This module provides an interface to enable and disable various features on the M5Stack-Core-2 board.
+ * Supported features include the LCD display, touch screen, SD card, and speaker.
+ *
+ * The bsp_feature_enable function is used to enable or disable a specified feature.
+ * It communicates with the Power Management Unit (PMU) via the I2C interface to control the power of each feature.
+ *
+ * Supported PMU models include AXP2101 and AXP192.
+ * Depending on the configuration, the function selects the appropriate PMU registers and values to enable or disable the feature.
+ *
+ * Parameters:
+ * - feature: The feature to enable or disable, of type bsp_feature_t enum.
+ * - enable: A boolean value, true to enable the feature, false to disable it.
+ *
+ * Return value:
+ * - esp_err_t: Error code indicating the result of the operation.
+ *
+ **************************************************************************************************/
+typedef enum {
+    BSP_FEATURE_LCD,
+    BSP_FEATURE_TOUCH,
+    BSP_FEATURE_SD,
+    BSP_FEATURE_SPEAKER,
+    BSP_FEATURE_BAT,
+    BSP_FEATURE_VIB
+} bsp_feature_t;
+
+esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable);
+
 #ifdef __cplusplus
 }
 #endif

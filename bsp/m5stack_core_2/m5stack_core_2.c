@@ -31,14 +31,6 @@ static const char *TAG = "M5Stack";
 #define BSP_AXP192_ADDR  0x34
 #define BSP_AXP2101_ADDR 0x34
 
-/* Features */
-typedef enum {
-    BSP_FEATURE_LCD,
-    BSP_FEATURE_TOUCH,
-    BSP_FEATURE_SD,
-    BSP_FEATURE_SPEAKER,
-} bsp_feature_t;
-
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *disp;
 static lv_indev_t *disp_indev = NULL;
@@ -91,7 +83,7 @@ uint8_t read8bit(uint8_t sub_addr)
     return reg_data[0];
 }
 
-static esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
+esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
 {
     esp_err_t err = ESP_OK;
 
@@ -131,6 +123,36 @@ static esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
         const uint8_t led_gpio_set[] = {0x94, led_gpio_value};
         ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, led_gpio_set,
                             sizeof(led_gpio_set), 1000 / portTICK_PERIOD_MS),
+                            TAG, "I2C write failed");
+#endif
+        break;
+    case BSP_FEATURE_BAT:
+#if defined(CONFIG_BSP_PMU_AXP2101)
+        // Battery detection enabled.
+        const uint8_t axp_bat_val = enable ? 0x01 : 0x00;
+        const uint8_t axp_bat_ctr[] = {0x68, axp_bat_val};
+        err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, axp_bat_ctr, sizeof(axp_bat_ctr),
+                                          1000 / portTICK_PERIOD_MS);
+#endif
+        break;
+    case BSP_FEATURE_VIB:
+#if defined(CONFIG_BSP_PMU_AXP2101)
+        const uint8_t dldo1_vol[] = {0x99, 0x1C};  // AXP DLDO1 Voltage set
+        err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, dldo1_vol, sizeof(dldo1_vol),
+                                          1000 / portTICK_PERIOD_MS);
+        const uint8_t dldo1_en_val = enable ? (read8bit(0x90) | 0x80) : (read8bit(0x90) & ~0x80);
+        const uint8_t dldo1_en[] = {0x90, dldo1_en_val};  // AXP DLDO1 Enable
+        err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, dldo1_en, sizeof(dldo1_en),
+                                          1000 / portTICK_PERIOD_MS);
+#elif defined(CONFIG_BSP_PMU_AXP192)
+        const uint8_t pmu_ldo3[] = {0x28, (read8bit(0x28) & 0xf0) | 0x0f};  // Vibrator power voltage preset
+        ESP_RETURN_ON_ERROR(
+            i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_ldo3, sizeof(pmu_ldo3), 1000 / portTICK_PERIOD_MS),
+            TAG, "I2C write failed");
+        const uint8_t pmu_ldo3_en_val = enable ? read8bit(0x12) | 0x08 : read8bit(0x12) & ~0x08;
+        const uint8_t pmu_ldo3_en[] = {0x12, pmu_ldo3_en_val};  // ldo3 enable
+        ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_ldo3_en, sizeof(pmu_ldo3_en),
+                            1000 / portTICK_PERIOD_MS),
                             TAG, "I2C write failed");
 #endif
         break;
@@ -281,12 +303,6 @@ esp_err_t bsp_display_brightness_init(void)
     ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, axp_bat_val, sizeof(axp_bat_val),
                         1000 / portTICK_PERIOD_MS),
                         TAG, "I2C write failed");
-
-    // Battery detection enabled.
-    const uint8_t axp_bte_val[] = {0x68, 0b00110000};
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, axp_bte_val, sizeof(axp_bte_val),
-                        1000 / portTICK_PERIOD_MS),
-                        TAG, "I2C write failed");
     // CHGLED setting
     const uint8_t axp_hgled_val[] = {0x69, 0b00010011};
     ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, axp_hgled_val, sizeof(axp_hgled_val),
@@ -325,15 +341,10 @@ esp_err_t bsp_display_brightness_init(void)
     ESP_RETURN_ON_ERROR(
         i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_ldo2, sizeof(pmu_ldo2), 1000 / portTICK_PERIOD_MS),
         TAG, "I2C write failed");
-    const uint8_t pmu_ldo3[] = {0x28, (read8bit(0x28) & 0xf0) | 0x02};  // Vibrator power voltage preset
-    ESP_RETURN_ON_ERROR(
-        i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_ldo3, sizeof(pmu_ldo3), 1000 / portTICK_PERIOD_MS),
-        TAG, "I2C write failed");
     const uint8_t pmu_ldo2_en[] = {0x12, (read8bit(0x12) & 0xfb) | 0x04};  // ldo2 enable
     ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_ldo2_en, sizeof(pmu_ldo2_en),
                         1000 / portTICK_PERIOD_MS),
                         TAG, "I2C write failed");
-    read8bit(0x12);
     const uint8_t lcd_bl_en[] = {0x12, (read8bit(0x12) & 0xfd) | 0x02};  // Lcd backlight enable
     ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, lcd_bl_en, sizeof(lcd_bl_en),
                         1000 / portTICK_PERIOD_MS),
@@ -382,7 +393,7 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
     ESP_LOGI(TAG, "Setting LCD backlight: %d%%", brightness_percent);
 #if defined(CONFIG_BSP_PMU_AXP2101)
     const uint8_t reg_val      = 20 + ((8 * brightness_percent) / 100);  // 0b00000 ~ 0b11100; under 20, it is too dark
-    const uint8_t lcd_bl_val[] = {0x96, reg_val};                        // AXP DLDO1 voltage
+    const uint8_t lcd_bl_val[] = {0x96, reg_val};                        // AXP BLDO1 voltage
     ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, lcd_bl_val, sizeof(lcd_bl_val),
                         1000 / portTICK_PERIOD_MS),
                         TAG, "I2C write failed");
