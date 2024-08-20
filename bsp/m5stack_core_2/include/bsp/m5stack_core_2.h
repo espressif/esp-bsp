@@ -19,11 +19,7 @@
 #include "bsp/config.h"
 #include "bsp/display.h"
 
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-#include "driver/i2s.h"
-#else
 #include "driver/i2s_std.h"
-#endif
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 #include "lvgl.h"
