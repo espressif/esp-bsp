@@ -1,4 +1,4 @@
-version: "1.0.5~1"
+version: "1.0.5~2"
 description: ESP LCD Touch GT1151 - touch controller GT1151
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd_touch/esp_lcd_touch_gt1151
 dependencies:
