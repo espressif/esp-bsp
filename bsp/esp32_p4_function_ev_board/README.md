@@ -15,8 +15,8 @@ ESP32-P4 Function EV Board is internal Espressif board for testing features on E
 Configuration in `menuconfig`.
 
 Selection LCD display `Board Support Package(ESP32-P4) --> Display --> Select LCD type`
-- LCD 7-inch 1024x600 - ili9881c (default)
-- LCD 1280x800 - ek79007
+- LCD 7-inch 1280x800 - ili9881c (default)
+- LCD 1024x600 - ek79007
 
 Selection color format `Board Support Package(ESP32-P4) --> Display --> Select LCD color format`
 - RGB565 (default)
