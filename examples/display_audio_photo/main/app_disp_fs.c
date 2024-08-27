@@ -215,7 +215,7 @@ static void close_window_handler(lv_event_t *e)
 
     if (code == LV_EVENT_CLICKED) {
         memset(file_buffer, 0, file_buffer_size);
-        lv_obj_del(e->user_data);
+        lv_obj_del(lv_event_get_user_data(e));
 
         /* Re-set the TAB group */
         set_tab_group();
@@ -408,7 +408,7 @@ static void play_event_cb(lv_event_t *e)
     if (code == LV_EVENT_CLICKED) {
         play_file_stop = false;
         lv_obj_add_state(obj, LV_STATE_DISABLED);
-        xTaskCreate(play_file, "audio_task", 4096, e->user_data, 6, NULL);
+        xTaskCreate(play_file, "audio_task", 4096, lv_event_get_user_data(e), 6, NULL);
     }
 }
 
@@ -451,7 +451,7 @@ static void close_window_wav_handler(lv_event_t *e)
 
     if (code == LV_EVENT_CLICKED) {
         memset(file_buffer, 0, file_buffer_size);
-        lv_obj_del(e->user_data);
+        lv_obj_del(lv_event_get_user_data(e));
         play_file_stop = true;
 
         xSemaphoreTake(audio_mux, portMAX_DELAY);
@@ -750,7 +750,7 @@ static void rec_play_event_cb(lv_event_t *e)
         assert(audio_mux);
         play_file_stop = false;
         lv_obj_add_state(obj, LV_STATE_DISABLED);
-        xTaskCreate(play_file, "audio_task", 4096, e->user_data, 6, NULL);
+        xTaskCreate(play_file, "audio_task", 4096, lv_event_get_user_data(e), 6, NULL);
     }
 }
 
@@ -848,7 +848,7 @@ static void rec_event_cb(lv_event_t *e)
             lv_obj_add_state(play1_btn, LV_STATE_DISABLED);
             lv_obj_add_state(rec_stop_btn, LV_STATE_DISABLED);
         }
-        xTaskCreate(rec_file, "rec_file", 4096, e->user_data, 6, NULL);
+        xTaskCreate(rec_file, "rec_file", 4096, lv_event_get_user_data(e), 6, NULL);
     }
 }
 
