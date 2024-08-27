@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "sdkconfig.h"
 #include "bsp/esp-bsp.h"
 #include "freertos/FreeRTOS.h"
