@@ -1,0 +1,87 @@
+name: Process noglib BSPs
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+# TODO: Extend this part to all BSPs
+env:
+  BSPs: "bsp/esp_wrover_kit bsp/esp32_s3_eye bsp/esp32_p4_function_ev_board bsp/m5stack_core_s3 bsp/m5dial bsp/m5stack_core_2"
+
+jobs:
+  noglib_check:
+    runs-on: ubuntu-latest
+    container: 'espressif/idf:latest'
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Create noglib version of BSPs
+        # We need to run export.sh to get python and pip
+        run: |
+          . ${IDF_PATH}/export.sh
+          pip install idf-component-manager==1.* py-markdown-table --upgrade
+          python .github/ci/bsp_noglib.py ${BSPs}
+
+      - name: Build noglib example
+        shell: bash
+        env:
+          ENV_BUILD_NOGLIB: "1"
+          IDF_EXTRA_ACTIONS_PATH: "${{ github.workspace }}/examples"
+        run: |
+          . ${IDF_PATH}/export.sh
+          pip install idf-component-manager==1.* ruamel.yaml idf-build-apps --upgrade
+          idf-build-apps find -p examples/noglib
+          idf-build-apps build -p examples/noglib
+
+      - name: Check idf_component.yml files
+        uses: espressif/upload-components-ci-action@v1
+        with:
+          directories: >
+            bsp/esp32_s3_eye_noglib;
+            bsp/esp32_p4_function_ev_board_noglib;
+            bsp/m5stack_core_s3_noglib;
+            bsp/m5dial_noglib;
+            bsp/m5stack_core_2_noglib;
+            bsp/esp_wrover_kit_noglib;
+          namespace: "espressif"
+          api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
+          dry_run: true
+
+  noglib_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Give the default GITHUB_TOKEN write permission to commit and push the added or changed files to the repository.
+    needs: noglib_check
+    if: ${{ github.ref_name == 'master' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Create noglib version of BSPs
+        run: |
+          pip install idf-component-manager==1.* py-markdown-table --upgrade
+          python .github/ci/bsp_noglib.py ${BSPs}
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "feat: Noglib BSPs based on commit ${{ github.sha }}"
+          branch: release/noglib
+
+      - name: Upload noglib BSPs to ESP-Registry
+        uses: espressif/upload-components-ci-action@v1
+        if: ${{ github.repository_owner == 'espressif' }}
+        with:
+          directories: >
+            bsp/esp32_s3_eye_noglib;
+            bsp/esp32_p4_function_ev_board_noglib;
+            bsp/m5stack_core_s3_noglib;
+            bsp/m5dial_noglib;
+            bsp/esp_wrover_kit_noglib;
+          namespace: "espressif"
+          api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}

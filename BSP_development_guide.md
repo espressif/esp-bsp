@@ -3,13 +3,31 @@
 This guide describes necessary steps to add a new BSP to the esp-bsp project.
 
 ### New BSP requirements
-* We want the BSPs to be used by as many users and projects as possible. All BSP must support IDF from version 4.4 up to latest release. Boards that were released after IDF v5.0 do not have to be backward compatible with v4.4.
+* We want the BSPs to be used by as many users and projects as possible. All BSP must support IDF from version 5.0 up to latest release.
 * We want the BSPs to provide a 'board abstraction layer' that allows the user to run his application on a range of different boards. Public API for each BSP must be the same. The API consistency is ensured by conventions described below.
 * We want the main features to be clearly visible for new users. Each new BSP must be added to a table of supported boards in root [README.md](https://github.com/espressif/esp-bsp/blob/master/README.md) it must contain a license (Apache-2) and a README.md file. Conventions for the readme file are described below
 * All BSPs are uploaded to [ESP Registry](https://components.espressif.com/). So each BSP must contain `idf_component.yml` file and must be added to [CI upload job](https://github.com/espressif/esp-bsp/blob/master/.github/workflows/upload_component.yml). The `idf_component.yml` must contain: version, description, url, target and (optional) dependencies.
 * We want to provide LVGL users with easy, out-of-the-box working solution for their GUI applications. Each board that has a display must be added to LVGL's [SquareLineStudio](https://squareline.io/) pre-defined boards. For more information refer to [this readme](https://github.com/espressif/esp-bsp/blob/master/SquareLine/README.md).
     * List of currently implemented LCD drivers is maintained in a [separate table](https://github.com/espressif/esp-bsp/blob/master/LCD.md)
 * We have an experimental idf.py extension, [bsp_ext.py](https://github.com/espressif/esp-bsp/blob/master/examples/bsp_ext.py) that allows changing of BSP during project configuration. Please add new BSPs to the list in this file. 
+* *OPTIONAL:* For noglib BSP version (see below) we provide `include/bsp/config.h` file that contains compilation switch for noglib version (see eg. [here](bsp/esp_wrover_kit/include/bsp/config.h)). Add this file if you want to generate noglib version for your BSP.
+
+### Noglib versions
+
+To provide easy-to-use experience, BSPs with display are shipped with [LVGL](https://components.espressif.com/components/lvgl/lvgl) component by default. LVGL was picked from all the other available graphical libraries because it is free and open source, thus compatible with ESP-IDF Apache-2.0 license.
+
+We provide option for users who don't want to use LVGL (eg. do not need it or want to use a different graphical library) to use 'noglib' version of BSPs. This version is created automatically in GitHub action [noglib_release](./.github/workflows/process_noglib_bsps.yml) and the source code is pushed to [release/noglib branch](https://github.com/espressif/esp-bsp/tree/release/noglib). The actual BSP modification of original BSP to its noglib version is done in [bsp_noglib.py script](./.github/ci/bsp_noglib.py). It performs following actions:
+
+1. Renames original_bsp_name to original_bsp_name_noglib
+2. Modifies `include/bsp/config.h` to define noglib version
+3. Removes `lvgl` and `esp_lvgl_port` from `idf_component.yml`
+4. Updates component URL to point to `release/noglib` branch
+5. Adds a note to `README.md` about the noglib version and removes LVGL from dependencies table
+
+If you want to create noglib version of a new BSP, you must
+1. Provide compilation switch `BSP_CONFIG_NO_GRAPHIC_LIB` in `include/bsp/config.h`
+2. Add it to [noglib release job](./.github/workflows/process_noglib_bsps.yml)
+3. See eg. [ESP-Wrover-kit](bsp/esp_wrover_kit/include/bsp/config.h)
 
 ### API conventions
 

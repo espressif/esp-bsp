@@ -54,8 +54,11 @@ Best way to start with ESP-BSP is trying one of the [examples](examples) on your
 ### BSP headers and options
 * `bsp/name-of-the-bsp.h`: Main include file of the BSP with public API
 * `bsp/esp-bsp.h`: Convenience include file with the same name for all BPSs
-* `bsp/display.h` and `bsp/touch.h`: Only for BSPs with LCD or touch controller. Contain low level initialization functions for usage without LVGL graphical library
-    * By default, BSPs with display are shipped with LVGL, if you are interested in BSP without LVGL you can use BSP versions with `noglib` suffix (eg. `esp32_s3_eye_noglib`).
+
+#### No graphical library BSP
+* By default, BSPs with display are shipped with LVGL graphical library, if you are interested in BSP without LVGL you can use BSP versions with `noglib` suffix (eg. `esp32_s3_eye_noglib`).
+* `bsp/display.h` and `bsp/touch.h`: Only for BSPs with LCD or touch controller. Contain low level initialization functions and basic operations for usage without LVGL.
+* 'noglib' versions of BSPs are uploaded to ESP-Registry, same as original BSPs. The noglib source code is kept in [release/noglib branch](https://github.com/espressif/esp-bsp/tree/release/noglib).
 
 > **_NOTE:_** There can be only one BSP in a single esp-idf project.
 
@@ -69,15 +72,6 @@ You can add them to your project via `idf.py add-dependency`, e.g.
 ### Recommendation for custom projects
 
 When you want to use a BSP in a real project, it is highly recommended to disable configuration option `CONFIG_BSP_ERROR_CHECK` in menuconfig. You should check all returned error codes from all BSP functions you call. Otherwise, if the option `CONFIG_BSP_ERROR_CHECK` is enabled, any error encountered in a BSP will abort the program.
-
-## Migration to ESP-IDF v5.0
-ESP-IDF v5.0 brings a lot of new features, but, as the bump in major version suggests, also a lot of breaking changes.
-
-ESP-BSP is kept up-to-date with the latest ESP-IDF version, but some breaking changes in ESP-BSP API are inevitable.
-Usually, BSPs compatible with IDF v5.0 are version 2. If you want to use BSP with IDF v4.4 you can still use version 1 of the particular BSP.
-If you are interested in BSP examples for IDF v4.4, you can git checkout tag `examples_v4.4`.
-
-More information about ESP-IDF breaking changes can be found in the [official migration guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/migration-guides/release-5.x/index.html).
 
 ### Compiling project for multiple BSPs
 
