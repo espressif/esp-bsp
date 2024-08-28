@@ -15,6 +15,8 @@ from update_readme_dependencies import check_bsp_readme
 
 DEFINE_NOGLIB_OFF = '#define BSP_CONFIG_NO_GRAPHIC_LIB (0)'
 DEFINE_NOGLIB_ON = '#define BSP_CONFIG_NO_GRAPHIC_LIB (1)'
+NOGLIB_SUFFIX = '_noglib'
+NOGLIB_BRANCH = 'release/noglib'
 ESP_REGISTRY_URL = 'https://components.espressif.com/components/'
 README_NOGLIB_NOTICE = '> :warning: This is **No Graphical Library version** of {} BSP. If you want to use this BSP with LVGL use [{}]({}) component.\n'
 
@@ -49,9 +51,16 @@ def remove_esp_lvgl_port(bsp_path):
     return 0
 
 
+def update_component_url(bsp_path):
+    manager = ManifestManager(bsp_path, 'bsp')
+    manager.manifest_tree["url"] = manager.manifest_tree["url"].replace('master', NOGLIB_BRANCH) + NOGLIB_SUFFIX
+    manager.dump()
+    return 0
+
+
 def add_notice_to_readme(bsp_path):
     readme_path = bsp_path / 'README.md'
-    bsp_name = bsp_path.parts[-1].rstrip("_noglib")
+    bsp_name = bsp_path.parts[-1].rstrip(NOGLIB_SUFFIX)
     try:
         with open(readme_path, encoding='utf-8', mode='r') as readme:
             content = readme.readlines()
@@ -74,11 +83,12 @@ def bsp_no_glib_all(bsp_names):
             raise Exception
 
         # 1. Rename the BSP to BSP_noglib
-        bsp_path = bsp_path.rename(bsp + "_noglib")
+        bsp_path = bsp_path.rename(bsp + NOGLIB_SUFFIX)
 
         # 2. Modify the configuration, dependencies and README
         ret += select_bsp_config_no_graphic_lib(bsp_path)
         ret += remove_esp_lvgl_port(bsp_path)
+        ret += update_component_url(bsp_path)
         ret += add_notice_to_readme(bsp_path)
         try:
             check_bsp_readme(bsp_path)
