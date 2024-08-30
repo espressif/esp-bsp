@@ -1,9 +1,11 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "soc/soc_caps.h"
+#if SOC_LCD_I80_SUPPORTED
 #include <inttypes.h>
 
 #include "freertos/FreeRTOS.h"
@@ -130,47 +132,4 @@ TEST_CASE("test st7796 to draw color bar with I80 interface", "[st7796][i80]")
     TEST_ESP_OK(esp_lcd_panel_io_del(io_handle));
     TEST_ESP_OK(esp_lcd_del_i80_bus(i80_bus));
 }
-
-// Some resources are lazy allocated in the LCD driver, the threadhold is left for that case
-#define TEST_MEMORY_LEAK_THRESHOLD (-300)
-
-static size_t before_free_8bit;
-static size_t before_free_32bit;
-
-static void check_leak(size_t before_free, size_t after_free, const char *type)
-{
-    ssize_t delta = after_free - before_free;
-    printf("MALLOC_CAP_%s: Before %u bytes free, After %u bytes free (delta %d)\n", type, before_free, after_free, delta);
-    TEST_ASSERT_MESSAGE(delta >= TEST_MEMORY_LEAK_THRESHOLD, "memory leak");
-}
-
-void setUp(void)
-{
-    before_free_8bit = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-    before_free_32bit = heap_caps_get_free_size(MALLOC_CAP_32BIT);
-}
-
-void tearDown(void)
-{
-    size_t after_free_8bit = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-    size_t after_free_32bit = heap_caps_get_free_size(MALLOC_CAP_32BIT);
-    check_leak(before_free_8bit, after_free_8bit, "8BIT");
-    check_leak(before_free_32bit, after_free_32bit, "32BIT");
-}
-
-void app_main(void)
-{
-    /**
-    *   __  _____ _____ _____ ___   __
-    *  / _\/__   \___  |___  / _ \ / /_
-    *  \ \   / /\/  / /   / / (_) | '_ \
-    *  _\ \ / /    / /   / / \__, | (_) |
-    *  \__/ \/    /_/   /_/    /_/ \___/
-    */
-    printf(" __  _____ _____ _____ ___   __\r\n");
-    printf("/ _\\/__   \\___  |___  / _ \\ / /_\r\n");
-    printf("\\ \\   / /\\/  / /   / / (_) | '_ \\\r\n");
-    printf("_\\ \\ / /    / /   / / \\__, | (_) |\r\n");
-    printf("\\__/ \\/    /_/   /_/    /_/ \\___/\r\n");
-    unity_run_menu();
-}
+#endif

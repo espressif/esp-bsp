@@ -28,3 +28,15 @@ components/esp_lvgl_port/examples/rgb_lcd:
   disable:
     - if: IDF_VERSION_MAJOR < 5
       reason: Example for RGB LCD is supported only for IDF >= 5.0
+
+components/lcd/esp_lcd_ili9881c:
+  disable:
+    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 3) or IDF_VERSION_MAJOR < 5
+      reason: Component is supported only for IDF >= 5.3
+    - if: IDF_TARGET not in ["esp32p4"]
+      reason: Component is supported only for esp32p4 target
+
+components/lcd/esp_lcd_st7796/test_apps:
+  disable:
+    - if: IDF_VERSION_MAJOR < 5
+      reason: Component is supported only for IDF >= 5.0
