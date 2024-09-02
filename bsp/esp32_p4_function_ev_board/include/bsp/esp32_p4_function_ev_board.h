@@ -13,7 +13,7 @@
 
 #include "sdkconfig.h"
 #include "driver/gpio.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "driver/sdmmc_host.h"
 #include "bsp/config.h"
 #include "bsp/display.h"
