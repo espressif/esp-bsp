@@ -59,7 +59,7 @@ typedef struct {
     } flags;
 
     /*!< User callback called after get coordinates from touch controller for apply user adjusting */
-    void (*process_coordinates)(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+    void (*process_coordinates)(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *track_id, uint8_t *point_num, uint8_t max_point_num);
     /*!< User callback called after the touch interrupt occurred */
     esp_lcd_touch_interrupt_callback_t interrupt_callback;
     /*!< User data passed to callback */
@@ -72,6 +72,7 @@ typedef struct {
     uint8_t points; /*!< Count of touch points saved */
 
     struct {
+        uint8_t track_id; /*!< Track ID */
         uint16_t x; /*!< X coordinate */
         uint16_t y; /*!< Y coordinate */
         uint16_t strength; /*!< Strength */
@@ -137,14 +138,14 @@ struct esp_lcd_touch_s {
      * @param x: Array of X coordinates
      * @param y: Array of Y coordinates
      * @param strength: Array of strengths
+     * @param track_id: Array of track IDs
      * @param point_num: Count of points touched (equals with count of items in x and y array)
      * @param max_point_num: Maximum count of touched points to return (equals with max size of x and y array)
      *
      * @return
-     *      - Returns true, when touched and coordinates readed. Otherwise returns false.
+     *      - Returns true, when touched and coordinates read. Otherwise returns false.
      */
-    bool (*get_xy)(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
-
+    bool (*get_xy)(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *track_id, uint8_t *point_num, uint8_t max_point_num);
 
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
     /**
@@ -155,7 +156,7 @@ struct esp_lcd_touch_s {
      * @param state: Button state
      *
      * @return
-     *      - Returns true, when touched and coordinates readed. Otherwise returns false.
+     *      - Returns true, when touched and coordinates read. Otherwise returns false.
      */
     esp_err_t (*get_button_state)(esp_lcd_touch_handle_t tp, uint8_t n, uint8_t *state);
 #endif
@@ -278,14 +279,14 @@ esp_err_t esp_lcd_touch_read_data(esp_lcd_touch_handle_t tp);
  * @param x: Array of X coordinates
  * @param y: Array of Y coordinates
  * @param strength: Array of the strengths (can be NULL)
+ * @param track_id: Array of track IDs (can be NULL)
  * @param point_num: Count of points touched (equals with count of items in x and y array)
  * @param max_point_num: Maximum count of touched points to return (equals with max size of x and y array)
  *
  * @return
- *      - Returns true, when touched and coordinates readed. Otherwise returns false.
+ *      - Returns true, when touched and coordinates read. Otherwise returns false.
  */
-bool esp_lcd_touch_get_coordinates(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
-
+bool esp_lcd_touch_get_coordinates(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *track_id, uint8_t *point_num, uint8_t max_point_num);
 
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
 /**

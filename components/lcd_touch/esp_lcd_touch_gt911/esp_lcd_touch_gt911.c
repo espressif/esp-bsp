@@ -26,6 +26,7 @@ static const char *TAG = "GT911";
 #define ESP_LCD_TOUCH_GT911_CONFIG_REG      (0x8047)
 #define ESP_LCD_TOUCH_GT911_PRODUCT_ID_REG  (0x8140)
 #define ESP_LCD_TOUCH_GT911_ENTER_SLEEP     (0x8040)
+#define ESP_LCD_TOUCH_GT811_REFRESH_RATE    (0x8056)
 
 /* GT911 support key num */
 #define ESP_GT911_TOUCH_MAX_BUTTONS         (4)
@@ -34,7 +35,7 @@ static const char *TAG = "GT911";
 * Function definitions
 *******************************************************************************/
 static esp_err_t esp_lcd_touch_gt911_read_data(esp_lcd_touch_handle_t tp);
-static bool esp_lcd_touch_gt911_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+static bool esp_lcd_touch_gt911_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *track_id, uint8_t *point_num, uint8_t max_point_num);
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
 static esp_err_t esp_lcd_touch_gt911_get_button_state(esp_lcd_touch_handle_t tp, uint8_t n, uint8_t *state);
 #endif
@@ -159,6 +160,8 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
     ret = touch_gt911_read_cfg(esp_lcd_touch_gt911);
     ESP_GOTO_ON_ERROR(ret, err, TAG, "GT911 init failed");
 
+    touch_gt911_i2c_write(esp_lcd_touch_gt911, ESP_LCD_TOUCH_GT811_REFRESH_RATE, 0x00);
+
 err:
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error (0x%x)! Touch controller GT911 initialization failed!", ret);
@@ -276,6 +279,7 @@ static esp_err_t esp_lcd_touch_gt911_read_data(esp_lcd_touch_handle_t tp)
 
         /* Fill all coordinates */
         for (i = 0; i < touch_cnt; i++) {
+            tp->data.coords[i].track_id = buf[(i * 8) + 1];
             tp->data.coords[i].x = ((uint16_t)buf[(i * 8) + 3] << 8) + buf[(i * 8) + 2];
             tp->data.coords[i].y = (((uint16_t)buf[(i * 8) + 5] << 8) + buf[(i * 8) + 4]);
             tp->data.coords[i].strength = (((uint16_t)buf[(i * 8) + 7] << 8) + buf[(i * 8) + 6]);
@@ -287,7 +291,7 @@ static esp_err_t esp_lcd_touch_gt911_read_data(esp_lcd_touch_handle_t tp)
     return ESP_OK;
 }
 
-static bool esp_lcd_touch_gt911_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)
+static bool esp_lcd_touch_gt911_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *track_id, uint8_t *point_num, uint8_t max_point_num)
 {
     assert(tp != NULL);
     assert(x != NULL);
@@ -306,6 +310,10 @@ static bool esp_lcd_touch_gt911_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, u
 
         if (strength) {
             strength[i] = tp->data.coords[i].strength;
+        }
+
+        if (track_id) {
+            track_id[i] = tp->data.coords[i].track_id;
         }
     }
 
