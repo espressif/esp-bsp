@@ -13,7 +13,6 @@
 #include "esp_log.h"
 #include "esp_check.h"
 #include "driver/gpio.h"
-#include "driver/i2c.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_touch.h"
 #include "esp_lcd_touch_gt911.h"
