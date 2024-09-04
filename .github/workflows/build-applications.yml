@@ -1,0 +1,78 @@
+name: Build ESP-BSP apps
+
+# This job builds all examples and test_applications in this repo
+# Applications are selected for build based on changes files and dependecies defined in .build-test-rules.yml
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  # We must run git diff in a separate job, because we cannot run git commands in espressif/idf container... :'(
+  git_diff_job:
+    runs-on: ubuntu-latest
+    outputs:
+      git_diff_output: ${{ steps.git_diff.outputs.diff }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get modified files
+        id: git_diff
+        run: |
+          git_diff_output=$(git diff --name-only ${{ github.head_ref }} $(git merge-base ${{ github.head_ref }} master))
+          echo "::set-output name=diff::${git_diff_output}"
+
+  build:
+    strategy:
+      matrix:
+        include:
+          - idf_ver: "latest"
+            parallel_count: 5
+            parallel_index: 1
+          - idf_ver: "latest"
+            parallel_count: 5
+            parallel_index: 2
+          - idf_ver: "latest"
+            parallel_count: 5
+            parallel_index: 3
+          - idf_ver: "latest"
+            parallel_count: 5
+            parallel_index: 4
+          - idf_ver: "latest"
+            parallel_count: 5
+            parallel_index: 5
+          - idf_ver: "release-v5.1"
+            parallel_count: 2
+            parallel_index: 1
+          - idf_ver: "release-v5.1"
+            parallel_count: 2
+            parallel_index: 2
+          - idf_ver: "release-v5.2"
+            parallel_count: 2
+            parallel_index: 1
+          - idf_ver: "release-v5.2"
+            parallel_count: 2
+            parallel_index: 2
+          - idf_ver: "release-v5.3"
+            parallel_count: 2
+            parallel_index: 1
+          - idf_ver: "release-v5.3"
+            parallel_count: 2
+            parallel_index: 2
+    runs-on: ubuntu-latest
+    container: espressif/idf:${{ matrix.idf_ver }}
+    needs: git_diff_job
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build ESP-BSP applications
+        shell: bash
+        env:
+          IDF_EXTRA_ACTIONS_PATH: "${{ github.workspace }}/examples"
+        run: |
+          . ${IDF_PATH}/export.sh
+          pip install idf-component-manager==1.* ruamel.yaml idf-build-apps==2.4.3 --upgrade
+
+          echo "Files changed: ${{ needs.git_diff_job.outputs.git_diff_output }}"
+          idf-build-apps find --modified-files ${{ needs.git_diff_job.outputs.git_diff_output }}
+          idf-build-apps build --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }} --modified-files ${{ needs.git_diff_job.outputs.git_diff_output }}
