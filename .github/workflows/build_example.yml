@@ -63,5 +63,5 @@ jobs:
           . ${IDF_PATH}/export.sh
           pip install idf-component-manager==1.* ruamel.yaml idf-build-apps --upgrade
           echo idf-build-apps extra arguments: ${{ env.extra_arguments }}
-          idf-build-apps find ${{ env.extra_arguments }}
-          idf-build-apps build --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }} ${{ env.extra_arguments }}
+          idf-build-apps find ${{ env.extra_arguments }} -p examples
+          idf-build-apps build --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }} ${{ env.extra_arguments }} -p examples

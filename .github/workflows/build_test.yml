@@ -5,7 +5,7 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - 'components/**'
-      - 'test_app/**'
+      - 'test_apps/components/**'
       - '.github/workflows/build_test.yml'
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
       - name: Build ESP-BSP Test Application
         env:
           IDF_TARGET: ${{ matrix.idf_target }}
-        working-directory: test_app
+        working-directory: test_apps/components
         shell: bash
         run: |
           . ${IDF_PATH}/export.sh

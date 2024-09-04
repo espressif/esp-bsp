@@ -2,7 +2,7 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
-set(EXTRA_COMPONENT_DIRS "../components" "../components/lcd" "../components/lcd_touch" "../components/io_expander")
+set(EXTRA_COMPONENT_DIRS "../../components" "../../components/lcd" "../../components/lcd_touch" "../../components/io_expander")
 set(EXCLUDE_COMPONENTS "es8311 es7210") # Deprecated components
 
 include($ENV{IDF_PATH}/tools/cmake/version.cmake) # $ENV{IDF_VERSION} was added after v4.3...
