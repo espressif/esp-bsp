@@ -2,7 +2,7 @@ examples:
   disable:
     - if: CONFIG_NAME in ["esp-box", "esp-box-lite"]
       reason: Do not build examples for deprecated BSPs
-    - if: IDF_VERSION_MAJOR < 5 and CONFIG_NAME in ["esp32_c3_lcdkit", "esp32_s3_lcd_ev_board", "esp32_s3_usb_otg", "m5stack_core_s3", "m5dial"]
+    - if: IDF_VERSION_MAJOR < 5 and CONFIG_NAME in ["esp32_c3_lcdkit", "esp32_s3_lcd_ev_board", "esp32_s3_usb_otg", "m5stack_core_s3", "m5stack_core_2", "m5dial"]
       reason: Example depends on BSP, which is supported only for IDF >= 5.0
     - if: IDF_VERSION_MAJOR < 5 and IDF_TARGET in ["esp32c2", "esp32p4", "esp32c5", "esp32c6"]
       reason: Example depends on target, which is supported only for IDF >= 5.0
