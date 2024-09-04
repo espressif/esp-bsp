@@ -350,8 +350,8 @@ typedef enum {
     BSP_FEATURE_TOUCH,
     BSP_FEATURE_SD,
     BSP_FEATURE_SPEAKER,
-    BSP_FEATURE_BAT,
-    BSP_FEATURE_VIB
+    BSP_FEATURE_BATTERY,
+    BSP_FEATURE_VIBRATION
 } bsp_feature_t;
 
 esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable);

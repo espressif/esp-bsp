@@ -126,7 +126,7 @@ esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
                             TAG, "I2C write failed");
 #endif
         break;
-    case BSP_FEATURE_BAT:
+    case BSP_FEATURE_BATTERY:
 #if defined(CONFIG_BSP_PMU_AXP2101)
         // Battery detection enabled.
         const uint8_t axp_bat_val = enable ? 0x01 : 0x00;
@@ -135,7 +135,7 @@ esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
                                           1000 / portTICK_PERIOD_MS);
 #endif
         break;
-    case BSP_FEATURE_VIB:
+    case BSP_FEATURE_VIBRATION:
 #if defined(CONFIG_BSP_PMU_AXP2101)
         const uint8_t dldo1_vol[] = {0x99, 0x1C};  // AXP DLDO1 Voltage set
         err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, dldo1_vol, sizeof(dldo1_vol),
