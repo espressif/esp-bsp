@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.2
+
+### Fixes
+- Fixed rotation type compatibility with LVGL8.
+
 ## 2.3.1
 
 ### Fixes

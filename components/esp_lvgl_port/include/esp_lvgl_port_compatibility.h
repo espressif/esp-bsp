@@ -25,6 +25,7 @@ typedef enum {
     LV_DISPLAY_ROTATION_180 = LV_DISP_ROT_180,
     LV_DISPLAY_ROTATION_270 = LV_DISP_ROT_270
 } lv_disp_rotation_t;
+typedef lv_disp_rotation_t lv_display_rotation_t;
 
 #ifdef __cplusplus
 }
