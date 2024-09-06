@@ -8,7 +8,7 @@ RECURSIVE              = YES
 EXCLUDE                = docu \
                          examples \
                          SquareLine \
-                         test_app
+                         test_apps
 EXCLUDE_PATTERNS       = */build/* \
                          */managed_components/* \
                          */dist/*

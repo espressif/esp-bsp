@@ -1,46 +1,68 @@
+# Examples: Always build all
 examples:
   disable:
     - if: CONFIG_NAME in ["esp-box", "esp-box-lite"]
       reason: Do not build examples for deprecated BSPs
-    - if: IDF_VERSION_MAJOR < 5 and CONFIG_NAME in ["esp32_c3_lcdkit", "esp32_s3_lcd_ev_board", "esp32_s3_usb_otg", "m5stack_core_s3", "m5stack_core_2", "m5dial"]
-      reason: Example depends on BSP, which is supported only for IDF >= 5.0
-    - if: IDF_VERSION_MAJOR < 5 and IDF_TARGET in ["esp32c2", "esp32p4", "esp32c5", "esp32c6"]
-      reason: Example depends on target, which is supported only for IDF >= 5.0
     - if: IDF_VERSION_MAJOR < 5 and IDF_VERSION_MINOR < 3 and CONFIG_NAME == "esp32_p4_function_ev_board"
       reason: Example depends on BSP, which is supported only for IDF >= 5.3
 
+# Noglib test_app: Build only in CI, where ENV_BUILD_NOGLIB is set
 test_apps/noglib:
   disable:
     - if: ENV_BUILD_NOGLIB == 0
 
+# Common components test_app: Build for changes in components which do not have their own test_app or example
+test_apps/components:
+  depends_filepatterns:
+    - "components/bh1750/**"
+    - "components/ds18b20/**"
+    - "components/fbm320/**"
+    - "components/hts221/**"
+    - "components/icm42670/**"
+    - "components/io_expander/**"
+    - "components/lcd/ra8875/**"
+    - "components/lcd/sh1107/**"
+    - "components/lcd_touch/**"
+    - "components/mag3110/**"
+    - "components/mpu6050/**"
+
+# esp_lvgl_port: Build only on related changes and components used in examples
+components/esp_lvgl_port:
+  depends_filepatterns:
+    - "components/esp_lvgl_port/**"
+    - "components/lcd_touch/esp_lcd_touch_tt21100/**"
+    - "components/lcd_touch/esp_lcd_touch_gt1151/**"
+    - "components/lcd/sh1107/**"
+
+# LCD components: Build only on related changes
+components/lcd/esp_lcd_gc9a01:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_gc9a01/**"
+
 components/lcd/esp_lcd_gc9503:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_gc9503/**"
   disable:
     - if: IDF_VERSION_MAJOR < 5 or (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR == 0 and ESP_IDF_VERSION_PATCH < 5) or (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR == 1 and ESP_IDF_VERSION_PATCH == 1)
       reason: Supported from version 5.0.5 and not supported in version 5.1.1
 
-components/lcd/esp_lcd_gc9503/test_apps:
-  disable:
-    - if: IDF_VERSION_MAJOR < 5 or (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR == 0 and ESP_IDF_VERSION_PATCH < 5) or (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR == 1 and ESP_IDF_VERSION_PATCH == 1)
-      reason: Supported from version 5.0.5 and not supported in version 5.1.1
-
-components/lcd/esp_lcd_ssd1681:
-  disable:
-    - if: IDF_VERSION_MAJOR < 5
-      reason: Component is supported only for IDF >= 5.0
-
-components/esp_lvgl_port/examples/rgb_lcd:
-  disable:
-    - if: IDF_VERSION_MAJOR < 5
-      reason: Example for RGB LCD is supported only for IDF >= 5.0
+components/lcd/esp_lcd_ili9341:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_ili9341/**"
 
 components/lcd/esp_lcd_ili9881c:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_ili9881c/**"
   disable:
     - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 3) or IDF_VERSION_MAJOR < 5
       reason: Component is supported only for IDF >= 5.3
     - if: IDF_TARGET not in ["esp32p4"]
       reason: Component is supported only for esp32p4 target
 
-components/lcd/esp_lcd_st7796/test_apps:
-  disable:
-    - if: IDF_VERSION_MAJOR < 5
-      reason: Component is supported only for IDF >= 5.0
+components/lcd/esp_lcd_ssd1681:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_ssd1681/**"
+
+components/lcd/esp_lcd_st7796:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_st7796/**"

@@ -1,5 +1,7 @@
-target = "all"
 recursive = true
+exclude = [
+    "SquareLine",
+]
 manifest_file = ".build-test-rules.yml"
 check_warnings = true
 ignore_warning_file = ".ignore_build_warnings.txt"
