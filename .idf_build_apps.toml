@@ -1,10 +1,6 @@
-target = "all"
-paths = "."
 recursive = true
 exclude = [
-    "test_app",
     "SquareLine",
-    "bsp"
 ]
 manifest_file = ".build-test-rules.yml"
 check_warnings = true

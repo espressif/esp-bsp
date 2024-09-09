@@ -1,0 +1,7 @@
+## IDF Component Manager Manifest File
+dependencies:
+  ## Required IDF version
+  idf: ">=5.1"
+  esp_wrover_kit_noglib:
+    version: "*"
+    override_path: "../../../bsp/esp_wrover_kit_noglib"
