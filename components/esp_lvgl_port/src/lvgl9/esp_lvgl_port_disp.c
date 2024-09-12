@@ -45,6 +45,7 @@ typedef struct {
     esp_lcd_panel_handle_t    control_handle; /* LCD panel control handle */
     lvgl_port_rotation_cfg_t  rotation;       /* Default values of the screen rotation */
     lv_color_t                *draw_buffs[3]; /* Display draw buffers */
+    uint8_t                   *oled_buffer;
     lv_display_t              *disp_drv;      /* LVGL display driver */
     lv_display_rotation_t     current_rotation;
     SemaphoreHandle_t         trans_sem;      /* Idle transfer mutex */
@@ -207,6 +208,10 @@ esp_err_t lvgl_port_remove_disp(lv_display_t *disp)
         free(disp_ctx->draw_buffs[2]);
     }
 
+    if (disp_ctx->oled_buffer) {
+        free(disp_ctx->oled_buffer);
+    }
+
     if (disp_ctx->trans_sem) {
         vSemaphoreDelete(disp_ctx->trans_sem);
     }
@@ -243,16 +248,16 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
     buffer_size = disp_cfg->buffer_size;
 
     /* Check supported display color formats */
-    ESP_RETURN_ON_FALSE(disp_cfg->color_format == 0 || disp_cfg->color_format == LV_COLOR_FORMAT_RGB565 || disp_cfg->color_format == LV_COLOR_FORMAT_RGB888 || disp_cfg->color_format == LV_COLOR_FORMAT_XRGB8888 || disp_cfg->color_format == LV_COLOR_FORMAT_ARGB8888, NULL, TAG, "Not supported display color format!");
+    ESP_RETURN_ON_FALSE(disp_cfg->color_format == 0 || disp_cfg->color_format == LV_COLOR_FORMAT_RGB565 || disp_cfg->color_format == LV_COLOR_FORMAT_RGB888 || disp_cfg->color_format == LV_COLOR_FORMAT_XRGB8888 || disp_cfg->color_format == LV_COLOR_FORMAT_ARGB8888 || disp_cfg->color_format == LV_COLOR_FORMAT_I1, NULL, TAG, "Not supported display color format!");
 
     lv_color_format_t display_color_format = (disp_cfg->color_format != 0 ? disp_cfg->color_format : LV_COLOR_FORMAT_RGB565);
     if (disp_cfg->flags.swap_bytes) {
-        /* Swap bytes can be used only in RGB656 color format */
+        /* Swap bytes can be used only in RGB565 color format */
         ESP_RETURN_ON_FALSE(display_color_format == LV_COLOR_FORMAT_RGB565, NULL, TAG, "Swap bytes can be used only in display color format RGB565!");
     }
 
     if (disp_cfg->flags.buff_dma) {
-        /* DMA buffer can be used only in RGB656 color format */
+        /* DMA buffer can be used only in RGB565 color format */
         ESP_RETURN_ON_FALSE(display_color_format == LV_COLOR_FORMAT_RGB565, NULL, TAG, "DMA buffer can be used only in display color format RGB565 (not alligned copy)!");
     }
 
@@ -315,13 +320,31 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
 
     disp = lv_display_create(disp_cfg->hres, disp_cfg->vres);
 
+    /* Set display color format */
+    lv_display_set_color_format(disp, display_color_format);
+
     /* Monochrome display settings */
     if (disp_cfg->monochrome) {
+#if CONFIG_LV_COLOR_DEPTH_1
+#error please disable LV_COLOR_DEPTH_1 for using monochromatic screen
+#endif
+
+        /* Monochrome can be used only in RGB565 color format */
+        ESP_RETURN_ON_FALSE(display_color_format == LV_COLOR_FORMAT_RGB565 || display_color_format == LV_COLOR_FORMAT_I1, NULL, TAG, "Monochrome can be used only in display color format RGB565 or I1!");
+
         /* When using monochromatic display, there must be used full bufer! */
         ESP_GOTO_ON_FALSE((disp_cfg->hres * disp_cfg->vres == buffer_size), ESP_ERR_INVALID_ARG, err, TAG, "Monochromatic display must using full buffer!");
 
         disp_ctx->flags.monochrome = 1;
         lv_display_set_buffers(disp, buf1, buf2, buffer_size * sizeof(lv_color_t), LV_DISPLAY_RENDER_MODE_FULL);
+
+        if (display_color_format == LV_COLOR_FORMAT_I1) {
+            /* OLED monochrome buffer */
+            // To use LV_COLOR_FORMAT_I1, we need an extra buffer to hold the converted data
+            disp_ctx->oled_buffer = heap_caps_malloc(buffer_size, buff_caps);
+            ESP_GOTO_ON_FALSE(disp_ctx->oled_buffer, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (OLED buffer) allocation!");
+        }
+
     } else if (disp_cfg->flags.direct_mode) {
         /* When using direct_mode, there must be used full bufer! */
         ESP_GOTO_ON_FALSE((disp_cfg->hres * disp_cfg->vres == buffer_size), ESP_ERR_INVALID_ARG, err, TAG, "Direct mode must using full buffer!");
@@ -338,7 +361,6 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
         lv_display_set_buffers(disp, buf1, buf2, buffer_size * sizeof(lv_color_t), LV_DISPLAY_RENDER_MODE_PARTIAL);
     }
 
-    lv_display_set_color_format(disp, display_color_format);
     lv_display_set_flush_cb(disp, lvgl_port_flush_callback);
     lv_display_add_event_cb(disp, lvgl_port_disp_size_update_callback, LV_EVENT_RESOLUTION_CHANGED, disp_ctx);
     lv_display_add_event_cb(disp, lvgl_port_display_invalidate_callback, LV_EVENT_INVALIDATE_AREA, disp_ctx);
@@ -364,6 +386,9 @@ err:
         }
         if (disp_ctx->draw_buffs[2]) {
             free(disp_ctx->draw_buffs[2]);
+        }
+        if (disp_ctx->oled_buffer) {
+            free(disp_ctx->oled_buffer);
         }
         if (disp_ctx) {
             free(disp_ctx);
@@ -430,10 +455,13 @@ static bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t pane
 #endif
 #endif
 
-static void _lvgl_port_transform_monochrome(lv_display_t *display, const lv_area_t *area, uint8_t *color_map)
+static void _lvgl_port_transform_monochrome(lv_display_t *display, const lv_area_t *area, uint8_t **color_map)
 {
-    uint8_t *buf = color_map;
-    lv_color_t *color = (lv_color_t *)color_map;
+    assert(color_map);
+    assert(*color_map);
+    uint8_t *src = *color_map;
+    lv_color16_t *color = (lv_color16_t *)*color_map;
+    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_display_get_user_data(display);
     uint16_t hor_res = lv_display_get_physical_horizontal_resolution(display);
     uint16_t ver_res = lv_display_get_physical_vertical_resolution(display);
     uint16_t res = hor_res;
@@ -444,10 +472,24 @@ static void _lvgl_port_transform_monochrome(lv_display_t *display, const lv_area
     int y1 = area->y1;
     int y2 = area->y2;
 
+    lv_color_format_t color_format = lv_display_get_color_format(display);
+    if (color_format == LV_COLOR_FORMAT_I1) {
+        // This is necessary because LVGL reserves 2 x 4 bytes in the buffer, as these are assumed to be used as a palette. Skip the palette here
+        // More information about the monochrome, please refer to https://docs.lvgl.io/9.2/porting/display.html#monochrome-displays
+        src += 8;
+        /*Use oled_buffer as output */
+        *color_map = disp_ctx->oled_buffer;
+    }
+
     int out_x, out_y;
     for (int y = y1; y <= y2; y++) {
         for (int x = x1; x <= x2; x++) {
-            bool chroma_color = (color[hor_res * y + x].blue > 16);
+            bool chroma_color = 0;
+            if (color_format == LV_COLOR_FORMAT_I1) {
+                chroma_color = (src[(hor_res >> 3) * y  + (x >> 3)] & 1 << (7 - x % 8));
+            } else {
+                chroma_color = (color[hor_res * y + x].blue > 16);
+            }
 
             if (swap_xy) {
                 out_x = y;
@@ -461,14 +503,16 @@ static void _lvgl_port_transform_monochrome(lv_display_t *display, const lv_area
 
             /* Write to the buffer as required for the display.
             * It writes only 1-bit for monochrome displays mapped vertically.*/
-            buf = color_map + res * (out_y >> 3) + (out_x);
+            uint8_t *outbuf = NULL;
+            outbuf = *color_map + res * (out_y >> 3) + (out_x);
             if (chroma_color) {
-                (*buf) &= ~(1 << (out_y % 8));
+                (*outbuf) &= ~(1 << (out_y % 8));
             } else {
-                (*buf) |= (1 << (out_y % 8));
+                (*outbuf) |= (1 << (out_y % 8));
             }
         }
     }
+
 }
 
 void lvgl_port_rotate_area(lv_display_t *disp, lv_area_t *area)
@@ -552,7 +596,7 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
 
     /* Transfer data in buffer for monochromatic screen */
     if (disp_ctx->flags.monochrome) {
-        _lvgl_port_transform_monochrome(drv, area, color_map);
+        _lvgl_port_transform_monochrome(drv, area, &color_map);
     }
 
     if ((disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI) && (disp_ctx->flags.direct_mode || disp_ctx->flags.full_refresh)) {
