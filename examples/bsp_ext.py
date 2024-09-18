@@ -61,7 +61,8 @@ def action_extensions(base_actions, project_path=os.getcwd()):
             'esp32_p4_function_ev_board',
             'm5stack_core_s3',
             'm5dial',
-            'm5stack_core_2'
+            'm5stack_core_2',
+            'esp32_p4_box'
         }
 
         if bsp == '':
