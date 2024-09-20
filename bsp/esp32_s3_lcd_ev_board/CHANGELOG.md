@@ -32,7 +32,7 @@
     * Add new APIs for spiffs, audio in `bsp/esp32_s3_lcd_ev_board.h`
     * Add new APIs for ADC in `bsp/esp32_s3_lcd_ev_board.h`
 
-## v3.0.0 - 2023-12-02
+## v2.1.0 - 2023-12-02
 
 ### Bugfix
 
@@ -52,3 +52,9 @@
 * Update the version of `ESP-IDF` to `>5.0.1`
 * Use `esp_lcd_gc9503` version `^1` when using `ESP-IDF` version `<5.1.2`
 * Use `esp_lcd_gc9503` version `^3` when using `ESP-IDF` version `>=5.1.2`
+
+## v2.2.2 - 2024-09-20
+
+### Bugfix
+
+* Fix adc build error when using `ESP-IDF` `5.0`
