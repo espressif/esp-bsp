@@ -14,6 +14,7 @@
 #include "driver/i2s_std.h"
 #include "driver/gpio.h"
 #include "soc/usb_pins.h"
+#include "esp_adc/adc_cali_scheme.h"
 #include "esp_adc/adc_oneshot.h"
 #include "esp_codec_dev.h"
 #include "esp_err.h"

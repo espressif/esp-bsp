@@ -1,4 +1,4 @@
-version: "1.1.0"
+version: "1.1.1"
 description: Board Support Package (BSP) for ESP32-S3-KORVO-1
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_korvo_1
 
