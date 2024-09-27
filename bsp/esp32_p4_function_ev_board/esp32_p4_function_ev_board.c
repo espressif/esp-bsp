@@ -38,13 +38,16 @@ static lv_indev_t *disp_indev = NULL;
 #endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
+static bool i2c_initialized = false;
 static TaskHandle_t usb_host_task;  // USB Host Library task
-i2c_master_bus_handle_t bsp_i2c_handle = NULL;   // Global i2c master bus handler
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+static i2c_master_bus_handle_t i2c_handle = NULL;  // I2C Handle
+#endif
 
 esp_err_t bsp_i2c_init(void)
 {
     /* I2C was initialized before */
-    if (bsp_i2c_handle) {
+    if (i2c_initialized) {
         return ESP_OK;
     }
 
@@ -54,15 +57,23 @@ esp_err_t bsp_i2c_init(void)
         .scl_io_num = BSP_I2C_SCL,
         .i2c_port = BSP_I2C_NUM,
     };
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_bus_conf, &bsp_i2c_handle));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_bus_conf, &i2c_handle));
+
+    i2c_initialized = true;
 
     return ESP_OK;
 }
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(bsp_i2c_handle));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
+    i2c_initialized = false;
     return ESP_OK;
+}
+
+i2c_master_bus_handle_t bsp_i2c_get_handle(void)
+{
+    return i2c_handle;
 }
 
 esp_err_t bsp_sdcard_mount(void)
@@ -389,7 +400,7 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
     tp_io_config.scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ;
-    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(bsp_i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
+    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
     return esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, ret_touch);
 }
 
