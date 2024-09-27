@@ -1,0 +1,770 @@
+menu "Board Support Package (generic)"
+
+    config BSP_ERROR_CHECK
+        bool "Enable error check in BSP"
+        default y
+        help
+            Error check assert the application before returning the error code.
+    
+    menu "I2C"
+        menu "Pins"
+            config BSP_I2C_GPIO_SCL
+                int "I2C GPIO SCL"
+                default -1
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The GPIO pin for I2C SCL.
+            config BSP_I2C_GPIO_SDA
+                int "I2C GPIO SDA"
+                default -1
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The GPIO pin for I2C SDA.
+        endmenu
+        config BSP_I2C_NUM
+            int "I2C peripheral index"
+            default 1
+            range 0 1
+            help
+                ESP32 has two I2C peripherals, pick the one you want to use.
+
+        config BSP_I2C_FAST_MODE
+            bool "Enable I2C fast mode"
+            default y
+            help
+                I2C has two speed modes: normal (100kHz) and fast (400kHz).
+
+        config BSP_I2C_CLK_SPEED_HZ
+            int
+            default 400000 if BSP_I2C_FAST_MODE
+            default 100000
+    endmenu
+
+    menu "Buttons"
+        config BSP_BUTTONS_NUM
+            int
+            prompt "Number of buttons in BSP"
+            default 2
+            range 0 5
+            
+        menu "Button 1"
+            depends on BSP_BUTTONS_NUM > 0
+            choice BSP_BUTTON_1_TYPE
+                prompt "Button type"
+                default BSP_BUTTON_1_TYPE_GPIO
+                help
+                    Select a button type GPIO or ADC
+
+                config BSP_BUTTON_1_TYPE_GPIO
+                    bool "GPIO Button"
+                config BSP_BUTTON_1_TYPE_ADC
+                    bool "ADC Button"
+            endchoice
+            
+            config BSP_BUTTON_1_GPIO
+                depends on BSP_BUTTON_1_TYPE_GPIO
+                int 
+                prompt "Button 1 GPIO"
+                default 0
+                range -1 ENV_GPIO_IN_RANGE_MAX
+                help
+                    The GPIO pin for button 1.
+            config BSP_BUTTON_1_LEVEL
+                depends on BSP_BUTTON_1_TYPE_GPIO
+                int
+                prompt "Button 1 Active Level"
+                default 0
+                range 0 1
+                help
+                    The active level for button 1.
+           
+            config BSP_BUTTON_1_ADC_UNIT
+                depends on BSP_BUTTON_1_TYPE_ADC
+                int "Button 1 ADC Unit"
+                default 1
+                range 0 1
+                help
+                    The ADC unit for button 1.   
+           
+            config BSP_BUTTON_1_ADC_CHANNEL
+                depends on BSP_BUTTON_1_TYPE_ADC
+                int "Button 1 ADC Channel"
+                default 0
+                range 0 9
+                help
+                    The ADC channel for button 1.  
+           
+            config BSP_BUTTON_1_ADC_VALUE
+                depends on BSP_BUTTON_1_TYPE_ADC
+                int "Button 1 ADC Value"
+                default 2000
+                range 0 2500
+                help
+                    The ADC middle value for button 1.   
+        endmenu
+            
+        menu "Button 2"
+            depends on BSP_BUTTONS_NUM > 1
+            choice
+                prompt "Button type"
+                default BSP_BUTTON_2_TYPE_GPIO
+                help
+                    Select a button type GPIO or ADC
+
+                config BSP_BUTTON_2_TYPE_GPIO
+                    bool "GPIO Button"
+                config BSP_BUTTON_2_TYPE_ADC
+                    bool "ADC Button"
+            endchoice
+            
+            config BSP_BUTTON_2_GPIO
+                depends on BSP_BUTTON_2_TYPE_GPIO
+                int "Button 2 GPIO"
+                default -1
+                range -1 ENV_GPIO_IN_RANGE_MAX
+                help
+                    The GPIO pin for button 2.
+                    
+            config BSP_BUTTON_2_LEVEL
+                depends on BSP_BUTTON_2_TYPE_GPIO
+                int "Button 2 Active Level"
+                default 0
+                range 0 1
+                help
+                    The active level for button 2.
+           
+            config BSP_BUTTON_2_ADC_UNIT
+                depends on BSP_BUTTON_2_TYPE_ADC
+                int "Button 2 ADC Unit"
+                default 1
+                range 0 1
+                help
+                    The ADC unit for button 2.   
+           
+            config BSP_BUTTON_2_ADC_CHANNEL
+                depends on BSP_BUTTON_2_TYPE_ADC
+                int "Button 2 ADC Channel"
+                default 0
+                range 0 9
+                help
+                    The ADC channel for button 2.  
+           
+            config BSP_BUTTON_2_ADC_VALUE
+                depends on BSP_BUTTON_2_TYPE_ADC
+                int "Button 2 ADC Value"
+                default 2000
+                range 0 2500
+                help
+                    The ADC middle value for button 2.  
+        endmenu
+            
+        menu "Button 3"
+            depends on BSP_BUTTONS_NUM > 2
+            choice
+                prompt "Button type"
+                default BSP_BUTTON_3_TYPE_GPIO
+                help
+                    Select a button type GPIO or ADC
+
+                config BSP_BUTTON_3_TYPE_GPIO
+                    bool "GPIO Button"
+                config BSP_BUTTON_3_TYPE_ADC
+                    bool "ADC Button"
+            endchoice
+            
+            config BSP_BUTTON_3_GPIO
+                depends on BSP_BUTTON_3_TYPE_GPIO
+                int "Button 3 GPIO"
+                default -1
+                range -1 ENV_GPIO_IN_RANGE_MAX
+                help
+                    The GPIO pin for button 3.
+                    
+            config BSP_BUTTON_3_LEVEL
+                depends on BSP_BUTTON_3_TYPE_GPIO
+                int "Button 3 Active Level"
+                default 0
+                range 0 1
+                help
+                    The active level for button 3.
+           
+            config BSP_BUTTON_3_ADC_UNIT
+                depends on BSP_BUTTON_3_TYPE_ADC
+                int "Button 3 ADC Unit"
+                default 1
+                range 0 1
+                help
+                    The ADC unit for button 3.   
+           
+            config BSP_BUTTON_3_ADC_CHANNEL
+                depends on BSP_BUTTON_3_TYPE_ADC
+                int "Button 3 ADC Channel"
+                default 0
+                range 0 9
+                help
+                    The ADC channel for button 3.  
+           
+            config BSP_BUTTON_3_ADC_VALUE
+                depends on BSP_BUTTON_3_TYPE_ADC
+                int "Button 3 ADC Value"
+                default 2000
+                range 0 2500
+                help
+                    The ADC middle value for button 3.  
+        endmenu
+            
+        menu "Button 4"
+            depends on BSP_BUTTONS_NUM > 3
+            choice
+                prompt "Button type"
+                default BSP_BUTTON_4_TYPE_GPIO
+                help
+                    Select a button type GPIO or ADC
+
+                config BSP_BUTTON_4_TYPE_GPIO
+                    bool "GPIO Button"
+                config BSP_BUTTON_4_TYPE_ADC
+                    bool "ADC Button"
+            endchoice
+            
+            config BSP_BUTTON_4_GPIO
+                depends on BSP_BUTTON_4_TYPE_GPIO
+                int "Button 4 GPIO"
+                default -1
+                range -1 ENV_GPIO_IN_RANGE_MAX
+                help
+                    The GPIO pin for button 4.
+                    
+            config BSP_BUTTON_4_LEVEL
+                depends on BSP_BUTTON_4_TYPE_GPIO
+                int "Button 4 Active Level"
+                default 0
+                range 0 1
+                help
+                    The active level for button 4.
+           
+            config BSP_BUTTON_4_ADC_UNIT
+                depends on BSP_BUTTON_4_TYPE_ADC
+                int "Button 4 ADC Unit"
+                default 1
+                range 0 1
+                help
+                    The ADC unit for button 4.   
+           
+            config BSP_BUTTON_4_ADC_CHANNEL
+                depends on BSP_BUTTON_4_TYPE_ADC
+                int "Button 4 ADC Channel"
+                default 0
+                range 0 9
+                help
+                    The ADC channel for button 4.  
+           
+            config BSP_BUTTON_4_ADC_VALUE
+                depends on BSP_BUTTON_4_TYPE_ADC
+                int "Button 4 ADC Value"
+                default 2000
+                range 0 2500
+                help
+                    The ADC middle value for button 4.  
+        endmenu
+            
+        menu "Button 5"
+            depends on BSP_BUTTONS_NUM > 4
+            choice
+                prompt "Button type"
+                default BSP_BUTTON_5_TYPE_GPIO
+                help
+                    Select a button type GPIO or ADC
+
+                config BSP_BUTTON_5_TYPE_GPIO
+                    bool "GPIO Button"
+                config BSP_BUTTON_5_TYPE_ADC
+                    bool "ADC Button"
+            endchoice
+            
+            config BSP_BUTTON_5_GPIO
+                depends on BSP_BUTTON_5_TYPE_GPIO
+                int "Button 5 GPIO"
+                default -1
+                range -1 ENV_GPIO_IN_RANGE_MAX
+                help
+                    The GPIO pin for button 5.
+                    
+            config BSP_BUTTON_5_LEVEL
+                depends on BSP_BUTTON_5_TYPE_GPIO
+                int "Button 5 Active Level"
+                default 0
+                range 0 1
+                help
+                    The active level for button 5.
+           
+            config BSP_BUTTON_5_ADC_UNIT
+                depends on BSP_BUTTON_5_TYPE_ADC
+                int "Button 5 ADC Unit"
+                default 1
+                range 0 1
+                help
+                    The ADC unit for button 5.   
+           
+            config BSP_BUTTON_5_ADC_CHANNEL
+                depends on BSP_BUTTON_5_TYPE_ADC
+                int "Button 5 ADC Channel"
+                default 0
+                range 0 9
+                help
+                    The ADC channel for button 5.  
+           
+            config BSP_BUTTON_5_ADC_VALUE
+                depends on BSP_BUTTON_5_TYPE_ADC
+                int "Button 5 ADC Value"
+                default 2000
+                range 0 2500
+                help
+                    The ADC middle value for button 5.  
+        endmenu
+    endmenu
+    
+
+    menu "LEDs"
+        choice  
+            prompt "LED type"
+            default BSP_LED_TYPE_GPIO
+            help
+                Select a LED type GPIO or Adressable RGB 
+            config BSP_LED_TYPE_GPIO
+                bool "GPIO LED"
+            config BSP_LED_TYPE_RGB_CLASSIC
+                bool "Classic RGB LED"
+            config BSP_LED_TYPE_RGB
+                bool "Adressable RGB LED"
+        endchoice
+        
+        if BSP_LED_TYPE_GPIO
+            config ENV_MAX_LEDS
+                int
+                default 5
+        endif
+        if BSP_LED_TYPE_RGB_CLASSIC || BSP_LED_TYPE_RGB
+            config ENV_MAX_LEDS
+                int
+                default 1
+        endif
+        
+        config BSP_LEDS_NUM
+            int
+            prompt "Number of LEDs in BSP"
+            default 1
+            range 0 ENV_MAX_LEDS
+            
+        config BSP_LED_RGB_GPIO
+            depends on BSP_LED_TYPE_RGB && BSP_LEDS_NUM > 0
+            int 
+            prompt "Adressable RGB LED GPIO"
+            default 48
+            range -1 ENV_GPIO_OUT_RANGE_MAX
+            help
+                The GPIO pin for adressable LEDs.
+                    
+        config BSP_LED_RGB_CLASSIC_LEVEL
+            depends on BSP_LED_TYPE_RGB_CLASSIC && BSP_LEDS_NUM > 0
+            int
+            prompt "Classic RGB LED Active Level"
+            default 0
+            range 0 1
+            help
+                The active level for classic RGB LED. 
+            
+        config BSP_LED_RGB_RED_GPIO
+            depends on BSP_LED_TYPE_RGB_CLASSIC && BSP_LEDS_NUM > 0
+            int 
+            prompt "Classic RGB LED red GPIO"
+            default -1
+            range -1 ENV_GPIO_OUT_RANGE_MAX
+            help
+                The GPIO pin for red color RGB LED.
+            
+        config BSP_LED_RGB_GREEN_GPIO
+            depends on BSP_LED_TYPE_RGB_CLASSIC && BSP_LEDS_NUM > 0
+            int 
+            prompt "Classic RGB LED green GPIO"
+            default -1
+            range -1 ENV_GPIO_OUT_RANGE_MAX
+            help
+                The GPIO pin for green color RGB LED.
+            
+        config BSP_LED_RGB_BLUE_GPIO
+            depends on BSP_LED_TYPE_RGB_CLASSIC && BSP_LEDS_NUM > 0
+            int 
+            prompt "Classic RGB LED blue GPIO"
+            default -1
+            range -1 ENV_GPIO_OUT_RANGE_MAX
+            help
+                The GPIO pin for blue color RGB LED.
+
+        config BSP_ESP_IDF_VERSION
+            string 
+            default "$ESP_IDF_VERSION"
+
+        choice BSP_LED_RGB_BACKEND
+            depends on BSP_LED_TYPE_RGB && BSP_LEDS_NUM > 0
+            prompt "Adressable RGB LED backend peripheral"
+            default BSP_LED_RGB_BACKEND_RMT
+            default BSP_LED_RGB_BACKEND_SPI
+            help
+                Select the backend peripheral to drive the LED strip.
+
+            config BSP_LED_RGB_BACKEND_RMT
+                bool "RMT"
+            if BSP_ESP_IDF_VERSION>="5.0"
+                config BSP_LED_RGB_BACKEND_SPI
+                    bool "SPI"
+            endif
+        endchoice
+            
+        menu "LED 1"
+            depends on BSP_LEDS_NUM > 0 && BSP_LED_TYPE_GPIO
+            
+            config BSP_LED_1_GPIO
+                int 
+                prompt "LED 1 GPIO"
+                default 0
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The GPIO pin for LED 1.
+                    
+            config BSP_LED_1_LEVEL
+                int
+                prompt "LED 1 Active Level"
+                default 1
+                range 0 1
+                help
+                    The active level for LED 1. 
+        endmenu
+            
+        menu "LED 2"
+            depends on BSP_LEDS_NUM > 1 && BSP_LED_TYPE_GPIO
+            
+            config BSP_LED_2_GPIO
+                int 
+                prompt "LED 2 GPIO"
+                default 0
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The GPIO pin for LED 2.
+            config BSP_LED_2_LEVEL
+                int
+                prompt "LED 2 Active Level"
+                default 1
+                range 0 1
+                help
+                    The active level for LED 2. 
+        endmenu
+            
+        menu "LED 3"
+            depends on BSP_LEDS_NUM > 2 && BSP_LED_TYPE_GPIO
+            
+            config BSP_LED_3_GPIO
+                int 
+                prompt "LED 3 GPIO"
+                default 0
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The GPIO pin for LED 3.
+            config BSP_LED_3_LEVEL
+                int
+                prompt "LED 3 Active Level"
+                default 1
+                range 0 1
+                help
+                    The active level for LED 3. 
+        endmenu
+            
+        menu "LED 4"
+            depends on BSP_LEDS_NUM > 3 && BSP_LED_TYPE_GPIO
+            
+            config BSP_LED_4_GPIO
+                int 
+                prompt "LED 4 GPIO"
+                default 0
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The GPIO pin for LED 4.
+            config BSP_LED_4_LEVEL
+                int
+                prompt "LED 4 Active Level"
+                default 1
+                range 0 1
+                help
+                    The active level for LED 4. 
+        endmenu
+            
+        menu "LED 5"
+            depends on BSP_LEDS_NUM > 4 && BSP_LED_TYPE_GPIO
+            
+            config BSP_LED_5_GPIO
+                int 
+                prompt "LED 5 GPIO"
+                default 0
+                range -1 ENV_GPIO_OUT_RANGE_MAX
+                help
+                    The GPIO pin for LED 5.
+            config BSP_LED_5_LEVEL
+                int
+                prompt "LED 5 Active Level"
+                default 1
+                range 0 1
+                help
+                    The active level for LED 5. 
+        endmenu
+            
+    endmenu
+
+    menu "uSD card - Virtual File System"
+        menu "Pins"
+            depends on (IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32P4)
+            config BSP_SD_CLK
+                int "uSD GPIO CLK"
+                default -1
+                range -1 ENV_GPIO_IN_RANGE_MAX
+                help
+                    The GPIO pin for uSD CLK.
+            config BSP_SD_CMD
+                int "uSD GPIO CMD"
+                default -1
+                range -1 ENV_GPIO_IN_RANGE_MAX
+                help
+                    The GPIO pin for uSD CMD.
+            config BSP_SD_D0
+                int "uSD GPIO D0"
+                default -1
+                range -1 ENV_GPIO_IN_RANGE_MAX
+                help
+                    The GPIO pin for uSD D0.
+            config BSP_SD_D1
+                int "uSD GPIO D1"
+                default -1
+                range -1 ENV_GPIO_IN_RANGE_MAX
+                help
+                    The GPIO pin for uSD D1.
+            config BSP_SD_D2
+                int "uSD GPIO D2"
+                default -1
+                range -1 ENV_GPIO_IN_RANGE_MAX
+                help
+                    The GPIO pin for uSD D2.
+            config BSP_SD_D3
+                int "uSD GPIO D3"
+                default -1
+                range -1 ENV_GPIO_IN_RANGE_MAX
+                help
+                    The GPIO pin for uSD D3.
+            
+        endmenu
+        config BSP_SD_FORMAT_ON_MOUNT_FAIL
+            bool "Format uSD card if mounting fails"
+            default n
+            help
+                The SDMMC host will format (FAT) the uSD card if it fails to mount the filesystem.
+
+        config BSP_SD_MOUNT_POINT
+            string "uSD card mount point"
+            default "/sdcard"
+            help
+                Mount point of the uSD card in the Virtual File System
+
+        config BSP_SD_MAX_FILES
+            int "Max files supported for SD VFS"
+            default 2
+            help
+                Supported max files for SD in the Virtual File System.
+
+    endmenu
+
+    menu "SPIFFS - Virtual File System"
+        config BSP_SPIFFS_FORMAT_ON_MOUNT_FAIL
+            bool "Format SPIFFS if mounting fails"
+            default n
+            help
+                Format SPIFFS if it fails to mount the filesystem.
+
+        config BSP_SPIFFS_MOUNT_POINT
+            string "SPIFFS mount point"
+            default "/spiffs"
+            help
+                Mount point of SPIFFS in the Virtual File System.
+
+        config BSP_SPIFFS_PARTITION_LABEL
+            string "Partition label of SPIFFS"
+            default "storage"
+            help
+                Partition label which stores SPIFFS.
+
+        config BSP_SPIFFS_MAX_FILES
+            int "Max files supported for SPIFFS VFS"
+            default 2
+            help
+                Supported max files for SPIFFS in the Virtual File System.
+    endmenu
+    
+    
+    # TARGET CONFIGURATION
+    
+    if IDF_TARGET_ESP32
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 39
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default 33
+    endif
+    if IDF_TARGET_ESP32C2
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 18
+            # GPIOs 19/20 are always used by UART in examples
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
+    if IDF_TARGET_ESP32C3
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 19
+            # GPIOs 20/21 are always used by UART in examples
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
+    if IDF_TARGET_ESP32C6
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 30
+            # GPIOs 16/17 are always used by UART in examples
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
+    if IDF_TARGET_ESP32H2
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 27
+            # GPIOs 23/24 are always used by UART in examples
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
+    if IDF_TARGET_ESP32P4
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 56
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
+    if IDF_TARGET_ESP32S2
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 46
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default 45
+    endif
+    if IDF_TARGET_ESP32S3
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 48
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
+    if IDF_TARGET_LINUX
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 0
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
+    
+endmenu
