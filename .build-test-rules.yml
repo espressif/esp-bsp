@@ -66,3 +66,8 @@ components/lcd/esp_lcd_ssd1681:
 components/lcd/esp_lcd_st7796:
   depends_filepatterns:
     - "components/lcd/esp_lcd_st7796/**"
+
+components/ds18b20:
+  disable:
+    - if: SOC_RMT_SUPPORTED != 1
+      reason: Onewire component depends on RMT peripheral
