@@ -5,14 +5,20 @@
 
 [esp_lcd](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html) supports I2C interfaced OLED LCD, whose color depth is usually 1bpp.
 
-This example shows how to make use of the SSD1306 panel driver from `esp_lcd` component to facilitate the porting of LVGL library. In the end, example will display a scrolling text on the OLED screen. 
+This example shows how to make use of the SSD1306 panel driver from `esp_lcd` component to facilitate the porting of LVGL library. In the end, example will display a scrolling text on the OLED screen.
 
 ## LVGL Version
 
-This example is using the **LVGL8** version. For use it with LVGL9 version, please remove this line from [idf_component.yml](main/idf_component.yml) file:
+This example is using the **LVGL8** version. For use it with LVGL9 version, please delete file [sdkconfig.defaults](sdkconfig.defaults) and change version to `"^9"` on this line in [idf_component.yml](main/idf_component.yml) file:
 ```
 lvgl/lvgl: "^8"
 ```
+
+NOTE: When you are changing LVGL versions, please remove these files and folders before new build:
+- build/
+- managed_components/
+- dependencies.lock
+- sdkconfig
 
 ## How to use the example
 
