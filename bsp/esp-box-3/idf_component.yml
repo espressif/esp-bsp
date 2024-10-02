@@ -1,5 +1,5 @@
 
-version: "1.2.0~1"
+version: "1.2.0~2"
 description: Board Support Package (BSP) for ESP32-S3-BOX-3
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box-3
 
@@ -31,7 +31,3 @@ dependencies:
   icm42670:
     version: "^1"
     public: true
-
-examples:
-  - path: ../../examples/display_audio_photo
-  - path: ../../examples/display_rotation
