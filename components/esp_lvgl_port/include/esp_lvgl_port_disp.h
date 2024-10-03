@@ -80,7 +80,9 @@ typedef struct {
  * @brief Configuration MIPI-DSI display structure
  */
 typedef struct {
-    int dummy;
+    struct {
+        unsigned int avoid_tearing: 1;  /*!< 1: Use internal RGB buffers as a LVGL draw buffers to avoid tearing effect */
+    } flags;
 } lvgl_port_display_dsi_cfg_t;
 
 /**
