@@ -41,7 +41,7 @@
 #define BSP_CAPS_AUDIO_SPEAKER  0
 #define BSP_CAPS_AUDIO_MIC      1
 #define BSP_CAPS_SDCARD         1
-#define BSP_CAPS_IMU            0 // There is an IMU, but not supported in this BSP
+#define BSP_CAPS_IMU            1
 #define BSP_CAPS_CAMERA         1
 
 /**************************************************************************************************
