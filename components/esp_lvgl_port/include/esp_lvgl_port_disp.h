@@ -72,7 +72,7 @@ typedef struct {
 typedef struct {
     struct {
         unsigned int bb_mode: 1;        /*!< 1: Use bounce buffer mode */
-        unsigned int avoid_tearing: 1;  /*!< 1: Use internal RGB buffers as a LVGL draw buffers to avoid tearing effect */
+        unsigned int avoid_tearing: 1;  /*!< 1: Use internal RGB buffers as a LVGL draw buffers to avoid tearing effect, enabling this option requires over two LCD buffers and may reduce the frame rate */
     } flags;
 } lvgl_port_display_rgb_cfg_t;
 
@@ -80,7 +80,9 @@ typedef struct {
  * @brief Configuration MIPI-DSI display structure
  */
 typedef struct {
-    int dummy;
+    struct {
+        unsigned int avoid_tearing: 1;  /*!< 1: Use internal MIPI-DSI buffers as a LVGL draw buffers to avoid tearing effect, enabling this option requires over two LCD buffers and may reduce the frame rate */
+    } flags;
 } lvgl_port_display_dsi_cfg_t;
 
 /**

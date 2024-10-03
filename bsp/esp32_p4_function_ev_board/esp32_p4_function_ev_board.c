@@ -30,6 +30,7 @@
 #include "bsp/touch.h"
 #include "esp_lcd_touch_gt911.h"
 #include "bsp_err_check.h"
+#include "esp_codec_dev_defaults.h"
 
 static const char *TAG = "ESP32_P4_EV";
 
@@ -43,6 +44,32 @@ static TaskHandle_t usb_host_task;  // USB Host Library task
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
 static i2c_master_bus_handle_t i2c_handle = NULL;  // I2C Handle
 #endif
+static i2s_chan_handle_t i2s_tx_chan = NULL;
+static i2s_chan_handle_t i2s_rx_chan = NULL;
+static const audio_codec_data_if_t *i2s_data_if = NULL;  /* Codec data interface */
+
+/* Can be used for `i2s_std_gpio_config_t` and/or `i2s_std_config_t` initialization */
+#define BSP_I2S_GPIO_CFG       \
+    {                          \
+        .mclk = BSP_I2S_MCLK,  \
+        .bclk = BSP_I2S_SCLK,  \
+        .ws = BSP_I2S_LCLK,    \
+        .dout = BSP_I2S_DOUT,  \
+        .din = BSP_I2S_DSIN,   \
+        .invert_flags = {      \
+            .mclk_inv = false, \
+            .bclk_inv = false, \
+            .ws_inv = false,   \
+        },                     \
+    }
+
+/* This configuration is used by default in `bsp_extra_audio_init()` */
+#define BSP_I2S_DUPLEX_MONO_CFG(_sample_rate)                                                         \
+    {                                                                                                 \
+        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(_sample_rate),                                          \
+        .slot_cfg = I2S_STD_PHILIP_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO), \
+        .gpio_cfg = BSP_I2S_GPIO_CFG,                                                                 \
+    }
 
 esp_err_t bsp_i2c_init(void)
 {
@@ -150,6 +177,145 @@ esp_err_t bsp_spiffs_mount(void)
 esp_err_t bsp_spiffs_unmount(void)
 {
     return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
+}
+
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config)
+{
+    esp_err_t ret = ESP_FAIL;
+    if (i2s_tx_chan && i2s_rx_chan) {
+        /* Audio was initialized before */
+        return ESP_OK;
+    }
+
+    /* Setup I2S peripheral */
+    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(CONFIG_BSP_I2S_NUM, I2S_ROLE_MASTER);
+    chan_cfg.auto_clear = true; // Auto clear the legacy data in the DMA buffer
+    ESP_ERROR_CHECK(i2s_new_channel(&chan_cfg, &i2s_tx_chan, &i2s_rx_chan));
+
+    /* Setup I2S channels */
+    const i2s_std_config_t std_cfg_default = BSP_I2S_DUPLEX_MONO_CFG(22050);
+    const i2s_std_config_t *p_i2s_cfg = &std_cfg_default;
+    if (i2s_config != NULL) {
+        p_i2s_cfg = i2s_config;
+    }
+
+    if (i2s_tx_chan != NULL) {
+        ESP_ERROR_CHECK(i2s_channel_init_std_mode(i2s_tx_chan, p_i2s_cfg));
+        ESP_ERROR_CHECK(i2s_channel_enable(i2s_tx_chan));
+    }
+
+    if (i2s_rx_chan != NULL) {
+        ESP_ERROR_CHECK(i2s_channel_init_std_mode(i2s_rx_chan, p_i2s_cfg));
+        ESP_ERROR_CHECK(i2s_channel_enable(i2s_rx_chan));
+    }
+
+    audio_codec_i2s_cfg_t i2s_cfg = {
+        .port = CONFIG_BSP_I2S_NUM,
+        .tx_handle = i2s_tx_chan,
+        .rx_handle = i2s_rx_chan,
+    };
+    i2s_data_if = audio_codec_new_i2s_data(&i2s_cfg);
+
+    return ESP_OK;
+}
+
+esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
+{
+    if (i2s_data_if == NULL) {
+        /* Initilize I2C */
+        ESP_ERROR_CHECK(bsp_i2c_init());
+        /* Configure I2S peripheral and Power Amplifier */
+        ESP_ERROR_CHECK(bsp_audio_init(NULL));
+    }
+    assert(i2s_data_if);
+
+    const audio_codec_gpio_if_t *gpio_if = audio_codec_new_gpio();
+
+    audio_codec_i2c_cfg_t i2c_cfg = {
+        .port = BSP_I2C_NUM,
+        .addr = ES8311_CODEC_DEFAULT_ADDR,
+        .bus_handle = i2c_handle,
+    };
+    const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
+    assert(i2c_ctrl_if);
+
+    esp_codec_dev_hw_gain_t gain = {
+        .pa_voltage = 5.0,
+        .codec_dac_voltage = 3.3,
+    };
+
+    es8311_codec_cfg_t es8311_cfg = {
+        .ctrl_if = i2c_ctrl_if,
+        .gpio_if = gpio_if,
+        .codec_mode = ESP_CODEC_DEV_TYPE_OUT,
+        .pa_pin = BSP_POWER_AMP_IO,
+        .pa_reverted = false,
+        .master_mode = false,
+        .use_mclk = true,
+        .digital_mic = false,
+        .invert_mclk = false,
+        .invert_sclk = false,
+        .hw_gain = gain,
+    };
+    const audio_codec_if_t *es8311_dev = es8311_codec_new(&es8311_cfg);
+    assert(es8311_dev);
+
+    esp_codec_dev_cfg_t codec_dev_cfg = {
+        .dev_type = ESP_CODEC_DEV_TYPE_IN_OUT,
+        .codec_if = es8311_dev,
+        .data_if = i2s_data_if,
+    };
+    return esp_codec_dev_new(&codec_dev_cfg);
+}
+
+esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
+{
+    if (i2s_data_if == NULL) {
+        /* Initilize I2C */
+        ESP_ERROR_CHECK(bsp_i2c_init());
+        /* Configure I2S peripheral and Power Amplifier */
+        ESP_ERROR_CHECK(bsp_audio_init(NULL));
+    }
+    assert(i2s_data_if);
+
+    const audio_codec_gpio_if_t *gpio_if = audio_codec_new_gpio();
+
+    audio_codec_i2c_cfg_t i2c_cfg = {
+        .port = BSP_I2C_NUM,
+        .addr = ES8311_CODEC_DEFAULT_ADDR,
+        .bus_handle = i2c_handle,
+    };
+    const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
+    assert(i2c_ctrl_if);
+
+    esp_codec_dev_hw_gain_t gain = {
+        .pa_voltage = 5.0,
+        .codec_dac_voltage = 3.3,
+    };
+
+    es8311_codec_cfg_t es8311_cfg = {
+        .ctrl_if = i2c_ctrl_if,
+        .gpio_if = gpio_if,
+        .codec_mode = ESP_CODEC_DEV_WORK_MODE_BOTH,
+        .pa_pin = BSP_POWER_AMP_IO,
+        .pa_reverted = false,
+        .master_mode = false,
+        .use_mclk = true,
+        .digital_mic = false,
+        .invert_mclk = false,
+        .invert_sclk = false,
+        .hw_gain = gain,
+    };
+
+    const audio_codec_if_t *es8311_dev = es8311_codec_new(&es8311_cfg);
+    assert(es8311_dev);
+
+    esp_codec_dev_cfg_t codec_es8311_dev_cfg = {
+        .dev_type = ESP_CODEC_DEV_TYPE_IN,
+        .codec_if = es8311_dev,
+        .data_if = i2s_data_if,
+    };
+    return esp_codec_dev_new(&codec_es8311_dev_cfg);
 }
 
 // Bit number used to represent command and parameter
@@ -261,21 +427,19 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     };
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_dbi(mipi_dsi_bus, &dbi_config, &io), err, TAG, "New panel IO failed");
 
-    esp_lcd_panel_handle_t ctrl_panel = NULL;
     esp_lcd_panel_handle_t disp_panel = NULL;
 #if CONFIG_BSP_LCD_TYPE_1024_600
     // create EK79007 control panel
     ESP_LOGI(TAG, "Install EK79007 LCD control panel");
 
 #if CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
-    const esp_lcd_dpi_panel_config_t dpi_config = EK79007_1024_600_PANEL_60HZ_CONFIG(LCD_COLOR_PIXEL_FORMAT_RGB888);
+    esp_lcd_dpi_panel_config_t dpi_config = EK79007_1024_600_PANEL_60HZ_CONFIG(LCD_COLOR_PIXEL_FORMAT_RGB888);
 #else
-    const esp_lcd_dpi_panel_config_t dpi_config = EK79007_1024_600_PANEL_60HZ_CONFIG(LCD_COLOR_PIXEL_FORMAT_RGB565);
+    esp_lcd_dpi_panel_config_t dpi_config = EK79007_1024_600_PANEL_60HZ_CONFIG(LCD_COLOR_PIXEL_FORMAT_RGB565);
 #endif
+    dpi_config.num_fbs = CONFIG_BSP_LCD_DPI_BUFFER_NUMS;
+
     ek79007_vendor_config_t vendor_config = {
-        .flags = {
-            .use_mipi_interface = 1,
-        },
         .mipi_config = {
             .dsi_bus = mipi_dsi_bus,
             .dpi_config = &dpi_config,
@@ -290,58 +454,40 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ek79007(io, &lcd_dev_config, &disp_panel), err, TAG, "New LCD panel EK79007 failed");
     ESP_GOTO_ON_ERROR(esp_lcd_panel_reset(disp_panel), err, TAG, "LCD panel reset failed");
     ESP_GOTO_ON_ERROR(esp_lcd_panel_init(disp_panel), err, TAG, "LCD panel init failed");
+#else
+    // create ILI9881C control panel
+    ESP_LOGI(TAG, "Install ILI9881C LCD control panel");
+#if CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
+    esp_lcd_dpi_panel_config_t dpi_config = ILI9881C_800_1280_PANEL_60HZ_DPI_CONFIG(LCD_COLOR_PIXEL_FORMAT_RGB888);
+#else
+    esp_lcd_dpi_panel_config_t dpi_config = ILI9881C_800_1280_PANEL_60HZ_DPI_CONFIG(LCD_COLOR_PIXEL_FORMAT_RGB565);
+#endif
+    dpi_config.num_fbs = CONFIG_BSP_LCD_DPI_BUFFER_NUMS;
+
+    ili9881c_vendor_config_t vendor_config = {
+        .mipi_config = {
+            .dsi_bus = mipi_dsi_bus,
+            .dpi_config = &dpi_config,
+            .lane_num = BSP_LCD_MIPI_DSI_LANE_NUM,
+        },
+    };
+    const esp_lcd_panel_dev_config_t lcd_dev_config = {
+        .reset_gpio_num = BSP_LCD_RST,
+        .rgb_ele_order = BSP_LCD_COLOR_SPACE,
+        .bits_per_pixel = 16,
+        .vendor_config = &vendor_config,
+    };
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9881c(io, &lcd_dev_config, &disp_panel), err, TAG, "New LCD panel ILI9881C failed");
+    ESP_GOTO_ON_ERROR(esp_lcd_panel_reset(disp_panel), err, TAG, "LCD panel reset failed");
+    ESP_GOTO_ON_ERROR(esp_lcd_panel_init(disp_panel), err, TAG, "LCD panel init failed");
+    ESP_GOTO_ON_ERROR(esp_lcd_panel_disp_on_off(disp_panel, true), err, TAG, "LCD panel ON failed");
+#endif
 
     /* Return all handles */
     ret_handles->io = io;
     ret_handles->mipi_dsi_bus = mipi_dsi_bus;
     ret_handles->panel = disp_panel;
     ret_handles->control = NULL;
-
-#else
-    // create ILI9881C control panel
-    ESP_LOGI(TAG, "Install ILI9881C LCD control panel");
-    esp_lcd_panel_dev_config_t lcd_dev_config = {
-        .bits_per_pixel = 16,
-        .rgb_ele_order = BSP_LCD_COLOR_SPACE,
-        .reset_gpio_num = -1,
-    };
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9881c(io, &lcd_dev_config, &ctrl_panel), err, TAG, "New LCD panel ILI9881C failed");
-    ESP_GOTO_ON_ERROR(esp_lcd_panel_reset(ctrl_panel), err, TAG, "LCD panel reset failed");
-    ESP_GOTO_ON_ERROR(esp_lcd_panel_init(ctrl_panel), err, TAG, "LCD panel init failed");
-    ESP_GOTO_ON_ERROR(esp_lcd_panel_disp_on_off(ctrl_panel, true), err, TAG, "LCD panel ON failed");
-    esp_lcd_panel_mirror(ctrl_panel, true, true);
-
-    ESP_LOGI(TAG, "Install MIPI DSI LCD data panel");
-    esp_lcd_dpi_panel_config_t dpi_config = {
-        .virtual_channel = 0,
-        .dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT,
-        .dpi_clock_freq_mhz = BSP_LCD_PIXEL_CLOCK_MHZ,
-#if CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
-        .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,
-#else
-        .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB565,
-#endif
-        .video_timing = {
-            .h_size = BSP_LCD_H_RES,
-            .v_size = BSP_LCD_V_RES,
-            .hsync_back_porch = BSP_LCD_MIPI_DSI_LCD_HBP,
-            .hsync_pulse_width = BSP_LCD_MIPI_DSI_LCD_HSYNC,
-            .hsync_front_porch = BSP_LCD_MIPI_DSI_LCD_HFP,
-            .vsync_back_porch = BSP_LCD_MIPI_DSI_LCD_VBP,
-            .vsync_pulse_width = BSP_LCD_MIPI_DSI_LCD_VSYNC,
-            .vsync_front_porch = BSP_LCD_MIPI_DSI_LCD_VFP,
-        },
-        .flags.use_dma2d = true,
-    };
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_dpi(mipi_dsi_bus, &dpi_config, &disp_panel), err, TAG, "New panel DPI failed");
-    ESP_GOTO_ON_ERROR(esp_lcd_panel_init(disp_panel), err, TAG, "New panel DPI init failed");
-
-    /* Return all handles */
-    ret_handles->io = io;
-    ret_handles->mipi_dsi_bus = mipi_dsi_bus;
-    ret_handles->panel = disp_panel;
-    ret_handles->control = ctrl_panel;
-#endif
 
     ESP_LOGI(TAG, "Display initialized");
 
@@ -350,9 +496,6 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
 err:
     if (disp_panel) {
         esp_lcd_panel_del(disp_panel);
-    }
-    if (ctrl_panel) {
-        esp_lcd_panel_del(ctrl_panel);
     }
     if (io) {
         esp_lcd_panel_io_del(io);
@@ -433,11 +576,30 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 #if LVGL_VERSION_MAJOR >= 9
             .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
 #endif
+#if CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR
+            .sw_rotate = false,                /* Avoid tearing is not supported for SW rotation */
+#else
             .sw_rotate = cfg->flags.sw_rotate, /* Only SW rotation is supported for 90° and 270° */
+#endif
+#if CONFIG_BSP_DISPLAY_LVGL_FULL_REFRESH
+            .full_refresh = true,
+#elif CONFIG_BSP_DISPLAY_LVGL_DIRECT_MODE
+            .direct_mode = true,
+#endif
         }
     };
 
-    return lvgl_port_add_disp_dsi(&disp_cfg, NULL);
+    const lvgl_port_display_dsi_cfg_t dpi_cfg = {
+        .flags = {
+#if CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR
+            .avoid_tearing = true,
+#else
+            .avoid_tearing = false,
+#endif
+        }
+    };
+
+    return lvgl_port_add_disp_dsi(&disp_cfg, &dpi_cfg);
 }
 
 static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
