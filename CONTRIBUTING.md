@@ -14,7 +14,7 @@ If you'd like to propose a change to the existing APIs or a large-scale refactor
 
 ## Third-party boards
 
-ESP-BSP project is currently intended only to host BSPs for development boards manufactured by Espressif.
+ESP-BSP project is currently intended only to host BSPs for development boards manufactured by Espressif and M5Stack.
 
 If you want to create a BSP for a third-party board, we suggest creating a separate repository for it. You are welcome to use the ESP-BSP project as a template for your own board support package repository.
 
@@ -22,7 +22,7 @@ If you want to create a BSP for a third-party board, we suggest creating a separ
 
 ESP-BSP project uses [pre-commit hooks](https://pre-commit.com/) to perform code formatting and other checks when you run `git commit`.
 
-To install pre-commit hooks, run `pip install pre-commit && pre-commit install`. 
+To install pre-commit hooks, run `pip install pre-commit && pre-commit install`.
 
 If a pre-commit hook has modified any of the files when you run `git commit`, add these changes using `git add` and run `git commit` again.
 

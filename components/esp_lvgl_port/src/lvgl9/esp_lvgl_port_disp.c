@@ -70,6 +70,7 @@ static bool lvgl_port_flush_panel_ready_callback(esp_lcd_panel_handle_t panel_io
 #endif
 #endif
 static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, uint8_t *color_map);
+static void lvgl_port_flush_wait_callback(lv_display_t *drv);
 static void lvgl_port_disp_size_update_callback(lv_event_t *e);
 static void lvgl_port_disp_rotation_update(lvgl_port_display_ctx_t *disp_ctx);
 static void lvgl_port_display_invalidate_callback(lv_event_t *e);
@@ -169,6 +170,11 @@ lv_display_t *lvgl_port_add_disp_rgb(const lvgl_port_display_cfg_t *disp_cfg, co
 #else
         ESP_RETURN_ON_FALSE(false, NULL, TAG, "RGB is supported only on ESP32S3 and from IDF 5.0!");
 #endif
+
+        /* Set wait callback */
+        if (disp_ctx->flags.full_refresh || disp_ctx->flags.direct_mode) {
+            lv_display_set_flush_wait_cb(disp, lvgl_port_flush_wait_callback);
+        }
 
         /* Apply rotation from initial display configuration */
         lvgl_port_disp_rotation_update(disp_ctx);
@@ -466,6 +472,17 @@ void lvgl_port_rotate_area(lv_display_t *disp, lv_area_t *area)
     }
 }
 
+
+static void lvgl_port_flush_wait_callback(lv_display_t *drv)
+{
+    assert(drv != NULL);
+    if (lv_disp_flush_is_last(drv)) {
+        /* Waiting for the last frame buffer to complete transmission */
+        ulTaskNotifyValueClear(NULL, ULONG_MAX);
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    }
+}
+
 static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, uint8_t *color_map)
 {
     assert(drv != NULL);
@@ -512,20 +529,11 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
         _lvgl_port_transform_monochrome(drv, area, color_map);
     }
 
-    /* RGB LCD */
-    if (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB && (disp_ctx->flags.full_refresh || disp_ctx->flags.direct_mode)) {
-        if (lv_disp_flush_is_last(drv)) {
-            /* If the interface is I80 or SPI, this step cannot be used for drawing. */
-            esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
-            /* Waiting for the last frame buffer to complete transmission */
-            ulTaskNotifyValueClear(NULL, ULONG_MAX);
-            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        }
-    } else {
-        esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
-    }
+    /* Draw */
+    esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
 
-    if (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB) {
+    /* Call flush ready only in RGB screen when not full refresh or direct mode */
+    if (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB && !disp_ctx->flags.full_refresh && !disp_ctx->flags.direct_mode) {
         lv_disp_flush_ready(drv);
     }
 }
