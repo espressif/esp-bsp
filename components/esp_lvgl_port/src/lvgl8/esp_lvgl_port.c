@@ -198,10 +198,10 @@ static void lvgl_port_task(void *arg)
             task_delay_ms = lv_timer_handler();
             lvgl_port_unlock();
         }
-        if ((task_delay_ms > lvgl_port_ctx.task_max_sleep_ms) || (1 == task_delay_ms)) {
+        if (task_delay_ms > lvgl_port_ctx.task_max_sleep_ms) {
             task_delay_ms = lvgl_port_ctx.task_max_sleep_ms;
-        } else if (task_delay_ms < 1) {
-            task_delay_ms = 1;
+        } else if (task_delay_ms < 5) {
+            task_delay_ms = 5;
         }
         vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
     }

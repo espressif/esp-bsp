@@ -63,10 +63,11 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
 #if LVGL_PORT_HANDLE_FLUSH_READY
 static bool lvgl_port_flush_io_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx);
 #if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-static bool lvgl_port_flush_vsync_ready_callback(esp_lcd_panel_handle_t panel_io, const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx);
+static bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t panel_io, const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx);
 #endif
 #if (CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
-static bool lvgl_port_flush_panel_ready_callback(esp_lcd_panel_handle_t panel_io, esp_lcd_dpi_panel_event_data_t *edata, void *user_ctx);
+static bool lvgl_port_flush_dpi_panel_ready_callback(esp_lcd_panel_handle_t panel_io, esp_lcd_dpi_panel_event_data_t *edata, void *user_ctx);
+static bool lvgl_port_flush_dpi_vsync_ready_callback(esp_lcd_panel_handle_t panel_io, esp_lcd_dpi_panel_event_data_t *edata, void *user_ctx);
 #endif
 #endif
 static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, uint8_t *color_map);
@@ -108,8 +109,12 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
 
 lv_display_t *lvgl_port_add_disp_dsi(const lvgl_port_display_cfg_t *disp_cfg, const lvgl_port_display_dsi_cfg_t *dsi_cfg)
 {
+    assert(dsi_cfg != NULL);
+    const lvgl_port_disp_priv_cfg_t priv_cfg = {
+        .avoid_tearing = dsi_cfg->flags.avoid_tearing,
+    };
     lvgl_port_lock(0);
-    lv_disp_t *disp = lvgl_port_add_disp_priv(disp_cfg, NULL);
+    lv_disp_t *disp = lvgl_port_add_disp_priv(disp_cfg, &priv_cfg);
 
     if (disp != NULL) {
         lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_display_get_user_data(disp);
@@ -117,15 +122,17 @@ lv_display_t *lvgl_port_add_disp_dsi(const lvgl_port_display_cfg_t *disp_cfg, co
         disp_ctx->disp_type = LVGL_PORT_DISP_TYPE_DSI;
 
 #if (CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
-        const esp_lcd_dpi_panel_event_callbacks_t cbs = {
-            .on_color_trans_done = lvgl_port_flush_panel_ready_callback,
-        };
+        esp_lcd_dpi_panel_event_callbacks_t cbs;
+        if (dsi_cfg->flags.avoid_tearing) {
+            cbs.on_refresh_done = lvgl_port_flush_dpi_vsync_ready_callback;
+        } else {
+            cbs.on_color_trans_done = lvgl_port_flush_dpi_panel_ready_callback;
+        }
         /* Register done callback */
         esp_lcd_dpi_panel_register_event_callbacks(disp_ctx->panel_handle, &cbs, disp);
 
         /* Apply rotation from initial display configuration */
         lvgl_port_disp_rotation_update(disp_ctx);
-
 #else
         ESP_RETURN_ON_FALSE(false, NULL, TAG, "MIPI-DSI is supported only on ESP32P4 and from IDF 5.3!");
 #endif
@@ -152,12 +159,12 @@ lv_display_t *lvgl_port_add_disp_rgb(const lvgl_port_display_cfg_t *disp_cfg, co
 #if (CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
         /* Register done callback */
         const esp_lcd_rgb_panel_event_callbacks_t vsync_cbs = {
-            .on_vsync = lvgl_port_flush_vsync_ready_callback,
+            .on_vsync = lvgl_port_flush_rgb_vsync_ready_callback,
         };
 
         const esp_lcd_rgb_panel_event_callbacks_t bb_cbs = {
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 2)
-            .on_bounce_frame_finish = lvgl_port_flush_vsync_ready_callback,
+            .on_bounce_frame_finish = lvgl_port_flush_rgb_vsync_ready_callback,
 #endif
         };
 
@@ -278,6 +285,9 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
 #if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
         buffer_size = disp_cfg->hres * disp_cfg->vres;
         ESP_GOTO_ON_ERROR(esp_lcd_rgb_panel_get_frame_buffer(disp_cfg->panel_handle, 2, (void *)&buf1, (void *)&buf2), err, TAG, "Get RGB buffers failed");
+#elif CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0)
+        buffer_size = disp_cfg->hres * disp_cfg->vres;
+        ESP_GOTO_ON_ERROR(esp_lcd_dpi_panel_get_frame_buffer(disp_cfg->panel_handle, 2, (void *)&buf1, (void *)&buf2), err, TAG, "Get RGB buffers failed");
 #endif
     } else {
         /* alloc draw buffers used by LVGL */
@@ -363,17 +373,29 @@ static bool lvgl_port_flush_io_ready_callback(esp_lcd_panel_io_handle_t panel_io
 }
 
 #if (CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
-static bool lvgl_port_flush_panel_ready_callback(esp_lcd_panel_handle_t panel_io, esp_lcd_dpi_panel_event_data_t *edata, void *user_ctx)
+static bool lvgl_port_flush_dpi_panel_ready_callback(esp_lcd_panel_handle_t panel_io, esp_lcd_dpi_panel_event_data_t *edata, void *user_ctx)
 {
     lv_display_t *disp_drv = (lv_display_t *)user_ctx;
     assert(disp_drv != NULL);
     lv_disp_flush_ready(disp_drv);
     return false;
 }
+
+static bool lvgl_port_flush_dpi_vsync_ready_callback(esp_lcd_panel_handle_t panel_io, esp_lcd_dpi_panel_event_data_t *edata, void *user_ctx)
+{
+    BaseType_t need_yield = pdFALSE;
+
+    lv_display_t *disp_drv = (lv_display_t *)user_ctx;
+    assert(disp_drv != NULL);
+    need_yield = lvgl_port_task_notify(ULONG_MAX);
+    lvgl_port_task_wake(LVGL_PORT_EVENT_DISPLAY, disp_drv);
+
+    return (need_yield == pdTRUE);
+}
 #endif
 
 #if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-static bool lvgl_port_flush_vsync_ready_callback(esp_lcd_panel_handle_t panel_io, const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx)
+static bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t panel_io, const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx)
 {
     BaseType_t need_yield = pdFALSE;
 
@@ -513,10 +535,10 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
     }
 
     /* RGB LCD */
-    if (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB && (disp_ctx->flags.full_refresh || disp_ctx->flags.direct_mode)) {
+    if ((disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI) && (disp_ctx->flags.direct_mode || disp_ctx->flags.full_refresh)) {
         if (lv_disp_flush_is_last(drv)) {
             /* If the interface is I80 or SPI, this step cannot be used for drawing. */
-            esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
+            esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, 0, 0, lv_disp_get_hor_res(drv), lv_disp_get_ver_res(drv), color_map);
             /* Waiting for the last frame buffer to complete transmission */
             ulTaskNotifyValueClear(NULL, ULONG_MAX);
             ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -525,7 +547,7 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
         esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
     }
 
-    if (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB) {
+    if (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI && (disp_ctx->flags.direct_mode || disp_ctx->flags.full_refresh))) {
         lv_disp_flush_ready(drv);
     }
 }
