@@ -1,0 +1,20 @@
+
+version: "1.2.0"
+description: Generic Board Support Package (BSP)
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/waveshare_esp32-s3_touch_lcd_1_69
+
+tags:
+  - bsp
+
+dependencies:
+  idf: ">=4.4.2"
+  esp_lcd_touch_cst816s:  "^1"
+
+  espressif/esp_lvgl_port:
+    version: "^2"
+    public: true
+    override_path: "../../components/esp_lvgl_port"
+
+examples:
+  - path: ../../examples/display_lvgl_demos
+  
