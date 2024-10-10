@@ -15,10 +15,8 @@ test_apps/noglib:
 test_apps/components:
   depends_filepatterns:
     - "components/bh1750/**"
-    - "components/ds18b20/**"
     - "components/fbm320/**"
     - "components/hts221/**"
-    - "components/icm42670/**"
     - "components/io_expander/**"
     - "components/lcd/ra8875/**"
     - "components/lcd/sh1107/**"
@@ -68,6 +66,19 @@ components/lcd/esp_lcd_st7796:
     - "components/lcd/esp_lcd_st7796/**"
 
 components/ds18b20:
+  depends_filepatterns:
+    - "components/ds18b20/**"
   disable:
     - if: SOC_RMT_SUPPORTED != 1
       reason: Onewire component depends on RMT peripheral
+
+components/icm42670:
+  depends_filepatterns:
+    - "components/icm42670/**"
+  disable:
+    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 2) or IDF_VERSION_MAJOR < 5
+      reason: Requires I2C Driver-NG which was introduced in v5.2
+
+components/qma6100p:
+  depends_filepatterns:
+    - "components/qma6100p/**"
