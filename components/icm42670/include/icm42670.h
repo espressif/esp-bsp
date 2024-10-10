@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 
 #define ICM42670_I2C_ADDRESS         0x68 /*!< I2C address with AD0 pin low */
 #define ICM42670_I2C_ADDRESS_1       0x69 /*!< I2C address with AD0 pin high */
@@ -94,16 +94,19 @@ typedef struct {
 typedef void *icm42670_handle_t;
 
 /**
- * @brief Create and init sensor object and return a sensor handle
+ * @brief Create and init sensor object
  *
- * @param port I2C port number
- * @param dev_addr I2C device address of sensor
+ * @param[in]  i2c_bus    I2C bus handle. Obtained from i2c_new_master_bus()
+ * @param[in]  dev_addr   I2C device address of sensor. Can be ICM42670_I2C_ADDRESS or ICM42670_I2C_ADDRESS_1
+ * @param[out] handle_ret Handle to created ICM42670 driver object
  *
  * @return
- *     - NULL Fail
- *     - Others Success
+ *     - ESP_OK Success
+ *     - ESP_ERR_NO_MEM Not enough memory for the driver
+ *     - ESP_ERR_NOT_FOUND Sensor not found on the I2C bus
+ *     - Others Error from underlying I2C driver
  */
-icm42670_handle_t icm42670_create(i2c_port_t port, const uint8_t dev_addr);
+esp_err_t icm42670_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_addr, icm42670_handle_t *handle_ret);
 
 /**
  * @brief Delete and release a sensor object
