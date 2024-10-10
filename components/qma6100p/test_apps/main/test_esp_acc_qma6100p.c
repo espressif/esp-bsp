@@ -81,9 +81,6 @@ TEST_CASE("Sensor qma6100p test", "[qma6100p][iot][sensor]")
 
 #define TEST_MEMORY_LEAK_THRESHOLD  (300)
 
-static size_t before_free_8bit;
-static size_t before_free_32bit;
-
 void setUp(void)
 {
     unity_utils_set_leak_level(TEST_MEMORY_LEAK_THRESHOLD);
