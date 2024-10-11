@@ -13,18 +13,13 @@
 
 #include "sdkconfig.h"
 #include "driver/gpio.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
+#include "driver/i2s_std.h"
 #include "driver/sdmmc_host.h"
 #include "soc/usb_pins.h"
 #include "esp_codec_dev.h"
 #include "bsp/config.h"
 #include "bsp/display.h"
-
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-#include "driver/i2s.h"
-#else
-#include "driver/i2s_std.h"
-#endif
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 #include "lvgl.h"
@@ -134,11 +129,7 @@ extern "C" {
  *      - ESP_ERR_NO_MEM        No memory for storing the channel information
  *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
  */
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-esp_err_t bsp_audio_init(const i2s_config_t *i2s_config);
-#else
 esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
-#endif
 
 /**
  * @brief Get codec I2S interface (initialized in bsp_audio_init)
