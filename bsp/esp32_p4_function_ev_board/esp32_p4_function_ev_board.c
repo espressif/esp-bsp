@@ -89,6 +89,7 @@ esp_err_t bsp_sdcard_mount(void)
     };
 
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    host.slot = SDMMC_HOST_SLOT_0;
     host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
 
     sd_pwr_ctrl_ldo_config_t ldo_config = {
@@ -103,16 +104,7 @@ esp_err_t bsp_sdcard_mount(void)
     host.pwr_ctrl_handle = pwr_ctrl_handle;
 
     const sdmmc_slot_config_t slot_config = {
-        .clk = BSP_SD_CLK,
-        .cmd = BSP_SD_CMD,
-        .d0 = BSP_SD_D0,
-        .d1 = BSP_SD_D1,
-        .d2 = BSP_SD_D2,
-        .d3 = BSP_SD_D3,
-        .d4 = GPIO_NUM_NC,
-        .d5 = GPIO_NUM_NC,
-        .d6 = GPIO_NUM_NC,
-        .d7 = GPIO_NUM_NC,
+        /* SD card is connected to Slot 0 pins. Slot 0 uses IO MUX, so not specifying the pins here */
         .cd = SDMMC_SLOT_NO_CD,
         .wp = SDMMC_SLOT_NO_WP,
         .width = 4,
