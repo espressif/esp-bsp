@@ -27,7 +27,7 @@ repos:
         name: Update BSP README with dependencies section
         entry: .github/ci/update_readme_dependencies.py
         language: python
-        files: 'bsp\/.*\/include\/.*\.h|bsp\/.*idf_component\.yml|bsp\/.*README\.md' # All idf_component.yml, README.md and .h files in bsp directory
+        files: 'bsp\/.*\/include\/.*\.h|bsp\/\w*\/idf_component\.yml|bsp\/\w*\/README\.md' # All idf_component.yml, README.md and .h files in bsp directory
         additional_dependencies:
           - idf_component_manager==1.4.2
           - py-markdown-table
