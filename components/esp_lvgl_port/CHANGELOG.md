@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.3
+
+### Fixes
+- Fixed I2C example for using with LVGL9
+
 ## 2.3.2
 
 ### Fixes

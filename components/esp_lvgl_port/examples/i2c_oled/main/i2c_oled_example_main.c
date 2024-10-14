@@ -123,20 +123,29 @@ void app_main(void)
         .hres = EXAMPLE_LCD_H_RES,
         .vres = EXAMPLE_LCD_V_RES,
         .monochrome = true,
+#if LVGL_VERSION_MAJOR >= 9
+        .color_format = LV_COLOR_FORMAT_RGB565,
+#endif
         .rotation = {
             .swap_xy = false,
             .mirror_x = false,
             .mirror_y = false,
+        },
+        .flags = {
+#if LVGL_VERSION_MAJOR >= 9
+            .swap_bytes = false,
+#endif
+            .sw_rotate = false,
         }
     };
     lv_disp_t *disp = lvgl_port_add_disp(&disp_cfg);
 
-    /* Rotation of the screen */
-    lv_disp_set_rotation(disp, LV_DISP_ROT_NONE);
-
     ESP_LOGI(TAG, "Display LVGL Scroll Text");
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (lvgl_port_lock(0)) {
+        /* Rotation of the screen */
+        lv_disp_set_rotation(disp, LV_DISPLAY_ROTATION_0);
+
         example_lvgl_demo_ui(disp);
         // Release the mutex
         lvgl_port_unlock();
