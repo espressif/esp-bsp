@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.3
+
+### Features
+- Updated RGB screen flush handling in LVGL9.
+
 ## 2.3.2
 
 ### Fixes
