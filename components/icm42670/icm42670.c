@@ -1,17 +1,19 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <string.h>
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
 #include <sys/time.h>
 #include "esp_system.h"
 #include "esp_check.h"
-#include "driver/i2c.h"
 #include "icm42670.h"
+
+#define I2C_CLK_SPEED 400000
 
 #define ALPHA                       0.99f        /*!< Weight of gyroscope */
 #define RAD_TO_DEG                  57.27272727f /*!< Radians to degrees */
@@ -46,8 +48,7 @@
 *******************************************************************************/
 
 typedef struct {
-    i2c_port_t bus;
-    uint8_t dev_addr;
+    i2c_master_dev_handle_t i2c_handle;
     uint32_t counter;
     float dt;  /*!< delay time between two measurements, dt should be small (ms level) */
     struct timeval *timer;
@@ -70,30 +71,45 @@ static const char *TAG = "ICM42670";
 * Public API functions
 *******************************************************************************/
 
-icm42670_handle_t icm42670_create(i2c_port_t port, const uint8_t dev_addr)
+esp_err_t icm42670_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_addr, icm42670_handle_t *handle_ret)
 {
-    icm42670_dev_t *sensor = (icm42670_dev_t *) heap_caps_calloc(1, sizeof(icm42670_dev_t), MALLOC_CAP_DEFAULT);
-    sensor->bus = port;
-    sensor->dev_addr = dev_addr;
-    sensor->counter = 0;
-    sensor->dt = 0;
-    sensor->timer = (struct timeval *) calloc(1, sizeof(struct timeval));
+    esp_err_t ret = ESP_OK;
 
+    // Allocate memory and init the driver object
+    icm42670_dev_t *sensor = (icm42670_dev_t *) calloc(1, sizeof(icm42670_dev_t));
+    struct timeval *timer = (struct timeval *) calloc(1, sizeof(struct timeval));
+    ESP_RETURN_ON_FALSE(sensor != NULL && timer != NULL, ESP_ERR_NO_MEM, TAG, "Not enough memory");
+    sensor->timer = timer;
+
+    // Add new I2C device
+    const i2c_device_config_t i2c_dev_cfg = {
+        .device_address = dev_addr,
+        .scl_speed_hz = I2C_CLK_SPEED,
+    };
+    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg, &sensor->i2c_handle), err, TAG, "Failed to add new I2C device");
+    assert(sensor->i2c_handle);
+
+    // Check device presence
     uint8_t dev_id = 0;
     icm42670_get_deviceid(sensor, &dev_id);
-    if (dev_id != ICM42607_ID && dev_id != ICM42670_ID) {
-        ESP_LOGE(TAG, "Incorrect Device ID (0x%02x).", dev_id);
-        return NULL;
-    }
+    ESP_GOTO_ON_FALSE(dev_id == ICM42607_ID || dev_id == ICM42670_ID, ESP_ERR_NOT_FOUND, err, TAG, "Incorrect Device ID (0x%02x).", dev_id);
 
-    ESP_LOGI(TAG, "Found device %s, ID: 0x%02x", (dev_id == ICM42607_ID ? "ICM42607" : "ICM42670"), dev_id);
+    ESP_LOGD(TAG, "Found device %s, ID: 0x%02x", (dev_id == ICM42607_ID ? "ICM42607" : "ICM42670"), dev_id);
+    *handle_ret = sensor;
+    return ret;
 
-    return (icm42670_handle_t) sensor;
+err:
+    icm42670_delete(sensor);
+    return ret;
 }
 
 void icm42670_delete(icm42670_handle_t sensor)
 {
     icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
+
+    if (sens->i2c_handle) {
+        i2c_master_bus_rm_device(sens->i2c_handle);
+    }
 
     if (sens->timer) {
         free(sens->timer);
@@ -343,36 +359,22 @@ static esp_err_t icm42670_get_raw_value(icm42670_handle_t sensor, uint8_t reg, i
 static esp_err_t icm42670_write(icm42670_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *data_buf, const uint8_t data_len)
 {
     icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
-    esp_err_t  ret;
-
     assert(sens);
 
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    ret = i2c_master_start(cmd);
-    assert(ESP_OK == ret);
-    ret = i2c_master_write_byte(cmd, (sens->dev_addr << 1) | I2C_MASTER_WRITE, true);
-    assert(ESP_OK == ret);
-    ret = i2c_master_write_byte(cmd, reg_start_addr, true);
-    assert(ESP_OK == ret);
-    ret = i2c_master_write(cmd, data_buf, data_len, true);
-    assert(ESP_OK == ret);
-    ret = i2c_master_stop(cmd);
-    assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd);
-
-    return ret;
+    assert(data_len < 5);
+    uint8_t write_buff[5] = {reg_start_addr};
+    memcpy(&write_buff[1], data_buf, data_len);
+    return i2c_master_transmit(sens->i2c_handle, write_buff, data_len + 1, -1);
 }
 
 static esp_err_t icm42670_read(icm42670_handle_t sensor, const uint8_t reg_start_addr, uint8_t *data_buf, const uint8_t data_len)
 {
-    icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
     uint8_t reg_buff[] = {reg_start_addr};
-
+    icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
     assert(sens);
 
     /* Write register number and read data */
-    return i2c_master_write_read_device(sens->bus, sens->dev_addr, reg_buff, sizeof(reg_buff), data_buf, data_len, 1000 / portTICK_PERIOD_MS);
+    return i2c_master_transmit_receive(sens->i2c_handle, reg_buff, sizeof(reg_buff), data_buf, data_len, -1);
 }
 
 esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670_value_t *const acce_value,
