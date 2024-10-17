@@ -55,6 +55,21 @@ typedef struct {
 
 extern int lv_color_blend_to_argb8888_esp(asm_dsc_t *asm_dsc);
 
+// Just for compatibility with v9.2.0
+// v9.2.0: lv_draw_sw_blend_fill_dsc_t
+// v9.1.0: _lv_draw_sw_blend_fill_dsc_t
+typedef struct {
+    void * dest_buf;
+    int32_t dest_w;
+    int32_t dest_h;
+    int32_t dest_stride;
+    const lv_opa_t * mask_buf;
+    int32_t mask_stride;
+    lv_color_t color;
+    lv_opa_t opa;
+    lv_area_t relative_area;
+} _lv_draw_sw_blend_fill_dsc_t;
+
 static inline lv_result_t _lv_color_blend_to_argb8888_esp(_lv_draw_sw_blend_fill_dsc_t *dsc)
 {
     asm_dsc_t asm_dsc = {
