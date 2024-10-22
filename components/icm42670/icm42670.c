@@ -186,7 +186,7 @@ esp_err_t icm42670_get_acce_sensitivity(icm42670_handle_t sensor, float *sensiti
 
     ret = icm42670_read(sensor, ICM42670_ACCEL_CONFIG0, &acce_fs, 1);
     if (ret == ESP_OK) {
-        acce_fs = (acce_fs >> 3) & 0x03;
+        acce_fs = (acce_fs >> 5) & 0x03;
         switch (acce_fs) {
         case ACCE_FS_16G:
             *sensitivity = ACCE_FS_16G_SENSITIVITY;
@@ -215,9 +215,9 @@ esp_err_t icm42670_get_gyro_sensitivity(icm42670_handle_t sensor, float *sensiti
 
     *sensitivity = 0;
 
-    ret = icm42670_read(sensor, ICM42670_ACCEL_CONFIG0, &gyro_fs, 1);
+    ret = icm42670_read(sensor, ICM42670_GYRO_CONFIG0, &gyro_fs, 1);
     if (ret == ESP_OK) {
-        gyro_fs = (gyro_fs >> 3) & 0x03;
+        gyro_fs = (gyro_fs >> 5) & 0x03;
         switch (gyro_fs) {
         case GYRO_FS_2000DPS:
             *sensitivity = GYRO_FS_2000_SENSITIVITY;
@@ -326,7 +326,7 @@ esp_err_t icm42670_get_temp_value(icm42670_handle_t sensor, float *value)
     ret = icm42670_get_temp_raw_value(sensor, &raw_value);
     ESP_RETURN_ON_ERROR(ret, TAG, "Get raw value error!");
 
-    *value = (raw_value / 128) + 25;
+    *value = ((float)raw_value / 128.0) + 25.0;
 
     return ESP_OK;
 }

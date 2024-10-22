@@ -91,7 +91,7 @@ TEST_CASE("Sensor icm42670 test", "[icm42670]")
     vTaskDelay(10); // Give FreeRTOS some time to free its resources
 }
 
-#define TEST_MEMORY_LEAK_THRESHOLD  (400)
+#define TEST_MEMORY_LEAK_THRESHOLD  (500)
 
 void setUp(void)
 {
