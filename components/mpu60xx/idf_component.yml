@@ -1,0 +1,27 @@
+## IDF Component Manager Manifest File
+
+description: MPU60xx I2C driver
+ 
+maintainers: 
+  - "Rohan Jeet <jeetrohan92@gmail.com>"
+
+dependencies:
+  ## Required IDF version
+  idf:
+    version: ">=4.1.0"
+  # # Put list of dependencies here
+  #
+  # # For components maintained by Espressif:
+  # component: "~1.0.0"
+  #
+  esp_driver_i2c: "*"
+  esp_driver_gpio: "*"
+  #
+  # # For 3rd party components:
+  # username/component: ">=1.0.0,<2.0.0"
+  # username2/component2:
+  #   version: "~1.0.0"
+  #   # For transient dependencies `public` flag can be set.
+  #   # `public` flag doesn't have an effect dependencies of the `main` component.
+  #   # All dependencies of `main` are public by default.
+  #   public: true
