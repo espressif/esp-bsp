@@ -14,6 +14,7 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/i2s_std.h"
+#include "driver/i2c_master.h"
 #include "driver/sdmmc_host.h"
 #include "soc/usb_pins.h"
 #include "lvgl.h"
@@ -210,11 +211,6 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
  *  - Encryption chip ATECC608A (NOT populated on most boards)
  *  - LCD Touch controller
  *  - Inertial Measurement Unit ICM-42607-P
- *
- * After initialization of I2C, use BSP_I2C_NUM macro when creating I2C devices drivers ie.:
- * \code{.c}
- * icm42670_handle_t imu = icm42670_create(BSP_I2C_NUM, ICM42670_I2C_ADDRESS);
- * \endcode
  **************************************************************************************************/
 #define BSP_I2C_NUM     CONFIG_BSP_I2C_NUM
 
@@ -238,6 +234,14 @@ esp_err_t bsp_i2c_init(void);
  *
  */
 esp_err_t bsp_i2c_deinit(void);
+
+/**
+ * @brief Get I2C driver handle
+ *
+ * @return
+ *      - I2C handle
+ */
+i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
 /**************************************************************************************************
  *

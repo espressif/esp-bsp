@@ -7,7 +7,6 @@
 #include "driver/gpio.h"
 #include "driver/ledc.h"
 #include "driver/spi_master.h"
-#include "driver/i2c_master.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_check.h"
@@ -63,8 +62,10 @@ sdmmc_card_t *bsp_sdcard = NULL;    // Global SD card handler
 /**
  * @brief I2C handle for BSP usage
  *
- * You can call i2c_master_get_bus_handle(BSP_I2C_NUM, i2c_master_bus_handle_t *ret_handle)
- * from #include "esp_private/i2c_platform.h"
+ * In IDF v5.4 you can call i2c_master_get_bus_handle(BSP_I2C_NUM, i2c_master_bus_handle_t *ret_handle)
+ * from #include "esp_private/i2c_platform.h" to get this handle
+ *
+ * For IDF 5.2 and 5.3 you must call bsp_i2c_get_handle()
  */
 static i2c_master_bus_handle_t i2c_handle = NULL;
 static bool i2c_initialized = false;
@@ -118,6 +119,12 @@ esp_err_t bsp_i2c_deinit(void)
     BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
     i2c_initialized = false;
     return ESP_OK;
+}
+
+i2c_master_bus_handle_t bsp_i2c_get_handle(void)
+{
+    bsp_i2c_init();
+    return i2c_handle;
 }
 
 static esp_err_t bsp_i2c_device_probe(uint8_t addr)
