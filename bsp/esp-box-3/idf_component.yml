@@ -10,7 +10,7 @@ tags:
   - bsp
 
 dependencies:
-  idf: ">=5.2" # We use I2C Driver-NG from IDF v5.2
+  idf: ">=5.3" # We use I2C Driver-NG from IDF v5.2 but esp-codec-dev supports from v5.3
   esp_lcd_touch_tt21100: "^1"
   esp_lcd_touch_gt911: "^1"
   esp_lcd_ili9341: "^1"
@@ -31,3 +31,7 @@ dependencies:
   icm42670:
     version: "^2.0.1"
     public: true
+
+examples:
+  - path: ../../examples/display_audio_photo
+  - path: ../../examples/display_rotation
