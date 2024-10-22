@@ -13,7 +13,6 @@
 
 #include "sdkconfig.h"
 #include "driver/gpio.h"
-#include "driver/i2c_master.h"
 #include "driver/i2s_std.h"
 #include "driver/sdmmc_host.h"
 #include "soc/usb_pins.h"

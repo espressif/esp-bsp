@@ -1,6 +1,7 @@
 # ICM42607/ICM42670 6-Axis MotionTracking (Accelerometer and Gyroscope)
 
 [![Component Registry](https://components.espressif.com/components/espressif/icm42670/badge.svg)](https://components.espressif.com/components/espressif/icm42670)
+![maintenance-status](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen.svg)
 
 C driver for Invensense ICM42607/ICM42670 6-axis gyroscope and accelerometer based on I2C communication.
 
@@ -27,6 +28,4 @@ This driver, along with many other components from this repository, can be used 
 Another option is to manually create a `idf_component.yml` file. You can find more about using .yml files for components from [Espressif's documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html).
 
 ## See Also
-* [MPU6050 datasheet](https://invensense.tdk.com/products/motion-tracking/6-axis/icm-42670-p/)
-
-
+* [ICM42670 datasheet](https://invensense.tdk.com/products/motion-tracking/6-axis/icm-42670-p/)
