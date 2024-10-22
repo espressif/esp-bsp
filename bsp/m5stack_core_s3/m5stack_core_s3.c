@@ -5,7 +5,9 @@
  */
 
 #include "driver/gpio.h"
+#include "driver/i2c_master.h"
 #include "driver/spi_master.h"
+#include "driver/sdspi_host.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_check.h"
@@ -14,7 +16,6 @@
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_vfs_fat.h"
-#include "driver/sdspi_host.h"
 
 #include "bsp/m5stack_core_s3.h"
 #include "bsp/display.h"
@@ -49,7 +50,7 @@ sdmmc_card_t *bsp_sdcard = NULL;    // Global SD card handler
  * @brief I2C handle for BSP usage
  *
  * You can call i2c_master_get_bus_handle(BSP_I2C_NUM, i2c_master_bus_handle_t *ret_handle)
- * from #include "esp_private/i2c_platforma.h"
+ * from #include "esp_private/i2c_platform.h"
  */
 static i2c_master_bus_handle_t i2c_handle = NULL;
 static bool i2c_initialized = false;
@@ -68,7 +69,7 @@ esp_err_t bsp_i2c_init(void)
         .i2c_port = BSP_I2C_NUM,
         .sda_io_num = BSP_I2C_SDA,
         .scl_io_num = BSP_I2C_SCL,
-        .clk_source = 1,
+        .clk_source = I2C_CLK_SRC_DEFAULT,
     };
     BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
@@ -76,13 +77,13 @@ esp_err_t bsp_i2c_init(void)
     const i2c_device_config_t axp2101_config = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = BSP_AXP2101_ADDR,
-        .scl_speed_hz = 400000,
+        .scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ,
     };
     BSP_ERROR_CHECK_RETURN_ERR(i2c_master_bus_add_device(i2c_handle, &axp2101_config, &axp2101_h));
     const i2c_device_config_t aw9523_config = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = BSP_AW9523_ADDR,
-        .scl_speed_hz = 400000,
+        .scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ,
     };
     BSP_ERROR_CHECK_RETURN_ERR(i2c_master_bus_add_device(i2c_handle, &aw9523_config, &aw9523_h));
 
@@ -435,7 +436,7 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     };
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
-    tp_io_config.scl_speed_hz = 400000; // This parameter was introduce together with I2C Driver-NG in IDF v5.2
+    tp_io_config.scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ; // This parameter was introduced together with I2C Driver-NG in IDF v5.2
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
     return esp_lcd_touch_new_i2c_ft5x06(tp_io_handle, &tp_cfg, ret_touch);
 }
