@@ -123,7 +123,7 @@ lv_display_t *lvgl_port_add_disp_dsi(const lvgl_port_display_cfg_t *disp_cfg, co
         disp_ctx->disp_type = LVGL_PORT_DISP_TYPE_DSI;
 
 #if (CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
-        esp_lcd_dpi_panel_event_callbacks_t cbs;
+        esp_lcd_dpi_panel_event_callbacks_t cbs = {0};
         if (dsi_cfg->flags.avoid_tearing) {
             cbs.on_refresh_done = lvgl_port_flush_dpi_vsync_ready_callback;
         } else {

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.4.1
+
+### Fixes
+Fix the issue of the DPI callback function not being initialized.
+
 ## 2.4.0
 
 ### Features
