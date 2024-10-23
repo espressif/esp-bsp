@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.4.1
+
+### Fixes
+Fix the issue of the DPI callback function not being initialized.
+
+## 2.4.0
+
+### Features
+- Added support for direct mode and full refresh mode in the MIPI-DSI interface.
+- Optimized avoid-tear feature and LVGL task.
+
 ## 2.3.3
 
 ### Features
