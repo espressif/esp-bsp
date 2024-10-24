@@ -356,11 +356,11 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
 
 err:
     if (ret != ESP_OK) {
-        if (buf1) {
-            free(buf1);
+        if (disp_ctx->draw_buffs[0]) {
+            free(disp_ctx->draw_buffs[0]);
         }
-        if (buf2) {
-            free(buf2);
+        if (disp_ctx->draw_buffs[1]) {
+            free(disp_ctx->draw_buffs[1]);
         }
         if (disp_ctx->draw_buffs[2]) {
             free(disp_ctx->draw_buffs[2]);
@@ -534,9 +534,9 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
             if (disp_ctx->current_rotation == LV_DISPLAY_ROTATION_180) {
                 lv_draw_sw_rotate(color_map, disp_ctx->draw_buffs[2], hh, ww, h_stride, h_stride, LV_DISPLAY_ROTATION_180, cf);
             } else if (disp_ctx->current_rotation == LV_DISPLAY_ROTATION_90) {
-                lv_draw_sw_rotate(color_map, disp_ctx->draw_buffs[2], ww, hh, w_stride, h_stride, LV_DISPLAY_ROTATION_270, cf);
-            } else if (disp_ctx->current_rotation == LV_DISPLAY_ROTATION_270) {
                 lv_draw_sw_rotate(color_map, disp_ctx->draw_buffs[2], ww, hh, w_stride, h_stride, LV_DISPLAY_ROTATION_90, cf);
+            } else if (disp_ctx->current_rotation == LV_DISPLAY_ROTATION_270) {
+                lv_draw_sw_rotate(color_map, disp_ctx->draw_buffs[2], ww, hh, w_stride, h_stride, LV_DISPLAY_ROTATION_270, cf);
             }
             color_map = (uint8_t *)disp_ctx->draw_buffs[2];
             lvgl_port_rotate_area(drv, (lv_area_t *)area);
