@@ -1,9 +1,15 @@
 # Changelog
 
+## 2.4.2
+
+### Fixes
+- Fixed SW rotation in LVGL9.2
+- Fixed freeing right buffers when error
+
 ## 2.4.1
 
 ### Fixes
-Fix the issue of the DPI callback function not being initialized.
+- Fixed the issue of the DPI callback function not being initialized.
 
 ## 2.4.0
 
