@@ -194,7 +194,6 @@ static led_indicator_gpio_config_t bsp_leds_gpio_config[] = {
 static const led_strip_config_t bsp_leds_rgb_strip_config = {
     .strip_gpio_num = CONFIG_BSP_LED_RGB_GPIO,   // The GPIO that connected to the LED strip's data line
     .max_leds = BSP_LED_NUM,                  // The number of LEDs in the strip,
-    .led_pixel_format = LED_PIXEL_FORMAT_GRB, // Pixel format of your LED strip
     .led_model = LED_MODEL_WS2812,            // LED strip model
     .flags.invert_out = false,                // whether to invert the output signal
 };

@@ -68,7 +68,6 @@ static i2s_chan_handle_t i2s_tx_chan;
 static const led_strip_config_t bsp_strip_config = {
     .strip_gpio_num = BSP_RGB_CTRL,
     .max_leds = 1,
-    .led_pixel_format = LED_PIXEL_FORMAT_GRB,
     .led_model = LED_MODEL_WS2812,
     .flags.invert_out = false,
 };
