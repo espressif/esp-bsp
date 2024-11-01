@@ -54,7 +54,7 @@ static void anim_timer_cb(lv_timer_t *timer)
 
         // Create new image and make it transparent
         img_text = lv_img_create(scr);
-        lv_img_set_src(img_text, &esp_text);
+        lv_img_set_src(img_text, "A:esp_text.bin");
         lv_obj_set_style_img_opa(img_text, 0, 0);
     }
 
@@ -78,7 +78,7 @@ void example_lvgl_demo_ui(lv_obj_t *scr)
 {
     // Create image
     img_logo = lv_img_create(scr);
-    lv_img_set_src(img_logo, &esp_logo);
+    lv_img_set_src(img_logo, "A:esp_logo.bin");
     lv_obj_center(img_logo);
 
     // Create arcs

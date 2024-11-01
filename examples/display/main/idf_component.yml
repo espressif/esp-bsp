@@ -4,3 +4,5 @@ dependencies:
   esp_wrover_kit:
     version: "*"
     override_path: "../../../bsp/esp_wrover_kit"
+  esp_mmap_assets: "1.*"
+  esp_lv_fs: "0.1.*"

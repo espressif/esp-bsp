@@ -61,7 +61,7 @@ jobs:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
           . ${IDF_PATH}/export.sh
-          pip install idf-component-manager==1.* ruamel.yaml idf-build-apps==2.4.3 --upgrade
+          pip install --upgrade idf-component-manager==1.* ruamel.yaml idf-build-apps==2.4.3 pypng lz4
 
           echo "Files changed: ${ALL_CHANGED_FILES}"
           idf-build-apps find --modified-files "${ALL_CHANGED_FILES}"
