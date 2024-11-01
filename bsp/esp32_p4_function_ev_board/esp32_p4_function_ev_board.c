@@ -181,7 +181,6 @@ esp_err_t bsp_spiffs_unmount(void)
 
 esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config)
 {
-    esp_err_t ret = ESP_FAIL;
     if (i2s_tx_chan && i2s_rx_chan) {
         /* Audio was initialized before */
         return ESP_OK;
