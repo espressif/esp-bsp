@@ -1,0 +1,6 @@
+## IDF Component Manager Manifest File
+dependencies:
+  idf: ">=5.2"
+  esp_io_expander_tca9554:
+    version: "*"
+    override_path: "../../../esp_io_expander_tca9554"
