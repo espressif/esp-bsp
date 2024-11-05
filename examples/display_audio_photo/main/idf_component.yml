@@ -1,6 +1,6 @@
 description: BSP Display Audio Photo Example
 dependencies:
   esp_jpeg: "*"
-  esp-box:
+  esp-box-3:
     version: "*"
-    override_path: "../../../bsp/esp-box"
+    override_path: "../../../bsp/esp-box-3"
