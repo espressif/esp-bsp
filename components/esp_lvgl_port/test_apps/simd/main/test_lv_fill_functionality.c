@@ -126,9 +126,9 @@ TEST_CASE("Test fill functionality ARGB8888", "[fill][functionality][ARGB8888]")
 TEST_CASE("Test fill functionality RGB565", "[fill][functionality][RGB565]")
 {
     test_matrix_params_t test_matrix = {
-        .min_w = 8,             // 8 is the lower limit for the esp32s3 asm implementation, otherwise esp32 is executed
+        .min_w = 16,            // 16 is the lower limit for the esp32s3 asm implementation, otherwise esp32 is executed
         .min_h = 1,
-        .max_w = 16,
+        .max_w = 32,
         .max_h = 16,
         .min_unalign_byte = 0,
         .max_unalign_byte = 16,
