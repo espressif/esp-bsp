@@ -58,3 +58,9 @@
 ### Bugfix
 
 * Fix adc build error when using `ESP-IDF` `5.0`
+
+## v2.2.3 - 2024-11-07
+
+### Bugfix
+
+* Fixed LVGL8 compatibility in esp32_s3_lcd_ev_board

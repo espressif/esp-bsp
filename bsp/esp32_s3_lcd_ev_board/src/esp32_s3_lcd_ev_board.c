@@ -339,7 +339,9 @@ static lv_display_t *bsp_display_lcd_init()
         .monochrome = false,
         .hres = BSP_LCD_H_RES,
         .vres = BSP_LCD_V_RES,
+#if LVGL_VERSION_MAJOR >= 9
         .color_format = LV_COLOR_FORMAT_RGB565,
+#endif
 
         .rotation = {
             .swap_xy = false,
