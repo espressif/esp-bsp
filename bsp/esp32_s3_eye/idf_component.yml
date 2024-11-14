@@ -29,6 +29,6 @@ dependencies:
     public: true
 
   qma6100p:
-    version: "1.*" #todo update this to v2 with driver-NG support
+    version: "^2"
     override_path: "../../components/qma6100p"
     public: true

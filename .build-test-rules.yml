@@ -90,6 +90,9 @@ components/icm42670:
 components/qma6100p:
   depends_filepatterns:
     - "components/qma6100p/**"
+  disable:
+    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 2) or IDF_VERSION_MAJOR < 5
+      reason: Requires I2C Driver-NG which was introduced in v5.2
 
 components/io_expander/esp_io_expander_ht8574:
   depends_filepatterns:

@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "driver/gpio.h"
 
 #define QMA6100P_I2C_ADDRESS         0x12u /*!< I2C address with AD0 pin low */
@@ -89,16 +89,18 @@ typedef struct {
 typedef void *qma6100p_handle_t;
 
 /**
- * @brief Create and init sensor object and return a sensor handle
+ * @brief Create and init sensor object
  *
- * @param port I2C port number
- * @param dev_addr I2C device address of sensor
- *
+ * @param[in]  i2c_bus    I2C bus handle. Obtained from i2c_new_master_bus()
+ * @param[in]  dev_addr   I2C device address of sensor. Can be QMA6100P_I2C_ADDRESS or QMA6100P_I2C_ADDRESS_1
+ * @param[out] handle_ret Handle to created QMA6100P driver object*
  * @return
- *     - NULL Fail
- *     - Others Success
+ *     - ESP_OK Success
+ *     - ESP_ERR_NO_MEM Not enough memory for the driver
+ *     - ESP_ERR_NOT_FOUND Sensor not found on the I2C bus
+ *     - Others Error from underlying I2C driver
  */
-qma6100p_handle_t qma6100p_create(i2c_port_t port, const uint16_t dev_addr);
+esp_err_t qma6100p_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_addr, qma6100p_handle_t *handle_ret);
 
 /**
  * @brief Delete and release a sensor object
