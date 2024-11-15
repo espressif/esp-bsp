@@ -172,8 +172,8 @@ static esp_err_t panel_st7796_del(esp_lcd_panel_t *panel)
     }
     // Delete MIPI DPI panel
     st7796->del(panel);
-    free(st7796);
     ESP_LOGD(TAG, "del st7796 panel @%p", st7796);
+    free(st7796);
 
     return ESP_OK;
 }
