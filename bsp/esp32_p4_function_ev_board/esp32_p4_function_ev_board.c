@@ -21,6 +21,8 @@
 
 #if CONFIG_BSP_LCD_TYPE_1024_600
 #include "esp_lcd_ek79007.h"
+#elif CONFIG_BSP_LCD_TYPE_HDMI
+#include "esp_lcd_lt8912b.h"
 #else
 #include "esp_lcd_ili9881c.h"
 #endif
@@ -402,12 +404,14 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
 esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_lcd_handles_t *ret_handles)
 {
     esp_err_t ret = ESP_OK;
+    esp_lcd_panel_io_handle_t io = NULL;
+    esp_lcd_panel_handle_t disp_panel = NULL;
 
     ESP_RETURN_ON_ERROR(bsp_display_brightness_init(), TAG, "Brightness init failed");
     ESP_RETURN_ON_ERROR(bsp_enable_dsi_phy_power(), TAG, "DSI PHY power failed");
 
     /* create MIPI DSI bus first, it will initialize the DSI PHY as well */
-    esp_lcd_dsi_bus_handle_t mipi_dsi_bus;
+    esp_lcd_dsi_bus_handle_t mipi_dsi_bus = NULL;
     esp_lcd_dsi_bus_config_t bus_config = {
         .bus_id = 0,
         .num_data_lanes = BSP_LCD_MIPI_DSI_LANE_NUM,
@@ -416,17 +420,17 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     };
     ESP_RETURN_ON_ERROR(esp_lcd_new_dsi_bus(&bus_config, &mipi_dsi_bus), TAG, "New DSI bus init failed");
 
+#if !CONFIG_BSP_LCD_TYPE_HDMI
     ESP_LOGI(TAG, "Install MIPI DSI LCD control panel");
     // we use DBI interface to send LCD commands and parameters
-    esp_lcd_panel_io_handle_t io;
     esp_lcd_dbi_io_config_t dbi_config = {
         .virtual_channel = 0,
-        .lcd_cmd_bits = 8,   // according to the LCD ILI9881C spec
-        .lcd_param_bits = 8, // according to the LCD ILI9881C spec
+        .lcd_cmd_bits = 8,   // according to the LCD spec
+        .lcd_param_bits = 8, // according to the LCD spec
     };
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_dbi(mipi_dsi_bus, &dbi_config, &io), err, TAG, "New panel IO failed");
+#endif
 
-    esp_lcd_panel_handle_t disp_panel = NULL;
 #if CONFIG_BSP_LCD_TYPE_1024_600
     // create EK79007 control panel
     ESP_LOGI(TAG, "Install EK79007 LCD control panel");
@@ -453,7 +457,7 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ek79007(io, &lcd_dev_config, &disp_panel), err, TAG, "New LCD panel EK79007 failed");
     ESP_GOTO_ON_ERROR(esp_lcd_panel_reset(disp_panel), err, TAG, "LCD panel reset failed");
     ESP_GOTO_ON_ERROR(esp_lcd_panel_init(disp_panel), err, TAG, "LCD panel init failed");
-#else
+#elif CONFIG_BSP_LCD_TYPE_1280_800
     // create ILI9881C control panel
     ESP_LOGI(TAG, "Install ILI9881C LCD control panel");
 #if CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
@@ -480,7 +484,92 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     ESP_GOTO_ON_ERROR(esp_lcd_panel_reset(disp_panel), err, TAG, "LCD panel reset failed");
     ESP_GOTO_ON_ERROR(esp_lcd_panel_init(disp_panel), err, TAG, "LCD panel init failed");
     ESP_GOTO_ON_ERROR(esp_lcd_panel_disp_on_off(disp_panel, true), err, TAG, "LCD panel ON failed");
+
+#elif CONFIG_BSP_LCD_TYPE_HDMI
+
+#if !CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
+#error The color format must be RGB888 in HDMI display type!
 #endif
+    ESP_LOGI(TAG, "Install MIPI DSI HDMI control panel");
+    ESP_RETURN_ON_ERROR(bsp_i2c_init(), TAG, "I2C init failed");
+
+    /* Main IO */
+    esp_lcd_panel_io_i2c_config_t io_config = LT8912B_IO_CFG(CONFIG_BSP_I2C_CLK_SPEED_HZ, LT8912B_IO_I2C_MAIN_ADDRESS);
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_handle, &io_config, &io));
+
+    /* CEC DSI IO */
+    esp_lcd_panel_io_handle_t io_cec_dsi = NULL;
+    esp_lcd_panel_io_i2c_config_t io_config_cec = LT8912B_IO_CFG(CONFIG_BSP_I2C_CLK_SPEED_HZ, LT8912B_IO_I2C_CEC_ADDRESS);
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_handle, &io_config_cec, &io_cec_dsi));
+
+    /* AVI IO */
+    esp_lcd_panel_io_handle_t io_avi = NULL;
+    esp_lcd_panel_io_i2c_config_t io_config_avi = LT8912B_IO_CFG(CONFIG_BSP_I2C_CLK_SPEED_HZ, LT8912B_IO_I2C_AVI_ADDRESS);
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_handle, &io_config_avi, &io_avi));
+
+    /* DPI config */
+#if CONFIG_BSP_LCD_HDMI_800x600_60HZ
+    ESP_LOGI(TAG, "HDMI configuration for 800x600@60HZ");
+    esp_lcd_dpi_panel_config_t dpi_config = LT8912B_800x600_PANEL_60HZ_DPI_CONFIG();
+#elif CONFIG_BSP_LCD_HDMI_1024x768_60HZ
+    ESP_LOGI(TAG, "HDMI configuration for 1024x768@60HZ");
+    esp_lcd_dpi_panel_config_t dpi_config = LT8912B_1024x768_PANEL_60HZ_DPI_CONFIG();
+#elif CONFIG_BSP_LCD_HDMI_1280x720_60HZ
+    ESP_LOGI(TAG, "HDMI configuration for 1280x720@60HZ");
+    esp_lcd_dpi_panel_config_t dpi_config = LT8912B_1280x720_PANEL_60HZ_DPI_CONFIG();
+#elif CONFIG_BSP_LCD_HDMI_1280x800_60HZ
+    ESP_LOGI(TAG, "HDMI configuration for 1280x800@60HZ");
+    esp_lcd_dpi_panel_config_t dpi_config = LT8912B_1280x800_PANEL_60HZ_DPI_CONFIG();
+#elif CONFIG_BSP_LCD_HDMI_1920x1080_30HZ
+    ESP_LOGI(TAG, "HDMI configuration for 1920x1080@30HZ");
+    esp_lcd_dpi_panel_config_t dpi_config = LT8912B_1920x1080_PANEL_30HZ_DPI_CONFIG();
+#elif CONFIG_BSP_LCD_HDMI_1920x1080_60HZ
+    ESP_LOGI(TAG, "HDMI configuration for 1920x1080@60HZ");
+    /* This setting is not working yet, it is only for developing and testing */
+    esp_lcd_dpi_panel_config_t dpi_config = LT8912B_1920x1080_PANEL_60HZ_DPI_CONFIG();
+#else
+#error Unsupported display type
+#endif
+    dpi_config.num_fbs = CONFIG_BSP_LCD_DPI_BUFFER_NUMS;
+    lt8912b_vendor_config_t vendor_config = {
+#if CONFIG_BSP_LCD_HDMI_800x600_60HZ
+        .video_timing = ESP_LCD_LT8912B_VIDEO_TIMING_800x600_60Hz(),
+#elif CONFIG_BSP_LCD_HDMI_1024x768_60HZ
+        .video_timing = ESP_LCD_LT8912B_VIDEO_TIMING_1024x768_60Hz(),
+#elif CONFIG_BSP_LCD_HDMI_1280x720_60HZ
+        .video_timing = ESP_LCD_LT8912B_VIDEO_TIMING_1280x720_60Hz(),
+#elif CONFIG_BSP_LCD_HDMI_1280x800_60HZ
+        .video_timing = ESP_LCD_LT8912B_VIDEO_TIMING_1280x800_60Hz(),
+#elif CONFIG_BSP_LCD_HDMI_1920x1080_30HZ
+        .video_timing = ESP_LCD_LT8912B_VIDEO_TIMING_1920x1080_30Hz(),
+#elif CONFIG_BSP_LCD_HDMI_1920x1080_60HZ
+        /* This setting is not working yet, it is only for developing and testing */
+        .video_timing = ESP_LCD_LT8912B_VIDEO_TIMING_1920x1080_60Hz(),
+#else
+#error Unsupported display type
+#endif
+        .mipi_config = {
+            .dsi_bus = mipi_dsi_bus,
+            .dpi_config = &dpi_config,
+            .lane_num = BSP_LCD_MIPI_DSI_LANE_NUM,
+        },
+    };
+    const esp_lcd_panel_dev_config_t panel_config = {
+        .bits_per_pixel = 24,
+        .rgb_ele_order = BSP_LCD_COLOR_SPACE,
+        .reset_gpio_num = BSP_LCD_RST,
+        .vendor_config = &vendor_config,
+    };
+    const esp_lcd_panel_lt8912b_io_t io_all = {
+        .main = io,
+        .cec_dsi = io_cec_dsi,
+        .avi = io_avi,
+    };
+    ESP_ERROR_CHECK(esp_lcd_new_panel_lt8912b(&io_all, &panel_config, &disp_panel));
+    ESP_GOTO_ON_ERROR(esp_lcd_panel_reset(disp_panel), err, TAG, "LCD panel reset failed");
+    ESP_GOTO_ON_ERROR(esp_lcd_panel_init(disp_panel), err, TAG, "LCD panel init failed");
+
+#endif //CONFIG_BSP_LCD_TYPE_
 
     /* Return all handles */
     ret_handles->io = io;
@@ -488,7 +577,7 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     ret_handles->panel = disp_panel;
     ret_handles->control = NULL;
 
-    ESP_LOGI(TAG, "Display initialized");
+    ESP_LOGI(TAG, "Display initialized with resolution %dx%d", BSP_LCD_H_RES, BSP_LCD_V_RES);
 
     return ret;
 
@@ -499,12 +588,21 @@ err:
     if (io) {
         esp_lcd_panel_io_del(io);
     }
+#if CONFIG_BSP_LCD_TYPE_HDMI
+    if (io_cec_dsi) {
+        esp_lcd_panel_io_del(io_cec_dsi);
+    }
+    if (io_avi) {
+        esp_lcd_panel_io_del(io_avi);
+    }
+#endif
     if (mipi_dsi_bus) {
         esp_lcd_del_dsi_bus(mipi_dsi_bus);
     }
     return ret;
 }
 
+#if !CONFIG_BSP_LCD_TYPE_HDMI
 esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t *ret_touch)
 {
     /* Initilize I2C */
@@ -537,6 +635,7 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
     return esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, ret_touch);
 }
+#endif //!CONFIG_BSP_LCD_TYPE_HDMI
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
@@ -601,6 +700,7 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
     return lvgl_port_add_disp_dsi(&disp_cfg, &dpi_cfg);
 }
 
+#if !CONFIG_BSP_LCD_TYPE_HDMI
 static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 {
     esp_lcd_touch_handle_t tp;
@@ -615,6 +715,7 @@ static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 
     return lvgl_port_add_touch(&touch_cfg);
 }
+#endif //!CONFIG_BSP_LCD_TYPE_HDMI
 
 lv_display_t *bsp_display_start(void)
 {
@@ -645,9 +746,9 @@ lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_brightness_init());
 
     BSP_NULL_CHECK(disp = bsp_display_lcd_init(cfg), NULL);
-
+#if !CONFIG_BSP_LCD_TYPE_HDMI
     BSP_NULL_CHECK(disp_indev = bsp_display_indev_init(disp), NULL);
-
+#endif
     return disp;
 }
 

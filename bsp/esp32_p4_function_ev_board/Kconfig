@@ -1,4 +1,4 @@
-menu "Board Support Package(ESP32-P4)"
+menu "Board Support Package (ESP32-P4)"
 
     config BSP_ERROR_CHECK
         bool "Enable error check in BSP"
@@ -131,7 +131,26 @@ menu "Board Support Package(ESP32-P4)"
                 bool "LCD 7-inch 1024x600 - ek79007"
             config BSP_LCD_TYPE_1280_800
                 bool "LCD 1280x800 - ili9881c"
-        endchoice           
+            config BSP_LCD_TYPE_HDMI
+                bool "HDMI - lt8912b"
+        endchoice    
+            
+        choice BSP_LCD_HDMI_RESOLUTION
+            depends on BSP_LCD_TYPE_HDMI
+            prompt "Select HDMI resolution"
+            default BSP_LCD_HDMI_1280x720_60HZ
+            help
+                Select the HDMI resolution.
+
+            config BSP_LCD_HDMI_800x600_60HZ
+                bool "800x600@60HZ"
+            config BSP_LCD_HDMI_1280x720_60HZ
+                bool "1280x720@60HZ"
+            config BSP_LCD_HDMI_1280x800_60HZ
+                bool "1280x800@60HZ"
+            config BSP_LCD_HDMI_1920x1080_30HZ
+                bool "1920x1080@30HZ"
+        endchoice          
         
     endmenu
     

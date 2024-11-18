@@ -47,6 +47,37 @@
 #define BSP_LCD_MIPI_DSI_LCD_VSYNC    (635)
 #define BSP_LCD_MIPI_DSI_LCD_VBP      (23)
 #define BSP_LCD_MIPI_DSI_LCD_VFP      (12)
+
+#elif CONFIG_BSP_LCD_TYPE_HDMI
+#if CONFIG_BSP_LCD_HDMI_800x600_60HZ
+/* LCD display definition 800x600 60Hz */
+#define BSP_LCD_H_RES              (800)
+#define BSP_LCD_V_RES              (600)
+#elif CONFIG_BSP_LCD_HDMI_1024x768_60HZ
+/* LCD display definition 1024x768 60Hz */
+#define BSP_LCD_H_RES              (1024)
+#define BSP_LCD_V_RES              (768)
+#elif CONFIG_BSP_LCD_HDMI_1280x720_60HZ
+/* LCD display definition 1280x720 60Hz */
+#define BSP_LCD_H_RES              (1280)
+#define BSP_LCD_V_RES              (720)
+#elif CONFIG_BSP_LCD_HDMI_1280x800_60HZ
+/* LCD display definition 1280x800 60Hz */
+#define BSP_LCD_H_RES              (1280)
+#define BSP_LCD_V_RES              (800)
+#elif CONFIG_BSP_LCD_HDMI_1920x1080_30HZ
+/* LCD display definition 1920x1080 30Hz */
+#define BSP_LCD_H_RES              (1920)
+#define BSP_LCD_V_RES              (1080)
+#elif CONFIG_BSP_LCD_HDMI_1920x1080_60HZ
+/* LCD display definition 1920x1080 60Hz */
+/* This setting is not working yet, it is only for developing and testing */
+#define BSP_LCD_H_RES              (1920)
+#define BSP_LCD_V_RES              (1080)
+#else
+#error Unsupported display type
+#endif
+
 #else
 /* LCD display definition 1280x800 */
 #define BSP_LCD_H_RES              (800)
