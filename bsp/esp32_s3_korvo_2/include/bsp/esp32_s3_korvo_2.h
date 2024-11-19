@@ -8,8 +8,9 @@
 
 #include "sdkconfig.h"
 #include "driver/gpio.h"
-#include "driver/i2c.h"
+#include "driver/i2s_std.h"
 #include "driver/sdmmc_host.h"
+#include "esp_adc/adc_oneshot.h"
 #include "soc/usb_pins.h"
 #include "iot_button.h"
 #include "esp_io_expander.h"
@@ -18,11 +19,6 @@
 #include "esp_lvgl_port.h"
 #include "bsp/display.h"
 
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-#include "driver/i2s.h"
-#else
-#include "driver/i2s_std.h"
-#endif
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
@@ -202,7 +198,6 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
  * @brief Init audio
  *
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
- * @warning The type of i2s_config param is depending on IDF version.
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
  * @param[out] tx_channel I2S TX channel
  * @param[out] rx_channel I2S RX channel
@@ -214,11 +209,7 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
  *      - ESP_ERR_NO_MEM        No memory for storing the channel information
  *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
  */
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-esp_err_t bsp_audio_init(const i2s_config_t *i2s_config);
-#else
 esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
-#endif
 
 /**
  * @brief Get codec I2S interface (initialized in bsp_audio_init)
@@ -252,8 +243,6 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
  *  - LCD Touch controller
  *  - IO Expander TCA9554
  *  - Camera
- *
- * After initialization of I2C, use BSP_I2C_NUM macro when creating I2C device drivers
  **************************************************************************************************/
 #define BSP_I2C_NUM     CONFIG_BSP_I2C_NUM
 
@@ -278,6 +267,13 @@ esp_err_t bsp_i2c_init(void);
  */
 esp_err_t bsp_i2c_deinit(void);
 
+/**
+ * @brief Get I2C driver handle
+ *
+ * @return
+ *      - I2C handle
+ */
+i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
 /**************************************************************************************************
  *
@@ -558,8 +554,6 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
  */
 esp_err_t bsp_adc_initialize(void);
 
-
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 /**
  * @brief Get ADC handle
  *
@@ -568,7 +562,6 @@ esp_err_t bsp_adc_initialize(void);
  * @return ADC handle
  */
 adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
-#endif
 
 /**************************************************************************************************
  *
