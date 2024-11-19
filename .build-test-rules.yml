@@ -7,7 +7,7 @@ examples:
       reason: Example depends on BSP, which is supported only for IDF >= 5.2
     - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 3) and CONFIG_NAME in ["esp32_p4_function_ev_board", "esp-box-3"]
       reason: Example depends on BSP, which is supported only for IDF >= 5.3
-    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 4) and CONFIG_NAME == "m5stack_core_s3"
+    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 4) and CONFIG_NAME in ["m5stack_core_s3", "esp32_s2_kaluga_kit"]
       reason: Example depends on BSP, which is supported only for IDF >= 5.4
 
 examples/generic_button_led:
