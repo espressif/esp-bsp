@@ -50,7 +50,7 @@ components/lcd/esp_lcd_gc9503:
   depends_filepatterns:
     - "components/lcd/esp_lcd_gc9503/**"
   disable:
-    - if: IDF_VERSION_MAJOR < 5 or (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR == 0 and ESP_IDF_VERSION_PATCH < 5) or (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR == 1 and ESP_IDF_VERSION_PATCH == 1)
+    - if: (IDF_VERSION_MAJOR < 5 or ((IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR == 0) and ESP_IDF_VERSION_PATCH < 5)) or ((IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR == 1) and ESP_IDF_VERSION_PATCH == 1)
       reason: Supported from version 5.0.5 and not supported in version 5.1.1
 
 components/lcd/esp_lcd_ili9341:
