@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.4.3
+
+### Fixes
+- Fixed a display context pointer bug
+
 ## 2.4.2
 
 ### Fixes
