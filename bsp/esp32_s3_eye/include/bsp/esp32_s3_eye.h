@@ -18,12 +18,7 @@
 #include "iot_button.h"
 #include "bsp/config.h"
 #include "bsp/display.h"
-
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-#include "driver/i2s.h"
-#else
 #include "driver/i2s_std.h"
-#endif
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 #include "lvgl.h"
@@ -138,7 +133,7 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
  * I2C interface
  *
  * There are two devices connected to I2C peripheral:
- *  - QMA7981 Inertial measurement unit
+ *  - QMA7981 or QMA6100P Inertial measurement unit
  *  - OV2640 Camera module
  **************************************************************************************************/
 #define BSP_I2C_NUM     CONFIG_BSP_I2C_NUM
@@ -163,6 +158,14 @@ esp_err_t bsp_i2c_init(void);
  *
  */
 esp_err_t bsp_i2c_deinit(void);
+
+/**
+ * @brief Get I2C driver handle
+ *
+ * @return
+ *      - I2C handle
+ */
+i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
 /**************************************************************************************************
  *
@@ -441,11 +444,7 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
  *      - ESP_ERR_NO_MEM        No memory for storing the channel information
  *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
  */
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-esp_err_t bsp_audio_init(const i2s_config_t *i2s_config);
-#else
 esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
-#endif
 
 /**
  * @brief Get codec I2S interface (initialized in bsp_audio_init)
@@ -483,17 +482,12 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
  */
 esp_err_t bsp_adc_initialize(void);
 
-
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 /**
  * @brief Get ADC handle
- *
- * @note This function is available only in IDF5 and higher
  *
  * @return ADC handle
  */
 adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
-#endif
 
 #ifdef __cplusplus
 }

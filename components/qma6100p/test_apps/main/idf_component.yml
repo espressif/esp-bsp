@@ -1,6 +1,6 @@
 ## IDF Component Manager Manifest File
 dependencies:
-  idf: ">=4.0"
+  idf: ">=5.2"
   qma6100p:
     version: "*"
     override_path: "../../../qma6100p"
