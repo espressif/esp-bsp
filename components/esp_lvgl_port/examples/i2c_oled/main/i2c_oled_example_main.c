@@ -146,7 +146,7 @@ void app_main(void)
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (lvgl_port_lock(0)) {
         /* Rotation of the screen */
-        lv_disp_set_rotation(disp, LV_DISPLAY_ROTATION_0);
+        lv_disp_set_rotation(disp, LV_DISPLAY_ROTATION_90);
 
         example_lvgl_demo_ui(disp);
         // Release the mutex
