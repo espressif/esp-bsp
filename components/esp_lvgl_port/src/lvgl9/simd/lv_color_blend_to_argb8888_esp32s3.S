@@ -184,8 +184,6 @@ lv_color_blend_to_argb8888_esp:
     // dest_w      (a4) - 4-byte multiple
 
 
-    mov   a13, a3
-
     ee.zero.q   q1                                      // clear q1 
     ee.orq      q1,    q1,   q0                         // copy q0 to q1
     sub         a6,    a6,   a11                        // dest_stride = dest_stride - dest_w_bytes
@@ -242,7 +240,7 @@ lv_color_blend_to_argb8888_esp:
             ee.vst.128.ip q2, a3, 16                    // store 16 bytes from q0 to dest_buff a3
         ._main_loop_unaligned_by_1byte:
 
-        // Firstly check mod 0 and mod 1 - correcting the aligned memory access
+        // Firstly check mod 1 and mod 2 - correcting the aligned memory access
         // Go back in one Byte, allow to correct after ee.vst.128.ip aligned access
         addi    a3, a3, -4
 

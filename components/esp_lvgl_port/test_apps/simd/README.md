@@ -4,6 +4,17 @@ Test app accommodates two types of tests: [`functionality test`](#Functionality-
 
 Assembly source files could be found in the [`lvgl_port`](../../src/lvgl9/simd/) component. Header file with the assembly function prototypes is provided into the LVGL using Kconfig option `LV_DRAW_SW_ASM_CUSTOM_INCLUDE` and can be found in the [`lvgl_port/include`](../../include/esp_lvgl_port_lv_blend.h)
 
+## Benchmark results
+
+| Color format | Matrix size | Memory alignment |  ASM version   | ANSI C version |
+| :----------- | :---------- | :--------------- | :------------- | :------------- |
+| ARGB8888     | 128x128     |     16 byte      |     0.327      |     1.600      |
+|              | 127x127     |      1 byte      |     0.488      |     1.597      |
+| RGB565       | 128x128     |     16 byte      |     0.196      |     1.146      |
+|              | 127x127     |      1 byte      |     0.497      |     1.124      |
+* this data was obtained by running [benchmark tests](#benchmark-test) on 128x128 16 byte aligned matrix (ideal case) and 127x127 1 byte aligned matrix (worst case)
+* the values represent cycles per sample to perform simple fill of the matrix on esp32s3
+
 ## Functionality test
 * Tests, whether the HW accelerated assembly version of an LVGL function provides the same results as the ANSI version
 * A top-level flow of the functionality test:
