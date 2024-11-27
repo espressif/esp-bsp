@@ -3,6 +3,7 @@
 ## 2.4.3
 
 ### Fixes
+- Fixed a display context pointer bug
 - Fixed I2C example for using with LVGL9
 
 ### Features
