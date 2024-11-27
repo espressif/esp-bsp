@@ -4,6 +4,10 @@
 
 ### Fixes
 - Fixed a display context pointer bug
+- Fixed I2C example for using with LVGL9
+
+### Features
+- Support for LV_COLOR_FORMAT_I1 for monochromatic screen
 
 ## 2.4.2
 
