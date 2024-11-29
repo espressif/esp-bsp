@@ -238,9 +238,13 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
         return ESP_FAIL;
     }
 
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+    i2c_master_bus_handle_t i2c_handle = bsp_i2c_get_handle();
+
     switch (sub_board_type) {
     case SUB_BOARD_TYPE_2_480_480: {
-        const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
+        esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
+        tp_io_config.scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ; // This parameter was introduced together with I2C Driver-NG in IDF v5.2
         const esp_lcd_touch_config_t tp_cfg = {
             .x_max = BSP_LCD_SUB_BOARD_2_H_RES,
             .y_max = BSP_LCD_SUB_BOARD_2_V_RES,
@@ -256,12 +260,13 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
                 .mirror_y = 0,
             },
         };
-        BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle));
+        BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle));
         BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_touch_new_i2c_ft5x06(tp_io_handle, &tp_cfg, &tp_handle));
         break;
     }
     case SUB_BOARD_TYPE_3_800_480: {
-        const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT1151_CONFIG();
+        esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT1151_CONFIG();
+        tp_io_config.scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ; // This parameter was introduced together with I2C Driver-NG in IDF v5.2
         const esp_lcd_touch_config_t tp_cfg = {
             .x_max = BSP_LCD_SUB_BOARD_3_H_RES,
             .y_max = BSP_LCD_SUB_BOARD_3_V_RES,
@@ -278,7 +283,7 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
             },
         };
 
-        BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle));
+        BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle));
         BSP_ERROR_CHECK_RETURN_ERR(esp_lcd_touch_new_i2c_gt1151(tp_io_handle, &tp_cfg, &tp_handle));
         break;
     }

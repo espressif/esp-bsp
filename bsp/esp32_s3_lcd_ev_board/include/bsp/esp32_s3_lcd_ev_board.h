@@ -12,6 +12,7 @@
 #pragma once
 
 #include "driver/i2s_std.h"
+#include "driver/i2c_master.h"
 #include "driver/gpio.h"
 #include "soc/usb_pins.h"
 #include "esp_adc/adc_cali_scheme.h"
@@ -146,6 +147,14 @@ esp_err_t bsp_i2c_init(void);
  *
  */
 esp_err_t bsp_i2c_deinit(void);
+
+/**
+ * @brief Get I2C driver handle
+ *
+ * @return
+ *      - I2C handle
+ */
+i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
 /**************************************************************************************************
  *

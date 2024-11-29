@@ -64,3 +64,9 @@
 ### Bugfix
 
 * Fixed LVGL8 compatibility in esp32_s3_lcd_ev_board
+
+## v3.0.0 - 2024-28-11
+
+### Features
+
+* Upgrade to I2C Driver-NG
