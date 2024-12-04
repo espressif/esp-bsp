@@ -139,8 +139,10 @@ static void lvgl_port_encoder_read(lv_indev_t *indev_drv, lv_indev_data_t *data)
     knob_event_t event = iot_knob_get_event(ctx->knob_handle);
 
     if (last_v ^ invd) {
+        data->enc_diff = (event == KNOB_LEFT) ? -1 :
+                         (event == KNOB_RIGHT) ? 1 :
+                         (int32_t)((uint32_t)invd - (uint32_t)last_v);
         last_v = invd;
-        data->enc_diff = (KNOB_LEFT == event) ? (-1) : ((KNOB_RIGHT == event) ? (1) : (0));
     } else {
         data->enc_diff = 0;
     }
