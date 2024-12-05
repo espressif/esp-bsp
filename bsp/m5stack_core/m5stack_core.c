@@ -11,7 +11,7 @@
 #include <esp_vfs_fat.h>
 
 #include <driver/gpio.h>
-#include <driver/i2c.h>
+#include "driver/i2c_master.h"
 #include <driver/spi_master.h>
 #include <driver/sdmmc_host.h>
 #include <driver/sdspi_host.h>
@@ -33,8 +33,17 @@ static const char *TAG = "M5Stack";
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *disp;
 static lv_indev_t *disp_indev = NULL;
+/* Button definitions */
+typedef enum {
+    BSP_BUTTON_PREV,   // Button left
+    BSP_BUTTON_ENTER,  // Button middle
+    BSP_BUTTON_NEXT,   // Button right
+    BSP_BUTTON_NUM
+} bsp_button_t;
 #endif                               // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+static i2c_master_bus_handle_t i2c_handle = NULL;
 static bool i2c_initialized = false;
+static i2c_master_dev_handle_t ip5306_h = NULL;
 static bool spi_initialized = false;
 
 esp_err_t bsp_i2c_init(void)
@@ -44,15 +53,20 @@ esp_err_t bsp_i2c_init(void)
         return ESP_OK;
     }
 
-    const i2c_config_t i2c_conf = {.mode             = I2C_MODE_MASTER,
-                                   .sda_io_num       = BSP_I2C_SDA,
-                                   .sda_pullup_en    = GPIO_PULLUP_DISABLE,
-                                   .scl_io_num       = BSP_I2C_SCL,
-                                   .scl_pullup_en    = GPIO_PULLUP_DISABLE,
-                                   .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
-                                  };
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+    const i2c_master_bus_config_t i2c_config = {
+        .i2c_port = BSP_I2C_NUM,
+        .scl_io_num = BSP_I2C_SCL,
+        .sda_io_num = BSP_I2C_SDA,
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+    };
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
+
+    const i2c_device_config_t ip5306_config = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = BSP_IP5306_ADDR,
+        .scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ,
+    };
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_master_bus_add_device(i2c_handle, &ip5306_config, &ip5306_h));
 
     i2c_initialized = true;
 
@@ -61,23 +75,9 @@ esp_err_t bsp_i2c_init(void)
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
     i2c_initialized = false;
     return ESP_OK;
-}
-
-uint8_t read8bit(uint8_t sub_addr)
-{
-    // Read register data
-    uint8_t reg_data[1] = {0};
-    esp_err_t err = i2c_master_write_read_device(BSP_I2C_NUM, BSP_IP5306_ADDR, &sub_addr, 1, reg_data, sizeof(reg_data),
-                    1000 / portTICK_PERIOD_MS);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to write & read register address: %s", esp_err_to_name(err));
-    }
-    ESP_LOGD(TAG, "IP5306 register %x: 0x%x", sub_addr, reg_data[0]);
-
-    return reg_data[0];
 }
 
 esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
@@ -87,35 +87,14 @@ esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
     /* Initialize I2C */
     BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
 
-    uint8_t val = 0;
     switch (feature) {
-    case BSP_FEATURE_LCD:  
-    case BSP_FEATURE_TOUCH:
-    case BSP_FEATURE_SD:
-    case BSP_FEATURE_SPEAKER:
-        // IP5306 can only control the overall output, not each function separately
-        // Read the current BOOST output status
-        if (i2c_master_write_read_device(BSP_I2C_NUM, BSP_IP5306_ADDR, 
-                                       (uint8_t[]){0x00}, 1, &val, 1, 
-                                       1000 / portTICK_PERIOD_MS) != ESP_OK) {
-            return ESP_FAIL;
-        }
-        
+    case BSP_FEATURE_LCD:
+        // backlight is controlled by GPIO
         if (enable) {
-            val |= 0x02;  // Set BOOST_OUT_BIT
+            err = bsp_display_backlight_on();
         } else {
-            val &= ~0x02; // Clear BOOST_OUT_BIT
+            err = bsp_display_backlight_off();
         }
-        
-        // Write back to the register
-        const uint8_t write_buf[] = {0x00, val};
-        err = i2c_master_write_to_device(BSP_I2C_NUM, BSP_IP5306_ADDR, 
-                                       write_buf, sizeof(write_buf), 
-                                       1000 / portTICK_PERIOD_MS);
-        break;
-
-    case BSP_FEATURE_BATTERY:
-        // IP5306 has built-in battery management function, no need to enable separately
         break;
     }
     return err;
@@ -179,8 +158,6 @@ esp_err_t bsp_spiffs_unmount(void)
 
 esp_err_t bsp_sdcard_mount(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_SD, true));
-
     const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
 #ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
         .format_if_mount_failed = true,
@@ -229,11 +206,6 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     // Simple GPIO initialization
     BSP_ERROR_CHECK_RETURN_NULL(bsp_audio_init(NULL));
     return NULL;  // No longer using codec
-}
-
-esp_err_t bsp_speaker_enable(bool enable)
-{
-    return gpio_set_level(BSP_SPEAKER_IO, enable ? 1 : 0);
 }
 
 // Bit number used to represent command and parameter
@@ -370,79 +342,34 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
     return lvgl_port_add_disp(&disp_cfg);
 }
 
-static void button_init(void)
-{
-    // Configure buttons as input with pull-up
-    gpio_config_t btn_config = {
-        .pin_bit_mask = BIT64(BSP_BUTTON_A) | BIT64(BSP_BUTTON_B) | BIT64(BSP_BUTTON_C),
-        .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE
-    };
-    ESP_ERROR_CHECK(gpio_config(&btn_config));
-}
-
-static void button_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
-{
-    static uint32_t last_key = 0;   // Store the last key value
-    
-    // Read button states (low level means pressed)
-    bool btn_a_pressed = !gpio_get_level(BSP_BUTTON_A);  // Left key
-    bool btn_b_pressed = !gpio_get_level(BSP_BUTTON_B);  // Enter key
-    bool btn_c_pressed = !gpio_get_level(BSP_BUTTON_C);  // Right key
-
-    if(btn_a_pressed) {
-        data->key = LV_KEY_LEFT;
-        last_key = LV_KEY_LEFT;
-        data->state = LV_INDEV_STATE_PRESSED;
-    }
-    else if(btn_b_pressed) {
-        data->key = LV_KEY_ENTER;
-        last_key = LV_KEY_ENTER;
-        data->state = LV_INDEV_STATE_PRESSED;
-    }
-    else if(btn_c_pressed) {
-        data->key = LV_KEY_RIGHT;
-        last_key = LV_KEY_RIGHT;
-        data->state = LV_INDEV_STATE_PRESSED;
-    }
-    else {
-        data->state = LV_INDEV_STATE_RELEASED;
-        data->key = last_key;    // Keep last key value when released
-    }
-}
-
-// Function to check if buttons are enabled
-static bool is_buttons_enabled(void)
-{
-    // Read the state of all three buttons
-    bool btn_a = gpio_get_level(BSP_BUTTON_A);
-    bool btn_b = gpio_get_level(BSP_BUTTON_B);
-    bool btn_c = gpio_get_level(BSP_BUTTON_C);
-    
-    // If all buttons are high (not pressed), buttons are properly initialized
-    return (btn_a && btn_b && btn_c);
-}
+static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.active_level = false,
+        .gpio_button_config.gpio_num = BSP_BUTTON_LEFT,
+    },
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.active_level = false,
+        .gpio_button_config.gpio_num = BSP_BUTTON_MIDDLE,
+    },
+    {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config.active_level = false,
+        .gpio_button_config.gpio_num = BSP_BUTTON_RIGHT,
+    },
+};
 
 static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 {
-    // Initialize buttons first
-    button_init();
-    
-    // Check if buttons are available
-    if (!is_buttons_enabled()) {
-        ESP_LOGW(TAG, "Buttons not enabled, skipping keypad input device");
-        return NULL;
-    }
-    
-    static lv_indev_drv_t indev_drv;
-    lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_KEYPAD;
-    indev_drv.read_cb = button_read;
-    indev_drv.disp = disp;
-    
-    return lv_indev_drv_register(&indev_drv);
+    const lvgl_port_nav_btns_cfg_t btns = {
+        .disp = disp,
+        .button_prev = &bsp_button_config[BSP_BUTTON_PREV],
+        .button_next = &bsp_button_config[BSP_BUTTON_NEXT],
+        .button_enter = &bsp_button_config[BSP_BUTTON_ENTER]
+    };
+
+    return lvgl_port_add_navigation_buttons(&btns);
 }
 
 lv_display_t *bsp_display_start(void)
@@ -497,32 +424,53 @@ void bsp_display_unlock(void)
     lvgl_port_unlock();
 }
 
-int8_t bsp_battery_get_level(void)
-{
-    uint8_t data;
-    if (i2c_master_write_read_device(BSP_I2C_NUM, BSP_IP5306_ADDR, 
-                                   (uint8_t[]){0x78}, 1, &data, 1, 
-                                   1000 / portTICK_PERIOD_MS) == ESP_OK) {
-        switch (data >> 4) {
-            case 0x00: return 100;
-            case 0x08: return 75;
-            case 0x0C: return 50;
-            case 0x0E: return 25;
-            default:   return 0;
-        }
-    }
-    return -1;
-}
-
-bool bsp_battery_is_charging(void)
+uint8_t bsp_battery_is_charging(void)
 {
     uint8_t val = 0;
-    if (i2c_master_write_read_device(BSP_I2C_NUM, BSP_IP5306_ADDR, 
-                                   (uint8_t[]){0x71}, 1, &val, 1, 
-                                   1000 / portTICK_PERIOD_MS) == ESP_OK) {
-        return (val & 0x0C);
+    // 0x70 is the register address for battery charge enable, 00001000 is enable, 00000000 is disable
+    uint8_t read_buf_charge_enable[] = {0x70};
+    if (i2c_master_transmit_receive(ip5306_h, read_buf_charge_enable, sizeof(read_buf_charge_enable), &val, sizeof(val), -1) == ESP_OK) {
+        if ((val & 0x08) == 0) {
+            return 0; // Not charging
+        }
     }
-    return false;
+    
+    // 0x71 is the register address for battery charging status
+    val = 0;
+    uint8_t read_buf_charge_status[] = {0x71};
+    if (i2c_master_transmit_receive(ip5306_h, read_buf_charge_status, sizeof(read_buf_charge_status), &val, sizeof(val), -1) == ESP_OK) {
+        if ((val & 0x08) == 0) {
+            return 1; // still charging
+        }
+        else
+        {
+            return 2; // full charge
+        }
+    }
+    return 3;   // cannot get charging status
+}
+
+esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
+{
+    esp_err_t ret = ESP_OK;
+    if ((btn_array_size < BSP_BUTTON_NUM) || (btn_array == NULL)) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    if (btn_cnt) {
+        *btn_cnt = 0;
+    }
+    for (int i = 0; i < BSP_BUTTON_NUM; i++) {
+        btn_array[i] = iot_button_create(&bsp_button_config[i]);
+        if (btn_array[i] == NULL) {
+            ret = ESP_FAIL;
+            break;
+        }
+        if (btn_cnt) {
+            (*btn_cnt)++;
+        }
+    }
+    return ret;
 }
 
 #endif  // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)

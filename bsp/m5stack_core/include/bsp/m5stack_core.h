@@ -26,6 +26,8 @@
 #include "esp_lvgl_port.h"
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
+#include "iot_button.h"
+
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
@@ -71,9 +73,9 @@
 #define BSP_SD_CS             (GPIO_NUM_4)
 
 /* BUTTON */
-#define BSP_BUTTON_A          (GPIO_NUM_39)
-#define BSP_BUTTON_B          (GPIO_NUM_38)
-#define BSP_BUTTON_C          (GPIO_NUM_37)
+#define BSP_BUTTON_LEFT       (GPIO_NUM_39)
+#define BSP_BUTTON_MIDDLE     (GPIO_NUM_38)
+#define BSP_BUTTON_RIGHT      (GPIO_NUM_37)
 
 #ifdef __cplusplus
 extern "C" {
@@ -134,8 +136,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
  * I2C interface
  *
  * There are multiple devices connected to I2C peripheral:
- *  - AXP192 / AXP2101 PMU
- *  - LCD Touch controller
+ *  - IP5306
  **************************************************************************************************/
 #define BSP_I2C_NUM     CONFIG_BSP_I2C_NUM
 
@@ -352,35 +353,28 @@ void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation);
  **************************************************************************************************/
 typedef enum {
     BSP_FEATURE_LCD,
-    BSP_FEATURE_TOUCH,
-    BSP_FEATURE_SD,
-    BSP_FEATURE_SPEAKER,
-    BSP_FEATURE_BATTERY
 } bsp_feature_t;
 
 esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable);
 
 /**
- * @brief Enable or disable speaker
- *
- * @param enable true to enable speaker, false to disable
- * @return
- *     - ESP_OK Success
- *     - ESP_ERR_INVALID_ARG Parameter error
- */
-esp_err_t bsp_speaker_enable(bool enable);
-
-/**
- * @brief Get battery level
- * @return Battery level in percent (0-100), -1 if error
- */
-int8_t bsp_battery_get_level(void);
-
-/**
  * @brief Check if battery is charging
- * @return true if charging, false if not charging or error
+ * @return 0 if not charging, 1 if still charging, 2 if full charge, 3 if cannot get charging status
  */
-bool bsp_battery_is_charging(void);
+uint8_t bsp_battery_is_charging(void);
+
+/**
+ * @brief Create button objects
+ *
+ * @param btn_array Output array of button handles
+ * @param btn_cnt Output number of created buttons
+ * @param btn_array_size Size of output array
+ * @return
+ *      - ESP_OK Success
+ *      - ESP_ERR_INVALID_ARG Parameter error
+ *      - ESP_FAIL Create button failed
+ */
+esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 
 #ifdef __cplusplus
 }
