@@ -91,7 +91,7 @@ menu "Board Support Package"
             bool "Allocate LVGL buffer in PSRAM "
             default n
             help
-                LVGL buffer will be Allocated in PSRAM instead of DMA.
+                LVGL buffer will be allocated in PSRAM instead of internal RAM with DMA.
 
         config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
             int "LEDC channel index"
