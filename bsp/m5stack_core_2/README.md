@@ -16,6 +16,8 @@ M5Core2 is the second generation core device in the M5Stack development kit seri
 - **Interface**: USB TYPE-C interface for charging, program downloading, and serial communication.
 - **Display**: 2.0-inch integrated capacitive touch screen with three programmable capacitive buttons on the front.
 - **Power Management:** Managed by an AXP192 power management chip (upgraded to AXP2101 in Core2 V1.1), which effectively controls power consumption. It includes a built-in green LED power indicator for battery level notification. The battery capacity is 390mAh, providing longer power duration than the previous model.
+  - For Core2 V1.0: Configure `CONFIG_BSP_PMU_AXP192`
+  - For Core2 V1.1: Configure `CONFIG_BSP_PMU_AXP2101`
 - **Audio**: I2S digital audio interface power amplifier chip to prevent signal distortion, along with a built-in speaker.
 - **Expansion**: Retains a TF-card (microSD) slot, and an expansion board on the back with a 6-axis IMU sensor and a microphone.
 - **RTC Module**: Built-in RTC module for accurate timing, with a dedicated battery for RTC power supply in Core2 V1.1.
