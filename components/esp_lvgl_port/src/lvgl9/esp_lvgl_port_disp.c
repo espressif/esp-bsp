@@ -58,6 +58,9 @@ typedef struct {
     } flags;
 } lvgl_port_display_ctx_t;
 
+static lv_color_t *lcd_buf1 = NULL;
+static lv_color_t *lcd_buf2 = NULL;
+
 /*******************************************************************************
 * Function definitions
 *******************************************************************************/
@@ -80,6 +83,13 @@ static void lvgl_port_display_invalidate_callback(lv_event_t *e);
 /*******************************************************************************
 * Public API functions
 *******************************************************************************/
+
+// Used for ppa picture start address
+void bsp_get_lvgl_buffer(void **buffer1, void **buffer2)
+{
+    *buffer1 = lcd_buf1;
+    *buffer2 = lcd_buf2;
+}
 
 lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
 {
@@ -291,7 +301,11 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
         buff_caps |= MALLOC_CAP_DEFAULT;
     }
 
-    /* Use RGB internal buffers for avoid tearing effect */
+#if CONFIG_IDF_TARGET_ESP32P4
+    buff_caps |= MALLOC_CAP_CACHE_ALIGNED;
+#endif
+
+    /* Use LCD internal buffers for avoid tearing effect */
     if (priv_cfg && priv_cfg->avoid_tearing) {
 #if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
         buffer_size = disp_cfg->hres * disp_cfg->vres;
@@ -304,6 +318,8 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
         trans_sem = xSemaphoreCreateCounting(1, 0);
         ESP_GOTO_ON_FALSE(trans_sem, ESP_ERR_NO_MEM, err, TAG, "Failed to create transport counting Semaphore");
         disp_ctx->trans_sem = trans_sem;
+        lcd_buf1 = buf1;
+        lcd_buf2 = buf2;
     } else {
         /* alloc draw buffers used by LVGL */
         /* it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized */

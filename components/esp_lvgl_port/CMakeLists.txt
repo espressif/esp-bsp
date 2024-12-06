@@ -77,12 +77,12 @@ if("usb_host_hid" IN_LIST build_components)
 endif()
 
 # Include SIMD assembly source code for rendering, only for (9.1.0 <= LVG_version < 9.2.0) and only for esp32 and esp32s3
-if((lvgl_ver VERSION_GREATER_EQUAL "9.1.0") AND (lvgl_ver VERSION_LESS "9.2.0"))
-    if(CONFIG_IDF_TARGET_ESP32 OR CONFIG_IDF_TARGET_ESP32S3)
+if((lvgl_ver VERSION_GREATER_EQUAL "9.1.0") AND (lvgl_ver VERSION_LESS_EQUAL "9.2.0"))
+    if(CONFIG_IDF_TARGET_ESP32 OR CONFIG_IDF_TARGET_ESP32S3 OR CONFIG_IDF_TARGET_ESP32P4)
         message(VERBOSE "Compiling SIMD")
         if(CONFIG_IDF_TARGET_ESP32S3)
             file(GLOB_RECURSE ASM_SRCS ${PORT_PATH}/simd/*_esp32s3.S)    # Select only esp32s3 related files
-        else()
+        elseif(CONFIG_IDF_TARGET_ESP32)
             file(GLOB_RECURSE ASM_SRCS ${PORT_PATH}/simd/*_esp32.S)      # Select only esp32 related files
         endif()
         list(APPEND ADD_SRCS ${ASM_SRCS})
@@ -91,9 +91,16 @@ if((lvgl_ver VERSION_GREATER_EQUAL "9.1.0") AND (lvgl_ver VERSION_LESS "9.2.0"))
         idf_component_get_property(lvgl_lib ${lvgl_name} COMPONENT_LIB)
         target_include_directories(${lvgl_lib} PRIVATE "include")
 
+        if(CONFIG_IDF_TARGET_ESP32P4)
+            file(GLOB_RECURSE PPA_SRCS ${PORT_PATH}/ppa/*)
+            list(APPEND ADD_SRCS ${PPA_SRCS})
+            set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_malloc_core")
+            set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u esp_ppa_fill_for_lvgl")
+        else()
         # Force link .S files
-        set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_argb8888_esp")
-        set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_rgb565_esp")
+            set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_argb8888_esp")
+            set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_rgb565_esp")
+        endif()
     endif()
 endif()
 
@@ -113,6 +120,10 @@ target_link_libraries(lvgl_port_lib PRIVATE
     idf::esp_timer
     ${ADD_LIBS}
     )
+
+if(CONFIG_IDF_TARGET_ESP32P4)
+    target_link_libraries(lvgl_port_lib PRIVATE idf::esp_driver_ppa idf::esp_mm)
+endif()
 
 # Finally, link the lvgl_port_lib its esp-idf interface library
 target_link_libraries(${COMPONENT_LIB} INTERFACE lvgl_port_lib)
