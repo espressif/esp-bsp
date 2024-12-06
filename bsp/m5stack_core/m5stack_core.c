@@ -11,7 +11,7 @@
 #include <esp_vfs_fat.h>
 
 #include <driver/gpio.h>
-#include "driver/i2c_master.h"
+#include <driver/i2c_master.h>
 #include <driver/spi_master.h>
 #include <driver/sdmmc_host.h>
 #include <driver/sdspi_host.h>
@@ -24,7 +24,6 @@
 #include "bsp/display.h"
 #include "esp_lcd_ili9341.h"
 #include "bsp_err_check.h"
-#include "esp_codec_dev_defaults.h"
 
 static const char *TAG = "M5Stack";
 
@@ -75,8 +74,18 @@ esp_err_t bsp_i2c_init(void)
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
-    i2c_initialized = false;
+    if (i2c_initialized) {
+        // Delete I2C device for IP5306 first
+        if (i2c_handle != NULL) {
+            i2c_master_bus_rm_device(ip5306_h);
+            ip5306_h = NULL;
+        }
+        
+        // Then delete the I2C master bus
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
+        i2c_handle = NULL;
+        i2c_initialized = false;
+    }
     return ESP_OK;
 }
 
@@ -184,7 +193,7 @@ esp_err_t bsp_sdcard_unmount(void)
     return esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
 }
 
-esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config)
+esp_err_t bsp_speaker_init(void)
 {
     // Configure speaker GPIO as output mode
     gpio_config_t io_conf = {
@@ -199,13 +208,6 @@ esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config)
     gpio_set_level(BSP_SPEAKER_IO, 0);  // Turn off speaker
 
     return ESP_OK;
-}
-
-esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
-{
-    // Simple GPIO initialization
-    BSP_ERROR_CHECK_RETURN_NULL(bsp_audio_init(NULL));
-    return NULL;  // No longer using codec
 }
 
 // Bit number used to represent command and parameter
@@ -236,7 +238,7 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
     }
 
     ESP_LOGI(TAG, "Setting LCD backlight: %d%%", brightness_percent);
-    
+
     return gpio_set_level(BSP_LCD_BACKLIGHT, brightness_percent > 0);
 }
 
@@ -308,7 +310,7 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
     const bsp_display_config_t bsp_disp_cfg = {
         .max_transfer_sz = BSP_LCD_DRAW_BUFF_SIZE * sizeof(uint16_t),
     };
-    
+
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&bsp_disp_cfg, &panel_handle, &io_handle));
 
     esp_lcd_panel_disp_on_off(panel_handle, true);
@@ -394,10 +396,10 @@ lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_brightness_init());
 
     BSP_NULL_CHECK(disp = bsp_display_lcd_init(cfg), NULL);
-    
+
     // Initialize keypad input device
     BSP_NULL_CHECK(disp_indev = bsp_display_indev_init(disp), NULL);
-    
+
     // Turn on backlight
     bsp_display_backlight_on();
 
@@ -434,16 +436,14 @@ uint8_t bsp_battery_is_charging(void)
             return 0; // Not charging
         }
     }
-    
+
     // 0x71 is the register address for battery charging status
     val = 0;
     uint8_t read_buf_charge_status[] = {0x71};
     if (i2c_master_transmit_receive(ip5306_h, read_buf_charge_status, sizeof(read_buf_charge_status), &val, sizeof(val), -1) == ESP_OK) {
         if ((val & 0x08) == 0) {
             return 1; // still charging
-        }
-        else
-        {
+        } else {
             return 2; // full charge
         }
     }
