@@ -68,13 +68,12 @@ menu "Board Support Package"
     endmenu
 
     menu "Display"
-        config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
-        int "LEDC channel index"
-        default 1
-        range 0 7
-        help
-            LEDC channel is used to generate PWM signal that controls display brightness.
-            Set LEDC index that should be used.
+        config BSP_M5STACK_CORE_LCD_INVERT_COLOR
+            bool "Invert LCD colors (for Core v2.2 and above)"
+            default y
+            help
+                Enable this option if you have M5Stack Core v2.2 or above with IPS display.
+                Disable for older versions with TN display.
     endmenu
 
     config BSP_I2S_NUM

@@ -80,7 +80,6 @@ esp_err_t bsp_i2c_deinit(void)
             i2c_master_bus_rm_device(ip5306_h);
             ip5306_h = NULL;
         }
-        
         // Then delete the I2C master bus
         BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
         i2c_handle = NULL;
@@ -210,11 +209,6 @@ esp_err_t bsp_speaker_init(void)
     return ESP_OK;
 }
 
-// Bit number used to represent command and parameter
-#define LCD_CMD_BITS   8
-#define LCD_PARAM_BITS 8
-#define LCD_LEDC_CH    CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH
-
 esp_err_t bsp_display_brightness_init(void)
 {
     // Configure backlight GPIO
@@ -238,7 +232,6 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
     }
 
     ESP_LOGI(TAG, "Setting LCD backlight: %d%%", brightness_percent);
-
     return gpio_set_level(BSP_LCD_BACKLIGHT, brightness_percent > 0);
 }
 
@@ -287,7 +280,11 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
 
     esp_lcd_panel_reset(*ret_panel);
     esp_lcd_panel_init(*ret_panel);
+#if CONFIG_BSP_M5STACK_CORE_LCD_INVERT_COLOR
     esp_lcd_panel_invert_color(*ret_panel, true);
+#else
+    esp_lcd_panel_invert_color(*ret_panel, false);
+#endif
     return ret;
 
 err:
@@ -472,5 +469,4 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
     }
     return ret;
 }
-
 #endif  // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
