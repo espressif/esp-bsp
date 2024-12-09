@@ -357,8 +357,13 @@ lv_display_t *bsp_display_start(void)
         .buffer_size = BSP_LCD_DRAW_BUFF_SIZE,
         .double_buffer = BSP_LCD_DRAW_BUFF_DOUBLE,
         .flags = {
+#if (CONFIG_BSP_DISPLAY_LVGL_BUFFER_IN_PSRAM && CONFIG_SPIRAM)
+            .buff_dma = false,
+            .buff_spiram = true,
+#else
             .buff_dma = true,
             .buff_spiram = false,
+#endif
         }
     };
     return bsp_display_start_with_config(&cfg);
