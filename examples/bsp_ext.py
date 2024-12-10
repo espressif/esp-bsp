@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import os
 from re import match, compile
@@ -43,25 +43,7 @@ def action_extensions(base_actions, project_path=os.getcwd()):
 
         # List of supported BSPs
         bsps = {
-            'esp_wrover_kit',
-            'esp32_azure_iot_kit',
-            'esp32_s2_kaluga_kit',
-            'esp32_s3_eye',
-            'esp32_s3_lcd_ev_board',
-            'esp32_s3_usb_otg',
-            'esp-box',
-            'esp32_s3_korvo_2',
-            'esp-box-lite',
-            'esp32_lyrat',
             'esp-box-3',
-            'esp32_c3_lcdkit',
-            'esp_bsp_generic',
-            'esp_bsp_devkit',
-            'esp32_s3_korvo_1',
-            'esp32_p4_function_ev_board',
-            'm5stack_core_s3',
-            'm5dial',
-            'm5stack_core_2'
         }
 
         if bsp == '':
