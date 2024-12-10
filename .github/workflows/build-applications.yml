@@ -72,3 +72,67 @@ jobs:
           echo "Files changed: ${ALL_CHANGED_FILES}"
           idf-build-apps find --modified-files "${ALL_CHANGED_FILES}"
           idf-build-apps build --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }} --modified-files "${ALL_CHANGED_FILES}"
+
+      - uses: actions/upload-artifact@v4
+        if: github.repository_owner == 'espressif' && needs.prepare.outputs.build_only == '0'
+        with:
+          name: app_binaries_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}
+
+  run-target:
+    name: Run apps on target
+    if: github.repository_owner == 'espressif' && needs.prepare.outputs.build_only != '1'
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        idf_ver:
+          - "latest"
+        runner:
+          - runs-on: "esp-box-3"
+            marker: "esp-box-3"
+            target: "esp32s3"
+    env:
+      TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
+      TEST_RESULT_FILE: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}.xml
+    runs-on: [self-hosted, linux, docker, BrnoUBU0006]
+    container:
+      image: python:3.11-bookworm
+      options: --privileged # Privileged mode has access to serial ports
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: app_binaries_${{ matrix.idf_ver }}_*
+          merge-multiple: true
+      - name: Install Python packages
+        env:
+          PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
+        run: pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
+      - name: Run apps
+        run: |
+          python3 .github/get_pytest_args.py --target=${{ matrix.runner.target }} -v 'build_info*.json' pytest-args.txt
+          cat pytest-args.txt
+          pytest --suppress-no-test-exit-code $(cat pytest-args.txt) --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.target }}
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ env.TEST_RESULT_NAME }}
+          path: ${{ env.TEST_RESULT_FILE }}
+
+  publish-results:
+    name: Publish Test results
+    needs:
+      - run-target
+    if: github.repository_owner == 'espressif' && always() && github.event_name == 'pull_request' && needs.prepare.outputs.build_only == '0'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download Test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test_results_*
+          path: test_results
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: test_results/**/*.xml
