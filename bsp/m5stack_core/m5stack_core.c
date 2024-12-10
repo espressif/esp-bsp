@@ -209,6 +209,9 @@ esp_err_t bsp_speaker_init(void)
     return ESP_OK;
 }
 
+#define LCD_CMD_BITS   8
+#define LCD_PARAM_BITS 8
+
 esp_err_t bsp_display_brightness_init(void)
 {
     // Configure backlight GPIO

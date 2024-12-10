@@ -3,7 +3,7 @@ examples:
   disable:
     - if: CONFIG_NAME in ["esp-box", "esp-box-lite"]
       reason: Do not build examples for deprecated BSPs
-    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 2) and CONFIG_NAME in ["esp_bsp_generic", "esp_bsp_devkit"]
+    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 2) and CONFIG_NAME in ["esp_bsp_generic", "esp_bsp_devkit", "m5stack_core"]
       reason: Example depends on BSP, which is supported only for IDF >= 5.2
     - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 3) and CONFIG_NAME in ["esp32_p4_function_ev_board", "esp-box-3", "esp32_s3_lcd_ev_board"]
       reason: Example depends on BSP, which is supported only for IDF >= 5.3

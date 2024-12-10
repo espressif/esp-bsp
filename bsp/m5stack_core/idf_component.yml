@@ -9,7 +9,7 @@ tags:
   - bsp
 
 dependencies:
-  idf: ">=5.0"
+  idf: ">=5.2"
   esp_lcd_ili9341: "^1"
 
   button:
