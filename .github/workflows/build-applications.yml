@@ -54,11 +54,11 @@ jobs:
         with:
           name: app_binaries_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}
           path: |
-            ${IDF_EXTRA_ACTIONS_PATH}/examples/*/build/bootloader/bootloader.bin
-            ${IDF_EXTRA_ACTIONS_PATH}/examples/*/build/partition_table/partition-table.bin
-            ${IDF_EXTRA_ACTIONS_PATH}/examples/*/build/*.bin
-            ${IDF_EXTRA_ACTIONS_PATH}/examples/*/build/flasher_args.json
-            ${IDF_EXTRA_ACTIONS_PATH}/examples/*/build/config/sdkconfig.json
+            */examples/*/build/bootloader/bootloader.bin
+            */examples/*/build/partition_table/partition-table.bin
+            */examples/*/build/*.bin
+            */examples/*/build/flasher_args.json
+            */examples/*/build/config/sdkconfig.json
 
   run-target:
     name: Run apps on target
