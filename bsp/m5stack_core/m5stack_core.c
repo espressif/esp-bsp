@@ -15,6 +15,7 @@
 #include <driver/spi_master.h>
 #include <driver/sdmmc_host.h>
 #include <driver/sdspi_host.h>
+#include <driver/ledc.h>
 
 #include <esp_lcd_panel_io.h>
 #include <esp_lcd_panel_vendor.h>
@@ -211,18 +212,32 @@ esp_err_t bsp_speaker_init(void)
 
 #define LCD_CMD_BITS   8
 #define LCD_PARAM_BITS 8
+#define LCD_LEDC_CH CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH
 
 esp_err_t bsp_display_brightness_init(void)
 {
-    // Configure backlight GPIO
-    gpio_config_t io_conf = {
-        .pin_bit_mask = (1ULL << BSP_LCD_BACKLIGHT),
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE,
+    // Setup LEDC peripheral for PWM backlight control
+    const ledc_channel_config_t LCD_backlight_channel = {
+        .gpio_num = BSP_LCD_BACKLIGHT,
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .channel = LCD_LEDC_CH,
+        .intr_type = LEDC_INTR_DISABLE,
+        .timer_sel = 1,
+        .duty = 0,
+        .hpoint = 0
     };
-    return gpio_config(&io_conf);
+    const ledc_timer_config_t LCD_backlight_timer = {
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .duty_resolution = LEDC_TIMER_10_BIT,
+        .timer_num = 1,
+        .freq_hz = 5000,
+        .clk_cfg = LEDC_AUTO_CLK
+    };
+
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_timer_config(&LCD_backlight_timer));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_channel_config(&LCD_backlight_channel));
+
+    return ESP_OK;
 }
 
 esp_err_t bsp_display_brightness_set(int brightness_percent)
@@ -235,7 +250,11 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
     }
 
     ESP_LOGI(TAG, "Setting LCD backlight: %d%%", brightness_percent);
-    return gpio_set_level(BSP_LCD_BACKLIGHT, brightness_percent > 0);
+    uint32_t duty_cycle = (1023 * brightness_percent) / 100; // LEDC resolution set to 10bits, thus: 100% = 1023
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_set_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH, duty_cycle));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_update_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CH));
+
+    return ESP_OK;
 }
 
 esp_err_t bsp_display_backlight_off(void)

@@ -74,6 +74,13 @@ menu "Board Support Package"
             help
                 Enable this option if you have M5Stack Core v2.2 or above with IPS display.
                 Disable for older versions with TN display.
+        config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
+            int "LEDC channel index"
+            default 1
+            range 0 7
+            help
+                LEDC channel is used to generate PWM signal that controls display brightness.
+                Set LEDC index that should be used.
     endmenu
 
     config BSP_I2S_NUM
