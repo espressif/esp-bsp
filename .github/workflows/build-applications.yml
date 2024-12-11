@@ -76,7 +76,7 @@ jobs:
     env:
       TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
       TEST_RESULT_FILE: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}.xml
-    runs-on: [self-hosted, linux, docker, BrnoUBU0006]
+    runs-on: [self-hosted, Linux, bspwall]
     container:
       image: python:3.11-bookworm
       options: --privileged # Privileged mode has access to serial ports
