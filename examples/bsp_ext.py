@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import os
 from re import match, compile
@@ -61,7 +61,8 @@ def action_extensions(base_actions, project_path=os.getcwd()):
             'esp32_p4_function_ev_board',
             'm5stack_core_s3',
             'm5dial',
-            'm5stack_core_2'
+            'm5stack_core_2',
+            'm5stack_core',
         }
 
         if bsp == '':
