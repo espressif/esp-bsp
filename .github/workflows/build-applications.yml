@@ -59,6 +59,7 @@ jobs:
             examples/*/build_*/*.bin
             examples/*/build_*/flasher_args.json
             examples/*/build_*/config/sdkconfig.json
+            build_info*.json
 
   run-target:
     name: Run apps on target
