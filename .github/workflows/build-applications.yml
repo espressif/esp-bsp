@@ -53,12 +53,7 @@ jobs:
         if: github.repository_owner == 'espressif' && needs.prepare.outputs.build_only == '0'
         with:
           name: app_binaries_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}
-          path: |
-            */examples/*/build/bootloader/bootloader.bin
-            */examples/*/build/partition_table/partition-table.bin
-            */examples/*/build/*.bin
-            */examples/*/build/flasher_args.json
-            */examples/*/build/config/sdkconfig.json
+          path: binaries/
 
   run-target:
     name: Run apps on target
