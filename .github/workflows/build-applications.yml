@@ -47,7 +47,7 @@ jobs:
 
           echo "Files changed: ${ALL_CHANGED_FILES}"
           idf-build-apps find --modified-files "${ALL_CHANGED_FILES}"
-          idf-build-apps build --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }} --modified-files "${ALL_CHANGED_FILES}"
+          idf-build-apps build --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }} --modified-files "${ALL_CHANGED_FILES}" --collect-app-info build_info_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}.json
 
       - uses: actions/upload-artifact@v4
         if: github.repository_owner == 'espressif' && needs.prepare.outputs.build_only == '0'
