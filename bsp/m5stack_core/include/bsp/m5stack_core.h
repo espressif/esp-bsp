@@ -312,17 +312,6 @@ typedef enum {
 
 esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable);
 
-/**
- * @brief Check if battery is charging
- *
- * @return
- *      - 0: Not charging
- *      - 1: Still charging
- *      - 2: Fully charged
- *      - 3: Error getting status
- */
-uint8_t bsp_battery_is_charging(void);
-
 /**************************************************************************************************
  *
  * Button interface

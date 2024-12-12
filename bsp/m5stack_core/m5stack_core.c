@@ -445,30 +445,6 @@ void bsp_display_unlock(void)
     lvgl_port_unlock();
 }
 
-uint8_t bsp_battery_is_charging(void)
-{
-    uint8_t val = 0;
-    // 0x70 is the register address for battery charge enable, 00001000 is enable, 00000000 is disable
-    uint8_t read_buf_charge_enable[] = {0x70};
-    if (i2c_master_transmit_receive(ip5306_h, read_buf_charge_enable, sizeof(read_buf_charge_enable), &val, sizeof(val), -1) == ESP_OK) {
-        if ((val & 0x08) == 0) {
-            return 0; // Not charging
-        }
-    }
-
-    // 0x71 is the register address for battery charging status
-    val = 0;
-    uint8_t read_buf_charge_status[] = {0x71};
-    if (i2c_master_transmit_receive(ip5306_h, read_buf_charge_status, sizeof(read_buf_charge_status), &val, sizeof(val), -1) == ESP_OK) {
-        if ((val & 0x08) == 0) {
-            return 1; // still charging
-        } else {
-            return 2; // full charge
-        }
-    }
-    return 3;   // cannot get charging status
-}
-
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
