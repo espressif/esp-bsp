@@ -5,6 +5,11 @@ import pytest
 from pytest_embedded import Dut
 
 
+@pytest.fixture
+def build_dir(board: str) -> str:
+    return f'build_{board}'
+
+
 @pytest.mark.parametrize(
     'board,port',
     [
