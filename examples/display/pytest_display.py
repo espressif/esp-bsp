@@ -13,6 +13,6 @@ from pytest_embedded import Dut
     ],
     indirect=True,
 )
-def test_display_example(dut: Dut) -> None:
+def test_display_example(dut: Dut, board: str) -> None:
     dut.expect_exact('Add LCD screen')
     dut.expect_exact('Display LVGL animation')
