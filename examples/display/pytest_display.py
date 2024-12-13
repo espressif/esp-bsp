@@ -10,6 +10,7 @@ def build_dir(board: str) -> str:
     return f'build_{board}'
 
 
+@pytest.mark.esp_box_3
 @pytest.mark.parametrize(
     'board,port',
     [
