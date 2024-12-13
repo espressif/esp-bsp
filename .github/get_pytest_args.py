@@ -5,6 +5,12 @@
 import argparse
 import json
 import glob
+import pytest
+
+
+@pytest.fixture
+def build_dir(board: str) -> str:
+    return f'build_{board}'
 
 
 def main():

@@ -6,16 +6,10 @@ from pytest_embedded import Dut
 
 
 @pytest.mark.esp_box_3
-@pytest.fixture
-def build_dir(board: str) -> str:
-    return f'build_{board}'
-
-
-@pytest.mark.esp_box_3
 @pytest.mark.parametrize(
-    'flash_port,board',
+    'board,flash_port',
     [
-        pytest.param('/dev/boards/esp-box-3', 'esp-box-3', id='esp-box-3'),
+        pytest.param('esp-box-3', '/dev/boards/esp-box-3', id='esp-box-3'),
     ],
     indirect=True,
 )
