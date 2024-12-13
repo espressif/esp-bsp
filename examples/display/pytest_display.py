@@ -5,6 +5,7 @@ import pytest
 from pytest_embedded import Dut
 
 
+@pytest.mark.esp_box_3
 @pytest.fixture
 def build_dir(board: str) -> str:
     return f'build_{board}'
