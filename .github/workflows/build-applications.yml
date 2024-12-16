@@ -72,7 +72,7 @@ jobs:
           - "latest"
         runner:
           - runs-on: "esp-box-3"
-            marker: "esp_box_3"
+            marker: "esp-box-3"
             target: "esp32s3"
     env:
       TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
@@ -95,7 +95,7 @@ jobs:
         run: |
           python3 .github/get_pytest_args.py --board=${{ matrix.runner.runs-on }} --target=${{ matrix.runner.target }} -v 'build_info*.json' pytest-args.txt
           cat pytest-args.txt
-          pytest --suppress-no-test-exit-code $(cat pytest-args.txt) --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} --board=${{ matrix.runner.runs-on }} -m ${{ matrix.runner.marker }}
+          pytest --suppress-no-test-exit-code $(cat pytest-args.txt) --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }}
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
