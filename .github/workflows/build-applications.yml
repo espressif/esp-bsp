@@ -72,7 +72,7 @@ jobs:
           - "latest"
         runner:
           - runs-on: "esp-box-3"
-            marker: "esp-box-3"
+            marker: "esp_box_3"
             target: "esp32s3"
     env:
       TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
