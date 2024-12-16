@@ -132,7 +132,7 @@ static void lvgl_port_touchpad_read(lv_indev_t *indev_drv, lv_indev_data_t *data
 
 static void IRAM_ATTR lvgl_port_touch_interrupt_callback(esp_lcd_touch_handle_t tp)
 {
-    lvgl_port_touch_ctx_t *touch_ctx = (lvgl_port_touch_ctx_t *) tp->config.driver_data;
+    lvgl_port_touch_ctx_t *touch_ctx = (lvgl_port_touch_ctx_t *) tp->config.user_data;
 
     /* Wake LVGL task, if needed */
     lvgl_port_task_wake(LVGL_PORT_EVENT_TOUCH, touch_ctx->indev);
