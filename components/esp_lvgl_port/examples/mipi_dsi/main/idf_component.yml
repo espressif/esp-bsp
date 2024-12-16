@@ -1,0 +1,7 @@
+dependencies:
+  espressif/esp32_p4_function_ev_board:
+    version: "*"
+    override_path: "../../../../../bsp/esp32_p4_function_ev_board"
+  lvgl/lvgl: "~9.2.0"
+  esp_lcd_ili9881c: "^1.0.0"
+  esp_lcd_ek79007: "^1.0.0"
