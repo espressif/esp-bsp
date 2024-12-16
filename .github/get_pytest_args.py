@@ -10,6 +10,7 @@ import pytest
 
 @pytest.fixture
 def build_dir(board: str) -> str:
+    print(f'Build dir: build_{board}')
     return f'build_{board}'
 
 
