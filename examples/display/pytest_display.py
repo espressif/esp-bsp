@@ -9,7 +9,7 @@ from pytest_embedded import Dut
 @pytest.mark.parametrize(
     'board,port,flash_port',
     [
-        pytest.param('esp-box-3', '/dev/boards/esp-box-3', '/dev/boards/esp-box-3', id='esp-box-3'),
+        pytest.param('esp-box-3', '/dev/boards/espbox3', '/dev/boards/espbox3', id='esp-box-3'),
     ],
     indirect=True,
 )
