@@ -64,7 +64,7 @@ typedef struct {
     unsigned int cc_width;                                  // Corner case test array width
     unsigned int benchmark_cycles;                          // Count of benchmark cycles
     void *array_align16;                                    // test array with 16 byte alignment - testing most ideal case
-    void *array_align1;                                     // test array with 1 byte alignment - testing wort case
+    void *array_align1;                                     // test array with 1 byte alignment - testing worst case
     void (*blend_api_func)(_lv_draw_sw_blend_fill_dsc_t *); // pointer to LVGL API function
 } bench_test_case_params_t;
 
