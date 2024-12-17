@@ -93,7 +93,7 @@ jobs:
         run: pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
       - name: Run apps
         run: |
-          ls /dev/boards/*
+          ls /dev/ttyACM*
           python3 .github/get_pytest_args.py --board=${{ matrix.runner.runs-on }} --target=${{ matrix.runner.target }} -v 'build_info*.json' pytest-args.txt
           cat pytest-args.txt
           pytest --suppress-no-test-exit-code $(cat pytest-args.txt) --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
