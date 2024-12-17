@@ -14,5 +14,6 @@ from pytest_embedded import Dut
     indirect=True,
 )
 def test_display_example(dut: Dut) -> None:
-    dut.expect_exact('Add LCD screen')
-    dut.expect_exact('Display LVGL animation')
+    dut.expect_exact('example: Display LVGL animation')
+    dut.expect_exact('ESP-BOX-3: Setting LCD backlight: 100%')
+    dut.expect_exact('main_task: Returned from app_main()')
