@@ -7,9 +7,9 @@ from pytest_embedded import Dut
 
 @pytest.mark.esp_box_3
 @pytest.mark.parametrize(
-    'board,port,flash_port',
+    'port,flash_port',
     [
-        pytest.param('esp-box-3', '/dev/ttyACM7', '/dev/ttyACM7', id='esp-box-3'),
+        pytest.param('/dev/ttyACM7', '/dev/ttyACM7', id='esp-box-3'),
     ],
     indirect=True,
 )
