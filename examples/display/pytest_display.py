@@ -9,7 +9,8 @@ from pytest_embedded import Dut
 @pytest.mark.parametrize(
     'port,flash_port',
     [
-        pytest.param('/dev/serial_ports/esp-box-3', '/dev/serial_ports/esp-box-3', id='esp-box-3'),
+        pytest.param('/dev/serial_ports/ttyACM7', '/dev/ttyACM7', id='esp-box-3'),
+        pytest.param('/dev/serial_ports/ttyUSB4', '/dev/ttyUSB4', id='esp32_p4_function_ev_board'),
     ],
     indirect=True,
 )

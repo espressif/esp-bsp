@@ -74,6 +74,9 @@ jobs:
           - runs-on: "esp-box-3"
             marker: "esp_box_3"
             target: "esp32s3"
+          - runs-on: "esp32_p4_function_ev_board"
+            marker: "esp32_p4_function_ev_board"
+            target: "esp32p4"
     env:
       TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
       TEST_RESULT_FILE: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}.xml
