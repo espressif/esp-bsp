@@ -83,7 +83,7 @@ jobs:
     runs-on: [self-hosted, Linux, bspwall]
     container:
       image: python:3.11-bookworm
-      options: --privileged -v /dev/serial_ports:/dev/serial_ports/ # Privileged mode has access to serial ports
+      options: --privileged -v /dev/boards:/dev/boards/ # Privileged mode has access to serial ports
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
