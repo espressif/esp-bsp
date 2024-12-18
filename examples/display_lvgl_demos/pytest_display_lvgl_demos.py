@@ -25,8 +25,6 @@ from pytest_embedded import Dut
     indirect=True,
 )
 @pytest.mark.esp_box_3
-@pytest.mark.esp32_p4_box
-@pytest.mark.esp32_p4_function_ev_board
 @pytest.mark.esp32_s3_eye
 @pytest.mark.esp32_s3_lcd_ev_board
 @pytest.mark.m5dial
