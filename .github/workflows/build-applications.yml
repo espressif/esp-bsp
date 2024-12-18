@@ -67,8 +67,8 @@ jobs:
     needs: build
     strategy:
       fail-fast: false
-      max-parallel: 5
       matrix:
+        max-parallel: 5
         idf_ver:
           - "latest"
         runner:
