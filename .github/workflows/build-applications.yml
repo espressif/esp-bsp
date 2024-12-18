@@ -68,9 +68,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        idf_ver:
-          - "latest"
-        parallel_count: 5
+        include:
+          - idf_ver: "latest"
+            parallel_count: 5
         runner:
           - runs-on: "esp-box-3"
             marker: "esp_box_3"
