@@ -5,9 +5,6 @@ import pytest
 from pytest_embedded import Dut
 
 
-@pytest.mark.esp_box_3
-# @pytest.mark.esp32_p4_function_ev_board
-@pytest.mark.esp32_c3_lcdkit
 @pytest.mark.parametrize(
     'port,flash_port',
     [
@@ -17,6 +14,9 @@ from pytest_embedded import Dut
     ],
     indirect=True,
 )
+@pytest.mark.esp_box_3
+# @pytest.mark.esp32_p4_function_ev_board
+@pytest.mark.esp32_c3_lcdkit
 def test_display_example(dut: Dut) -> None:
     dut.expect_exact('example: Display LVGL animation')
     dut.expect_exact('main_task: Returned from app_main()')
