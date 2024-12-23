@@ -662,6 +662,23 @@ menu "Board Support Package (generic)"
             int
             default ENV_GPIO_RANGE_MAX
     endif
+    if IDF_TARGET_ESP32C5
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 25
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
     if IDF_TARGET_ESP32C6
         config ENV_GPIO_RANGE_MIN
             int
