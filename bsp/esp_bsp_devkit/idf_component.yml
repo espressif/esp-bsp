@@ -1,5 +1,5 @@
 
-version: "2.0.0"
+version: "2.1.0"
 description: DevKit Board Support Package (BSP)
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp_bsp_devkit
 
