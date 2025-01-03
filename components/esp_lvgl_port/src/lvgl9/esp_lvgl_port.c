@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -61,6 +61,9 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
     ESP_GOTO_ON_FALSE(cfg->task_affinity < (configNUM_CORES), ESP_ERR_INVALID_ARG, err, TAG, "Bad core number for task! Maximum core number is %d", (configNUM_CORES - 1));
 
     memset(&lvgl_port_ctx, 0, sizeof(lvgl_port_ctx));
+
+    /* LVGL init */
+    lv_init();
 
     /* Tick init */
     lvgl_port_ctx.timer_period_ms = cfg->timer_period_ms;
@@ -217,8 +220,6 @@ static void lvgl_port_task(void *arg)
         vTaskDelete( NULL );
     }
 
-    /* LVGL init */
-    lv_init();
     /* Tick init */
     lvgl_port_tick_init();
 
