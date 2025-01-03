@@ -7,8 +7,7 @@ Board support packages for development boards using Espressif's SoCs, written in
 | Board name                                           | SoC      | Features                                                                                                          | Photo                                                               |
 | ---------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | [ESP-WROVER-KIT](bsp/esp_wrover_kit)                 | ESP32    | LCD display, uSD card slot                                                                                        | <img src="docu/pics/wrover.png" width="150">                        |
-| [ESP-BOX](bsp/esp-box)                               | ESP32-S3 | LCD display with touch, audio codec + power amplifier,<br>accelerometer and gyroscope                             | <img src="docu/pics/esp32_s3_box.png" width="150">                  |
-| [ESP-BOX-Lite](bsp/esp-box-lite)                     | ESP32-S3 | LCD display, audio codec + power amplifier                                                                        | <img src="docu/pics/esp32_s3_box_lite.png" width="150">             |
+| [ESP-BOX-3](bsp/esp-box-3)                           | ESP32-S3 | LCD display with touch, audio codec + power amplifier,<br>accelerometer and gyroscope                             | <img src="docu/pics/esp32_s3_box_3.png" width="150">                |
 | [ESP32-Azure IoT Kit](bsp/esp32_azure_iot_kit)       | ESP32    | OLED display, uSD card slot, accelerometer,<br>magnetometer, humidity, pressure, light<br>and temperature sensors | <img src="docu/pics/azure.png" width="150">                         |
 | [ESP32-S2-Kaluga Kit](bsp/esp32_s2_kaluga_kit)       | ESP32-S2 | LCD display, audio codec + power amplifier,<br>smart LED and camera                                               | <img src="docu/pics/kaluga.png" width="150">                        |
 | [ESP32-S3-USB-OTG](bsp/esp32_s3_usb_otg)             | ESP32-S3 | LCD display, uSD card slot, USB-OTG                                                                               | <img src="docu/pics/esp32_s3_otg.png" width="150">                  |
@@ -18,11 +17,17 @@ Board support packages for development boards using Espressif's SoCs, written in
 | [ESP32-S3-Korvo-2](bsp/esp32_s3_korvo_2)             | ESP32-S3 | LCD display, camera, uSD card slot, microphone, audio codec + power amplifier                                     | <img src="docu/pics/korvo-2.png" width="150">                       |
 | [ESP32-LyraT](bsp/esp32_lyrat)                       | ESP32    | uSD card slot, microphone, audio codec + power amplifier                                                          | <img src="docu/pics/lyrat.png" width="150">                         |
 | [ESP32-C3-LCDKit](bsp/esp32_c3_lcdkit)               | ESP32-C3 | LCD display with encoder, IR, PDM audio                                                                           | <img src="docu/pics/esp32_c3_lcdkit.png" width="150">               |
-| [ESP-BOX-3](bsp/esp-box-3)                           | ESP32-S3 | LCD display with touch, audio codec + power amplifier,<br>accelerometer and gyroscope                             | <img src="docu/pics/esp32_s3_box_3.png" width="150">                |
 | [ESP32-S3-KORVO-1](bsp/esp32_s3_korvo_1)             | ESP32-S3 | uSD card slot, microphone, audio codec + power amplifier, RGB led strip                                           | <img src="docu/pics/esp32_s3_korvo_1.png" width="150">              |
 | [M5Stack CoreS3](bsp/m5stack_core_s3)                | ESP32-S3 | LCD display with touch, uSD card slot, microphone, audio codec                                                    | <img src="docu/pics/m5stack_cores3.webp" width="150">               |
 | [M5Stack Core2](bsp/m5stack_core_2)                  | ESP32    | LCD display with touch, uSD card slot                                                                             | <img src="docu/pics/m5stack_core2.webp" width="150">                |
 | [M5Dial](bsp/m5dial)                                 | ESP32-S3 | LCD display with touch and encoder                                                                                | <img src="docu/pics/m5dial.webp" width="150">                       |
+
+### Deprecated boards
+| Board name                                           | SoC      | Features                                                                                                          | Photo                                                               |
+| ---------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [ESP-BOX](bsp/esp-box)                               | ESP32-S3 | LCD display with touch, audio codec + power amplifier,<br>accelerometer and gyroscope                             | <img src="docu/pics/esp32_s3_box.png" width="150">                  |
+| [ESP-BOX-Lite](bsp/esp-box-lite)                     | ESP32-S3 | LCD display, audio codec + power amplifier                                                                        | <img src="docu/pics/esp32_s3_box_lite.png" width="150">             |
+
 ## LCD displays and TOUCH
 
 | [LVGL port](components/esp_lvgl_port) | [LCD drivers](LCD.md) |
