@@ -123,7 +123,7 @@ typedef struct {
  * fclose(f);
  * \endcode
  **************************************************************************************************/
-#define BSP_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
+#define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 extern sdmmc_card_t *bsp_sdcard;
 
 /**
