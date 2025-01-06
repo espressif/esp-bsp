@@ -706,7 +706,25 @@ menu "Board Support Package (generic)"
             default 240
             help
                 The height in pixels of the display.
-                
+
+        config BSP_DISPLAY_HORIZONTAL_OFFSET
+            depends on BSP_DISPLAY_ENABLED
+            int
+            prompt "Display horizontal offset"
+            default 0
+            help
+                Some displays has offset. First columns and rows are not visible on screen
+                (specific connection layout between screen and controler).
+
+        config BSP_DISPLAY_VERTICAL_OFFSET
+            depends on BSP_DISPLAY_ENABLED
+            int
+            prompt "Display vertical offset"
+            default 0
+            help
+                Some displays has offset. First columns and rows are not visible on screen
+                (specific connection layout between screen and controler).
+
         config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
             depends on BSP_DISPLAY_ENABLED && BSP_DISPLAY_BACKLIGHT_GPIO != -1
             int "LEDC channel index for brightness control"

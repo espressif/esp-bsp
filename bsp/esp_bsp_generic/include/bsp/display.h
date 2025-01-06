@@ -37,6 +37,8 @@
 /* Display definition */
 #define BSP_LCD_H_RES              (CONFIG_BSP_DISPLAY_WIDTH)
 #define BSP_LCD_V_RES              (CONFIG_BSP_DISPLAY_HEIGHT)
+#define BSP_LCD_H_OFFSET           (CONFIG_BSP_DISPLAY_HORIZONTAL_OFFSET)
+#define BSP_LCD_V_OFFSET           (CONFIG_BSP_DISPLAY_VERTICAL_OFFSET)
 
 #ifdef __cplusplus
 extern "C" {

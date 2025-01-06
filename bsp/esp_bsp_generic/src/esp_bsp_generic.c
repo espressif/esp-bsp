@@ -619,7 +619,9 @@ static lv_display_t *bsp_display_lcd_init(void)
 #endif
         }
     };
-
+#if BSP_LCD_H_OFFSET || BSP_LCD_V_OFFSET
+    esp_lcd_panel_set_gap(panel_handle, (BSP_LCD_H_OFFSET), (BSP_LCD_V_OFFSET));
+#endif
     return lvgl_port_add_disp(&disp_cfg);
 }
 
