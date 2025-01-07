@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -19,7 +19,8 @@ typedef struct {
     knob_handle_t   knob_handle; /* Encoder knob handlers */
     button_handle_t btn_handle; /* Encoder button handlers */
     lv_indev_drv_t  indev_drv;  /* LVGL input device driver */
-    bool btn_enter; /* Encoder button enter state */
+    bool btn_enter;     /* Encoder button enter state */
+    knob_event_t event; /* Encoder event */
 } lvgl_port_encoder_ctx_t;
 
 /*******************************************************************************
@@ -29,6 +30,8 @@ typedef struct {
 static void lvgl_port_encoder_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
 static void lvgl_port_encoder_btn_down_handler(void *arg, void *arg2);
 static void lvgl_port_encoder_btn_up_handler(void *arg, void *arg2);
+static void lvgl_port_encoder_left_handler(void *arg, void *arg2);
+static void lvgl_port_encoder_right_handler(void *arg, void *arg2);
 
 /*******************************************************************************
 * Public API functions
@@ -53,6 +56,9 @@ lv_indev_t *lvgl_port_add_encoder(const lvgl_port_encoder_cfg_t *encoder_cfg)
         encoder_ctx->knob_handle = iot_knob_create(encoder_cfg->encoder_a_b);
         ESP_GOTO_ON_FALSE(encoder_ctx->knob_handle, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for knob create!");
     }
+
+    ESP_ERROR_CHECK(iot_knob_register_cb(encoder_ctx->knob_handle, KNOB_LEFT, lvgl_port_encoder_left_handler, encoder_ctx));
+    ESP_ERROR_CHECK(iot_knob_register_cb(encoder_ctx->knob_handle, KNOB_RIGHT, lvgl_port_encoder_right_handler, encoder_ctx));
 
     /* Encoder Enter */
     if (encoder_cfg->encoder_enter != NULL) {
@@ -125,12 +131,16 @@ static void lvgl_port_encoder_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *d
     assert(ctx);
 
     int32_t invd = iot_knob_get_count_value(ctx->knob_handle);
-    knob_event_t event = iot_knob_get_event(ctx->knob_handle);
+    knob_event_t event = ctx->event;
 
     if (last_v ^ invd) {
-        data->enc_diff = (event == KNOB_LEFT) ? -1 :
-                         (event == KNOB_RIGHT) ? 1 :
-                         (int32_t)((uint32_t)invd - (uint32_t)last_v);
+
+        int32_t diff = (int32_t)((uint32_t)invd - (uint32_t)last_v);
+
+        diff += (event == KNOB_RIGHT && invd < last_v) ? CONFIG_KNOB_HIGH_LIMIT :
+                (event == KNOB_LEFT && invd > last_v) ? CONFIG_KNOB_LOW_LIMIT : 0;
+
+        data->enc_diff = diff;
         last_v = invd;
     } else {
         data->enc_diff = 0;
@@ -158,6 +168,30 @@ static void lvgl_port_encoder_btn_up_handler(void *arg, void *arg2)
         /* ENTER */
         if (button == ctx->btn_handle) {
             ctx->btn_enter = false;
+        }
+    }
+}
+
+static void lvgl_port_encoder_left_handler(void *arg, void *arg2)
+{
+    lvgl_port_encoder_ctx_t *ctx = (lvgl_port_encoder_ctx_t *) arg2;
+    knob_handle_t knob = (knob_handle_t)arg;
+    if (ctx && knob) {
+        /* LEFT */
+        if (knob == ctx->knob_handle) {
+            ctx->event = KNOB_LEFT;
+        }
+    }
+}
+
+static void lvgl_port_encoder_right_handler(void *arg, void *arg2)
+{
+    lvgl_port_encoder_ctx_t *ctx = (lvgl_port_encoder_ctx_t *) arg2;
+    knob_handle_t knob = (knob_handle_t)arg;
+    if (ctx && knob) {
+        /* RIGHT */
+        if (knob == ctx->knob_handle) {
+            ctx->event = KNOB_RIGHT;
         }
     }
 }
