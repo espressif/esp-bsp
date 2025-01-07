@@ -67,14 +67,14 @@ esp_err_t esp_lcd_new_panel_gc9a01(const esp_lcd_panel_io_handle_t io, const esp
 #define GC9A01_PANEL_BUS_SPI_CONFIG(sclk, mosi, max_trans_sz)   \
     {                                                           \
         .mosi_io_num = mosi,                                    \
-        .miso_io_num = 0,                                       \
+        .miso_io_num = -1,                                      \
         .sclk_io_num = sclk,                                    \
         .quadwp_io_num = -1,                                    \
         .quadhd_io_num = -1,                                    \
-        .data4_io_num = 0,                                      \
-        .data5_io_num = 0,                                      \
-        .data6_io_num = 0,                                      \
-        .data7_io_num = 0,                                      \
+        .data4_io_num = -1,                                     \
+        .data5_io_num = -1,                                     \
+        .data6_io_num = -1,                                     \
+        .data7_io_num = -1,                                     \
         .max_transfer_sz = max_trans_sz,                        \
         .flags = 0,                                             \
         .isr_cpu_id = ESP_INTR_CPU_AFFINITY_AUTO,               \
