@@ -180,7 +180,8 @@ static void lvgl_port_encoder_left_handler(void *arg, void *arg2)
     if (ctx && knob) {
         /* LEFT */
         if (knob == ctx->knob_handle) {
-            ctx->diff += lvgl_port_calculate_diff(knob, KNOB_LEFT);
+            int32_t diff = lvgl_port_calculate_diff(knob, KNOB_LEFT);
+            ctx->diff = (ctx->diff > 0) ? diff : ctx->diff + diff;
         }
         /* Wake LVGL task, if needed */
         lvgl_port_task_wake(LVGL_PORT_EVENT_TOUCH, ctx->indev);
@@ -194,7 +195,8 @@ static void lvgl_port_encoder_right_handler(void *arg, void *arg2)
     if (ctx && knob) {
         /* RIGHT */
         if (knob == ctx->knob_handle) {
-            ctx->diff += lvgl_port_calculate_diff(knob, KNOB_RIGHT);
+            int32_t diff = lvgl_port_calculate_diff(knob, KNOB_RIGHT);
+            ctx->diff = (ctx->diff < 0) ? diff : ctx->diff + diff;
         }
         /* Wake LVGL task, if needed */
         lvgl_port_task_wake(LVGL_PORT_EVENT_TOUCH, ctx->indev);
