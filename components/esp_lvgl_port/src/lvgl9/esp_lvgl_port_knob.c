@@ -20,7 +20,7 @@ typedef struct {
     button_handle_t btn_handle;     /* Encoder button handlers */
     lv_indev_t      *indev;         /* LVGL input device driver */
     bool btn_enter;                 /* Encoder button enter state */
-    knob_event_t event;             /* Encoder event */
+    int32_t diff;                   /* Encoder diff */
 } lvgl_port_encoder_ctx_t;
 
 /*******************************************************************************
@@ -32,6 +32,7 @@ static void lvgl_port_encoder_btn_down_handler(void *arg, void *arg2);
 static void lvgl_port_encoder_btn_up_handler(void *arg, void *arg2);
 static void lvgl_port_encoder_left_handler(void *arg, void *arg2);
 static void lvgl_port_encoder_right_handler(void *arg, void *arg2);
+static int32_t lvgl_port_calculate_diff(knob_handle_t knob, knob_event_t event);
 
 /*******************************************************************************
 * Public API functions
@@ -70,6 +71,7 @@ lv_indev_t *lvgl_port_add_encoder(const lvgl_port_encoder_cfg_t *encoder_cfg)
     ESP_ERROR_CHECK(iot_button_register_cb(encoder_ctx->btn_handle, BUTTON_PRESS_UP, lvgl_port_encoder_btn_up_handler, encoder_ctx));
 
     encoder_ctx->btn_enter = false;
+    encoder_ctx->diff = 0;
 
     lvgl_port_lock(0);
     /* Register a encoder input device */
@@ -132,28 +134,13 @@ esp_err_t lvgl_port_remove_encoder(lv_indev_t *encoder)
 
 static void lvgl_port_encoder_read(lv_indev_t *indev_drv, lv_indev_data_t *data)
 {
-    static int32_t last_v = 0;
-
     assert(indev_drv);
     lvgl_port_encoder_ctx_t *ctx = (lvgl_port_encoder_ctx_t *)lv_indev_get_driver_data(indev_drv);
     assert(ctx);
 
-    int32_t invd = iot_knob_get_count_value(ctx->knob_handle);
-    knob_event_t event = ctx->event;
-
-    if (last_v ^ invd) {
-
-        int32_t diff = (int32_t)((uint32_t)invd - (uint32_t)last_v);
-
-        diff += (event == KNOB_RIGHT && invd < last_v) ? CONFIG_KNOB_HIGH_LIMIT :
-                (event == KNOB_LEFT && invd > last_v) ? CONFIG_KNOB_LOW_LIMIT : 0;
-
-        data->enc_diff = diff;
-        last_v = invd;
-    } else {
-        data->enc_diff = 0;
-    }
+    data->enc_diff = ctx->diff;
     data->state = (true == ctx->btn_enter) ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+    ctx->diff = 0;
 }
 
 static void lvgl_port_encoder_btn_down_handler(void *arg, void *arg2)
@@ -193,7 +180,7 @@ static void lvgl_port_encoder_left_handler(void *arg, void *arg2)
     if (ctx && knob) {
         /* LEFT */
         if (knob == ctx->knob_handle) {
-            ctx->event = KNOB_LEFT;
+            ctx->diff += lvgl_port_calculate_diff(knob, KNOB_LEFT);
         }
         /* Wake LVGL task, if needed */
         lvgl_port_task_wake(LVGL_PORT_EVENT_TOUCH, ctx->indev);
@@ -207,9 +194,28 @@ static void lvgl_port_encoder_right_handler(void *arg, void *arg2)
     if (ctx && knob) {
         /* RIGHT */
         if (knob == ctx->knob_handle) {
-            ctx->event = KNOB_RIGHT;
+            ctx->diff += lvgl_port_calculate_diff(knob, KNOB_RIGHT);
         }
         /* Wake LVGL task, if needed */
         lvgl_port_task_wake(LVGL_PORT_EVENT_TOUCH, ctx->indev);
     }
+}
+
+
+static int32_t lvgl_port_calculate_diff(knob_handle_t knob, knob_event_t event)
+{
+    static int32_t last_v = 0;
+
+    int32_t diff = 0;
+    int32_t invd = iot_knob_get_count_value(knob);
+
+    if (last_v ^ invd) {
+
+        diff = (int32_t)((uint32_t)invd - (uint32_t)last_v);
+        diff += (event == KNOB_RIGHT && invd < last_v) ? CONFIG_KNOB_HIGH_LIMIT :
+                (event == KNOB_LEFT && invd > last_v) ? CONFIG_KNOB_LOW_LIMIT : 0;
+        last_v = invd;
+    }
+
+    return diff;
 }
