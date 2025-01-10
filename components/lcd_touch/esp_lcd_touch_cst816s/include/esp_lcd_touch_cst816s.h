@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "esp_idf_version.h"
 #include "esp_lcd_touch.h"
 
 #ifdef __cplusplus
@@ -40,6 +41,23 @@ esp_err_t esp_lcd_touch_new_i2c_cst816s(const esp_lcd_panel_io_handle_t io, cons
  * @brief Touch IO configuration structure
  *
  */
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 2, 0)
+#define ESP_LCD_TOUCH_IO_I2C_CST816S_CONFIG()             \
+    {                                                     \
+        .dev_addr = ESP_LCD_TOUCH_IO_I2C_CST816S_ADDRESS, \
+        .on_color_trans_done = 0,                         \
+        .user_ctx = 0,                                    \
+        .control_phase_bytes = 1,                         \
+        .dc_bit_offset = 0,                               \
+        .lcd_cmd_bits = 8,                                \
+        .lcd_param_bits = 0,                              \
+        .flags =                                          \
+        {                                                 \
+            .dc_low_on_data = 0,                          \
+            .disable_control_phase = 1,                   \
+        }                                                 \
+    }
+#else
 #define ESP_LCD_TOUCH_IO_I2C_CST816S_CONFIG()             \
     {                                                     \
         .dev_addr = ESP_LCD_TOUCH_IO_I2C_CST816S_ADDRESS, \
@@ -56,6 +74,7 @@ esp_err_t esp_lcd_touch_new_i2c_cst816s(const esp_lcd_panel_io_handle_t io, cons
         },                                                \
         .scl_speed_hz = 0                                 \
     }
+#endif
 
 #ifdef __cplusplus
 }
