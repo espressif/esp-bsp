@@ -1,0 +1,28 @@
+# esp_lvgl_port: Build only on related changes and components used in examples
+components/esp_lvgl_port:
+  depends_filepatterns:
+    - "components/esp_lvgl_port/**"
+    - "components/lcd_touch/esp_lcd_touch_tt21100/**"
+    - "components/lcd_touch/esp_lcd_touch_gt1151/**"
+    - "components/lcd/sh1107/**"
+
+components/ds18b20:
+  depends_filepatterns:
+    - "components/ds18b20/**"
+  disable:
+    - if: SOC_RMT_SUPPORTED != 1
+      reason: Onewire component depends on RMT peripheral
+
+components/icm42670:
+  depends_filepatterns:
+    - "components/icm42670/**"
+  disable:
+    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 2) or IDF_VERSION_MAJOR < 5
+      reason: Requires I2C Driver-NG which was introduced in v5.2
+
+components/qma6100p:
+  depends_filepatterns:
+    - "components/qma6100p/**"
+  disable:
+    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 2) or IDF_VERSION_MAJOR < 5
+      reason: Requires I2C Driver-NG which was introduced in v5.2
