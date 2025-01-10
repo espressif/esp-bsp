@@ -59,12 +59,14 @@ jobs:
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v45
+        with:
+          separator: ';' # idf-build-apps expects files seprated with semicolon
 
       - name: Build ESP-BSP applications
         shell: bash
         env:
           IDF_EXTRA_ACTIONS_PATH: "${{ github.workspace }}/examples"
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_modified_files }}
         run: |
           . ${IDF_PATH}/export.sh
           pip install idf-component-manager==1.* ruamel.yaml idf-build-apps==2.4.3 --upgrade
