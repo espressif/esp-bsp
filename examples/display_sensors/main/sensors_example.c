@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -15,6 +15,9 @@
 #include "esp_timer.h"
 #include "sdmmc_cmd.h" // for sdmmc_card_print_info
 #include "esp_idf_version.h" // for backward compatibility of esp-timer
+
+// Enable SD card test
+#define EXAMPLE_TEST_SD_CARD 0
 
 static const char *TAG = "example";
 
@@ -227,6 +230,7 @@ void app_main(void)
     bsp_leds_init();
     bsp_buzzer_init();
 
+#if EXAMPLE_TEST_SD_CARD
     // Mount uSD card, light up WiFi LED on success
     if (ESP_OK == bsp_sdcard_mount()) {
         bsp_led_set(BSP_LED_WIFI, true); // Signal successful SD card access
@@ -236,6 +240,7 @@ void app_main(void)
         fclose(f);
         bsp_sdcard_unmount();
     }
+#endif
 
     main_screen = lv_disp_get_scr_act(NULL);
 
