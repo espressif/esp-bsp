@@ -20,8 +20,14 @@ menu "Board Support Package (generic)"
                 range -1 ENV_GPIO_OUT_RANGE_MAX
                 help
                     The GPIO pin for I2C SDA.
+            config BSP_I2C_PULLUP
+                bool "I2C GPIO PULL UP"
+                default n
+                help
+                    Enable I2C bus pull up.            
         endmenu
-        config BSP_I2C_NUM
+
+    config BSP_I2C_NUM
             int "I2C peripheral index"
             default 1
             range 0 1
