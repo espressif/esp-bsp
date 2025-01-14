@@ -4,7 +4,21 @@ components/esp_lvgl_port:
     - "components/esp_lvgl_port/**"
     - "components/lcd_touch/esp_lcd_touch_tt21100/**"
     - "components/lcd_touch/esp_lcd_touch_gt1151/**"
+
+components/esp_lvgl_port/examples/i2c_oled:
+  depends_filepatterns:
+    - "components/esp_lvgl_port/**"
     - "components/lcd/sh1107/**"
+  disable:
+    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 2) or IDF_VERSION_MAJOR < 5
+      reason: Requires I2C Driver-NG which was introduced in v5.2
+
+components/esp_lvgl_port/test_apps/simd:
+  depends_filepatterns:
+    - "components/esp_lvgl_port/**"
+  enable:
+    - if: IDF_TARGET in ["esp32", "esp32s3"]
+      reason: Supports only xtensa targets
 
 components/ds18b20:
   depends_filepatterns:
