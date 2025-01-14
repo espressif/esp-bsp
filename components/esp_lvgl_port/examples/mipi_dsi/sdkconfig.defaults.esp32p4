@@ -1,0 +1,36 @@
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_HEX=y
+CONFIG_IDF_EXPERIMENTAL_FEATURES=y
+CONFIG_SPIRAM_SPEED_200M=y
+CONFIG_SPIRAM_MEMTEST=n
+CONFIG_CACHE_L2_CACHE_LINE_128B=y
+
+CONFIG_LV_COLOR_DEPTH_16=n
+CONFIG_BSP_LCD_COLOR_FORMAT_RGB565=n
+
+#
+# ESP-MM: Memory Management Configurations
+#
+CONFIG_ESP_MM_CACHE_MSYNC_C2M_CHUNKED_OPS=y
+CONFIG_ESP_MM_CACHE_MSYNC_C2M_CHUNKED_OPS_MAX_LEN=0x4000
+# end of ESP-MM: Memory Management Configurations
+
+#
+# Example Configuration
+#
+CONFIG_EXAMPLE_AVOID_BLUE_SCREEN=y
+# end of Example Configuration
+
+#
+# Rendering Configuration
+#
+# Set custom ASM render and provide a header file with function prototypes
+CONFIG_LV_DRAW_SW_ASM_CUSTOM=y
+CONFIG_LV_DRAW_SW_ASM_CUSTOM_INCLUDE="esp_lvgl_port_lv_blend_ppa.h"
+
+#
+# Memory Settings
+#
+CONFIG_LV_USE_CUSTOM_MALLOC=y
+CONFIG_LV_USE_CLIB_SPRINTF=y
+CONFIG_LV_USE_CLIB_STRING=y
