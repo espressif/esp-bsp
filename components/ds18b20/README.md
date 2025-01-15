@@ -27,6 +27,7 @@ DS18B20 temperature sensor only uses a single wire to write and read data, the i
     esp_err_t search_result = ESP_OK;
 
     // create 1-wire device iterator, which is used for device search
+    ESP_ERROR_CHECK(onewire_new_bus_rmt(&bus_config, &rmt_config, &bus));
     ESP_ERROR_CHECK(onewire_new_device_iter(bus, &iter));
     ESP_LOGI(TAG, "Device iterator created, start searching...");
     do {
