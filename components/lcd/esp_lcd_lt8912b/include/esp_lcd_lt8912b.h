@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -152,16 +152,17 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
         .pclk_mhz       = 40,    \
     }
 
-#define LT8912B_800x600_PANEL_60HZ_DPI_CONFIG() \
+#define LT8912B_800x600_PANEL_60HZ_DPI_CONFIG() LT8912B_800x600_PANEL_60HZ_DPI_CONFIG_WITH_FBS(1)
+#define LT8912B_800x600_PANEL_60HZ_DPI_CONFIG_WITH_FBS(NUM_FBS) \
     {                           \
         .dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT,       \
         .dpi_clock_freq_mhz = 40,                          \
         .virtual_channel = 0,                              \
         .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,     \
-        .num_fbs = 1,                                      \
+        .num_fbs = NUM_FBS,                                      \
         .video_timing = {                                  \
-            .h_size = BSP_LCD_H_RES,                       \
-            .v_size = BSP_LCD_V_RES,                       \
+            .h_size = 800,                       \
+            .v_size = 600,                       \
             .hsync_back_porch = 88,                        \
             .hsync_pulse_width = 128,                      \
             .hsync_front_porch = 48,                       \
@@ -196,16 +197,17 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
         .pclk_mhz       = 56,    \
     }
 
-#define LT8912B_1024x768_PANEL_60HZ_DPI_CONFIG() \
+#define LT8912B_1024x768_PANEL_60HZ_DPI_CONFIG() LT8912B_1024x768_PANEL_60HZ_DPI_CONFIG_WITH_FBS(1)
+#define LT8912B_1024x768_PANEL_60HZ_DPI_CONFIG_WITH_FBS(NUM_FBS) \
     {                           \
         .dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT,       \
         .dpi_clock_freq_mhz = 56,                          \
         .virtual_channel = 0,                              \
         .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,     \
-        .num_fbs = 1,                                      \
+        .num_fbs = NUM_FBS,                                      \
         .video_timing = {                                  \
-            .h_size = BSP_LCD_H_RES,                       \
-            .v_size = BSP_LCD_V_RES,                       \
+            .h_size = 1024,                       \
+            .v_size = 768,                       \
             .hsync_back_porch = 80,                        \
             .hsync_pulse_width = 32,                      \
             .hsync_front_porch = 48,                       \
@@ -240,16 +242,17 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
         .pclk_mhz       = 64,    \
     }
 
-#define LT8912B_1280x720_PANEL_60HZ_DPI_CONFIG() \
+#define LT8912B_1280x720_PANEL_60HZ_DPI_CONFIG() LT8912B_1280x720_PANEL_60HZ_DPI_CONFIG_WITH_FBS(1)
+#define LT8912B_1280x720_PANEL_60HZ_DPI_CONFIG_WITH_FBS(NUM_FBS) \
     {                           \
         .dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT,       \
         .dpi_clock_freq_mhz = 64,                          \
         .virtual_channel = 0,                              \
         .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,     \
-        .num_fbs = 1,                                      \
+        .num_fbs = NUM_FBS,                                      \
         .video_timing = {                                  \
-            .h_size = BSP_LCD_H_RES,                       \
-            .v_size = BSP_LCD_V_RES,                       \
+            .h_size = 1280,                       \
+            .v_size = 720,                       \
             .hsync_back_porch = 80,                        \
             .hsync_pulse_width = 32,                      \
             .hsync_front_porch = 48,                       \
@@ -284,16 +287,17 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
         .pclk_mhz       = 70,    \
     }
 
-#define LT8912B_1280x800_PANEL_60HZ_DPI_CONFIG() \
+#define LT8912B_1280x800_PANEL_60HZ_DPI_CONFIG() LT8912B_1280x800_PANEL_60HZ_DPI_CONFIG_WITH_FBS(1)
+#define LT8912B_1280x800_PANEL_60HZ_DPI_CONFIG_WITH_FBS(NUM_FBS) \
     {                           \
         .dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT,       \
         .dpi_clock_freq_mhz = 70,                          \
         .virtual_channel = 0,                              \
         .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,     \
-        .num_fbs = 1,                                      \
+        .num_fbs = NUM_FBS,                                      \
         .video_timing = {                                  \
-            .h_size = BSP_LCD_H_RES,                       \
-            .v_size = BSP_LCD_V_RES,                       \
+            .h_size = 1280,                       \
+            .v_size = 800,                       \
             .hsync_back_porch = 80,                        \
             .hsync_pulse_width = 32,                      \
             .hsync_front_porch = 48,                       \
@@ -328,16 +332,17 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
         .pclk_mhz       = 70,   \
     }
 
-#define LT8912B_1920x1080_PANEL_30HZ_DPI_CONFIG() \
+#define LT8912B_1920x1080_PANEL_30HZ_DPI_CONFIG() LT8912B_1920x1080_PANEL_30HZ_DPI_CONFIG_WITH_FBS(1)
+#define LT8912B_1920x1080_PANEL_30HZ_DPI_CONFIG_WITH_FBS(NUM_FBS) \
     {                           \
         .dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT,       \
         .dpi_clock_freq_mhz = 70,                          \
         .virtual_channel = 0,                              \
         .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,     \
-        .num_fbs = 1,                                      \
+        .num_fbs = NUM_FBS,                                      \
         .video_timing = {                                  \
-            .h_size = BSP_LCD_H_RES,                       \
-            .v_size = BSP_LCD_V_RES,                       \
+            .h_size = 1920,                       \
+            .v_size = 1080,                       \
             .hsync_back_porch = 80,                        \
             .hsync_pulse_width = 32,                      \
             .hsync_front_porch = 48,                       \
@@ -375,16 +380,17 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
     }
 
 /* This setting is not working yet, it is only for developing and testing */
-#define LT8912B_1920x1080_PANEL_60HZ_DPI_CONFIG() \
+#define LT8912B_1920x1080_PANEL_60HZ_DPI_CONFIG() LT8912B_1920x1080_PANEL_60HZ_DPI_CONFIG_WITH_FBS(1)
+#define LT8912B_1920x1080_PANEL_60HZ_DPI_CONFIG_WITH_FBS(NUM_FBS) \
     {                           \
         .dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT,       \
         .dpi_clock_freq_mhz = 120,                          \
         .virtual_channel = 0,                              \
         .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,     \
-        .num_fbs = 1,                                      \
+        .num_fbs = NUM_FBS,                                      \
         .video_timing = {                                  \
-            .h_size = BSP_LCD_H_RES,                       \
-            .v_size = BSP_LCD_V_RES,                       \
+            .h_size = 1920,                       \
+            .v_size = 1080,                       \
             .hsync_back_porch = 80,                        \
             .hsync_pulse_width = 32,                      \
             .hsync_front_porch = 48,                       \

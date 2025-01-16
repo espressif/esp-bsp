@@ -1,4 +1,4 @@
-version: "0.1.0"
+version: "0.1.1"
 description: ESP LCD LT8912B (MIPI DSI - HDMI)
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_lt8912b
 repository: "https://github.com/espressif/esp-bsp.git"

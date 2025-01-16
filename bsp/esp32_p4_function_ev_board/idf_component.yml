@@ -1,4 +1,4 @@
-version: "4.2.0"
+version: "4.2.1"
 description: Board Support Package (BSP) for ESP32-P4 Function EV Board (preview)
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_p4_function_ev_board
 
@@ -25,5 +25,5 @@ dependencies:
     public: true
 
   espressif/esp_lcd_lt8912b:
-    version: ">=0.1.0,<1.0.0"
+    version: ">=0.1.1,<1.0.0"
     override_path: "../../components/lcd/esp_lcd_lt8912b"
