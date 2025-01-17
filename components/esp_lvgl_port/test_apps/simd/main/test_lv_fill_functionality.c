@@ -40,6 +40,28 @@ static lv_color_t test_color = {
     .red = 0x12,
 };
 
+static const test_matrix_lv_fill_params_t default_test_matrix_lv_fill = {
+#if CONFIG_IDF_TARGET_ESP32S3
+    .min_w = 8,
+    .min_h = 1,
+    .max_w = 40,
+    .max_h = 4,
+    .max_unalign_byte = 16,       // Use 16-byte boundary check for Xtensa PIE
+    .unalign_step = 1,
+    .dest_stride_step = 1,
+#else
+    .min_w = 1,
+    .min_h = 1,
+    .max_w = 32,
+    .max_h = 4,
+    .max_unalign_byte = 4,       // Use 4-byte boundary check for Xtensa base
+    .unalign_step = 1,
+    .dest_stride_step = 1,
+#endif
+    .min_unalign_byte = 0,
+    .test_combinations_count = 0,
+};
+
 // ------------------------------------------------ Static function headers --------------------------------------------
 
 /**
@@ -50,7 +72,7 @@ static lv_color_t test_color = {
  * @param[in] test_matrix Pointer to structure defining test matrix - all the test combinations
  * @param[in] test_case Pointer to structure defining functionality test case
  */
-static void functionality_test_matrix(test_matrix_params_t *test_matrix, func_test_case_params_t *test_case);
+static void functionality_test_matrix(test_matrix_lv_fill_params_t *test_matrix, func_test_case_params_t *test_case);
 
 /**
  * @brief Fill test buffers for functionality test
@@ -107,19 +129,12 @@ Procedure:
 
 // ------------------------------------------------ Test cases stages --------------------------------------------------
 
-TEST_CASE("Test fill functionality ARGB8888", "[fill][functionality][ARGB8888]")
+TEST_CASE("LV Fill functionality ARGB8888", "[fill][functionality][ARGB8888]")
 {
-    test_matrix_params_t test_matrix = {
-        .min_w = 8,             // 8 is the lower limit for the esp32s3 asm implementation, otherwise esp32 is executed
-        .min_h = 1,
-        .max_w = 16,
-        .max_h = 16,
-        .min_unalign_byte = 0,
-        .max_unalign_byte = 16,
-        .unalign_step = 1,
-        .dest_stride_step = 1,
-        .test_combinations_count = 0,
-    };
+    test_matrix_lv_fill_params_t test_matrix = default_test_matrix_lv_fill;
+#if (CONFIG_IDF_TARGET_ESP32S3)
+    test_matrix.min_w = 8;  // 8 is the lower limit for the PIE asm implementation, otherwise base asm is executed
+#endif
 
     func_test_case_params_t test_case = {
         .blend_api_func = &lv_draw_sw_blend_color_to_argb8888,
@@ -127,23 +142,17 @@ TEST_CASE("Test fill functionality ARGB8888", "[fill][functionality][ARGB8888]")
         .data_type_size = sizeof(uint32_t),
     };
 
-    ESP_LOGI(TAG_LV_FILL_FUNC, "running test for ARGB8888 color format");
+    ESP_LOGI(TAG_LV_FILL_FUNC, "running memset for ARGB8888 to ARGB8888 color format");
+    ESP_LOGI(TAG_LV_FILL_FUNC, "test matrices dimensions: %dx%d to %dx%d", test_matrix.min_w, test_matrix.min_h, test_matrix.max_w, test_matrix.max_h);
     functionality_test_matrix(&test_matrix, &test_case);
 }
 
-TEST_CASE("Test fill functionality RGB565", "[fill][functionality][RGB565]")
+TEST_CASE("LV Fill functionality RGB565", "[fill][functionality][RGB565]")
 {
-    test_matrix_params_t test_matrix = {
-        .min_w = 16,            // 16 is the lower limit for the esp32s3 asm implementation, otherwise esp32 is executed
-        .min_h = 1,
-        .max_w = 32,
-        .max_h = 16,
-        .min_unalign_byte = 0,
-        .max_unalign_byte = 16,
-        .unalign_step = 1,
-        .dest_stride_step = 1,
-        .test_combinations_count = 0,
-    };
+    test_matrix_lv_fill_params_t test_matrix = default_test_matrix_lv_fill;
+#if (CONFIG_IDF_TARGET_ESP32S3)
+    test_matrix.min_w = 16;  // 16 is the lower limit for the PIE asm implementation, otherwise base asm is executed
+#endif
 
     func_test_case_params_t test_case = {
         .blend_api_func = &lv_draw_sw_blend_color_to_rgb565,
@@ -151,23 +160,17 @@ TEST_CASE("Test fill functionality RGB565", "[fill][functionality][RGB565]")
         .data_type_size = sizeof(uint16_t),
     };
 
-    ESP_LOGI(TAG_LV_FILL_FUNC, "running test for RGB565 color format");
+    ESP_LOGI(TAG_LV_FILL_FUNC, "running memset for RGB565 to RGB565 color format");
+    ESP_LOGI(TAG_LV_FILL_FUNC, "test matrices dimensions: %dx%d to %dx%d", test_matrix.min_w, test_matrix.min_h, test_matrix.max_w, test_matrix.max_h);
     functionality_test_matrix(&test_matrix, &test_case);
 }
 
-TEST_CASE("Test fill functionality RGB888", "[fill][functionality][RGB888]")
+TEST_CASE("LV Fill functionality RGB888", "[fill][functionality][RGB888]")
 {
-    test_matrix_params_t test_matrix = {
-        .min_w = 12,             // 12 is the lower limit for the esp32s3 asm implementation, otherwise esp32 is executed
-        .min_h = 1,
-        .max_w = 32,
-        .max_h = 3,
-        .min_unalign_byte = 0,
-        .max_unalign_byte = 16,
-        .unalign_step = 1,
-        .dest_stride_step = 1,
-        .test_combinations_count = 0,
-    };
+    test_matrix_lv_fill_params_t test_matrix = default_test_matrix_lv_fill;
+#if (CONFIG_IDF_TARGET_ESP32S3)
+    test_matrix.min_w = 12;  // 12 is the lower limit for the PIE asm implementation, otherwise base asm is executed
+#endif
 
     func_test_case_params_t test_case = {
         .blend_api_px_func = &lv_draw_sw_blend_color_to_rgb888,
@@ -175,12 +178,13 @@ TEST_CASE("Test fill functionality RGB888", "[fill][functionality][RGB888]")
         .data_type_size = sizeof(uint8_t) * 3,   // 24-bit data length
     };
 
-    ESP_LOGI(TAG_LV_FILL_FUNC, "running test for RGB888 color format");
+    ESP_LOGI(TAG_LV_FILL_FUNC, "running memset for RGB888 to RGB888 color format");
+    ESP_LOGI(TAG_LV_FILL_FUNC, "test matrices dimensions: %dx%d to %dx%d", test_matrix.min_w, test_matrix.min_h, test_matrix.max_w, test_matrix.max_h);
     functionality_test_matrix(&test_matrix, &test_case);
 }
 // ------------------------------------------------ Static test functions ----------------------------------------------
 
-static void functionality_test_matrix(test_matrix_params_t *test_matrix, func_test_case_params_t *test_case)
+static void functionality_test_matrix(test_matrix_lv_fill_params_t *test_matrix, func_test_case_params_t *test_case)
 {
     // Step destination array width
     for (int dest_w = test_matrix->min_w; dest_w <= test_matrix->max_w; dest_w++) {

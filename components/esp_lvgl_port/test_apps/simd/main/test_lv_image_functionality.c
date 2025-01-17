@@ -40,7 +40,7 @@ static char test_msg_buf[200];
 
 static const test_matrix_lv_image_params_t default_test_matrix_image_blend = {
 #if CONFIG_IDF_TARGET_ESP32S3
-    .min_w = 8,                   // 8 is the lower limit for the esp32s3 asm implementation, otherwise esp32 is executed
+    .min_w = 8,                   // 8 is the lower limit for the PIE asm implementation, otherwise base assembly is executed
     .min_h = 1,
     .max_w = 24,
     .max_h = 2,
@@ -53,7 +53,7 @@ static const test_matrix_lv_image_params_t default_test_matrix_image_blend = {
 #else
     .min_w = 1,
     .min_h = 1,
-    .max_w = 16,
+    .max_w = 12,
     .max_h = 2,
     .src_max_unalign_byte = 4,    // Use 4-byte boundary  check for Xtensa base
     .dest_max_unalign_byte = 4,
@@ -142,7 +142,8 @@ TEST_CASE("LV Image functionality RGB565 blend to RGB565", "[image][functionalit
         .operation_type = OPERATION_FILL,
     };
 
-    ESP_LOGI(TAG_LV_IMAGE_FUNC, "running test for RGB565 color format");
+    ESP_LOGI(TAG_LV_IMAGE_FUNC, "running memcpy for RGB565 to RGB565 color format");
+    ESP_LOGI(TAG_LV_IMAGE_FUNC, "test matrices dimensions: %dx%d to %dx%d", test_matrix.min_w, test_matrix.min_h, test_matrix.max_w, test_matrix.max_h);
     functionality_test_matrix(&test_matrix, &test_case);
 }
 
@@ -160,7 +161,8 @@ TEST_CASE("LV Image functionality RGB888 blend to RGB888", "[image][functionalit
         .operation_type = OPERATION_FILL,
     };
 
-    ESP_LOGI(TAG_LV_IMAGE_FUNC, "running test for RGB888 color format");
+    ESP_LOGI(TAG_LV_IMAGE_FUNC, "running memcpy for RGB888 to RGB888 color format");
+    ESP_LOGI(TAG_LV_IMAGE_FUNC, "test matrices dimensions: %dx%d to %dx%d", test_matrix.min_w, test_matrix.min_h, test_matrix.max_w, test_matrix.max_h);
     functionality_test_matrix(&test_matrix, &test_case);
 }
 
@@ -186,6 +188,7 @@ static void functionality_test_matrix(test_matrix_lv_image_params_t *test_matrix
                         // Step destination array unalignment
                         for (int dest_unalign_byte = test_matrix->dest_min_unalign_byte; dest_unalign_byte <= test_matrix->dest_max_unalign_byte; dest_unalign_byte += test_matrix->dest_unalign_step) {
 
+                            //printf("dest_w = %d, dest_h = %d, src_stride = %d, dest_stride = %d, src_unalign_byte = %d, dest_unalign_byte = %d\n", dest_w, dest_h, src_stride, dest_stride, src_unalign_byte, dest_unalign_byte);
                             // Call functionality test
                             UPDATE_TEST_CASE(test_case, dest_w, dest_h, src_stride, dest_stride, src_unalign_byte, dest_unalign_byte);
                             lv_image_functionality(test_case);

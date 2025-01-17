@@ -76,14 +76,14 @@ if("usb_host_hid" IN_LIST build_components)
     list(APPEND ADD_LIBS idf::usb_host_hid)
 endif()
 
-# Include SIMD assembly source code for rendering, only for (9.1.0 <= LVG_version < 9.2.0) and only for esp32 and esp32s3
+# Include SIMD assembly source code for rendering, only for (9.1.0 <= LVG_version < 9.2.0) and only for Xtensa targets (esp32, esp32s2, esp32s3)
 if((lvgl_ver VERSION_GREATER_EQUAL "9.1.0") AND (lvgl_ver VERSION_LESS "9.2.0"))
-    if(CONFIG_IDF_TARGET_ESP32 OR CONFIG_IDF_TARGET_ESP32S3)
+    if(CONFIG_IDF_TARGET_ESP32 OR CONFIG_IDF_TARGET_ESP32S3 OR CONFIG_IDF_TARGET_ESP32S2)
         message(VERBOSE "Compiling SIMD")
         if(CONFIG_IDF_TARGET_ESP32S3)
-            file(GLOB_RECURSE ASM_SRCS ${PORT_PATH}/simd/*_esp32s3.S)    # Select only esp32s3 related files
+            file(GLOB_RECURSE ASM_SRCS ${PORT_PATH}/simd/*_xtensa_pie.S)       # Select Xtensa PIE, for esp32s3 target
         else()
-            file(GLOB_RECURSE ASM_SRCS ${PORT_PATH}/simd/*_esp32.S)      # Select only esp32 related files
+            file(GLOB_RECURSE ASM_SRCS ${PORT_PATH}/simd/*_xtensa_base.S)      # Select Xtensa Base for esp32, esp32s2 targets
         endif()
 
         # Explicitly add all assembly macro files

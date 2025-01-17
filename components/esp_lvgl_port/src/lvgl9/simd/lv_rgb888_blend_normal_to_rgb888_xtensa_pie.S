@@ -44,10 +44,12 @@ lv_rgb888_blend_normal_to_rgb888_esp:
     slli     a11,   a4,    1                    // a11 = (a4 << 1) + a4
     add      a11,   a11,   a4                   // a11 - dest_w_bytes = sizeof(uint24_t) * dest_w
 
+    beqz     a4,   _zero_matrix_len_check       // Check if dest_w a4 is zero
+    beqz     a5,   _zero_matrix_len_check       // Check if dest_h a5 is zero
     // No need to convert any colors here, we are copying from rgb888 to rgb888
 
     // Check dest_w length
-    bltui   a4,  8,  _matrix_width_check                    // Branch if dest_w (a4) is lower than 8
+    bltui   a4,  8,  _matrix_width_check        // Branch if dest_w (a4) is lower than 8
 
 //**********************************************************************************************************************
 
@@ -219,3 +221,10 @@ lv_rgb888_blend_normal_to_rgb888_esp:
 
     movi.n   a2, 1                                          // Return LV_RESULT_OK = 1
     retw.n                                                  // Return
+
+//**********************************************************************************************************************
+
+    // One of the matrix dimensions is zero, return early
+    _zero_matrix_len_check:
+    movi.n   a2, 1                                      // return LV_RESULT_OK = 1
+    retw.n                                              // return
