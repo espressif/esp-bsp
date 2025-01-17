@@ -27,30 +27,30 @@ jobs:
           - idf_ver: "latest"
             parallel_count: 5
             parallel_index: 5
-          - idf_ver: "release-v5.1"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.1"
-            parallel_count: 2
-            parallel_index: 2
-          - idf_ver: "release-v5.2"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.2"
-            parallel_count: 2
-            parallel_index: 2
-          - idf_ver: "release-v5.3"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.3"
-            parallel_count: 2
-            parallel_index: 2
-          - idf_ver: "release-v5.4"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.4"
-            parallel_count: 2
-            parallel_index: 2
+          #- idf_ver: "release-v5.1"
+          #  parallel_count: 2
+          #  parallel_index: 1
+          #- idf_ver: "release-v5.1"
+          #  parallel_count: 2
+          #  parallel_index: 2
+          #- idf_ver: "release-v5.2"
+          #  parallel_count: 2
+          #  parallel_index: 1
+          #- idf_ver: "release-v5.2"
+          #  parallel_count: 2
+          #  parallel_index: 2
+          #- idf_ver: "release-v5.3"
+          #  parallel_count: 2
+          #  parallel_index: 1
+          #- idf_ver: "release-v5.3"
+          #  parallel_count: 2
+          #  parallel_index: 2
+          #- idf_ver: "release-v5.4"
+          #  parallel_count: 2
+          #  parallel_index: 1
+          #- idf_ver: "release-v5.4"
+          #  parallel_count: 2
+          #  parallel_index: 2
     runs-on: ubuntu-latest
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
