@@ -169,6 +169,9 @@ jobs:
         with:
           name: ${{ env.TEST_RESULT_NAME }}
           path: ${{ env.TEST_RESULT_FILE }}
+        with:
+          pattern: benchmark_*.md
+          path: benchmark
 
   publish-results:
     name: Publish Test results
@@ -182,6 +185,9 @@ jobs:
         with:
           pattern: test_results_*
           path: test_results
+        with:
+          pattern: benchmark_*.md
+          path: benchmark
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
