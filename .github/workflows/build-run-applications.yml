@@ -186,13 +186,12 @@ jobs:
           path: |
             test_results
             benchmark_*.md
-      - name: Comment PR
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          file-path: test_results/**/*.md
-
-          reactions: eyes, rocket
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           files: test_results/**/*.xml
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: test_results/**/*.md
+          comment_tag: benchmark_results

@@ -41,6 +41,7 @@ def test_example(dut: Dut, request) -> None:
     write_to_file(board, f"**LVGL version:** " + outdata[1].decode() + "\n\n")
     outdata = dut.expect(r'Name, Avg. CPU, Avg. FPS, Avg. time, render time, flush time', timeout=200)
     write_to_file(board, f"| Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |\n")
+    # noqa: E203
     write_to_file(board, f"| ---- | :------: | :------: | :-------: | :---------: | :--------: |\n")
 
     # Benchmark lines
