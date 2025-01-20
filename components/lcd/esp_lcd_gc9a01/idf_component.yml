@@ -1,4 +1,4 @@
-version: "2.0.0"
+version: "2.0.1"
 description: ESP LCD GC9A01
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_gc9a01
 dependencies:

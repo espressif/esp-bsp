@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixes
+- Fixed a crash when esp_lvgl_port was initialized from high priority task https://github.com/espressif/esp-bsp/issues/455
+
 ## 2.4.3
 
 ### Fixes

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -84,11 +84,16 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
 
     BaseType_t res;
     if (cfg->task_affinity < 0) {
-        res = xTaskCreate(lvgl_port_task, "taskLVGL", cfg->task_stack, NULL, cfg->task_priority, &lvgl_port_ctx.lvgl_task);
+        res = xTaskCreate(lvgl_port_task, "taskLVGL", cfg->task_stack, xTaskGetCurrentTaskHandle(), cfg->task_priority, &lvgl_port_ctx.lvgl_task);
     } else {
-        res = xTaskCreatePinnedToCore(lvgl_port_task, "taskLVGL", cfg->task_stack, NULL, cfg->task_priority, &lvgl_port_ctx.lvgl_task, cfg->task_affinity);
+        res = xTaskCreatePinnedToCore(lvgl_port_task, "taskLVGL", cfg->task_stack, xTaskGetCurrentTaskHandle(), cfg->task_priority, &lvgl_port_ctx.lvgl_task, cfg->task_affinity);
     }
     ESP_GOTO_ON_FALSE(res == pdPASS, ESP_FAIL, err, TAG, "Create LVGL task fail!");
+
+    // Wait until taskLVGL starts
+    if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(5000)) == 0) {
+        ret = ESP_ERR_TIMEOUT;
+    }
 
 err:
     if (ret != ESP_OK) {
@@ -206,6 +211,7 @@ IRAM_ATTR bool lvgl_port_task_notify(uint32_t value)
 
 static void lvgl_port_task(void *arg)
 {
+    TaskHandle_t task_to_notify = (TaskHandle_t)arg;
     lvgl_port_event_t event;
     uint32_t task_delay_ms = 0;
     lv_indev_t *indev = NULL;
@@ -219,6 +225,8 @@ static void lvgl_port_task(void *arg)
 
     /* LVGL init */
     lv_init();
+    /* LVGL is initialized, notify lvgl_port_init() function about it */
+    xTaskNotifyGive(task_to_notify);
     /* Tick init */
     lvgl_port_tick_init();
 

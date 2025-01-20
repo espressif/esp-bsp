@@ -2,7 +2,7 @@ recursive = true
 exclude = [
     "SquareLine",
 ]
-manifest_file = ".build-test-rules.yml"
+manifest_file = ["components/.build-test-rules.yml", "components/io_expander/.build-test-rules.yml", "components/lcd/.build-test-rules.yml", "components/lcd_touch/.build-test-rules.yml", "test_apps/.build-test-rules.yml", "examples/.build-test-rules.yml"]
 check_warnings = true
 ignore_warning_file = ".ignore_build_warnings.txt"
 config = "sdkconfig.bsp.*"

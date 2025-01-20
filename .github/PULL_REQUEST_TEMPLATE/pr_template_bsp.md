@@ -10,6 +10,7 @@
 - [ ] BSP was [added to SquareLine](https://github.com/espressif/esp-bsp/tree/master/SquareLine/common)
 - [ ] New BSP supports IDF v4.4.x and later releases
 - [ ] _Optional:_ Component contains unit tests
+- [ ] _Optional:_ BSP was added to Runner ([pytest.ini](pytest.ini), [conftest.py](conftest.py), [build-run-applications.yml](.github/workflows/build-run-applications.yml))
 - [ ] CI passing
 
 # Change description
