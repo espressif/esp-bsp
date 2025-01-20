@@ -194,8 +194,7 @@ jobs:
         uses: GrantBirki/comment@v2.1.0
         with:
           comment-id: benchmark_results
-          vars: |
-              files: test_results/**/*.md
+          files: test_results/**/*.md
           body: |
             # Files
             {% for file in files.split(",") %}
