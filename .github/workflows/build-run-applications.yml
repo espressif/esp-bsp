@@ -191,7 +191,15 @@ jobs:
         with:
           files: test_results/**/*.xml
       - name: Comment PR
-        uses: thollander/actions-comment-pull-request@v2
+        uses: GrantBirki/comment@v2.1.0
         with:
-          filePath: test_results/**/*.md
-          comment_tag: benchmark_results
+          comment-id: benchmark_results
+          vars: |
+              files: test_results/**/*.md
+          body: |
+            # Files
+            {% for file in files.split(",") %}
+            - `{{ file }}`
+            {% else %}
+            - No file
+            {% endfor %}
