@@ -18,15 +18,14 @@ static char *TAG = "app_main";
 void app_main(void)
 {
     /* Initialize display and LVGL */
+#if defined(BSP_LCD_SUB_BOARD_480_480) || defined(BSP_LCD_SUB_BOARD_800_480)
+    bsp_display_cfg_t cfg = {
+        .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
+    };
+    cfg.lvgl_port_cfg.task_stack = 10000;
+    bsp_display_start_with_config(&cfg);
+#else
     bsp_display_start();
-
-#if CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR
-    ESP_LOGI(TAG, "Avoid lcd tearing effect");
-#if CONFIG_BSP_DISPLAY_LVGL_FULL_REFRESH
-    ESP_LOGI(TAG, "LVGL full-refresh");
-#elif CONFIG_BSP_DISPLAY_LVGL_DIRECT_MODE
-    ESP_LOGI(TAG, "LVGL direct-mode");
-#endif
 #endif
 
     /* Set display brightness to 100% */

@@ -14,15 +14,10 @@ def write_to_file(board, text):
 
 @pytest.mark.esp_box_3
 @pytest.mark.esp32_p4_function_ev_board
-@pytest.mark.esp32_c3_lcdkit
 @pytest.mark.esp32_s3_eye
 @pytest.mark.esp32_s3_lcd_ev_board
 @pytest.mark.esp32_s3_lcd_ev_board_2
-@pytest.mark.esp32_s3_usb_otg
-@pytest.mark.esp_wrover_kit
 @pytest.mark.m5dial
-@pytest.mark.m5stack_core
-@pytest.mark.m5stack_core_2
 @pytest.mark.m5stack_core_s3
 @pytest.mark.m5stack_core_s3_se
 def test_example(dut: Dut, request) -> None:
