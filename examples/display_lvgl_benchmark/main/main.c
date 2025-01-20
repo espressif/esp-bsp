@@ -18,7 +18,8 @@ static char *TAG = "app_main";
 void app_main(void)
 {
     /* Initialize display and LVGL */
-#if defined(BSP_LCD_SUB_BOARD_480_480) || defined(BSP_LCD_SUB_BOARD_800_480)
+#if defined(BSP_LCD_SUB_BOARD_2_H_RES)
+    /* Only for esp32_s3_lcd_ev_board */
     bsp_display_cfg_t cfg = {
         .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
     };
