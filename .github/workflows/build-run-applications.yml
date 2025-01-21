@@ -159,7 +159,7 @@ jobs:
       - name: Install Python packages
         env:
           PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
-        run: pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
+        run: pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code pytest-xdist
       - name: Set ignores
         if: ${{ github.event.label.name == 'benchmark' }}
         id: set_ignores
@@ -169,7 +169,7 @@ jobs:
         #   TEST_IGNORES: --ignore='*/examples/display_lvgl_benchmark/*'
       - name: Run apps
         run: |
-          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.TEST_IGNORES }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
+          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.TEST_IGNORES }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }} -n auto
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
