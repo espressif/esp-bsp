@@ -98,51 +98,51 @@ jobs:
         idf_ver:
           - "latest"
         runner:
-          - runs-on: "esp-box-3"
-            marker: "esp_box_3"
-            target: "esp32s3"
-          - runs-on: "esp32_c3_lcdkit"
-            marker: "esp32_c3_lcdkit"
-            target: "esp32c3"
-          - runs-on: "esp32_p4_box"
-            marker: "esp32_p4_box"
-            target: "esp32p4"
+          # - runs-on: "esp-box-3"
+          #   marker: "esp_box_3"
+          #   target: "esp32s3"
+          # - runs-on: "esp32_c3_lcdkit"
+          #   marker: "esp32_c3_lcdkit"
+          #   target: "esp32c3"
+          # - runs-on: "esp32_p4_box"
+          #   marker: "esp32_p4_box"
+          #   target: "esp32p4"
           - runs-on: "esp32_p4_function_ev_board"
             marker: "esp32_p4_function_ev_board"
             target: "esp32p4"
-          - runs-on: "esp32_s3_eye"
-            marker: "esp32_s3_eye"
-            target: "esp32s3"
-          - runs-on: "esp32_s3_lcd_ev_board"
-            marker: "esp32_s3_lcd_ev_board"
-            target: "esp32s3"
-          - runs-on: "esp32_s3_lcd_ev_board"
-            marker: "esp32_s3_lcd_ev_board_2"
-            target: "esp32s3"
-          - runs-on: "esp32_s3_usb_otg"
-            marker: "esp32_s3_usb_otg"
-            target: "esp32s3"
-          - runs-on: "esp_wrover_kit"
-            marker: "esp_wrover_kit"
-            target: "esp32"
-          - runs-on: "m5dial"
-            marker: "m5dial"
-            target: "esp32s3"
-          - runs-on: "m5stack_core"
-            marker: "m5stack_core"
-            target: "esp32"
-          - runs-on: "m5stack_core_2"
-            marker: "m5stack_core_2"
-            target: "esp32"
-          - runs-on: "m5stack_core_s3"
-            marker: "m5stack_core_s3"
-            target: "esp32s3"
-          - runs-on: "m5stack_core_s3"
-            marker: "m5stack_core_s3_se"
-            target: "esp32s3"
-          - runs-on: "esp32_azure_iot_kit"
-            marker: "esp32_azure_iot_kit"
-            target: "esp32"
+          # - runs-on: "esp32_s3_eye"
+          #   marker: "esp32_s3_eye"
+          #   target: "esp32s3"
+          # - runs-on: "esp32_s3_lcd_ev_board"
+          #   marker: "esp32_s3_lcd_ev_board"
+          #   target: "esp32s3"
+          # - runs-on: "esp32_s3_lcd_ev_board"
+          #   marker: "esp32_s3_lcd_ev_board_2"
+          #   target: "esp32s3"
+          # - runs-on: "esp32_s3_usb_otg"
+          #   marker: "esp32_s3_usb_otg"
+          #   target: "esp32s3"
+          # - runs-on: "esp_wrover_kit"
+          #   marker: "esp_wrover_kit"
+          #   target: "esp32"
+          # - runs-on: "m5dial"
+          #   marker: "m5dial"
+          #   target: "esp32s3"
+          # - runs-on: "m5stack_core"
+          #   marker: "m5stack_core"
+          #   target: "esp32"
+          # - runs-on: "m5stack_core_2"
+          #   marker: "m5stack_core_2"
+          #   target: "esp32"
+          # - runs-on: "m5stack_core_s3"
+          #   marker: "m5stack_core_s3"
+          #   target: "esp32s3"
+          # - runs-on: "m5stack_core_s3"
+          #   marker: "m5stack_core_s3_se"
+          #   target: "esp32s3"
+          # - runs-on: "esp32_azure_iot_kit"
+          #   marker: "esp32_azure_iot_kit"
+          #   target: "esp32"
     env:
       TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
       TEST_RESULT_FILE: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}.xml
@@ -160,9 +160,14 @@ jobs:
         env:
           PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
         run: pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
+      - name: Set ignores
+        id: set_ignores
+        if: ${{ github.event.label.name == 'benchmark' }}
+        env:
+          IGNORES: --ignore='*/examples/display_lvgl_benchmark/*'
       - name: Run apps
         run: |
-          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
+          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.IGNORES }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -186,24 +191,24 @@ jobs:
           path: |
             test_results
             benchmark_*.md
-      - name: Find test result files
-        id: find_files
-        run: |
-          files=$(find test_results -type f -name "*.md" | jq -R -s -c 'split("\n")[:-1]')
-          echo "files=$files" >> $GITHUB_OUTPUT
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           files: test_results/**/*.xml
+      - name: Find test result files
+        id: find_files
+        run: |
+          files=$(find test_results_* -type f -name "*.md" | jq -R -s -c 'split("\n")[:-1]')
+          echo "files=$files" >> $GITHUB_OUTPUT
       - name: Comment PR
         uses: GrantBirki/comment@v2.1.0
         with:
           comment-id: benchmark_results
-          vars: |
-            files: {{ steps.find_files.outputs.files }}
+          env:
+            files: ${{ steps.find_files.outputs.files }}
           body: |
             # Files
-            {% for file in files %}
+            {% for file in env.files %}
             - `{{ file }}`
             {% else %}
             - No file
