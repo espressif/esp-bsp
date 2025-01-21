@@ -13,20 +13,35 @@ jobs:
       matrix:
         include:
           - idf_ver: "latest"
-            parallel_count: 5
+            parallel_count: 10
             parallel_index: 1
           - idf_ver: "latest"
-            parallel_count: 5
+            parallel_count: 10
             parallel_index: 2
           - idf_ver: "latest"
-            parallel_count: 5
+            parallel_count: 10
             parallel_index: 3
           - idf_ver: "latest"
-            parallel_count: 5
+            parallel_count: 10
             parallel_index: 4
           - idf_ver: "latest"
-            parallel_count: 5
+            parallel_count: 10
             parallel_index: 5
+          - idf_ver: "latest"
+            parallel_count: 10
+            parallel_index: 6
+          - idf_ver: "latest"
+            parallel_count: 10
+            parallel_index: 7
+          - idf_ver: "latest"
+            parallel_count: 10
+            parallel_index: 8
+          - idf_ver: "latest"
+            parallel_count: 10
+            parallel_index: 9
+          - idf_ver: "latest"
+            parallel_count: 10
+            parallel_index: 10
           #- idf_ver: "release-v5.1"
           #  parallel_count: 2
           #  parallel_index: 1
