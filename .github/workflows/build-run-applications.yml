@@ -164,10 +164,10 @@ jobs:
         id: set_ignores
         if: ${{ github.event.label.name == 'benchmark' }}
         env:
-          IGNORES: --ignore='*/examples/display_lvgl_benchmark/*'
+          TEST_IGNORES: --ignore='*/examples/display_lvgl_benchmark/*'
       - name: Run apps
         run: |
-          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.IGNORES }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
+          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.TEST_IGNORES }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -202,13 +202,13 @@ jobs:
           echo "files=$files" >> $GITHUB_OUTPUT
       - name: Comment PR
         uses: GrantBirki/comment@v2.1.0
-        env:
-          files: ${{ steps.find_files.outputs.files }}
+        # env:
+          # files: ${{ steps.find_files.outputs.files }}
         with:
           comment-id: benchmark_results
           body: |
             # Files
-            {% for file in env.files %}
+            {% for file in files %}
             - `{{ file }}`
             {% else %}
             - No file
