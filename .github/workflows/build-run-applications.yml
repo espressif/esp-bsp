@@ -186,6 +186,11 @@ jobs:
           path: |
             test_results
             benchmark_*.md
+      - name: Find test result files
+        id: find_files
+        run: |
+          files=$(find test_results -type f -name "*.md" | jq -R -s -c 'split("\n")[:-1]')
+          echo "files=$files" >> $GITHUB_OUTPUT
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
@@ -194,10 +199,11 @@ jobs:
         uses: GrantBirki/comment@v2.1.0
         with:
           comment-id: benchmark_results
-          files: test_results/**/*.md
+          vars: |
+            files: {{ steps.find_files.outputs.files }}
           body: |
             # Files
-            {% for file in files.split(",") %}
+            {% for file in files %}
             - `{{ file }}`
             {% else %}
             - No file
