@@ -159,16 +159,13 @@ jobs:
       - name: Install Python packages
         env:
           PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
-        run: |
-          pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
-          echo "TEST_IGNORES=--ignore='*/examples/display_lvgl_benchmark/*'" >> $GITHUB_OUTPUT
+          TEST_IGNORES: "--ignore='*/examples/display_lvgl_benchmark/*'"
+        run: pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
       - name: Set ignores
         if: ${{ github.event.label.name == 'run_benchmark' }}
         id: set_ignores
-        run: |
-          echo "TEST_IGNORES=''" >> $GITHUB_OUTPUT
-        # env:
-        #   TEST_IGNORES: --ignore='*/examples/display_lvgl_benchmark/*'
+        env:
+          TEST_IGNORES: ""
       - name: Run apps
         run: |
           pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.TEST_IGNORES }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
@@ -209,7 +206,7 @@ jobs:
         # env:
           # files: ${{ steps.find_files.outputs.files }}
         with:
-          comment-id: benchmark_results
+          # comment-id: benchmark_results
           body: |
             # Files
             {% for file in files %}
