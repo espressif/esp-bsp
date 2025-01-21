@@ -159,17 +159,19 @@ jobs:
       - name: Install Python packages
         env:
           PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
-        run: pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code pytest-xdist
+        run: |
+          pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
+          echo "TEST_IGNORES=--ignore='*/examples/display_lvgl_benchmark/*'" >> $GITHUB_OUTPUT
       - name: Set ignores
-        if: ${{ github.event.label.name == 'benchmark' }}
+        if: ${{ github.event.label.name == 'run_benchmark' }}
         id: set_ignores
         run: |
-          echo "TEST_IGNORES=--ignore='*/examples/display_lvgl_benchmark/*'" >> $GITHUB_OUTPUT
+          echo "TEST_IGNORES=''" >> $GITHUB_OUTPUT
         # env:
         #   TEST_IGNORES: --ignore='*/examples/display_lvgl_benchmark/*'
       - name: Run apps
         run: |
-          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.TEST_IGNORES }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }} -n auto
+          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.TEST_IGNORES }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
