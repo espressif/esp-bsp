@@ -202,10 +202,10 @@ jobs:
           echo "files=$files" >> $GITHUB_OUTPUT
       - name: Comment PR
         uses: GrantBirki/comment@v2.1.0
+        env:
+          files: ${{ steps.find_files.outputs.files }}
         with:
           comment-id: benchmark_results
-          env:
-            files: ${{ steps.find_files.outputs.files }}
           body: |
             # Files
             {% for file in env.files %}
