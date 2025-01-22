@@ -5,7 +5,7 @@ name: Build ESP-BSP apps
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, labeled]
 
 jobs:
   build:
