@@ -6,6 +6,16 @@ name: Build ESP-BSP apps
 on:
   pull_request:
     types: [opened, reopened, synchronize, labeled]
+  workflow_dispatch:
+    inputs:
+      WFType:
+        description: 'Workflow type'
+        required: true
+        default: 'Build + Tests'
+        type: choice
+        options:
+        - Build + Tests
+        - Build + Tests + Benchmark
 
 jobs:
   build:
@@ -178,7 +188,7 @@ jobs:
           echo "PYTEST_BENCHMARK_IGNORE=--ignore='examples/display_lvgl_benchmark'" >> $GITHUB_ENV
           pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
       - name: Set ignores
-        if: contains(github.event.pull_request.labels.*.name, 'run_benchmark')
+        if: contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark')
         id: set_ignores
         run: |
           echo "PYTEST_BENCHMARK_IGNORE=" >> $GITHUB_ENV
@@ -206,18 +216,6 @@ jobs:
         with:
           pattern: test_results_*
           path: test_results
-      - name: List available artifacts
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: context.runId
-            });
-            console.log("Artifacts:", artifacts.data.artifacts.map(a => a.name));
-      - name: List after download
-        run: ls -R
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
@@ -237,7 +235,6 @@ jobs:
           with open(output_file, "w", encoding="utf-8") as outfile:
               for file in files:
                   with open(file, "r", encoding="utf-8") as infile:
-                      outfile.write(f"# {file}\n\n")  # Přidání názvu souboru jako nadpis
                       outfile.write(infile.read() + "\n\n")
 
           print(f"Merged {len(files)} files into {output_file}")
@@ -246,8 +243,6 @@ jobs:
           echo "output_file=$OUTPUT_FILE" >> "$GITHUB_ENV"
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v3
-        # env:
-          # files: ${{ steps.find_files.outputs.files }}
         with:
           comment-tag: benchmark_results
           file-path: ${{ env.output_file }}
