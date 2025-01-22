@@ -175,7 +175,7 @@ jobs:
         env:
           PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
         run: |
-          echo "PYTEST_BENCHMARK_IGNORE=--ignore='examples/display_lvgl_benchmark/*'" >> $GITHUB_ENV
+          echo "PYTEST_BENCHMARK_IGNORE=--ignore='examples/display_lvgl_benchmark'" >> $GITHUB_ENV
           pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
       - name: Set ignores
         if: contains(github.event.pull_request.labels.*.name, 'run_benchmark')
@@ -220,7 +220,8 @@ jobs:
           python <<EOF
           import glob
 
-          files = sorted(glob.glob("test_results_*/benchmark_*.md"))
+          files = sorted(glob.glob("test_results/**/benchmark_*.md"))
+          print(files)
           output_file = "combined_benchmarks.md"
 
           with open(output_file, "w", encoding="utf-8") as outfile:
