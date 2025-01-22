@@ -220,7 +220,7 @@ jobs:
           python <<EOF
           import glob
 
-          files = sorted(glob.glob("test_results/**/benchmark_*.md"))
+          files = sorted(glob.glob("benchmark_*.md"))
           print(files)
           output_file = "combined_benchmarks.md"
 
