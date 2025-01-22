@@ -204,10 +204,13 @@ jobs:
       - name: Download Test results
         uses: actions/download-artifact@v4
         with:
-          pattern: |
-            test_results_*
-            benchmark_*.md
+          pattern: test_results_*
           path: test_results
+      - name: Download Test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: benchmark_*.md
+          path: benchmark_results
       - name: List available artifacts
         uses: actions/github-script@v7
         with:
