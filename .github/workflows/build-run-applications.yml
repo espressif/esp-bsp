@@ -128,12 +128,12 @@ jobs:
           # - runs-on: "esp32_s3_eye"
           #   marker: "esp32_s3_eye"
           #   target: "esp32s3"
-          # - runs-on: "esp32_s3_lcd_ev_board"
-          #   marker: "esp32_s3_lcd_ev_board"
-          #   target: "esp32s3"
-          # - runs-on: "esp32_s3_lcd_ev_board"
-          #   marker: "esp32_s3_lcd_ev_board_2"
-          #   target: "esp32s3"
+          - runs-on: "esp32_s3_lcd_ev_board"
+            marker: "esp32_s3_lcd_ev_board"
+            target: "esp32s3"
+          - runs-on: "esp32_s3_lcd_ev_board"
+            marker: "esp32_s3_lcd_ev_board_2"
+            target: "esp32s3"
           # - runs-on: "esp32_s3_usb_otg"
           #   marker: "esp32_s3_usb_otg"
           #   target: "esp32s3"
@@ -175,7 +175,7 @@ jobs:
         env:
           PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
         run: |
-          echo "PYTEST_BENCHMARK_IGNORE=--ignore='*/examples/display_lvgl_benchmark/*'" >> $GITHUB_ENV
+          echo "PYTEST_BENCHMARK_IGNORE=--ignore='examples/display_lvgl_benchmark/*'" >> $GITHUB_ENV
           pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
       - name: Set ignores
         if: contains(github.event.pull_request.labels.*.name, 'run_benchmark')
@@ -215,18 +215,28 @@ jobs:
       - name: Find test result files
         id: find_files
         run: |
-          files=$(find test_results_* -type f -name "*.md" | jq -R -s -c 'split("\n")[:-1]')
-          echo "files=$files" >> $GITHUB_OUTPUT
+          OUTPUT_FILE="combined_benchmarks.md"
+          echo "" > $OUTPUT_FILE
+          python <<EOF
+          import glob
+
+          files = sorted(glob.glob("test_results_*/benchmark_*.md"))
+          output_file = "combined_benchmarks.md"
+
+          with open(output_file, "w", encoding="utf-8") as outfile:
+              for file in files:
+                  with open(file, "r", encoding="utf-8") as infile:
+                      outfile.write(f"# {file}\n\n")  # Přidání názvu souboru jako nadpis
+                      outfile.write(infile.read() + "\n\n")
+
+          print(f"Merged {len(files)} files into {output_file}")
+          EOF
+
+          echo "output_file=$OUTPUT_FILE" >> "$GITHUB_ENV"
       - name: Comment PR
-        uses: GrantBirki/comment@v2.1.0
+        uses: thollander/actions-comment-pull-request@v3
         # env:
           # files: ${{ steps.find_files.outputs.files }}
         with:
-          # comment-id: benchmark_results
-          body: |
-            # Files
-            {% for file in files %}
-            - `{{ file }}`
-            {% else %}
-            - No file
-            {% endfor %}
+          commentTag: benchmark_results
+          filePath: ${{ env.output_file }}
