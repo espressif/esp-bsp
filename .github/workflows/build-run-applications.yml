@@ -208,6 +208,8 @@ jobs:
           path: |
             test_results
             benchmark_*.md
+      - name: List after download
+        run: ls -R test_results
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
@@ -220,7 +222,7 @@ jobs:
           python <<EOF
           import glob
 
-          files = sorted(glob.glob("benchmark_*.md"))
+          files = sorted(glob.glob("test_results/benchmark_*.md"))
           print(files)
           output_file = "combined_benchmarks.md"
 
