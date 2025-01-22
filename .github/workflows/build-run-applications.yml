@@ -238,5 +238,5 @@ jobs:
         # env:
           # files: ${{ steps.find_files.outputs.files }}
         with:
-          commentTag: benchmark_results
-          filePath: ${{ env.output_file }}
+          comment-tag: benchmark_results
+          file-path: ${{ env.output_file }}
