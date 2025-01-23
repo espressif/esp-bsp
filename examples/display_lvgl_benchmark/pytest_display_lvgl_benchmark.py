@@ -4,11 +4,12 @@
 import os
 import datetime
 import pytest
+import json
 from pytest_embedded import Dut
 
 
-def write_to_file(board, text):
-    with open("benchmark_" + board + ".md", "a") as h:
+def write_to_file(board, ext, text):
+    with open("benchmark_" + board + ext, "a") as h:
         h.write(text)
 
 
@@ -30,23 +31,36 @@ def test_example(dut: Dut, request) -> None:
 
     try:
         os.remove("benchmark_" + board + ".md")
+        os.remove("benchmark_" + board + ".json")
     except OSError:
         pass
 
+    output = []
+    output["date"] = date.strftime('%d.%m.%Y %H:%M')
+    output["board"] = board
+
     # Write board into file
-    write_to_file(board, f"# Benchmark for BOARD " + board + "\n\n")
-    write_to_file(board, f"**DATE:** " + date.strftime('%d.%m.%Y %H:%M') + "\n\n")
+    write_to_file(board, ".md", f"# Benchmark for BOARD " + board + "\n\n")
+    write_to_file(board, ".md", f"**DATE:** " + date.strftime('%d.%m.%Y %H:%M') + "\n\n")
     # Get LVGL version write it into file
     outdata = dut.expect(r'Benchmark Summary \((.*) \)', timeout=200)
-    write_to_file(board, f"**LVGL version:** " + outdata[1].decode() + "\n\n")
+    output["LVGL"] = outdata[1].decode()
+    write_to_file(board, ".md", f"**LVGL version:** " + outdata[1].decode() + "\n\n")
     outdata = dut.expect(r'Name, Avg. CPU, Avg. FPS, Avg. time, render time, flush time', timeout=200)
-    write_to_file(board, f"| Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |\n")
-    write_to_file(board, f"| ---- | :------: | :------: | :-------: | :---------: | :--------: |\n")  # noqa: E203
+    write_to_file(board, ".md", f"| Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |\n")
+    write_to_file(board, ".md", f"| ---- | :------: | :------: | :-------: | :---------: | :--------: |\n")  # noqa: E203
 
     # Benchmark lines
     for x in range(17):
         outdata = dut.expect(r'([\w \.]+),[ ]?(\d+%),[ ]?(\d+),[ ]?(\d+),[ ]?(\d+),[ ]?(\d+)', timeout=200)
-        write_to_file(board, f"| " +
+        output["tests"]["Name"] = outdata[1].decode()
+        output["tests"]["Avg. CPU"] = outdata[2].decode()
+        output["tests"]["Avg. FPS"] = outdata[2].decode()
+        output["tests"]["Avg. time"] = outdata[2].decode()
+        output["tests"]["render time"] = outdata[2].decode()
+        output["tests"]["flush time"] = outdata[2].decode()
+
+        write_to_file(board, ".md", f"| " +
                       outdata[1].decode() + " | " +
                       outdata[2].decode() + " | " +
                       outdata[3].decode() + " | " +
@@ -54,6 +68,10 @@ def test_example(dut: Dut, request) -> None:
                       outdata[5].decode() + " | " +
                       outdata[6].decode() + " |\n")
 
-    write_to_file(board, "\n")
-    write_to_file(board, "***")
-    write_to_file(board, "\n\n")
+    write_to_file(board, ".md", "\n")
+    write_to_file(board, ".md", "***")
+    write_to_file(board, ".md", "\n\n")
+
+    # Save JSON to file
+    json_output = json.dumps(outdata)
+    write_to_file(board, ".json", json_output)
