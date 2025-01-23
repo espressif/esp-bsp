@@ -324,6 +324,9 @@ esp_err_t bsp_i2c_init(void)
         .sda_io_num = BSP_I2C_SDA,
         .scl_io_num = BSP_I2C_SCL,
         .clk_source = I2C_CLK_SRC_DEFAULT,
+#ifdef CONFIG_BSP_I2C_GPIO_PULLUP
+        .flags.enable_internal_pullup = 1,
+#endif
     };
     BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
