@@ -203,6 +203,7 @@ jobs:
           path: |
             ${{ env.TEST_RESULT_FILE }}
             benchmark_*.md
+            benchmark_*.json
 
   publish-results:
     name: Publish Test results
