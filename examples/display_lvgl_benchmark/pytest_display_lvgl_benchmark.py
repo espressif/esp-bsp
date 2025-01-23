@@ -35,9 +35,10 @@ def test_example(dut: Dut, request) -> None:
     except OSError:
         pass
 
-    output = []
-    output["date"] = date.strftime('%d.%m.%Y %H:%M')
-    output["board"] = board
+    output = {
+        "date": date.strftime('%d.%m.%Y %H:%M'),
+        "board": board
+    }
 
     # Write board into file
     write_to_file(board, ".md", f"# Benchmark for BOARD " + board + "\n\n")
@@ -51,14 +52,18 @@ def test_example(dut: Dut, request) -> None:
     write_to_file(board, ".md", f"| ---- | :------: | :------: | :-------: | :---------: | :--------: |\n")  # noqa: E203
 
     # Benchmark lines
+    output["tests"] = []
     for x in range(17):
         outdata = dut.expect(r'([\w \.]+),[ ]?(\d+%),[ ]?(\d+),[ ]?(\d+),[ ]?(\d+),[ ]?(\d+)', timeout=200)
-        output["tests"]["Name"] = outdata[1].decode()
-        output["tests"]["Avg. CPU"] = outdata[2].decode()
-        output["tests"]["Avg. FPS"] = outdata[2].decode()
-        output["tests"]["Avg. time"] = outdata[2].decode()
-        output["tests"]["render time"] = outdata[2].decode()
-        output["tests"]["flush time"] = outdata[2].decode()
+        test_entry = {
+            "Name": outdata[1].decode(),
+            "Avg. CPU": outdata[2].decode(),
+            "Avg. FPS": outdata[3].decode(),
+            "Avg. time": outdata[4].decode(),
+            "render time": outdata[5].decode(),
+            "flush time": outdata[6].decode()
+        }
+        output["tests"].append(test_entry)
 
         write_to_file(board, ".md", f"| " +
                       outdata[1].decode() + " | " +
@@ -73,5 +78,5 @@ def test_example(dut: Dut, request) -> None:
     write_to_file(board, ".md", "\n\n")
 
     # Save JSON to file
-    json_output = json.dumps(outdata)
+    json_output = json.dumps(output, indent=4)
     write_to_file(board, ".json", json_output)
