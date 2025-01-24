@@ -1,9 +1,14 @@
 # Changelog
 
-## [Unreleased]
+## 2.4.4
+
+### Features
+- Changed queue to event group in main LVGL task for speed up https://github.com/espressif/esp-bsp/issues/492
+- Reworked handling encoder (knob) https://github.com/espressif/esp-bsp/pull/450
 
 ### Fixes
 - Fixed a crash when esp_lvgl_port was initialized from high priority task https://github.com/espressif/esp-bsp/issues/455
+- Allow to swap bytes when used SW rotation https://github.com/espressif/esp-bsp/issues/497
 
 ## 2.4.3
 

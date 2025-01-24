@@ -567,7 +567,7 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
     int offsety2 = area->y2;
 
     /* SW rotation enabled */
-    if (disp_ctx->flags.sw_rotate && (disp_ctx->current_rotation > LV_DISPLAY_ROTATION_0 || disp_ctx->flags.swap_bytes)) {
+    if (disp_ctx->flags.sw_rotate && (disp_ctx->current_rotation > LV_DISPLAY_ROTATION_0)) {
         /* SW rotation */
         if (disp_ctx->draw_buffs[2]) {
             int32_t ww = lv_area_get_width(area);
@@ -589,7 +589,9 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
             offsety1 = area->y1;
             offsety2 = area->y2;
         }
-    } else if (disp_ctx->flags.swap_bytes) {
+    }
+
+    if (disp_ctx->flags.swap_bytes) {
         size_t len = lv_area_get_size(area);
         lv_draw_sw_rgb565_swap(color_map, len);
     }
