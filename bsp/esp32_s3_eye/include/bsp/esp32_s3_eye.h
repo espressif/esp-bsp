@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -19,6 +19,7 @@
 #include "bsp/config.h"
 #include "bsp/display.h"
 #include "driver/i2s_std.h"
+#include "driver/i2c_master.h"
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 #include "lvgl.h"
