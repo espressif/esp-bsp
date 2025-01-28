@@ -25,7 +25,7 @@ dependencies:
     public: true
 
   button:
-    version: ">=2.5"
+    version: ">=2.5,<4.0"
     public: true
 
   icm42670:
