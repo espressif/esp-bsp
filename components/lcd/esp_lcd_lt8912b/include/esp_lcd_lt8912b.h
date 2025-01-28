@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -160,8 +160,8 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
         .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,     \
         .num_fbs = 1,                                      \
         .video_timing = {                                  \
-            .h_size = BSP_LCD_H_RES,                       \
-            .v_size = BSP_LCD_V_RES,                       \
+            .h_size = 800,                       \
+            .v_size = 600,                       \
             .hsync_back_porch = 88,                        \
             .hsync_pulse_width = 128,                      \
             .hsync_front_porch = 48,                       \
@@ -204,8 +204,8 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
         .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,     \
         .num_fbs = 1,                                      \
         .video_timing = {                                  \
-            .h_size = BSP_LCD_H_RES,                       \
-            .v_size = BSP_LCD_V_RES,                       \
+            .h_size = 1024,                       \
+            .v_size = 768,                       \
             .hsync_back_porch = 80,                        \
             .hsync_pulse_width = 32,                      \
             .hsync_front_porch = 48,                       \
@@ -248,8 +248,8 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
         .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,     \
         .num_fbs = 1,                                      \
         .video_timing = {                                  \
-            .h_size = BSP_LCD_H_RES,                       \
-            .v_size = BSP_LCD_V_RES,                       \
+            .h_size = 1280,                       \
+            .v_size = 720,                       \
             .hsync_back_porch = 80,                        \
             .hsync_pulse_width = 32,                      \
             .hsync_front_porch = 48,                       \
@@ -292,8 +292,8 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
         .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,     \
         .num_fbs = 1,                                      \
         .video_timing = {                                  \
-            .h_size = BSP_LCD_H_RES,                       \
-            .v_size = BSP_LCD_V_RES,                       \
+            .h_size = 1280,                       \
+            .v_size = 800,                       \
             .hsync_back_porch = 80,                        \
             .hsync_pulse_width = 32,                      \
             .hsync_front_porch = 48,                       \
@@ -336,8 +336,8 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
         .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,     \
         .num_fbs = 1,                                      \
         .video_timing = {                                  \
-            .h_size = BSP_LCD_H_RES,                       \
-            .v_size = BSP_LCD_V_RES,                       \
+            .h_size = 1920,                       \
+            .v_size = 1080,                       \
             .hsync_back_porch = 80,                        \
             .hsync_pulse_width = 32,                      \
             .hsync_front_porch = 48,                       \
@@ -383,8 +383,8 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
         .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB888,     \
         .num_fbs = 1,                                      \
         .video_timing = {                                  \
-            .h_size = BSP_LCD_H_RES,                       \
-            .v_size = BSP_LCD_V_RES,                       \
+            .h_size = 1920,                       \
+            .v_size = 1080,                       \
             .hsync_back_porch = 80,                        \
             .hsync_pulse_width = 32,                      \
             .hsync_front_porch = 48,                       \

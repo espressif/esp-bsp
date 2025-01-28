@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -40,55 +40,10 @@
 /* LCD display definition 1024x600 */
 #define BSP_LCD_H_RES              (1024)
 #define BSP_LCD_V_RES              (600)
-
-#define BSP_LCD_MIPI_DSI_LCD_HSYNC    (1344)
-#define BSP_LCD_MIPI_DSI_LCD_HBP      (160)
-#define BSP_LCD_MIPI_DSI_LCD_HFP      (160)
-#define BSP_LCD_MIPI_DSI_LCD_VSYNC    (635)
-#define BSP_LCD_MIPI_DSI_LCD_VBP      (23)
-#define BSP_LCD_MIPI_DSI_LCD_VFP      (12)
-
-#elif CONFIG_BSP_LCD_TYPE_HDMI
-#if CONFIG_BSP_LCD_HDMI_800x600_60HZ
-/* LCD display definition 800x600 60Hz */
-#define BSP_LCD_H_RES              (800)
-#define BSP_LCD_V_RES              (600)
-#elif CONFIG_BSP_LCD_HDMI_1024x768_60HZ
-/* LCD display definition 1024x768 60Hz */
-#define BSP_LCD_H_RES              (1024)
-#define BSP_LCD_V_RES              (768)
-#elif CONFIG_BSP_LCD_HDMI_1280x720_60HZ
-/* LCD display definition 1280x720 60Hz */
-#define BSP_LCD_H_RES              (1280)
-#define BSP_LCD_V_RES              (720)
-#elif CONFIG_BSP_LCD_HDMI_1280x800_60HZ
-/* LCD display definition 1280x800 60Hz */
-#define BSP_LCD_H_RES              (1280)
-#define BSP_LCD_V_RES              (800)
-#elif CONFIG_BSP_LCD_HDMI_1920x1080_30HZ
-/* LCD display definition 1920x1080 30Hz */
-#define BSP_LCD_H_RES              (1920)
-#define BSP_LCD_V_RES              (1080)
-#elif CONFIG_BSP_LCD_HDMI_1920x1080_60HZ
-/* LCD display definition 1920x1080 60Hz */
-/* This setting is not working yet, it is only for developing and testing */
-#define BSP_LCD_H_RES              (1920)
-#define BSP_LCD_V_RES              (1080)
-#else
-#error Unsupported display type
-#endif
-
 #else
 /* LCD display definition 1280x800 */
 #define BSP_LCD_H_RES              (800)
 #define BSP_LCD_V_RES              (1280)
-
-#define BSP_LCD_MIPI_DSI_LCD_HSYNC    (40)
-#define BSP_LCD_MIPI_DSI_LCD_HBP      (140)
-#define BSP_LCD_MIPI_DSI_LCD_HFP      (40)
-#define BSP_LCD_MIPI_DSI_LCD_VSYNC    (4)
-#define BSP_LCD_MIPI_DSI_LCD_VBP      (16)
-#define BSP_LCD_MIPI_DSI_LCD_VFP      (16)
 #endif
 
 #define BSP_LCD_MIPI_DSI_LANE_NUM          (2)    // 2 data lanes
@@ -102,11 +57,28 @@ extern "C" {
 #endif
 
 /**
+ * @brief BSP HDMI resolution types
+ *
+ */
+typedef enum {
+    BSP_HDMI_RES_NONE = 0,
+    BSP_HDMI_RES_800x600,   /*!< 800x600@60HZ   */
+    BSP_HDMI_RES_1024x768,  /*!< 1024x768@60HZ  */
+    BSP_HDMI_RES_1280x720,  /*!< 1280x720@60HZ  */
+    BSP_HDMI_RES_1280x800,  /*!< 1280x800@60HZ  */
+    BSP_HDMI_RES_1920x1080  /*!< 1920x1080@30HZ */
+} bsp_hdmi_resolution_t;
+
+/**
  * @brief BSP display configuration structure
  *
  */
 typedef struct {
-    int dummy;
+    bsp_hdmi_resolution_t hdmi_resolution;    /*!< HDMI resolution selection */
+    struct {
+        mipi_dsi_phy_clock_source_t phy_clk_src;  /*!< DSI bus config - clock source */
+        uint32_t lane_bit_rate_mbps;              /*!< DSI bus config - lane bit rate */
+    } dsi_bus;
 } bsp_display_config_t;
 
 /**

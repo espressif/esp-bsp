@@ -1,9 +1,10 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <string.h>
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/ledc.h"
@@ -415,12 +416,16 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     esp_lcd_dsi_bus_config_t bus_config = {
         .bus_id = 0,
         .num_data_lanes = BSP_LCD_MIPI_DSI_LANE_NUM,
-        .phy_clk_src = MIPI_DSI_PHY_CLK_SRC_DEFAULT,
-        .lane_bit_rate_mbps = BSP_LCD_MIPI_DSI_LANE_BITRATE_MBPS,
+        .phy_clk_src = config->dsi_bus.phy_clk_src,
+        .lane_bit_rate_mbps = config->dsi_bus.lane_bit_rate_mbps,
     };
     ESP_RETURN_ON_ERROR(esp_lcd_new_dsi_bus(&bus_config, &mipi_dsi_bus), TAG, "New DSI bus init failed");
 
 #if !CONFIG_BSP_LCD_TYPE_HDMI
+    if (config->hdmi_resolution != BSP_HDMI_RES_NONE) {
+        ESP_LOGW(TAG, "Please select HDMI in menuconfig, if you want to use it.");
+    }
+
     ESP_LOGI(TAG, "Install MIPI DSI LCD control panel");
     // we use DBI interface to send LCD commands and parameters
     esp_lcd_dbi_io_config_t dbi_config = {
@@ -507,53 +512,62 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     esp_lcd_panel_io_i2c_config_t io_config_avi = LT8912B_IO_CFG(CONFIG_BSP_I2C_CLK_SPEED_HZ, LT8912B_IO_I2C_AVI_ADDRESS);
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_handle, &io_config_avi, &io_avi));
 
-    /* DPI config */
-#if CONFIG_BSP_LCD_HDMI_800x600_60HZ
-    ESP_LOGI(TAG, "HDMI configuration for 800x600@60HZ");
-    esp_lcd_dpi_panel_config_t dpi_config = LT8912B_800x600_PANEL_60HZ_DPI_CONFIG();
-#elif CONFIG_BSP_LCD_HDMI_1024x768_60HZ
-    ESP_LOGI(TAG, "HDMI configuration for 1024x768@60HZ");
-    esp_lcd_dpi_panel_config_t dpi_config = LT8912B_1024x768_PANEL_60HZ_DPI_CONFIG();
-#elif CONFIG_BSP_LCD_HDMI_1280x720_60HZ
-    ESP_LOGI(TAG, "HDMI configuration for 1280x720@60HZ");
-    esp_lcd_dpi_panel_config_t dpi_config = LT8912B_1280x720_PANEL_60HZ_DPI_CONFIG();
-#elif CONFIG_BSP_LCD_HDMI_1280x800_60HZ
-    ESP_LOGI(TAG, "HDMI configuration for 1280x800@60HZ");
-    esp_lcd_dpi_panel_config_t dpi_config = LT8912B_1280x800_PANEL_60HZ_DPI_CONFIG();
-#elif CONFIG_BSP_LCD_HDMI_1920x1080_30HZ
-    ESP_LOGI(TAG, "HDMI configuration for 1920x1080@30HZ");
-    esp_lcd_dpi_panel_config_t dpi_config = LT8912B_1920x1080_PANEL_30HZ_DPI_CONFIG();
-#elif CONFIG_BSP_LCD_HDMI_1920x1080_60HZ
-    ESP_LOGI(TAG, "HDMI configuration for 1920x1080@60HZ");
-    /* This setting is not working yet, it is only for developing and testing */
-    esp_lcd_dpi_panel_config_t dpi_config = LT8912B_1920x1080_PANEL_60HZ_DPI_CONFIG();
-#else
-#error Unsupported display type
-#endif
-    dpi_config.num_fbs = CONFIG_BSP_LCD_DPI_BUFFER_NUMS;
+    esp_lcd_dpi_panel_config_t dpi_config;
+    const esp_lcd_dpi_panel_config_t dpi_configs[] = {
+        LT8912B_800x600_PANEL_60HZ_DPI_CONFIG(),
+        LT8912B_1024x768_PANEL_60HZ_DPI_CONFIG(),
+        LT8912B_1280x720_PANEL_60HZ_DPI_CONFIG(),
+        LT8912B_1280x800_PANEL_60HZ_DPI_CONFIG(),
+        LT8912B_1920x1080_PANEL_30HZ_DPI_CONFIG()
+    };
+
+    const esp_lcd_panel_lt8912b_video_timing_t video_timings[] = {
+        ESP_LCD_LT8912B_VIDEO_TIMING_800x600_60Hz(),
+        ESP_LCD_LT8912B_VIDEO_TIMING_1024x768_60Hz(),
+        ESP_LCD_LT8912B_VIDEO_TIMING_1280x720_60Hz(),
+        ESP_LCD_LT8912B_VIDEO_TIMING_1280x800_60Hz(),
+        ESP_LCD_LT8912B_VIDEO_TIMING_1920x1080_30Hz()
+    };
     lt8912b_vendor_config_t vendor_config = {
-#if CONFIG_BSP_LCD_HDMI_800x600_60HZ
-        .video_timing = ESP_LCD_LT8912B_VIDEO_TIMING_800x600_60Hz(),
-#elif CONFIG_BSP_LCD_HDMI_1024x768_60HZ
-        .video_timing = ESP_LCD_LT8912B_VIDEO_TIMING_1024x768_60Hz(),
-#elif CONFIG_BSP_LCD_HDMI_1280x720_60HZ
-        .video_timing = ESP_LCD_LT8912B_VIDEO_TIMING_1280x720_60Hz(),
-#elif CONFIG_BSP_LCD_HDMI_1280x800_60HZ
-        .video_timing = ESP_LCD_LT8912B_VIDEO_TIMING_1280x800_60Hz(),
-#elif CONFIG_BSP_LCD_HDMI_1920x1080_30HZ
-        .video_timing = ESP_LCD_LT8912B_VIDEO_TIMING_1920x1080_30Hz(),
-#elif CONFIG_BSP_LCD_HDMI_1920x1080_60HZ
-        /* This setting is not working yet, it is only for developing and testing */
-        .video_timing = ESP_LCD_LT8912B_VIDEO_TIMING_1920x1080_60Hz(),
-#else
-#error Unsupported display type
-#endif
         .mipi_config = {
             .dsi_bus = mipi_dsi_bus,
             .dpi_config = &dpi_config,
             .lane_num = BSP_LCD_MIPI_DSI_LANE_NUM,
         },
     };
+
+    /* DPI config */
+    switch (config->hdmi_resolution) {
+    case BSP_HDMI_RES_800x600:
+        ESP_LOGI(TAG, "HDMI configuration for 800x600@60HZ");
+        memcpy(&dpi_config, &dpi_configs[0], sizeof(esp_lcd_dpi_panel_config_t));
+        memcpy(&vendor_config.video_timing, &video_timings[0], sizeof(esp_lcd_panel_lt8912b_video_timing_t));
+        break;
+    case BSP_HDMI_RES_1024x768:
+        ESP_LOGI(TAG, "HDMI configuration for 1024x768@60HZ");
+        memcpy(&dpi_config, &dpi_configs[1], sizeof(esp_lcd_dpi_panel_config_t));
+        memcpy(&vendor_config.video_timing, &video_timings[1], sizeof(esp_lcd_panel_lt8912b_video_timing_t));
+        break;
+    case BSP_HDMI_RES_1280x720:
+        ESP_LOGI(TAG, "HDMI configuration for 1280x720@60HZ");
+        memcpy(&dpi_config, &dpi_configs[2], sizeof(esp_lcd_dpi_panel_config_t));
+        memcpy(&vendor_config.video_timing, &video_timings[2], sizeof(esp_lcd_panel_lt8912b_video_timing_t));
+        break;
+    case BSP_HDMI_RES_1280x800:
+        ESP_LOGI(TAG, "HDMI configuration for 1280x800@60HZ");
+        memcpy(&dpi_config, &dpi_configs[3], sizeof(esp_lcd_dpi_panel_config_t));
+        memcpy(&vendor_config.video_timing, &video_timings[3], sizeof(esp_lcd_panel_lt8912b_video_timing_t));
+        break;
+    case BSP_HDMI_RES_1920x1080:
+        ESP_LOGI(TAG, "HDMI configuration for 1920x1080@30HZ");
+        memcpy(&dpi_config, &dpi_configs[4], sizeof(esp_lcd_dpi_panel_config_t));
+        memcpy(&vendor_config.video_timing, &video_timings[4], sizeof(esp_lcd_panel_lt8912b_video_timing_t));
+        break;
+    default:
+        ESP_LOGE(TAG, "Unsupported display type");
+    }
+
+    dpi_config.num_fbs = CONFIG_BSP_LCD_DPI_BUFFER_NUMS;
     const esp_lcd_panel_dev_config_t panel_config = {
         .bits_per_pixel = 24,
         .rgb_ele_order = BSP_LCD_COLOR_SPACE,
@@ -577,7 +591,7 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     ret_handles->panel = disp_panel;
     ret_handles->control = NULL;
 
-    ESP_LOGI(TAG, "Display initialized with resolution %dx%d", BSP_LCD_H_RES, BSP_LCD_V_RES);
+    ESP_LOGI(TAG, "Display initialized");
 
     return ret;
 
@@ -642,7 +656,41 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
     bsp_lcd_handles_t lcd_panels;
-    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new_with_handles(NULL, &lcd_panels));
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new_with_handles(&cfg->hw_cfg, &lcd_panels));
+
+    uint32_t display_hres = 0;
+    uint32_t display_vres = 0;
+#if CONFIG_BSP_LCD_TYPE_HDMI
+    switch (cfg->hdmi_resolution) {
+    case BSP_HDMI_RES_800x600:
+        display_hres = 800;
+        display_vres = 600;
+        break;
+    case BSP_HDMI_RES_1024x768:
+        display_hres = 1024;
+        display_vres = 768;
+        break;
+    case BSP_HDMI_RES_1280x720:
+        display_hres = 1280;
+        display_vres = 720;
+        break;
+    case BSP_HDMI_RES_1280x800:
+        display_hres = 1280;
+        display_vres = 800;
+        break;
+    case BSP_HDMI_RES_1920x1080:
+        display_hres = 1920;
+        display_vres = 1080;
+        break;
+    default:
+        ESP_LOGE(TAG, "Unsupported HDMI resolution");
+    }
+#else
+    display_hres = BSP_LCD_H_RES;
+    display_vres = BSP_LCD_V_RES;
+#endif
+
+    ESP_LOGI(TAG, "Display resolution %ldx%ld", display_hres, display_vres);
 
     /* Add LCD screen */
     ESP_LOGD(TAG, "Add LCD screen");
@@ -652,8 +700,8 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
         .control_handle = lcd_panels.control,
         .buffer_size = cfg->buffer_size,
         .double_buffer = cfg->double_buffer,
-        .hres = BSP_LCD_H_RES,
-        .vres = BSP_LCD_V_RES,
+        .hres = display_hres,
+        .vres = display_vres,
         .monochrome = false,
         /* Rotation values must be same as used in esp_lcd for initial settings of the screen */
         .rotation = {
@@ -723,6 +771,25 @@ lv_display_t *bsp_display_start(void)
         .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
         .buffer_size = BSP_LCD_DRAW_BUFF_SIZE,
         .double_buffer = BSP_LCD_DRAW_BUFF_DOUBLE,
+        .hw_cfg = {
+#if CONFIG_BSP_LCD_TYPE_HDMI
+#if BSP_LCD_HDMI_800x600_60HZ
+            .hdmi_resolution = BSP_HDMI_RES_800x600,
+#elif BSP_LCD_HDMI_1280x720_60HZ
+            .hdmi_resolution = BSP_HDMI_RES_1280x720,
+#elif BSP_LCD_HDMI_1280x800_60HZ
+            .hdmi_resolution = BSP_HDMI_RES_1280x800,
+#elif BSP_LCD_HDMI_1920x1080_30HZ
+            .hdmi_resolution = BSP_HDMI_RES_1920x1080,
+#endif
+#else
+            .hdmi_resolution = BSP_HDMI_RES_NONE,
+#endif
+            .dsi_bus = {
+                .phy_clk_src = MIPI_DSI_PHY_CLK_SRC_DEFAULT,
+                .lane_bit_rate_mbps = BSP_LCD_MIPI_DSI_LANE_BITRATE_MBPS,
+            }
+        },
         .flags = {
 #if CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
             .buff_dma = false,

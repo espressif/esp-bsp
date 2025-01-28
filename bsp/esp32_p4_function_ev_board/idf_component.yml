@@ -25,5 +25,5 @@ dependencies:
     public: true
 
   espressif/esp_lcd_lt8912b:
-    version: ">=0.1.0,<1.0.0"
+    version: ">=0.1.1,<1.0.0"
     override_path: "../../components/lcd/esp_lcd_lt8912b"
