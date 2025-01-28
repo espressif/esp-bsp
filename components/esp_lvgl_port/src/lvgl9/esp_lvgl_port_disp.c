@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -17,6 +17,9 @@
 #include "esp_lcd_panel_ops.h"
 #include "esp_lvgl_port.h"
 #include "esp_lvgl_port_priv.h"
+#if CONFIG_IDF_TARGET_ESP32S3 && CONFIG_SPIRAM && CONFIG_SPI_DMA_SUPPORT_PSRAM
+#include "esp_private/esp_cache_private.h"
+#endif
 
 #if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 #include "esp_lcd_panel_rgb.h"
@@ -308,13 +311,35 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
     } else {
         /* alloc draw buffers used by LVGL */
         /* it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized */
+#if CONFIG_IDF_TARGET_ESP32S3 && CONFIG_SPIRAM && CONFIG_SPI_DMA_SUPPORT_PSRAM
+        if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram) {
+            // the data buffer address and transaction length should both aligned to cache length
+            size_t cache_line_size;
+            ESP_ERROR_CHECK(esp_cache_get_alignment(MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA, &cache_line_size));
+            uint32_t buffer_size_align_bytes =  buffer_size * color_bytes;
+            buffer_size_align_bytes = (buffer_size_align_bytes + cache_line_size - 1) & ~(cache_line_size - 1);
+            buf1 = heap_caps_aligned_alloc(cache_line_size, buffer_size_align_bytes, buff_caps);
+            ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
+            if (disp_cfg->double_buffer) {
+                buf2 = heap_caps_aligned_alloc(cache_line_size, buffer_size_align_bytes, buff_caps);
+                ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
+            }
+        } else {
+            buf1 = heap_caps_malloc(buffer_size * color_bytes, buff_caps);
+            ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
+            if (disp_cfg->double_buffer) {
+                buf2 = heap_caps_malloc(buffer_size * color_bytes, buff_caps);
+                ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
+            }
+        }
+#else
         buf1 = heap_caps_malloc(buffer_size * color_bytes, buff_caps);
         ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
         if (disp_cfg->double_buffer) {
             buf2 = heap_caps_malloc(buffer_size * color_bytes, buff_caps);
             ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
         }
-
+#endif
         disp_ctx->draw_buffs[0] = buf1;
         disp_ctx->draw_buffs[1] = buf2;
     }

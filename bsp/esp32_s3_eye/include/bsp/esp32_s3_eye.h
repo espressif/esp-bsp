@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,6 +13,7 @@
 
 #include "sdkconfig.h"
 #include "driver/gpio.h"
+#include "driver/i2c_master.h"
 #include "driver/sdmmc_host.h"
 #include "esp_codec_dev.h"
 #include "iot_button.h"
@@ -308,7 +309,12 @@ esp_err_t bsp_sdcard_unmount(void);
  *
  * If you want to use the display without LVGL, see bsp/display.h API and use BSP version with 'noglib' suffix.
  **************************************************************************************************/
+
+#if CONFIG_SPI_DMA_SUPPORT_PSRAM
+#define BSP_LCD_PIXEL_CLOCK_HZ     (40 * 1000 * 1000)
+#else
 #define BSP_LCD_PIXEL_CLOCK_HZ     (80 * 1000 * 1000)
+#endif
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)

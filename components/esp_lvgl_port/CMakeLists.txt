@@ -10,7 +10,7 @@ endif()
 idf_component_register(
         INCLUDE_DIRS "include"
         PRIV_INCLUDE_DIRS "priv_include"
-        REQUIRES "esp_lcd")
+        REQUIRES "esp_lcd esp_mm")
 
 # Get LVGL version
 idf_build_get_property(build_components BUILD_COMPONENTS)
@@ -116,6 +116,7 @@ target_link_libraries(lvgl_port_lib PUBLIC
     )
 target_link_libraries(lvgl_port_lib PRIVATE
     idf::esp_timer
+    idf::esp_mm
     ${ADD_LIBS}
     )
 

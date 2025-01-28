@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -17,6 +17,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+#if CONFIG_IDF_TARGET_ESP32S3 && CONFIG_SPIRAM && CONFIG_SPI_DMA_SUPPORT_PSRAM
+#include "esp_private/esp_cache_private.h"
+#endif
 
 #if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 #include "esp_lcd_panel_rgb.h"
@@ -244,6 +247,21 @@ static lv_disp_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp_cf
     disp_ctx->trans_size = disp_cfg->trans_size;
 
     buffer_size = disp_cfg->buffer_size;
+    uint32_t buff_caps = 0;
+#if SOC_PSRAM_DMA_CAPABLE == 0
+    if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram) {
+        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "Alloc DMA capable buffer in SPIRAM is not supported!");
+    }
+#endif
+    if (disp_cfg->flags.buff_dma) {
+        buff_caps |= MALLOC_CAP_DMA;
+    }
+    if (disp_cfg->flags.buff_spiram) {
+        buff_caps |= MALLOC_CAP_SPIRAM;
+    }
+    if (buff_caps == 0) {
+        buff_caps |= MALLOC_CAP_DEFAULT;
+    }
 
     /* Use RGB internal buffers for avoid tearing effect */
     if (priv_cfg && priv_cfg->avoid_tearing) {
@@ -259,15 +277,6 @@ static lv_disp_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp_cf
         ESP_GOTO_ON_FALSE(trans_sem, ESP_ERR_NO_MEM, err, TAG, "Failed to create transport counting Semaphore");
         disp_ctx->trans_sem = trans_sem;
     } else {
-        uint32_t buff_caps = MALLOC_CAP_DEFAULT;
-        if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram && (0 == disp_cfg->trans_size)) {
-            ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "Alloc DMA capable buffer in SPIRAM is not supported!");
-        } else if (disp_cfg->flags.buff_dma) {
-            buff_caps = MALLOC_CAP_DMA;
-        } else if (disp_cfg->flags.buff_spiram) {
-            buff_caps = MALLOC_CAP_SPIRAM;
-        }
-
         if (disp_cfg->trans_size) {
             buf3 = heap_caps_malloc(disp_cfg->trans_size * sizeof(lv_color_t), MALLOC_CAP_DMA);
             ESP_GOTO_ON_FALSE(buf3, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for buffer(transport) allocation!");
@@ -280,12 +289,34 @@ static lv_disp_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp_cf
 
         /* alloc draw buffers used by LVGL */
         /* it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized */
+#if CONFIG_IDF_TARGET_ESP32S3 && CONFIG_SPIRAM && CONFIG_SPI_DMA_SUPPORT_PSRAM
+        if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram) {
+            size_t cache_line_size;
+            ESP_ERROR_CHECK(esp_cache_get_alignment(MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA, &cache_line_size));
+            uint32_t buffer_size_align_bytes =  buffer_size * sizeof(lv_color_t);
+            buffer_size_align_bytes = (buffer_size_align_bytes + cache_line_size - 1) & ~(cache_line_size - 1);
+            buf1 = heap_caps_aligned_alloc(cache_line_size, buffer_size_align_bytes, buff_caps);
+            ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
+            if (disp_cfg->double_buffer) {
+                buf2 = heap_caps_aligned_alloc(cache_line_size, buffer_size_align_bytes, buff_caps);
+                ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
+            }
+        } else {
+            buf1 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), buff_caps);
+            ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
+            if (disp_cfg->double_buffer) {
+                buf2 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), buff_caps);
+                ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
+            }
+        }
+#else
         buf1 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), buff_caps);
         ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
         if (disp_cfg->double_buffer) {
             buf2 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), buff_caps);
             ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
         }
+#endif
     }
 
     lv_disp_draw_buf_t *disp_buf = malloc(sizeof(lv_disp_draw_buf_t));
