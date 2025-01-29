@@ -114,7 +114,7 @@ jobs:
 
   run-target:
     name: Run apps
-    if: github.repository_owner == 'espressif' && needs.prepare.outputs.build_only != '1'
+    if: github.repository_owner == 'espressif' && !contains(github.event.pull_request.labels.*.name, 'Build only')
     needs: build
     strategy:
       fail-fast: false
@@ -215,7 +215,7 @@ jobs:
     name: Publish Test results
     needs:
       - run-target
-    if: github.repository_owner == 'espressif' && always() && github.event_name == 'pull_request' && needs.prepare.outputs.build_only == '0'
+    if: github.repository_owner == 'espressif' && always() && github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'Build only')
     runs-on: ubuntu-22.04
     steps:
       - name: Download Test results
