@@ -3,8 +3,9 @@
 
 import os
 import datetime
-import pytest
 import json
+from pathlib import Path
+import pytest
 from pytest_embedded import Dut
 
 
@@ -14,9 +15,12 @@ def write_to_file(board, ext, text):
 
 
 def read_json_file(board):
-    file_path = f"../../bsp/{board}/benchmark.json"
+    repo_root = Path(__file__).resolve().parent
+    while repo_root.name != "esp-bsp" and repo_root.parent != repo_root:
+        repo_root = repo_root.parent
+    file_path = f"{repo_root}/bsp/{board}/benchmark.json"
     if not os.path.exists(file_path):
-        print("\nFile not exists\n")
+        print(f"\nFile \"{file_path}\" not exists\n")
         return []
     try:
         with open(file_path, "r") as file:
@@ -33,7 +37,7 @@ def find_test_results(json_obj, test):
 
 
 def get_test_diff(test1, test2, name, positive):
-    if not test1[name] or not test2[name]:
+    if not test1 or not test2 or not test1[name] or not test2[name]:
         return ""
     test1[name] = test1[name].replace("%", "")
     test2[name] = test2[name].replace("%", "")
