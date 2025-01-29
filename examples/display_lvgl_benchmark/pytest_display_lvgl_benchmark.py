@@ -9,8 +9,43 @@ from pytest_embedded import Dut
 
 
 def write_to_file(board, ext, text):
-    with open("benchmark_" + board + ext, "a") as h:
-        h.write(text)
+    with open("benchmark_" + board + ext, "a") as file:
+        file.write(text)
+
+
+def read_json_file(board):
+    file_path = f"../../bsp/{board}/benchmark.json"
+    if not os.path.exists(file_path):
+        print("\nFile not exists\n")
+        return []
+    try:
+        with open(file_path, "r") as file:
+            return json.load(file)
+    except json.JSONDecodeError:
+        return []
+
+
+def find_test_results(json_obj, test):
+    if json_obj:
+        for t in json_obj["tests"]:
+            if t["Name"] == test:
+                return t
+
+
+def get_test_diff(test1, test2, name, positive):
+    if not test1[name] or not test2[name]:
+        return ""
+    test1[name] = test1[name].replace("%", "")
+    test2[name] = test2[name].replace("%", "")
+    diff = int(test1[name]) - int(test2[name])
+    if diff == 0:
+        return ""
+    else:
+        if positive:
+            color = "red" if diff < 0 else "green"
+        else:
+            color = "green" if diff < 0 else "red"
+        return f"*<span style=\"color:{color}\"><sub>({diff})</sub></span>*"
 
 
 @pytest.mark.esp_box_3
@@ -51,6 +86,8 @@ def test_example(dut: Dut, request) -> None:
     write_to_file(board, ".md", f"| Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |\n")
     write_to_file(board, ".md", f"| ---- | :------: | :------: | :-------: | :---------: | :--------: |\n")  # noqa: E203
 
+    last_results = read_json_file(board)
+
     # Benchmark lines
     output["tests"] = []
     for x in range(17):
@@ -60,18 +97,19 @@ def test_example(dut: Dut, request) -> None:
             "Avg. CPU": outdata[2].decode(),
             "Avg. FPS": outdata[3].decode(),
             "Avg. time": outdata[4].decode(),
-            "render time": outdata[5].decode(),
-            "flush time": outdata[6].decode()
+            "Render time": outdata[5].decode(),
+            "Flush time": outdata[6].decode()
         }
         output["tests"].append(test_entry)
 
+        last_test_result = find_test_results(last_results, test_entry["Name"])
         write_to_file(board, ".md", f"| " +
-                      outdata[1].decode() + " | " +
-                      outdata[2].decode() + " | " +
-                      outdata[3].decode() + " | " +
-                      outdata[4].decode() + " | " +
-                      outdata[5].decode() + " | " +
-                      outdata[6].decode() + " |\n")
+                      test_entry["Name"] + " | " +
+                      test_entry["Avg. CPU"] + " " + get_test_diff(test_entry, last_test_result, "Avg. CPU", False) + " | " +
+                      test_entry["Avg. FPS"] + " " + get_test_diff(test_entry, last_test_result, "Avg. FPS", True) + " | " +
+                      test_entry["Avg. time"] + " " + get_test_diff(test_entry, last_test_result, "Avg. time", False) + " | " +
+                      test_entry["Render time"] + " " + get_test_diff(test_entry, last_test_result, "Render time", False) + " | " +
+                      test_entry["Flush time"] + " " + get_test_diff(test_entry, last_test_result, "Flush time", False) + " |\n")
 
     write_to_file(board, ".md", "\n")
     write_to_file(board, ".md", "***")
