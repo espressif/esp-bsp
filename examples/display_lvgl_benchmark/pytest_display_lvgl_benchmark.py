@@ -49,7 +49,8 @@ def get_test_diff(test1, test2, name, positive):
             color = "red" if diff < 0 else "green"
         else:
             color = "green" if diff < 0 else "red"
-        return f"*<span style=\"color:{color}\"><sub>({diff})</sub></span>*"
+        sign = "+" if diff > 0 else ""
+        return f"*<span style=\"color:{color}\"><sub>({sign}{diff})</sub></span>*"
 
 
 @pytest.mark.esp_box_3
