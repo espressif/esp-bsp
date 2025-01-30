@@ -204,24 +204,6 @@ jobs:
       - name: Run apps
         run: |
           pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.PYTEST_BENCHMARK_IGNORE }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
-      - name: Check Git status
-        run: |
-          git config --global --add safe.directory /__w/esp-bsp/esp-bsp
-          git status
-      - name: Commit changes
-        uses: EndBug/add-and-commit@v9
-        with:
-          default_author: github_actions
-          message: '🔄 Benchmark results'
-          add: bsp/*
-          new_branch: ${{ github.head_ref }}
-      # - name: Commit test results
-      #  run: |
-      #    git config --global user.name "github-actions[bot]"
-      #    git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      #    git add bsp/*
-      #    git commit -m "🔄 Benchmark results"
-      #    git push origin HEAD:${{ github.head_ref }}
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
