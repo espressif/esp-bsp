@@ -29,6 +29,19 @@ def read_json_file(board):
         return []
 
 
+def write_json_file(board, data):
+    repo_root = Path(__file__).resolve().parent
+    while repo_root.name != "esp-bsp" and repo_root.parent != repo_root:
+        repo_root = repo_root.parent
+    file_path = f"{repo_root}/bsp/{board}/benchmark.json"
+    try:
+        os.remove(file_path)
+    except OSError:
+        pass
+    with open(file_path, "a") as file:
+        file.write(data)
+
+
 def find_test_results(json_obj, test):
     if json_obj:
         for t in json_obj["tests"]:
@@ -123,3 +136,4 @@ def test_example(dut: Dut, request) -> None:
     # Save JSON to file
     json_output = json.dumps(output, indent=4)
     write_to_file(board, ".json", json_output)
+    write_json_file(board, json_output)
