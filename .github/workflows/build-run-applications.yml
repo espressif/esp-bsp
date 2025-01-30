@@ -198,9 +198,6 @@ jobs:
         id: set_ignores
         run: |
           echo "PYTEST_BENCHMARK_IGNORE=" >> $GITHUB_ENV
-      - name: Pull
-        run: |
-          git pull --rebase origin ${{ github.head_ref }} || echo "No remote changes to rebase"
       - name: Run apps
         run: |
           pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.PYTEST_BENCHMARK_IGNORE }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
@@ -208,13 +205,20 @@ jobs:
         run: |
           git config --global --add safe.directory /__w/esp-bsp/esp-bsp
           git status
-      - name: Commit test results
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add bsp/*
-          git commit -m "🔄 Benchmark results"
-          git push origin HEAD:${{ github.head_ref }}
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: github-actions[bot]
+          author_email: github-actions[bot]@users.noreply.github.com
+          message: '🔄 Benchmark results'
+          add: bsp/*
+      # - name: Commit test results
+      #  run: |
+      #    git config --global user.name "github-actions[bot]"
+      #    git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      #    git add bsp/*
+      #    git commit -m "🔄 Benchmark results"
+      #    git push origin HEAD:${{ github.head_ref }}
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
