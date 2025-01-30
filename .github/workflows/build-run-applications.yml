@@ -253,6 +253,10 @@ jobs:
         with:
           comment-tag: benchmark_results
           file-path: ${{ env.output_file }}
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Commit test results
         run: |
           git config --global user.name "github-actions[bot]"
