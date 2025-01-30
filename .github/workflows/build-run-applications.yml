@@ -209,6 +209,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin ${{ github.head_ref }} || echo "No remote changes to rebase"
           git add bsp/*
           git commit -m "🔄 Benchmark results"
           git push origin HEAD:${{ github.head_ref }}
