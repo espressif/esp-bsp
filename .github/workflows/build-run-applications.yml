@@ -204,6 +204,7 @@ jobs:
             ${{ env.TEST_RESULT_FILE }}
             benchmark_*.md
             benchmark_*.json
+            benchmark.json
 
   publish-results:
     name: Publish Test results
