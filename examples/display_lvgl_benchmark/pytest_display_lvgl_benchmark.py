@@ -36,6 +36,9 @@ def write_json_file(board, data):
     file_path = f"{repo_root}/bsp/{board}/benchmark.json"
     try:
         os.remove(file_path)
+    except OSError:
+        pass
+    try:
         with open(file_path, "a") as file:
             file.write(data)
     except OSError:
