@@ -214,7 +214,7 @@ jobs:
           default_author: github_actions
           message: '🔄 Benchmark results'
           add: bsp/*
-          new_branch: HEAD:${{ github.head_ref }}
+          new_branch: ${{ github.head_ref }}
       # - name: Commit test results
       #  run: |
       #    git config --global user.name "github-actions[bot]"
