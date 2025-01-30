@@ -1,123 +1,123 @@
 {
-    "date": "29.01.2025 14:12",
+    "date": "30.01.2025 13:25",
     "board": "esp32_p4_function_ev_board",
     "LVGL": "9.2.2",
     "tests": [
         {
             "Name": "Empty screen",
-            "Avg. CPU": "22%",
-            "Avg. FPS": "26",
+            "Avg. CPU": "23",
+            "Avg. FPS": "27",
             "Avg. time": "4",
             "Render time": "4",
             "Flush time": "0"
         },
         {
             "Name": "Moving wallpaper",
-            "Avg. CPU": "27%",
-            "Avg. FPS": "29",
-            "Avg. time": "9",
-            "Render time": "9",
-            "Flush time": "0"
+            "Avg. CPU": "29",
+            "Avg. FPS": "28",
+            "Avg. time": "8",
+            "Render time": "2",
+            "Flush time": "6"
         },
         {
             "Name": "Single rectangle",
-            "Avg. CPU": "2%",
-            "Avg. FPS": "28",
+            "Avg. CPU": "3",
+            "Avg. FPS": "27",
             "Avg. time": "0",
             "Render time": "0",
             "Flush time": "0"
         },
         {
             "Name": "Multiple rectangles",
-            "Avg. CPU": "12%",
+            "Avg. CPU": "12",
             "Avg. FPS": "28",
-            "Avg. time": "5",
-            "Render time": "4",
-            "Flush time": "0"
+            "Avg. time": "3",
+            "Render time": "2",
+            "Flush time": "1"
         },
         {
             "Name": "Multiple RGB images",
-            "Avg. CPU": "38%",
-            "Avg. FPS": "30",
+            "Avg. CPU": "41",
+            "Avg. FPS": "28",
             "Avg. time": "13",
-            "Render time": "10",
-            "Flush time": "3"
+            "Render time": "11",
+            "Flush time": "2"
         },
         {
             "Name": "Multiple ARGB images",
-            "Avg. CPU": "95%",
+            "Avg. CPU": "95",
             "Avg. FPS": "25",
             "Avg. time": "33",
-            "Render time": "30",
-            "Flush time": "3"
+            "Render time": "31",
+            "Flush time": "2"
         },
         {
             "Name": "Rotated ARGB images",
-            "Avg. CPU": "99%",
-            "Avg. FPS": "4",
+            "Avg. CPU": "99",
+            "Avg. FPS": "3",
             "Avg. time": "245",
             "Render time": "245",
             "Flush time": "0"
         },
         {
             "Name": "Multiple labels",
-            "Avg. CPU": "62%",
+            "Avg. CPU": "69",
             "Avg. FPS": "28",
-            "Avg. time": "19",
-            "Render time": "11",
-            "Flush time": "8"
+            "Avg. time": "20",
+            "Render time": "17",
+            "Flush time": "3"
         },
         {
             "Name": "Screen sized text",
-            "Avg. CPU": "4%",
+            "Avg. CPU": "5",
             "Avg. FPS": "28",
-            "Avg. time": "1",
-            "Render time": "1",
+            "Avg. time": "3",
+            "Render time": "3",
             "Flush time": "0"
         },
         {
             "Name": "Multiple arcs",
-            "Avg. CPU": "57%",
+            "Avg. CPU": "61",
             "Avg. FPS": "28",
-            "Avg. time": "17",
-            "Render time": "17",
-            "Flush time": "0"
-        },
-        {
-            "Name": "Containers",
-            "Avg. CPU": "40%",
-            "Avg. FPS": "28",
-            "Avg. time": "11",
-            "Render time": "10",
-            "Flush time": "1"
-        },
-        {
-            "Name": "Containers with overlay",
-            "Avg. CPU": "95%",
-            "Avg. FPS": "19",
-            "Avg. time": "48",
-            "Render time": "46",
+            "Avg. time": "20",
+            "Render time": "18",
             "Flush time": "2"
         },
         {
-            "Name": "Containers with opa",
-            "Avg. CPU": "58%",
+            "Name": "Containers",
+            "Avg. CPU": "45",
             "Avg. FPS": "28",
-            "Avg. time": "18",
-            "Render time": "18",
+            "Avg. time": "12",
+            "Render time": "12",
+            "Flush time": "0"
+        },
+        {
+            "Name": "Containers with overlay",
+            "Avg. CPU": "91",
+            "Avg. FPS": "19",
+            "Avg. time": "48",
+            "Render time": "45",
+            "Flush time": "3"
+        },
+        {
+            "Name": "Containers with opa",
+            "Avg. CPU": "66",
+            "Avg. FPS": "28",
+            "Avg. time": "20",
+            "Render time": "20",
             "Flush time": "0"
         },
         {
             "Name": "Containers with opa_layer",
-            "Avg. CPU": "100%",
+            "Avg. CPU": "99",
             "Avg. FPS": "10",
-            "Avg. time": "84",
-            "Render time": "83",
-            "Flush time": "1"
+            "Avg. time": "82",
+            "Render time": "79",
+            "Flush time": "3"
         },
         {
             "Name": "Containers with scrolling",
-            "Avg. CPU": "98%",
+            "Avg. CPU": "99",
             "Avg. FPS": "20",
             "Avg. time": "47",
             "Render time": "45",
@@ -125,18 +125,18 @@
         },
         {
             "Name": "Widgets demo",
-            "Avg. CPU": "98%",
-            "Avg. FPS": "19",
-            "Avg. time": "43",
-            "Render time": "42",
-            "Flush time": "1"
+            "Avg. CPU": "98",
+            "Avg. FPS": "18",
+            "Avg. time": "45",
+            "Render time": "43",
+            "Flush time": "2"
         },
         {
             "Name": "All scenes avg.",
-            "Avg. CPU": "56%",
+            "Avg. CPU": "58",
             "Avg. FPS": "23",
-            "Avg. time": "36",
-            "Render time": "35",
+            "Avg. time": "37",
+            "Render time": "36",
             "Flush time": "1"
         }
     ]
