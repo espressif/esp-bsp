@@ -203,8 +203,8 @@ jobs:
           pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.PYTEST_BENCHMARK_IGNORE }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
       - name: Check Git status
         run: |
-        git config --global --add safe.directory /__w/esp-bsp/esp-bsp
-        git status
+          git config --global --add safe.directory /__w/esp-bsp/esp-bsp
+          git status
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -264,8 +264,8 @@ jobs:
           persist-credentials: false
       - name: Check Git status
         run:  |
-        git config --global --add safe.directory /__w/esp-bsp/esp-bsp
-        git status
+          git config --global --add safe.directory /__w/esp-bsp/esp-bsp
+          git status
       - name: Commit test results
         run: |
           git config --global user.name "github-actions[bot]"
