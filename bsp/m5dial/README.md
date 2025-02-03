@@ -25,7 +25,7 @@ M5Dial provides versatile power supply options to cater to various needs. It acc
 |   DISPLAY   |:heavy_check_mark:|      [espressif/esp_lcd_gc9a01](https://components.espressif.com/components/espressif/esp_lcd_gc9a01)      |   ^1   |
 |  LVGL_PORT  |:heavy_check_mark:|       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |   ^2   |
 |    TOUCH    |:heavy_check_mark:|[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|   ^1   |
-|   BUTTONS   |:heavy_check_mark:|              [espressif/button](https://components.espressif.com/components/espressif/button)              |>=2,<4.0|
+|   BUTTONS   |:heavy_check_mark:|              [espressif/button](https://components.espressif.com/components/espressif/button)              |>=4,<5.0|
 |     KNOB    |:heavy_check_mark:|                [espressif/knob](https://components.espressif.com/components/espressif/knob)                | ^0.1.3 |
 |    AUDIO    |        :x:       |                                                                                                            |        |
 |AUDIO_SPEAKER|        :x:       |                                                                                                            |        |
