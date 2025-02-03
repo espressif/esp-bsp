@@ -17,7 +17,7 @@ dependencies:
     override_path: "../../components/esp_lvgl_port"
 
   button:
-    version: ">=2.5,<4.0"
+    version: "^4"
     public: true
 
 examples:
