@@ -13,9 +13,10 @@ dependencies:
   esp_lcd_ili9341: "^1"
 
   button:
-    version: "^2.4"
+    version: "^4"
     public: true
-  
+
   espressif/esp_lvgl_port:
     version: "^2"
     public: true
+    override_path: "../../components/esp_lvgl_port"

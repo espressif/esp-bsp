@@ -20,6 +20,7 @@
 #include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
 #include "bsp/display.h"
+#include "esp_adc/adc_oneshot.h"
 
 /**************************************************************************************************
  *  BSP Capabilities

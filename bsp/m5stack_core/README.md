@@ -35,7 +35,7 @@ M5Stack Core is a development board based on ESP32 microcontroller. It features:
 |   DISPLAY   |:heavy_check_mark:|[espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341)|   ^1  |
 |  LVGL_PORT  |:heavy_check_mark:|  [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)  |   ^2  |
 |    TOUCH    |        :x:       |                                                                                                  |       |
-|   BUTTONS   |:heavy_check_mark:|         [espressif/button](https://components.espressif.com/components/espressif/button)         |  ^2.4 |
+|   BUTTONS   |:heavy_check_mark:|         [espressif/button](https://components.espressif.com/components/espressif/button)         |   ^4  |
 |    AUDIO    |        :x:       |                                                                                                  |       |
 |AUDIO_SPEAKER|:heavy_check_mark:|                                                                                                  |       |
 |  AUDIO_MIC  |        :x:       |                                                                                                  |       |

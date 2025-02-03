@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -24,6 +24,8 @@
 #include "bsp/esp32_s3_eye.h"
 #include "bsp_err_check.h"
 #include "bsp/display.h"
+#include "button_gpio.h"
+#include "button_adc.h"
 
 static const char *TAG = "S3-EYE";
 
@@ -40,43 +42,66 @@ static bool i2c_initialized = false;
 static adc_oneshot_unit_handle_t bsp_adc_handle = NULL;
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 
-static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+typedef enum {
+    BSP_BUTTON_TYPE_GPIO,
+    BSP_BUTTON_TYPE_ADC
+} bsp_button_type_t;
+
+typedef struct {
+    bsp_button_type_t type;
+    union {
+        button_gpio_config_t gpio;
+        button_adc_config_t  adc;
+    } cfg;
+} bsp_button_config_t;
+
+static const bsp_button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
-        .adc_button_config.button_index = BSP_BUTTON_MENU,
-        .adc_button_config.min = 2310, // middle is 2410mV
-        .adc_button_config.max = 2510
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_handle = &bsp_adc_handle,
+            .adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
+            .button_index = BSP_BUTTON_MENU,
+            .min = 2310, // middle is 2410mV
+            .max = 2510
+        }
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
-        .adc_button_config.button_index = BSP_BUTTON_PLAY,
-        .adc_button_config.min = 1880, // middle is 1980mV
-        .adc_button_config.max = 2080
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_handle = &bsp_adc_handle,
+            .adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
+            .button_index = BSP_BUTTON_PLAY,
+            .min = 1880, // middle is 1980mV
+            .max = 2080
+        }
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
-        .adc_button_config.button_index = BSP_BUTTON_DOWN,
-        .adc_button_config.min = 720, // middle is 820mV
-        .adc_button_config.max = 920
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_handle = &bsp_adc_handle,
+            .adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
+            .button_index = BSP_BUTTON_DOWN,
+            .min = 720, // middle is 820mV
+            .max = 920
+        }
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
-        .adc_button_config.button_index = BSP_BUTTON_UP,
-        .adc_button_config.min = 280, // middle is 380mV
-        .adc_button_config.max = 480
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_handle = &bsp_adc_handle,
+            .adc_channel = ADC_CHANNEL_0, // ADC1 channel 0 is GPIO1
+            .button_index = BSP_BUTTON_UP,
+            .min = 280, // middle is 380mV
+            .max = 480
+        }
     },
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.active_level = 0,
-        .gpio_button_config.gpio_num = BSP_BUTTON_BOOT_IO
+        .type = BSP_BUTTON_TYPE_GPIO,
+        .cfg.gpio = {
+            .active_level = 0,
+            .gpio_num = BSP_BUTTON_BOOT_IO
+        }
     }
 };
 
@@ -440,6 +465,7 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
+    const button_config_t btn_config = {0};
     if ((btn_array_size < BSP_BUTTON_NUM) ||
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
@@ -452,10 +478,12 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
+        if (bsp_button_config[i].type == BSP_BUTTON_TYPE_GPIO) {
+            ret |= iot_button_new_gpio_device(&btn_config, &bsp_button_config[i].cfg.gpio, &btn_array[i]);
+        } else if (bsp_button_config[i].type == BSP_BUTTON_TYPE_ADC) {
+            ret |= iot_button_new_adc_device(&btn_config, &bsp_button_config[i].cfg.adc, &btn_array[i]);
+        } else {
+            ESP_LOGW(TAG, "Unsupported button type!");
         }
         if (btn_cnt) {
             (*btn_cnt)++;

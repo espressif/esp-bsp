@@ -17,6 +17,7 @@
 #include "esp_vfs_fat.h"
 
 #include "iot_button.h"
+#include "button_gpio.h"
 #include "bsp/esp-box-3.h"
 #include "bsp/display.h"
 #include "bsp/touch.h"
@@ -73,27 +74,44 @@ static i2c_master_bus_handle_t i2c_handle = NULL;
 static bool i2c_initialized = false;
 
 // This is just a wrapper to get function signature for espressif/button API callback
-static uint8_t bsp_get_main_button(void *param);
-static esp_err_t bsp_init_main_button(void *param);
+static uint8_t bsp_get_main_button(button_driver_t *button_driver);
 
-static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+typedef enum {
+    BSP_BUTTON_TYPE_GPIO,
+    BSP_BUTTON_TYPE_CUSTOM
+} bsp_button_type_t;
+
+typedef struct {
+    bsp_button_type_t type;
+    union {
+        button_gpio_config_t gpio;
+        button_driver_t      custom;
+    } cfg;
+} bsp_button_config_t;
+
+static const bsp_button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_CONFIG_IO,
-        .gpio_button_config.active_level = 0,
+        .type = BSP_BUTTON_TYPE_GPIO,
+        .cfg.gpio = {
+            .gpio_num = BSP_BUTTON_CONFIG_IO,
+            .active_level = 0,
+        }
     },
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_MUTE_IO,
-        .gpio_button_config.active_level = 0,
+        .type = BSP_BUTTON_TYPE_GPIO,
+        .cfg.gpio = {
+            .gpio_num = BSP_BUTTON_MUTE_IO,
+            .active_level = 0,
+        }
     },
     {
-        .type = BUTTON_TYPE_CUSTOM,
-        .custom_button_config.button_custom_init = bsp_init_main_button,
-        .custom_button_config.button_custom_get_key_value = bsp_get_main_button,
-        .custom_button_config.button_custom_deinit = NULL,
-        .custom_button_config.active_level = 1,
-        .custom_button_config.priv = (void *) BSP_BUTTON_MAIN,
+        .type = BSP_BUTTON_TYPE_CUSTOM,
+        .cfg.custom = {
+            .enable_power_save = false,
+            .get_key_level = bsp_get_main_button,
+            .enter_power_save = NULL,
+            .del = NULL
+        }
     }
 };
 
@@ -630,7 +648,7 @@ esp_err_t bsp_display_exit_sleep(void)
 }
 #endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
-static uint8_t bsp_get_main_button(void *param)
+static uint8_t bsp_get_main_button(button_driver_t *button_driver)
 {
     assert(tp);
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
@@ -643,17 +661,10 @@ static uint8_t bsp_get_main_button(void *param)
 #endif
 }
 
-static esp_err_t bsp_init_main_button(void *param)
-{
-    if (tp == NULL) {
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_touch_new(NULL, &tp));
-    }
-    return ESP_OK;
-}
-
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
+    const button_config_t btn_config = {0};
     if ((btn_array_size < BSP_BUTTON_NUM) ||
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
@@ -663,10 +674,15 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
+        if (bsp_button_config[i].type == BSP_BUTTON_TYPE_CUSTOM) {
+            if (tp == NULL) {
+                BSP_ERROR_CHECK_RETURN_ERR(bsp_touch_new(NULL, &tp));
+            }
+            ret |= iot_button_create(&btn_config, &bsp_button_config[i].cfg.custom, &btn_array[i]);
+        } else if (bsp_button_config[i].type == BSP_BUTTON_TYPE_GPIO) {
+            ret |= iot_button_new_gpio_device(&btn_config, &bsp_button_config[i].cfg.gpio, &btn_array[i]);
+        } else {
+            ESP_LOGW(TAG, "Unsupported button type!");
         }
         if (btn_cnt) {
             (*btn_cnt)++;

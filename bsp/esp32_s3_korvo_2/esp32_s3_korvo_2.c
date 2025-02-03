@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -26,6 +26,8 @@
 #include "esp_vfs_fat.h"
 #include "esp_codec_dev_defaults.h"
 #include "bsp_err_check.h"
+#include "iot_button.h"
+#include "button_adc.h"
 
 static const char *TAG = "S3-KORVO-2";
 
@@ -46,65 +48,90 @@ static lv_indev_t *disp_indev = NULL;
 static adc_oneshot_unit_handle_t bsp_adc_handle = NULL;
 
 // This is just a wrapper to get function signature for espressif/button API callback
-static uint8_t bsp_get_main_button(void *param);
-static esp_err_t bsp_init_main_button(void *param);
+static uint8_t bsp_get_main_button(button_driver_t *button_driver);
 
-static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+typedef enum {
+    BSP_BUTTON_TYPE_ADC,
+    BSP_BUTTON_TYPE_CUSTOM
+} bsp_button_type_t;
+
+typedef struct {
+    bsp_button_type_t type;
+    union {
+        button_adc_config_t  adc;
+        button_driver_t      custom;
+    } cfg;
+} bsp_button_config_t;
+
+static const bsp_button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
-        .adc_button_config.button_index = BSP_BUTTON_REC,
-        .adc_button_config.min = 2310, // middle is 2410mV
-        .adc_button_config.max = 2510
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_handle = &bsp_adc_handle,
+            .adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
+            .button_index = BSP_BUTTON_REC,
+            .min = 2310, // middle is 2410mV
+            .max = 2510
+        }
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
-        .adc_button_config.button_index = BSP_BUTTON_MUTE,
-        .adc_button_config.min = 1880, // middle is 1980mV
-        .adc_button_config.max = 2080
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_handle = &bsp_adc_handle,
+            .adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
+            .button_index = BSP_BUTTON_MUTE,
+            .min = 1880, // middle is 1980mV
+            .max = 2080
+        }
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
-        .adc_button_config.button_index = BSP_BUTTON_PLAY,
-        .adc_button_config.min = 1550, // middle is 1650mV
-        .adc_button_config.max = 1750
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_handle = &bsp_adc_handle,
+            .adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
+            .button_index = BSP_BUTTON_PLAY,
+            .min = 1550, // middle is 1650mV
+            .max = 1750
+        }
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
-        .adc_button_config.button_index = BSP_BUTTON_SET,
-        .adc_button_config.min = 1010, // middle is 1110mV
-        .adc_button_config.max = 1210
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_handle = &bsp_adc_handle,
+            .adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
+            .button_index = BSP_BUTTON_SET,
+            .min = 1010, // middle is 1110mV
+            .max = 1210
+        }
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
-        .adc_button_config.button_index = BSP_BUTTON_VOLDOWN,
-        .adc_button_config.min = 720, // middle is 820mV
-        .adc_button_config.max = 920
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_handle = &bsp_adc_handle,
+            .adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
+            .button_index = BSP_BUTTON_VOLDOWN,
+            .min = 720, // middle is 820mV
+            .max = 920
+        }
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
-        .adc_button_config.button_index = BSP_BUTTON_VOLUP,
-        .adc_button_config.min = 280, // middle is 380mV
-        .adc_button_config.max = 480
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_handle = &bsp_adc_handle,
+            .adc_channel = ADC_CHANNEL_4, // ADC1 channel 4 is GPIO5
+            .button_index = BSP_BUTTON_VOLUP,
+            .min = 280, // middle is 380mV
+            .max = 480
+        }
     },
     {
-        .type = BUTTON_TYPE_CUSTOM,
-        .custom_button_config.button_custom_init = bsp_init_main_button,
-        .custom_button_config.button_custom_get_key_value = bsp_get_main_button,
-        .custom_button_config.button_custom_deinit = NULL,
-        .custom_button_config.active_level = 1,
-        .custom_button_config.priv = (void *) BSP_BUTTON_MAIN,
+        .type = BSP_BUTTON_TYPE_CUSTOM,
+        .cfg.custom = {
+            .enable_power_save = false,
+            .get_key_level = bsp_get_main_button,
+            .enter_power_save = NULL,
+            .del = NULL
+        }
     }
 };
 
@@ -548,7 +575,7 @@ bool bsp_button_get(const bsp_button_t btn)
     return false;
 }
 
-static uint8_t bsp_get_main_button(void *param)
+static uint8_t bsp_get_main_button(button_driver_t *button_driver)
 {
     assert(tp);
     ESP_ERROR_CHECK(esp_lcd_touch_read_data(tp));
@@ -562,17 +589,10 @@ static uint8_t bsp_get_main_button(void *param)
 #endif
 }
 
-static esp_err_t bsp_init_main_button(void *param)
-{
-    if (tp == NULL) {
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_touch_new(NULL, &tp));
-    }
-    return ESP_OK;
-}
-
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
+    const button_config_t btn_config = {0};
     if ((btn_array_size < BSP_BUTTON_NUM) ||
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
@@ -585,10 +605,15 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
+        if (bsp_button_config[i].type == BSP_BUTTON_TYPE_CUSTOM) {
+            if (tp == NULL) {
+                BSP_ERROR_CHECK_RETURN_ERR(bsp_touch_new(NULL, &tp));
+            }
+            ret |= iot_button_create(&btn_config, &bsp_button_config[i].cfg.custom, &btn_array[i]);
+        } else if (bsp_button_config[i].type == BSP_BUTTON_TYPE_ADC) {
+            ret |= iot_button_new_adc_device(&btn_config, &bsp_button_config[i].cfg.adc, &btn_array[i]);
+        } else {
+            ESP_LOGW(TAG, "Unsupported button type!");
         }
         if (btn_cnt) {
             (*btn_cnt)++;
