@@ -143,6 +143,12 @@ jobs:
           - runs-on: "esp32_azure_iot_kit"
             marker: "esp32_azure_iot_kit"
             target: "esp32"
+          - runs-on: "esp_bsp_devkit"
+            marker: "esp_bsp_devkit"
+            target: "esp32s3"
+          - runs-on: "esp_bsp_generic"
+            marker: "esp_bsp_generic"
+            target: "esp32s3"
     env:
       TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
       TEST_RESULT_FILE: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}.xml
