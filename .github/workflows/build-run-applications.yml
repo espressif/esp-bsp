@@ -6,6 +6,9 @@ name: Build ESP-BSP apps
 on:
   pull_request:
     types: [opened, reopened, synchronize, labeled]
+  push:
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       WFType:
@@ -176,6 +179,7 @@ jobs:
           #   target: "esp32s3"
     env:
       TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
+      BENCHMARK_RESULT_NAME: benchmark_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
       TEST_RESULT_FILE: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}.xml
     runs-on: [self-hosted, Linux, bspwall]
     container:
@@ -193,8 +197,13 @@ jobs:
         run: |
           echo "PYTEST_BENCHMARK_IGNORE=--ignore='examples/display_lvgl_benchmark'" >> $GITHUB_ENV
           pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
+      - name: Download latest results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: benchmark_*
+          path: benchmark/
       - name: Set ignores
-        if: contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark')
+        if: contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master'
         id: set_ignores
         run: |
           echo "PYTEST_BENCHMARK_IGNORE=" >> $GITHUB_ENV
@@ -214,6 +223,14 @@ jobs:
             benchmark_*.md
             benchmark_*.json
             benchmark.json
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: github.ref_name == 'master'
+        with:
+          name: ${{ env.BENCHMARK_RESULT_NAME }}
+          path: |
+            benchmark_*.md
+            benchmark_*.json
 
   publish-results:
     name: Publish Test results
