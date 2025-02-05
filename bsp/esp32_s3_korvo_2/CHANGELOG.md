@@ -1,5 +1,9 @@
 # ChangeLog
 
+## v3.0.1
+
+* Added missing public driver/i2c_master.h include
+
 ## v3.0.0
 
 * Migrated to I2C Driver-NG (https://docs.espressif.com/projects/esp-idf/en/stable/esp32/migration-guides/release-5.x/5.2/peripherals.html#i2c)
