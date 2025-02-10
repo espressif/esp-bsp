@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -16,7 +16,6 @@
 #include "driver/i2s_std.h"
 #include "driver/i2c_master.h"
 #include "driver/sdmmc_host.h"
-#include "soc/usb_pins.h"
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
@@ -63,8 +62,8 @@
 #define BSP_LCD_TOUCH_INT     (GPIO_NUM_3)
 
 /* USB */
-#define BSP_USB_POS           USBPHY_DP_NUM
-#define BSP_USB_NEG           USBPHY_DM_NUM
+#define BSP_USB_POS           (GPIO_NUM_20)
+#define BSP_USB_NEG           (GPIO_NUM_19)
 
 /* Buttons */
 #define BSP_BUTTON_CONFIG_IO  (GPIO_NUM_0)

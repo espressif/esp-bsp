@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -14,7 +14,6 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/sdmmc_host.h"
-#include "soc/usb_pins.h"
 #include "iot_button.h"
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
@@ -81,8 +80,8 @@ typedef enum {
 } bsp_button_t;
 
 /* USB */
-#define BSP_USB_POS           USBPHY_DP_NUM
-#define BSP_USB_NEG           USBPHY_DM_NUM
+#define BSP_USB_POS           (GPIO_NUM_20)
+#define BSP_USB_NEG           (GPIO_NUM_19)
 #define BSP_USB_MODE_SEL      (GPIO_NUM_18) // Select Host (high level) or Device (low level, default) mode
 #define BSP_USB_HOST_VOLTAGE  (GPIO_NUM_1)  // Voltage at this pin = (V_BUS / 3.7), ADC1 channel 0
 #define BSP_USB_HOST_VOLTAGE_DIV (3.7f)

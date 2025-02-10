@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -15,7 +15,6 @@
 #include "driver/gpio.h"
 #include "driver/i2s_std.h"
 #include "driver/sdmmc_host.h"
-#include "soc/usb_pins.h"
 #include "esp_codec_dev.h"
 #include "bsp/config.h"
 #include "bsp/display.h"
@@ -86,8 +85,8 @@
 #define BSP_SD_CS             (GPIO_NUM_4)
 
 /* USB */
-#define BSP_USB_POS           USBPHY_DP_NUM
-#define BSP_USB_NEG           USBPHY_DM_NUM
+#define BSP_USB_POS           (GPIO_NUM_20)
+#define BSP_USB_NEG           (GPIO_NUM_19)
 
 
 #ifdef __cplusplus

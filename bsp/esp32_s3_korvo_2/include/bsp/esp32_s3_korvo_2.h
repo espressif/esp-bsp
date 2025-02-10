@@ -12,7 +12,6 @@
 #include "driver/sdmmc_host.h"
 #include "driver/i2c_master.h"
 #include "esp_adc/adc_oneshot.h"
-#include "soc/usb_pins.h"
 #include "iot_button.h"
 #include "esp_io_expander.h"
 #include "esp_codec_dev.h"
