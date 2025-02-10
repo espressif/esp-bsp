@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.0
+
+### Features
+- Added SIMD support also for LVGL 9.2 and above
+
 ## 2.4.4
 
 ### Features

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -17,6 +17,19 @@ extern "C" {
 #if !CONFIG_LV_DRAW_SW_ASM_CUSTOM
 #warning "esp_lvgl_port_lv_blend.h included, but CONFIG_LV_DRAW_SW_ASM_CUSTOM not set. Assembly rendering not used"
 #else
+
+#include "lvgl.h"
+
+/**
+ * LVGL 9.2 changed the blending API compared to 9.1
+ * The types were moved to lv_draw_sw_blend_private.h
+ * and the leading underscore from type names was removed
+ */
+#if __has_include("draw/sw/blend/lv_draw_sw_blend_private.h")
+#include "draw/sw/blend/lv_draw_sw_blend_private.h"
+#define _lv_draw_sw_blend_fill_dsc_t lv_draw_sw_blend_fill_dsc_t
+#define _lv_draw_sw_blend_image_dsc_t lv_draw_sw_blend_image_dsc_t
+#endif
 
 /*********************
  *      DEFINES
