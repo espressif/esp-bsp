@@ -245,6 +245,11 @@ static esp_err_t esp_lcd_touch_gt911_read_data(esp_lcd_touch_handle_t tp)
         portEXIT_CRITICAL(&tp->data.lock);
 #endif
     } else if ((buf[0] & 0x80) == 0x80) {
+        portENTER_CRITICAL(&tp->data.lock);
+        /* Invalidate */
+        tp->data.points = 0;
+        portEXIT_CRITICAL(&tp->data.lock);
+        
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
         portENTER_CRITICAL(&tp->data.lock);
         for (i = 0; i < CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS; i++) {
@@ -307,9 +312,6 @@ static bool esp_lcd_touch_gt911_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, u
             strength[i] = tp->data.coords[i].strength;
         }
     }
-
-    /* Invalidate */
-    tp->data.points = 0;
 
     portEXIT_CRITICAL(&tp->data.lock);
 
