@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.5.0
+
+### Features (Breaking change)
+- Updated LVGL port for using IoT button component v4 (LVGL port not anymore creating button, need to be created in app and included handle to LVGL port)
+
+### Fixes
+- Fixed buffer size by selected color format
+
 ## 2.4.4
 
 ### Features
