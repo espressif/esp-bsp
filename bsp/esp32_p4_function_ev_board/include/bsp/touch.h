@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -32,10 +32,10 @@ typedef struct {
 /**
  * @brief Create new touchscreen
  *
- * If you want to free resources allocated by this function, you can use esp_lcd_touch API, ie.:
+ * If you want to free resources allocated by this function, you can use API:
  *
  * \code{.c}
- * esp_lcd_touch_del(tp);
+ * bsp_touch_delete();
  * \endcode
  *
  * @param[in]  config    touch configuration
@@ -45,6 +45,11 @@ typedef struct {
  *      - Else           esp_lcd_touch failure
  */
 esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t *ret_touch);
+
+/**
+ * @brief Deinitialize touch
+ */
+void bsp_touch_delete(void);
 
 #ifdef __cplusplus
 }

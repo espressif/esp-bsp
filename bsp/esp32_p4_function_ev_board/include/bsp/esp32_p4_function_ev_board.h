@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -284,7 +284,7 @@ typedef struct {
 /**
  * @brief Initialize display
  *
- * This function initializes SPI, display controller and starts LVGL handling task.
+ * This function initializes MIPI-DSI, display controller and starts LVGL handling task.
  * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
  *
  * @return Pointer to LVGL display or NULL when error occured
@@ -294,7 +294,7 @@ lv_display_t *bsp_display_start(void);
 /**
  * @brief Initialize display
  *
- * This function initializes SPI, display controller and starts LVGL handling task.
+ * This function initializes MIPI-DSI, display controller and starts LVGL handling task.
  * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
  *
  * @param cfg display configuration
@@ -302,6 +302,15 @@ lv_display_t *bsp_display_start(void);
  * @return Pointer to LVGL display or NULL when error occured
  */
 lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
+
+/**
+ * @brief Deinitialize display
+ *
+ * This function deinitializes MIPI-DSI, display controller and stops LVGL.
+ *
+ * @param @param[in] disp Pointer to LVGL display
+ */
+void bsp_display_stop(lv_display_t *display);
 
 /**
  * @brief Get pointer to input device (touch, buttons, ...)
