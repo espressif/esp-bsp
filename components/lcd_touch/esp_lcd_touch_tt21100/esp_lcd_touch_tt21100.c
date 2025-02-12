@@ -108,6 +108,8 @@ esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_panel_io_handle_t io, cons
     ret = esp_lcd_touch_tt21100_read_data(esp_lcd_touch_tt21100);
     ESP_GOTO_ON_ERROR(ret, err, TAG, "TT21100 init failed");
 
+    *out_touch = esp_lcd_touch_tt21100;
+
 err:
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error (0x%x)! Touch controller TT21100 initialization failed!", ret);
@@ -115,8 +117,6 @@ err:
             esp_lcd_touch_tt21100_del(esp_lcd_touch_tt21100);
         }
     }
-
-    *out_touch = esp_lcd_touch_tt21100;
 
     return ret;
 }
