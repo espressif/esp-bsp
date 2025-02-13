@@ -160,6 +160,11 @@ void bsp_display_delete(void);
 esp_err_t bsp_display_brightness_init(void);
 
 /**
+ * @brief Deinitialize display's brightness
+ */
+esp_err_t bsp_display_brightness_deinit(void);
+
+/**
  * @brief Set display's brightness
  *
  * Brightness is controlled with PWM signal to a pin controlling backlight.

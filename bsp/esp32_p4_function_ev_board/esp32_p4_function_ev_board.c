@@ -100,8 +100,10 @@ esp_err_t bsp_i2c_init(void)
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
-    i2c_initialized = false;
+    if (i2c_initialized && i2c_handle) {
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
+        i2c_initialized = false;
+    }
     return ESP_OK;
 }
 
@@ -349,6 +351,18 @@ esp_err_t bsp_display_brightness_init(void)
 
     BSP_ERROR_CHECK_RETURN_ERR(ledc_timer_config(&LCD_backlight_timer));
     BSP_ERROR_CHECK_RETURN_ERR(ledc_channel_config(&LCD_backlight_channel));
+    return ESP_OK;
+}
+
+esp_err_t bsp_display_brightness_deinit(void)
+{
+    const ledc_timer_config_t LCD_backlight_timer = {
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .timer_num = 1,
+        .deconfigure = 1
+    };
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_timer_pause(LEDC_LOW_SPEED_MODE, 1));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_timer_config(&LCD_backlight_timer));
     return ESP_OK;
 }
 
@@ -639,6 +653,8 @@ void bsp_display_delete(void)
         esp_ldo_release_channel(disp_phy_pwr_chan);
         disp_phy_pwr_chan = NULL;
     }
+
+    esp_err_t err = bsp_display_brightness_deinit();
 }
 
 #if !CONFIG_BSP_LCD_TYPE_HDMI
@@ -683,8 +699,6 @@ void bsp_touch_delete(void)
         esp_lcd_panel_io_del(tp_io_handle);
         tp_io_handle = NULL;
     }
-
-    bsp_i2c_deinit();
 }
 #endif //!CONFIG_BSP_LCD_TYPE_HDMI
 
@@ -870,6 +884,9 @@ void bsp_display_remove(lv_display_t *display)
 
     /* Deinit display */
     bsp_display_delete();
+
+    /* Deinit I2C if initialized */
+    bsp_i2c_deinit();
 }
 
 lv_indev_t *bsp_display_get_input_dev(void)
