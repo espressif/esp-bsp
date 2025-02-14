@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -201,12 +201,12 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
         touch_tt21100_i2c_read(tp, data, data_len);
         ESP_RETURN_ON_ERROR(err, TAG, "I2C read error!");
 
-        portENTER_CRITICAL(&tp->data.lock);
-
         if (data_len == 14) {
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
             /* Button event */
             p_btn_data = (button_record_struct_t *) data;
+
+            portENTER_CRITICAL(&tp->data.lock);
 
             /* Buttons count */
             tp->data.buttons = (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS < 4 ? CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS : 4);
@@ -214,6 +214,8 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
             for (i = 0; i < tp->data.buttons; i++) {
                 tp->data.button[i].status = p_btn_data->btn_signal[i];
             }
+
+            portEXIT_CRITICAL(&tp->data.lock);
 
             ESP_LOGD(TAG, "Len : %04Xh. ID : %02Xh. Time : %5u. Val : [%u] - [%04X][%04X][%04X][%04X]",
                      p_btn_data->length, p_btn_data->report_id, p_btn_data->time_stamp, p_btn_data->btn_val,
@@ -226,6 +228,9 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
 
             /* Number of touched points */
             tp_num = (tp_num > CONFIG_ESP_LCD_TOUCH_MAX_POINTS ? CONFIG_ESP_LCD_TOUCH_MAX_POINTS : tp_num);
+
+            portENTER_CRITICAL(&tp->data.lock);
+
             tp->data.points = tp_num;
 
             /* Fill all coordinates */
@@ -235,12 +240,15 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
                 tp->data.coords[i].x = p_touch_data->x;
                 tp->data.coords[i].y = p_touch_data->y;
                 tp->data.coords[i].strength = p_touch_data->pressure;
+            }
 
+            portEXIT_CRITICAL(&tp->data.lock);
+
+            for (i = 0; i < tp_num; i++) {
+                p_touch_data = &p_report_data->touch_record[i];
                 ESP_LOGD(TAG, "(%zu) [%3u][%3u]", i, p_touch_data->x, p_touch_data->y);
             }
         }
-
-        portEXIT_CRITICAL(&tp->data.lock);
     }
 
     return ESP_OK;
