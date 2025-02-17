@@ -231,6 +231,13 @@ jobs:
           path: |
             benchmark_*.md
             benchmark_*.json
+      - name: Update release
+        uses: pyTooling/Actions/releaser@r0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            benchmark_*.json
+          tag: benchmark-latest
 
   publish-results:
     name: Publish Test results
