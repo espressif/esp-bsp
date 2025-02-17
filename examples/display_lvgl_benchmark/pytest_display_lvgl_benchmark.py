@@ -7,6 +7,9 @@ import json
 from pathlib import Path
 import pytest
 from pytest_embedded import Dut
+import urllib.request
+
+BENCHMARK_RELEASES_URL = "https://github.com/espressif/esp-bsp/releases/download/benchmark-latest"
 
 
 def write_to_file(board, ext, text):
@@ -15,15 +18,8 @@ def write_to_file(board, ext, text):
 
 
 def read_json_file(board):
-    repo_root = Path(__file__).resolve().parent
-    while repo_root.name != "esp-bsp" and repo_root.parent != repo_root:
-        repo_root = repo_root.parent
-    file_path = f"{repo_root}/bsp/{board}/benchmark.json"
-    if not os.path.exists(file_path):
-        print(f"\nFile \"{file_path}\" not exists\n")
-        return []
     try:
-        with open(file_path, "r") as file:
+        with urllib.request.urlopen(f"{BENCHMARK_RELEASES_URL}/{board}.json") as file:
             return json.load(file)
     except json.JSONDecodeError:
         return []
