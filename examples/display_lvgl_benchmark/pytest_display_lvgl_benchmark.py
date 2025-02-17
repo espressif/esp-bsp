@@ -19,7 +19,8 @@ def write_to_file(board, ext, text):
 
 def read_json_file(board):
     try:
-        with urllib.request.urlopen(f"{BENCHMARK_RELEASES_URL}/{board}.json") as file:
+        url = f"{BENCHMARK_RELEASES_URL}/benchmark_{board}.json"
+        with urllib.request.urlopen(url) as file:
             return json.load(file)
     except json.JSONDecodeError:
         return []

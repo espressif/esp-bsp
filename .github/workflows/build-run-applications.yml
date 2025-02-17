@@ -237,6 +237,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: |
             benchmark_*.json
+            benchmark_*.md
           tag: benchmark-latest
 
   publish-results:
