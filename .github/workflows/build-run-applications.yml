@@ -231,8 +231,9 @@ jobs:
           path: |
             benchmark_*.md
             benchmark_*.json
-      - name: Update release
+      - name: Update benchmark release
         uses: pyTooling/Actions/releaser@r0
+        if: github.ref_name == 'master'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: |
