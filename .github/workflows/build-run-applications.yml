@@ -5,7 +5,25 @@ name: Build ESP-BSP apps
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, labeled]
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      WFType:
+        description: 'Workflow type'
+        required: true
+        default: 'Build + Tests'
+        type: choice
+        options:
+        - Build + Tests
+        - Build + Tests + Benchmark
+
+# Cancel previous CI, if running and changed label or pushed PR (Prevent to wait for runners)
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -89,7 +107,7 @@ jobs:
 
   run-target:
     name: Run apps
-    if: github.repository_owner == 'espressif' && needs.prepare.outputs.build_only != '1'
+    if: github.repository_owner == 'espressif' && !contains(github.event.pull_request.labels.*.name, 'Build only')
     needs: build
     strategy:
       fail-fast: false
@@ -151,6 +169,7 @@ jobs:
             target: "esp32s3"
     env:
       TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
+      BENCHMARK_RESULT_NAME: benchmark_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
       TEST_RESULT_FILE: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}.xml
     runs-on: [self-hosted, Linux, bspwall]
     container:
@@ -165,22 +184,58 @@ jobs:
       - name: Install Python packages
         env:
           PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
-        run: pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
+        run: |
+          echo "PYTEST_BENCHMARK_IGNORE=--ignore='examples/display_lvgl_benchmark'" >> $GITHUB_ENV
+          pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
+      - name: Download latest results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: benchmark_*
+          path: benchmark/
+      - name: Set ignores
+        if: contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master'
+        id: set_ignores
+        run: |
+          echo "PYTEST_BENCHMARK_IGNORE=" >> $GITHUB_ENV
+      - name: Pull
+        run: |
+          git pull --rebase origin ${{ github.head_ref }} || echo "No remote changes to rebase"
       - name: Run apps
         run: |
-          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
+          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.PYTEST_BENCHMARK_IGNORE }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ${{ env.TEST_RESULT_NAME }}
-          path: ${{ env.TEST_RESULT_FILE }}
+          path: |
+            ${{ env.TEST_RESULT_FILE }}
+            benchmark_*.md
+            benchmark_*.json
+            benchmark.json
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: github.ref_name == 'master'
+        with:
+          name: ${{ env.BENCHMARK_RESULT_NAME }}
+          path: |
+            benchmark_*.md
+            benchmark_*.json
+      - name: Update benchmark release
+        uses: pyTooling/Actions/releaser@r0
+        if: github.ref_name == 'master'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            benchmark_*.json
+            benchmark_*.md
+          tag: benchmark-latest
 
   publish-results:
     name: Publish Test results
     needs:
       - run-target
-    if: github.repository_owner == 'espressif' && always() && github.event_name == 'pull_request' && needs.prepare.outputs.build_only == '0'
+    if: github.repository_owner == 'espressif' && always() && github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'Build only')
     runs-on: ubuntu-22.04
     steps:
       - name: Download Test results
@@ -192,3 +247,29 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           files: test_results/**/*.xml
+      - name: Find test result files
+        id: find_files
+        run: |
+          OUTPUT_FILE="combined_benchmarks.md"
+          echo "" > $OUTPUT_FILE
+          python <<EOF
+          import glob
+
+          files = sorted(glob.glob("test_results/**/benchmark_*.md"))
+          print(files)
+          output_file = "combined_benchmarks.md"
+
+          with open(output_file, "w", encoding="utf-8") as outfile:
+              for file in files:
+                  with open(file, "r", encoding="utf-8") as infile:
+                      outfile.write(infile.read() + "\n\n")
+
+          print(f"Merged {len(files)} files into {output_file}")
+          EOF
+
+          echo "output_file=$OUTPUT_FILE" >> "$GITHUB_ENV"
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          comment-tag: benchmark_results
+          file-path: ${{ env.output_file }}
