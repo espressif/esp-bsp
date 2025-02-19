@@ -28,8 +28,8 @@ typedef struct {
 *******************************************************************************/
 
 static void lvgl_port_encoder_read(lv_indev_t *indev_drv, lv_indev_data_t *data);
-static void lvgl_port_encoder_btn_down_handler(void *arg, void *arg2);
-static void lvgl_port_encoder_btn_up_handler(void *arg, void *arg2);
+static void lvgl_port_encoder_btn_down_handler(void *button_handle, void *usr_data);
+static void lvgl_port_encoder_btn_up_handler(void *button_handle, void *usr_data);
 static void lvgl_port_encoder_left_handler(void *arg, void *arg2);
 static void lvgl_port_encoder_right_handler(void *arg, void *arg2);
 static int32_t lvgl_port_calculate_diff(knob_handle_t knob, knob_event_t event);
@@ -63,12 +63,22 @@ lv_indev_t *lvgl_port_add_encoder(const lvgl_port_encoder_cfg_t *encoder_cfg)
 
     /* Encoder Enter */
     if (encoder_cfg->encoder_enter != NULL) {
+#if BUTTON_VER_MAJOR < 4
         encoder_ctx->btn_handle = iot_button_create(encoder_cfg->encoder_enter);
         ESP_GOTO_ON_FALSE(encoder_ctx->btn_handle, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for button create!");
+#else
+        ESP_GOTO_ON_FALSE(encoder_cfg->encoder_enter, ESP_ERR_INVALID_ARG, err, TAG, "Invalid button handler!");
+        encoder_ctx->btn_handle = encoder_cfg->encoder_enter;
+#endif
     }
 
+#if BUTTON_VER_MAJOR < 4
     ESP_ERROR_CHECK(iot_button_register_cb(encoder_ctx->btn_handle, BUTTON_PRESS_DOWN, lvgl_port_encoder_btn_down_handler, encoder_ctx));
     ESP_ERROR_CHECK(iot_button_register_cb(encoder_ctx->btn_handle, BUTTON_PRESS_UP, lvgl_port_encoder_btn_up_handler, encoder_ctx));
+#else
+    ESP_ERROR_CHECK(iot_button_register_cb(encoder_ctx->btn_handle, BUTTON_PRESS_DOWN, NULL, lvgl_port_encoder_btn_down_handler, encoder_ctx));
+    ESP_ERROR_CHECK(iot_button_register_cb(encoder_ctx->btn_handle, BUTTON_PRESS_UP, NULL, lvgl_port_encoder_btn_up_handler, encoder_ctx));
+#endif
 
     encoder_ctx->btn_enter = false;
     encoder_ctx->diff = 0;
@@ -143,10 +153,10 @@ static void lvgl_port_encoder_read(lv_indev_t *indev_drv, lv_indev_data_t *data)
     ctx->diff = 0;
 }
 
-static void lvgl_port_encoder_btn_down_handler(void *arg, void *arg2)
+static void lvgl_port_encoder_btn_down_handler(void *button_handle, void *usr_data)
 {
-    lvgl_port_encoder_ctx_t *ctx = (lvgl_port_encoder_ctx_t *) arg2;
-    button_handle_t button = (button_handle_t)arg;
+    lvgl_port_encoder_ctx_t *ctx = (lvgl_port_encoder_ctx_t *) usr_data;
+    button_handle_t button = (button_handle_t)button_handle;
     if (ctx && button) {
         /* ENTER */
         if (button == ctx->btn_handle) {
@@ -158,10 +168,10 @@ static void lvgl_port_encoder_btn_down_handler(void *arg, void *arg2)
     lvgl_port_task_wake(LVGL_PORT_EVENT_TOUCH, ctx->indev);
 }
 
-static void lvgl_port_encoder_btn_up_handler(void *arg, void *arg2)
+static void lvgl_port_encoder_btn_up_handler(void *button_handle, void *usr_data)
 {
-    lvgl_port_encoder_ctx_t *ctx = (lvgl_port_encoder_ctx_t *) arg2;
-    button_handle_t button = (button_handle_t)arg;
+    lvgl_port_encoder_ctx_t *ctx = (lvgl_port_encoder_ctx_t *) usr_data;
+    button_handle_t button = (button_handle_t)button_handle;
     if (ctx && button) {
         /* ENTER */
         if (button == ctx->btn_handle) {
