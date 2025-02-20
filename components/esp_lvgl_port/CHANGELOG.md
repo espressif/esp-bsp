@@ -3,6 +3,7 @@
 ## 2.5.0
 
 ### Features (Functional change for button v4 users)
+>>>>>>> d3e75e7 (feat(lvgl_port): Update LVGL port for using button v4 (breaking change!))
 - Updated LVGL port for using IoT button component v4 (LVGL port not anymore creating button, need to be created in app and included handle to LVGL port)
 
 ### Fixes
