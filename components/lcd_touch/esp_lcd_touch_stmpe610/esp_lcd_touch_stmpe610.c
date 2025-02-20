@@ -143,6 +143,8 @@ esp_err_t esp_lcd_touch_new_spi_stmpe610(const esp_lcd_panel_io_handle_t io, con
     ret = touch_stmpe610_read_cfg(esp_lcd_touch_stmpe610);
     ESP_GOTO_ON_ERROR(ret, err, TAG, "STMPE610 init failed");
 
+    *out_touch = esp_lcd_touch_stmpe610;
+
 err:
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error (0x%x)! Touch controller STMPE610 initialization failed!", ret);
@@ -150,8 +152,6 @@ err:
             esp_lcd_touch_stmpe610_del(esp_lcd_touch_stmpe610);
         }
     }
-
-    *out_touch = esp_lcd_touch_stmpe610;
 
     return ret;
 }

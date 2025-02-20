@@ -158,6 +158,8 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
     ret = touch_gt911_read_cfg(esp_lcd_touch_gt911);
     ESP_GOTO_ON_ERROR(ret, err, TAG, "GT911 init failed");
 
+    *out_touch = esp_lcd_touch_gt911;
+
 err:
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error (0x%x)! Touch controller GT911 initialization failed!", ret);
@@ -165,8 +167,6 @@ err:
             esp_lcd_touch_gt911_del(esp_lcd_touch_gt911);
         }
     }
-
-    *out_touch = esp_lcd_touch_gt911;
 
     return ret;
 }
