@@ -50,6 +50,10 @@ static i2c_master_bus_handle_t i2c_handle = NULL;  // I2C Handle
 static i2s_chan_handle_t i2s_tx_chan = NULL;
 static i2s_chan_handle_t i2s_rx_chan = NULL;
 static const audio_codec_data_if_t *i2s_data_if = NULL;  /* Codec data interface */
+static bsp_lcd_handles_t disp_handles;
+static esp_ldo_channel_handle_t disp_phy_pwr_chan = NULL;
+static esp_lcd_touch_handle_t tp = NULL;
+static esp_lcd_panel_io_handle_t tp_io_handle = NULL;
 
 /* Can be used for `i2s_std_gpio_config_t` and/or `i2s_std_config_t` initialization */
 #define BSP_I2S_GPIO_CFG       \
@@ -96,8 +100,10 @@ esp_err_t bsp_i2c_init(void)
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
-    i2c_initialized = false;
+    if (i2c_initialized && i2c_handle) {
+        BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
+        i2c_initialized = false;
+    }
     return ESP_OK;
 }
 
@@ -348,6 +354,18 @@ esp_err_t bsp_display_brightness_init(void)
     return ESP_OK;
 }
 
+esp_err_t bsp_display_brightness_deinit(void)
+{
+    const ledc_timer_config_t LCD_backlight_timer = {
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .timer_num = 1,
+        .deconfigure = 1
+    };
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_timer_pause(LEDC_LOW_SPEED_MODE, 1));
+    BSP_ERROR_CHECK_RETURN_ERR(ledc_timer_config(&LCD_backlight_timer));
+    return ESP_OK;
+}
+
 esp_err_t bsp_display_brightness_set(int brightness_percent)
 {
     if (brightness_percent > 100) {
@@ -378,12 +396,11 @@ static esp_err_t bsp_enable_dsi_phy_power(void)
 {
 #if BSP_MIPI_DSI_PHY_PWR_LDO_CHAN > 0
     // Turn on the power for MIPI DSI PHY, so it can go from "No Power" state to "Shutdown" state
-    static esp_ldo_channel_handle_t phy_pwr_chan = NULL;
     esp_ldo_channel_config_t ldo_cfg = {
         .chan_id = BSP_MIPI_DSI_PHY_PWR_LDO_CHAN,
         .voltage_mv = BSP_MIPI_DSI_PHY_PWR_LDO_VOLTAGE_MV,
     };
-    ESP_RETURN_ON_ERROR(esp_ldo_acquire_channel(&ldo_cfg, &phy_pwr_chan), TAG, "Acquire LDO channel for DPHY failed");
+    ESP_RETURN_ON_ERROR(esp_ldo_acquire_channel(&ldo_cfg, &disp_phy_pwr_chan), TAG, "Acquire LDO channel for DPHY failed");
     ESP_LOGI(TAG, "MIPI DSI PHY Powered on");
 #endif // BSP_MIPI_DSI_PHY_PWR_LDO_CHAN > 0
 
@@ -584,33 +601,60 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
 
     /* Return all handles */
     ret_handles->io = io;
+    disp_handles.io = io;
+#if CONFIG_BSP_LCD_TYPE_HDMI
+    ret_handles->io_cec = io_cec_dsi;
+    disp_handles.io_cec = io_cec_dsi;
+    ret_handles->io_avi = io_avi;
+    disp_handles.io_avi = io_avi;
+#endif
     ret_handles->mipi_dsi_bus = mipi_dsi_bus;
+    disp_handles.mipi_dsi_bus = mipi_dsi_bus;
     ret_handles->panel = disp_panel;
+    disp_handles.panel = disp_panel;
     ret_handles->control = NULL;
+    disp_handles.control = NULL;
 
     ESP_LOGI(TAG, "Display initialized");
 
     return ret;
 
 err:
-    if (disp_panel) {
-        esp_lcd_panel_del(disp_panel);
+    bsp_display_delete();
+    return ret;
+}
+
+void bsp_display_delete(void)
+{
+    if (disp_handles.panel) {
+        esp_lcd_panel_del(disp_handles.panel);
+        disp_handles.panel = NULL;
     }
-    if (io) {
-        esp_lcd_panel_io_del(io);
+    if (disp_handles.io) {
+        esp_lcd_panel_io_del(disp_handles.io);
+        disp_handles.io = NULL;
     }
 #if CONFIG_BSP_LCD_TYPE_HDMI
-    if (io_cec_dsi) {
-        esp_lcd_panel_io_del(io_cec_dsi);
+    if (disp_handles.io_cec) {
+        esp_lcd_panel_io_del(disp_handles.io_cec);
+        disp_handles.io_cec = NULL;
     }
-    if (io_avi) {
-        esp_lcd_panel_io_del(io_avi);
+    if (disp_handles.io_avi) {
+        esp_lcd_panel_io_del(disp_handles.io_avi);
+        disp_handles.io_avi = NULL;
     }
 #endif
-    if (mipi_dsi_bus) {
-        esp_lcd_del_dsi_bus(mipi_dsi_bus);
+    if (disp_handles.mipi_dsi_bus) {
+        esp_lcd_del_dsi_bus(disp_handles.mipi_dsi_bus);
+        disp_handles.mipi_dsi_bus = NULL;
     }
-    return ret;
+
+    if (disp_phy_pwr_chan) {
+        esp_ldo_release_channel(disp_phy_pwr_chan);
+        disp_phy_pwr_chan = NULL;
+    }
+
+    esp_err_t err = bsp_display_brightness_deinit();
 }
 
 #if !CONFIG_BSP_LCD_TYPE_HDMI
@@ -640,11 +684,21 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
 #endif
         },
     };
-    esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
     tp_io_config.scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ;
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
     return esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, ret_touch);
+}
+
+void bsp_touch_delete(void)
+{
+    if (tp) {
+        esp_lcd_touch_del(tp);
+    }
+    if (tp_io_handle) {
+        esp_lcd_panel_io_del(tp_io_handle);
+        tp_io_handle = NULL;
+    }
 }
 #endif //!CONFIG_BSP_LCD_TYPE_HDMI
 
@@ -652,8 +706,7 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
 static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
-    bsp_lcd_handles_t lcd_panels;
-    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new_with_handles(&cfg->hw_cfg, &lcd_panels));
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new_with_handles(&cfg->hw_cfg, &disp_handles));
 
     uint32_t display_hres = 0;
     uint32_t display_vres = 0;
@@ -692,9 +745,9 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
     /* Add LCD screen */
     ESP_LOGD(TAG, "Add LCD screen");
     const lvgl_port_display_cfg_t disp_cfg = {
-        .io_handle = lcd_panels.io,
-        .panel_handle = lcd_panels.panel,
-        .control_handle = lcd_panels.control,
+        .io_handle = disp_handles.io,
+        .panel_handle = disp_handles.panel,
+        .control_handle = disp_handles.control,
         .buffer_size = cfg->buffer_size,
         .double_buffer = cfg->double_buffer,
         .hres = display_hres,
@@ -748,7 +801,6 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 #if !CONFIG_BSP_LCD_TYPE_HDMI
 static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 {
-    esp_lcd_touch_handle_t tp;
     BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(NULL, &tp));
     assert(tp);
 
@@ -814,6 +866,27 @@ lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
     BSP_NULL_CHECK(disp_indev = bsp_display_indev_init(disp), NULL);
 #endif
     return disp;
+}
+
+void bsp_display_stop(lv_display_t *display)
+{
+    /* Deinit LVGL */
+#if !CONFIG_BSP_LCD_TYPE_HDMI
+    lvgl_port_remove_touch(disp_indev);
+#endif
+    lvgl_port_remove_disp(display);
+    lvgl_port_deinit();
+
+#if !CONFIG_BSP_LCD_TYPE_HDMI
+    /* Deinit touch */
+    bsp_touch_delete();
+#endif
+
+    /* Deinit display */
+    bsp_display_delete();
+
+    /* Deinit I2C if initialized */
+    bsp_i2c_deinit();
 }
 
 lv_indev_t *bsp_display_get_input_dev(void)
