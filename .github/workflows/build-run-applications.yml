@@ -171,6 +171,7 @@ jobs:
       TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
       BENCHMARK_RESULT_NAME: benchmark_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
       TEST_RESULT_FILE: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}.xml
+      PYTEST_BENCHMARK_IGNORE: ${{ (contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master') && format(' ') || format('--ignore=examples/display_lvgl_benchmark') }}
     runs-on: [self-hosted, Linux, bspwall]
     container:
       image: python:3.11-bookworm
@@ -185,24 +186,15 @@ jobs:
         env:
           PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
         run: |
-          echo "PYTEST_BENCHMARK_IGNORE=--ignore='examples/display_lvgl_benchmark'" >> $GITHUB_ENV
           pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
       - name: Download latest results
         uses: actions/download-artifact@v4
         with:
           pattern: benchmark_*
           path: benchmark/
-      - name: Set ignores
-        if: contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master'
-        id: set_ignores
-        run: |
-          echo "PYTEST_BENCHMARK_IGNORE=" >> $GITHUB_ENV
-      - name: Pull
-        run: |
-          git pull --rebase origin ${{ github.head_ref }} || echo "No remote changes to rebase"
       - name: Run apps
         run: |
-          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github ${{ env.PYTEST_BENCHMARK_IGNORE }} --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }}
+          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }} ${{ env.PYTEST_BENCHMARK_IGNORE }}
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -247,7 +239,8 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           files: test_results/**/*.xml
-      - name: Find test result files
+      - name: Find benchmark result files
+        if: (contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master')
         id: find_files
         run: |
           OUTPUT_FILE="combined_benchmarks.md"
@@ -269,6 +262,7 @@ jobs:
 
           echo "output_file=$OUTPUT_FILE" >> "$GITHUB_ENV"
       - name: Comment PR
+        if: (contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master')
         uses: thollander/actions-comment-pull-request@v3
         with:
           comment-tag: benchmark_results
