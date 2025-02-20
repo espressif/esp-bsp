@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: CC0-1.0
 
-import os
 import datetime
 import json
 from pathlib import Path
@@ -26,22 +25,6 @@ def read_json_file(board):
         return []
     except json.JSONDecodeError:
         return []
-
-
-def write_json_file(board, data):
-    repo_root = Path(__file__).resolve().parent
-    while repo_root.name != "esp-bsp" and repo_root.parent != repo_root:
-        repo_root = repo_root.parent
-    file_path = f"{repo_root}/bsp/{board}/benchmark.json"
-    try:
-        os.remove(file_path)
-    except OSError:
-        pass
-    try:
-        with open(file_path, "a") as file:
-            file.write(data)
-    except OSError:
-        pass
 
 
 def find_test_results(json_obj, test):
@@ -84,11 +67,10 @@ def test_example(dut: Dut, request) -> None:
     dut.expect_exact('app_main: Display LVGL demo')
     dut.expect_exact('main_task: Returned from app_main()')
 
-    try:
-        os.remove("benchmark_" + board + ".md")
-        os.remove("benchmark_" + board + ".json")
-    except OSError:
-        pass
+    file_path = Path(f"benchmark_" + board + ".md")
+    file_path.unlink(missing_ok=True)
+    file_path = Path(f"benchmark_" + board + ".json")
+    file_path.unlink(missing_ok=True)
 
     output = {
         "date": date.strftime('%d.%m.%Y %H:%M'),
@@ -138,4 +120,3 @@ def test_example(dut: Dut, request) -> None:
     # Save JSON to file
     json_output = json.dumps(output, indent=4)
     write_to_file(board, ".json", json_output)
-    write_json_file(board, json_output)
