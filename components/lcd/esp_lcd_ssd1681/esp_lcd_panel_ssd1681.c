@@ -275,7 +275,7 @@ esp_lcd_new_panel_ssd1681(const esp_lcd_panel_io_handle_t io, const esp_lcd_pane
         (epaper_ssd1681_conf->rows - 1) : (SSD1681_EPD_1IN54_V2_HEIGHT - 1);
     if(epaper_panel->_rows != (SSD1681_EPD_1IN54_V2_HEIGHT - 1) &&
         epaper_panel->_non_copy_mode == false)
-        ESP_LOGW(TAG, "Overriding row count combined requires non_copy_mode, otherwise undefined behavior");
+        ESP_LOGE(TAG, "Overridden row count combined with non_copy_mode is unsupported");
     epaper_panel->base.del = epaper_panel_del;
     epaper_panel->base.reset = epaper_panel_reset;
     epaper_panel->base.init = epaper_panel_init;
