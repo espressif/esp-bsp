@@ -24,6 +24,7 @@ def pytest_generate_tests(metafunc):
                 pytest.param('/dev/boards/m5stack_core_2', '/dev/boards/m5stack_core_2', id='m5stack_core_2'),
                 pytest.param('/dev/boards/m5stack_core_s3', '/dev/boards/m5stack_core_s3', id='m5stack_core_s3'),
                 pytest.param('/dev/boards/m5stack_core_s3_se', '/dev/boards/m5stack_core_s3_se', id='m5stack_core_s3_se'),
+                pytest.param('/dev/boards/m5_atom_s3', '/dev/boards/m5_atom_s3', id='m5_atom_s3'),
                 pytest.param('/dev/boards/esp32_s3_devkitc_1_1', '/dev/boards/esp32_s3_devkitc_1_1', id='esp_bsp_devkit'),
                 pytest.param('/dev/boards/esp32_s3_devkitc_1_1', '/dev/boards/esp32_s3_devkitc_1_1', id='esp_bsp_generic'),
                 pytest.param('/dev/boards/esp32_s3_korvo_2', '/dev/boards/esp32_s3_korvo_2', id='esp32_s3_korvo_2'),
