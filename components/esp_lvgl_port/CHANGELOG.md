@@ -8,6 +8,7 @@
 ### Fixes
 - Fixed buffer size by selected color format
 - Fixed memory leak in LVGL8 in display removing https://github.com/espressif/esp-bsp/issues/462
+- Fixed draw buffer alignment
 
 ## 2.4.4
 

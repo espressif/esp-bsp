@@ -1,10 +1,11 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <string.h>
+#include "sdkconfig.h"
 #include "esp_log.h"
 #include "esp_err.h"
 #include "esp_check.h"
@@ -30,6 +31,10 @@
 #define LVGL_PORT_HANDLE_FLUSH_READY 0
 #else
 #define LVGL_PORT_HANDLE_FLUSH_READY 1
+#endif
+
+#ifndef CONFIG_LV_DRAW_BUF_ALIGN
+#define CONFIG_LV_DRAW_BUF_ALIGN 1
 #endif
 
 static const char *TAG = "LVGL";
@@ -308,10 +313,10 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
     } else {
         /* alloc draw buffers used by LVGL */
         /* it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized */
-        buf1 = heap_caps_malloc(buffer_size * color_bytes, buff_caps);
+        buf1 = heap_caps_aligned_alloc(CONFIG_LV_DRAW_BUF_ALIGN, buffer_size * color_bytes, buff_caps);
         ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
         if (disp_cfg->double_buffer) {
-            buf2 = heap_caps_malloc(buffer_size * color_bytes, buff_caps);
+            buf2 = heap_caps_aligned_alloc(CONFIG_LV_DRAW_BUF_ALIGN, buffer_size * color_bytes, buff_caps);
             ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
         }
 
