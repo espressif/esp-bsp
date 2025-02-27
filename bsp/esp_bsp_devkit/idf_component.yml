@@ -1,5 +1,5 @@
 
-version: "2.1.0"
+version: "2.1.1"
 description: DevKit Board Support Package (BSP)
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp_bsp_devkit
 
@@ -14,7 +14,7 @@ dependencies:
     public: true
 
   led_indicator:
-    version: "^0.9"
+    version: "^1"
     public: true
 
 examples:

@@ -1,5 +1,5 @@
 
-version: "2.0.1"
+version: "2.0.2"
 description: Generic Board Support Package (BSP)
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp_bsp_generic
 
@@ -21,7 +21,7 @@ dependencies:
     public: true
 
   led_indicator:
-    version: "^0.9"
+    version: "^1"
     public: true
 
   espressif/esp_lvgl_port:
