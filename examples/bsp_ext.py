@@ -63,6 +63,7 @@ def action_extensions(base_actions, project_path=os.getcwd()):
             'm5dial',
             'm5stack_core_2',
             'm5stack_core',
+            'm5_atom_s3',
         }
 
         if bsp == '':
