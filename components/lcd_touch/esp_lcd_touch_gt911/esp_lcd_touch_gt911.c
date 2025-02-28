@@ -98,7 +98,7 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
         ESP_GOTO_ON_ERROR(ret, err, TAG, "GPIO config failed");
     }
 
-    if (gt911_config && esp_lcd_touch_gt911->config.rst_gpio_num != GPIO_NUM_NC && esp_lcd_touch_gt911->config.int_gpio_num != GPIO_NUM_NC) {
+    if (gt911_config && esp_lcd_touch_gt911->config.int_gpio_num != GPIO_NUM_NC) {
         /* Prepare pin for touch controller int */
         const gpio_config_t int_gpio_config = {
             .mode = GPIO_MODE_OUTPUT,
@@ -110,7 +110,9 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
         ret = gpio_config(&int_gpio_config);
         ESP_GOTO_ON_ERROR(ret, err, TAG, "GPIO config failed");
 
-        ESP_RETURN_ON_ERROR(gpio_set_level(esp_lcd_touch_gt911->config.rst_gpio_num, esp_lcd_touch_gt911->config.levels.reset), TAG, "GPIO set level error!");
+        if (esp_lcd_touch_gt911->config.rst_gpio_num != GPIO_NUM_NC) {
+            ESP_RETURN_ON_ERROR(gpio_set_level(esp_lcd_touch_gt911->config.rst_gpio_num, esp_lcd_touch_gt911->config.levels.reset), TAG, "GPIO set level error!");
+        }
         ESP_RETURN_ON_ERROR(gpio_set_level(esp_lcd_touch_gt911->config.int_gpio_num, 0), TAG, "GPIO set level error!");
         vTaskDelay(pdMS_TO_TICKS(10));
 
@@ -127,7 +129,9 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
         ESP_RETURN_ON_ERROR(gpio_set_level(esp_lcd_touch_gt911->config.int_gpio_num, gpio_level), TAG, "GPIO set level error!");
         vTaskDelay(pdMS_TO_TICKS(1));
 
-        ESP_RETURN_ON_ERROR(gpio_set_level(esp_lcd_touch_gt911->config.rst_gpio_num, !esp_lcd_touch_gt911->config.levels.reset), TAG, "GPIO set level error!");
+        if (esp_lcd_touch_gt911->config.rst_gpio_num != GPIO_NUM_NC) {
+            ESP_RETURN_ON_ERROR(gpio_set_level(esp_lcd_touch_gt911->config.rst_gpio_num, !esp_lcd_touch_gt911->config.levels.reset), TAG, "GPIO set level error!");
+        }
         vTaskDelay(pdMS_TO_TICKS(10));
 
         vTaskDelay(pdMS_TO_TICKS(50));
