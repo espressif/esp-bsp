@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2021-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2021-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -42,10 +42,14 @@ void app_main(void)
 {
 #if CONFIG_BSP_BUTTONS_NUM > 0
     /* Init buttons */
-    button_handle_t btns[BSP_BUTTON_NUM];
+    button_handle_t btns[BSP_BUTTON_NUM] = {NULL};
     ESP_ERROR_CHECK(bsp_iot_button_create(btns, NULL, BSP_BUTTON_NUM));
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
+#if BUTTON_VER_MAJOR >= 4
+        ESP_ERROR_CHECK(iot_button_register_cb(btns[i], BUTTON_PRESS_DOWN, NULL, btn_handler, (void *) i));
+#else
         ESP_ERROR_CHECK(iot_button_register_cb(btns[i], BUTTON_PRESS_DOWN, btn_handler, (void *) i));
+#endif
     }
 #endif
 

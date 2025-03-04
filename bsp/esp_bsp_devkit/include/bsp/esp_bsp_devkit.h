@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -16,6 +16,8 @@
 #include "driver/i2c_master.h"
 #include "driver/sdmmc_host.h"
 #include "iot_button.h"
+#include "button_gpio.h"
+#include "button_adc.h"
 #include "led_indicator.h"
 
 /**************************************************************************************************
@@ -295,6 +297,46 @@ esp_err_t bsp_led_set(led_indicator_handle_t handle, const bool on);
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
 esp_err_t bsp_led_set_temperature(led_indicator_handle_t handle, const uint16_t temperature);
+
+#ifndef CONFIG_BSP_BUTTON_1_TYPE_GPIO
+#define CONFIG_BSP_BUTTON_1_TYPE_GPIO 0
+#endif
+
+#ifndef CONFIG_BSP_BUTTON_1_TYPE_ADC
+#define CONFIG_BSP_BUTTON_1_TYPE_ADC 0
+#endif
+
+#ifndef CONFIG_BSP_BUTTON_2_TYPE_GPIO
+#define CONFIG_BSP_BUTTON_2_TYPE_GPIO 0
+#endif
+
+#ifndef CONFIG_BSP_BUTTON_2_TYPE_ADC
+#define CONFIG_BSP_BUTTON_2_TYPE_ADC 0
+#endif
+
+#ifndef CONFIG_BSP_BUTTON_3_TYPE_GPIO
+#define CONFIG_BSP_BUTTON_3_TYPE_GPIO 0
+#endif
+
+#ifndef CONFIG_BSP_BUTTON_3_TYPE_ADC
+#define CONFIG_BSP_BUTTON_3_TYPE_ADC 0
+#endif
+
+#ifndef CONFIG_BSP_BUTTON_4_TYPE_GPIO
+#define CONFIG_BSP_BUTTON_4_TYPE_GPIO 0
+#endif
+
+#ifndef CONFIG_BSP_BUTTON_4_TYPE_ADC
+#define CONFIG_BSP_BUTTON_4_TYPE_ADC 0
+#endif
+
+#ifndef CONFIG_BSP_BUTTON_5_TYPE_GPIO
+#define CONFIG_BSP_BUTTON_5_TYPE_GPIO 0
+#endif
+
+#ifndef CONFIG_BSP_BUTTON_5_TYPE_ADC
+#define CONFIG_BSP_BUTTON_5_TYPE_ADC 0
+#endif
 
 #ifdef __cplusplus
 }

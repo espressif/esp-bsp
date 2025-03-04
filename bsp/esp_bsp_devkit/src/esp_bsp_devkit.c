@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -16,6 +16,18 @@
 
 static const char *TAG = "BSP-devkit";
 
+#define bsp_btn_cfg(n)     bsp_btn_cfg_##n
+#define BUTTON_TYPE_ADC(n)  CONFIG_BSP_BUTTON_##n##_TYPE_ADC
+#define BUTTON_TYPE_GPIO(n) CONFIG_BSP_BUTTON_##n##_TYPE_GPIO
+
+#define BSP_IOT_BUTTON_CREATE_INTERNAL(i) \
+    if (BUTTON_TYPE_ADC(i)) { \
+        ESP_LOGW(TAG, "Creating adc button %d", i); \
+        ret = iot_button_new_adc_device(&btn_config, (const button_adc_config_t *)&bsp_btn_cfg(i), &btn_array[i - 1]); \
+    } else if (BUTTON_TYPE_GPIO(i)) { \
+        ESP_LOGW(TAG, "Creating gpio button %d", i); \
+        ret = iot_button_new_gpio_device(&btn_config, (const button_gpio_config_t *)&bsp_btn_cfg(i), &btn_array[i - 1]); \
+    }
 
 /**
  * @brief I2C handle for BSP usage
@@ -30,101 +42,95 @@ static bool i2c_initialized = false;
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 extern blink_step_t const *bsp_led_blink_defaults_lists[];
 
-static const button_config_t bsp_button_config[] = {
+static const button_config_t btn_config = {0};
 #if CONFIG_BSP_BUTTONS_NUM > 0
 #if CONFIG_BSP_BUTTON_1_TYPE_GPIO
-    {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_1_IO,
-        .gpio_button_config.active_level = CONFIG_BSP_BUTTON_1_LEVEL,
-    },
+const button_gpio_config_t bsp_btn_cfg_1 = {
+    .gpio_num = BSP_BUTTON_1_IO,
+    .active_level = CONFIG_BSP_BUTTON_1_LEVEL,
+};
 #elif CONFIG_BSP_BUTTON_1_TYPE_ADC
-    {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = CONFIG_BSP_BUTTON_1_ADC_CHANNEL,
-        .adc_button_config.button_index = BSP_BUTTON_1,
-        .adc_button_config.min = (CONFIG_BSP_BUTTON_1_ADC_VALUE - 100),
-        .adc_button_config.max = (CONFIG_BSP_BUTTON_1_ADC_VALUE + 100)
-    },
+const button_adc_config_t bsp_btn_cfg_1 = {
+    .unit_id = ADC_UNIT_1,
+    .adc_channel = CONFIG_BSP_BUTTON_1_ADC_CHANNEL,
+    .button_index = BSP_BUTTON_1,
+    .min = (CONFIG_BSP_BUTTON_1_ADC_VALUE - 100),
+    .max = (CONFIG_BSP_BUTTON_1_ADC_VALUE + 100)
+};
 #endif // CONFIG_BSP_BUTTON_1_TYPE_x
 #endif // CONFIG_BSP_BUTTONS_NUM >= 0
 
 #if CONFIG_BSP_BUTTONS_NUM > 1
 #if CONFIG_BSP_BUTTON_2_TYPE_GPIO
-    {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_2_IO,
-        .gpio_button_config.active_level = CONFIG_BSP_BUTTON_2_LEVEL,
-    },
+const button_gpio_config_t bsp_btn_cfg_2 = {
+    .gpio_num = BSP_BUTTON_2_IO,
+    .active_level = CONFIG_BSP_BUTTON_2_LEVEL,
+};
 
 #elif CONFIG_BSP_BUTTON_2_TYPE_ADC
-    {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = CONFIG_BSP_BUTTON_2_ADC_CHANNEL,
-        .adc_button_config.button_index = BSP_BUTTON_2,
-        .adc_button_config.min = (CONFIG_BSP_BUTTON_2_ADC_VALUE - 100),
-        .adc_button_config.max = (CONFIG_BSP_BUTTON_2_ADC_VALUE + 100)
-    },
+const button_adc_config_t bsp_btn_cfg_2 = {
+    .unit_id = ADC_UNIT_1,
+    .adc_channel = CONFIG_BSP_BUTTON_2_ADC_CHANNEL,
+    .button_index = BSP_BUTTON_2,
+    .min = (CONFIG_BSP_BUTTON_2_ADC_VALUE - 100),
+    .max = (CONFIG_BSP_BUTTON_2_ADC_VALUE + 100)
+};
 #endif // CONFIG_BSP_BUTTON_2_TYPE_x
 #endif // CONFIG_BSP_BUTTONS_NUM >= 1
 
 #if CONFIG_BSP_BUTTONS_NUM > 2
 #if CONFIG_BSP_BUTTON_3_TYPE_GPIO
-    {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_3_IO,
-        .gpio_button_config.active_level = CONFIG_BSP_BUTTON_3_LEVEL,
-    },
+const button_gpio_config_t bsp_btn_cfg_3 = {
+    .gpio_num = BSP_BUTTON_3_IO,
+    .active_level = CONFIG_BSP_BUTTON_3_LEVEL,
+};
 
 #elif CONFIG_BSP_BUTTON_3_TYPE_ADC
-    {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = CONFIG_BSP_BUTTON_3_ADC_CHANNEL,
-        .adc_button_config.button_index = BSP_BUTTON_3,
-        .adc_button_config.min = (CONFIG_BSP_BUTTON_3_ADC_VALUE - 100),
-        .adc_button_config.max = (CONFIG_BSP_BUTTON_3_ADC_VALUE + 100)
-    },
+const button_adc_config_t bsp_btn_cfg_3 = {
+    .unit_id = ADC_UNIT_1,
+    .adc_channel = CONFIG_BSP_BUTTON_3_ADC_CHANNEL,
+    .button_index = BSP_BUTTON_3,
+    .min = (CONFIG_BSP_BUTTON_3_ADC_VALUE - 100),
+    .max = (CONFIG_BSP_BUTTON_3_ADC_VALUE + 100)
+};
 #endif // CONFIG_BSP_BUTTON_3_TYPE_x
 #endif // CONFIG_BSP_BUTTONS_NUM >= 2
 
 #if CONFIG_BSP_BUTTONS_NUM > 3
 #if CONFIG_BSP_BUTTON_4_TYPE_GPIO
-    {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_4_IO,
-        .gpio_button_config.active_level = CONFIG_BSP_BUTTON_4_LEVEL,
-    },
+const button_gpio_config_t bsp_btn_cfg_4 = {
+    .gpio_num = BSP_BUTTON_4_IO,
+    .active_level = CONFIG_BSP_BUTTON_4_LEVEL,
+};
 
 #elif CONFIG_BSP_BUTTON_4_TYPE_ADC
-    {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = CONFIG_BSP_BUTTON_4_ADC_CHANNEL,
-        .adc_button_config.button_index = BSP_BUTTON_4,
-        .adc_button_config.min = (CONFIG_BSP_BUTTON_4_ADC_VALUE - 100),
-        .adc_button_config.max = (CONFIG_BSP_BUTTON_4_ADC_VALUE + 100)
-    },
+const button_adc_config_t bsp_btn_cfg_4 = {
+    .unit_id = ADC_UNIT_1,
+    .adc_channel = CONFIG_BSP_BUTTON_4_ADC_CHANNEL,
+    .button_index = BSP_BUTTON_4,
+    .min = (CONFIG_BSP_BUTTON_4_ADC_VALUE - 100),
+    .max = (CONFIG_BSP_BUTTON_4_ADC_VALUE + 100)
+};
 #endif // CONFIG_BSP_BUTTON_4_TYPE_x
 #endif // CONFIG_BSP_BUTTONS_NUM >= 3
 
 #if CONFIG_BSP_BUTTONS_NUM > 4
 #if CONFIG_BSP_BUTTON_5_TYPE_GPIO
-    {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_5_IO,
-        .gpio_button_config.active_level = CONFIG_BSP_BUTTON_5_LEVEL,
-    },
+const button_gpio_config_t bsp_btn_cfg_5 = {
+    .gpio_num = BSP_BUTTON_5_IO,
+    .active_level = CONFIG_BSP_BUTTON_5_LEVEL,
+};
 
 #elif CONFIG_BSP_BUTTON_5_TYPE_ADC
-    {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = CONFIG_BSP_BUTTON_5_ADC_CHANNEL,
-        .adc_button_config.button_index = BSP_BUTTON_5,
-        .adc_button_config.min = (CONFIG_BSP_BUTTON_5_ADC_VALUE - 100),
-        .adc_button_config.max = (CONFIG_BSP_BUTTON_5_ADC_VALUE + 100)
-    }
+const button_adc_config_t bsp_btn_cfg_5 = {
+    .unit_id = ADC_UNIT_1,
+    .adc_channel = CONFIG_BSP_BUTTON_5_ADC_CHANNEL,
+    .button_index = BSP_BUTTON_5,
+    .min = (CONFIG_BSP_BUTTON_5_ADC_VALUE - 100),
+    .max = (CONFIG_BSP_BUTTON_5_ADC_VALUE + 100)
+};
 #endif // CONFIG_BSP_BUTTON_5_TYPE_x
 #endif // CONFIG_BSP_BUTTONS_NUM >= 4
-};
 
 #if CONFIG_BSP_LED_TYPE_GPIO
 static led_indicator_gpio_config_t bsp_leds_gpio_config[] = {
@@ -400,9 +406,36 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
+        switch (i) {
+#if CONFIG_BSP_BUTTONS_NUM > 0
+        case 0:
+            BSP_IOT_BUTTON_CREATE_INTERNAL(1);
+            break;
+#endif
+#if CONFIG_BSP_BUTTONS_NUM > 1
+        case 1:
+            BSP_IOT_BUTTON_CREATE_INTERNAL(2);
+            break;
+#endif
+#if CONFIG_BSP_BUTTONS_NUM > 2
+        case 2:
+            BSP_IOT_BUTTON_CREATE_INTERNAL(3);
+            break;
+#endif
+#if CONFIG_BSP_BUTTONS_NUM > 3
+        case 3:
+            BSP_IOT_BUTTON_CREATE_INTERNAL(4);
+            break;
+#endif
+#if CONFIG_BSP_BUTTONS_NUM > 4
+        case 4:
+            BSP_IOT_BUTTON_CREATE_INTERNAL(5);
+            break;
+#endif
+        default:
+            break;
+        }
+        if (ret == ESP_FAIL) {
             break;
         }
         if (btn_cnt) {
