@@ -13,6 +13,7 @@ from pytest_embedded import Dut
 @pytest.mark.esp32_s3_lcd_ev_board_2
 @pytest.mark.esp32_s3_usb_otg
 @pytest.mark.esp_wrover_kit
+@pytest.mark.esp32_s3_korvo_2
 @pytest.mark.m5dial
 @pytest.mark.m5stack_core
 @pytest.mark.m5stack_core_2
