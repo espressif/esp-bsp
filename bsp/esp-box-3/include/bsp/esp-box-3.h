@@ -16,11 +16,14 @@
 #include "driver/i2s_std.h"
 #include "driver/i2c_master.h"
 #include "driver/sdmmc_host.h"
-#include "lvgl.h"
-#include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
 #include "iot_button.h"
 #include "bsp/display.h"
+
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+#include "lvgl.h"
+#include "esp_lvgl_port.h"
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
  *  BSP Capabilities
@@ -337,6 +340,8 @@ esp_err_t bsp_sdcard_unmount(void);
 #define BSP_LCD_PIXEL_CLOCK_HZ     (40 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+
 /**
  * @brief Initialize display
  *
@@ -414,6 +419,7 @@ esp_err_t bsp_display_exit_sleep(void);
  * @param[in] rotation Angle of the display rotation
  */
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 /**************************************************************************************************
  *
  * Button
