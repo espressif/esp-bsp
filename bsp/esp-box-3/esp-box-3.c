@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -23,7 +23,6 @@
 #include "esp_lcd_touch_tt21100.h"
 #include "esp_lcd_touch_gt911.h"
 #include "esp_lcd_ili9341.h"
-#include "esp_lvgl_port.h"
 #include "bsp_err_check.h"
 #include "esp_codec_dev_defaults.h"
 
@@ -53,10 +52,13 @@ static const ili9341_lcd_init_cmd_t vendor_specific_init[] = {
     {0, (uint8_t []){0}, 0xff, 0},
 };
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *disp;
 static lv_indev_t *disp_indev = NULL;
-static esp_lcd_touch_handle_t tp;   // LCD touch handle
 static esp_lcd_panel_handle_t panel_handle = NULL;
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+
+static esp_lcd_touch_handle_t tp;   // LCD touch handle
 sdmmc_card_t *bsp_sdcard = NULL;    // Global SD card handler
 
 /**
@@ -347,6 +349,7 @@ esp_err_t bsp_display_backlight_on(void)
     return bsp_display_brightness_set(100);
 }
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static esp_err_t bsp_lcd_enter_sleep(void)
 {
     assert(panel_handle);
@@ -358,6 +361,7 @@ static esp_err_t bsp_lcd_exit_sleep(void)
     assert(panel_handle);
     return esp_lcd_panel_disp_on_off(panel_handle, true);
 }
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
 {
@@ -428,6 +432,7 @@ err:
     return ret;
 }
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
@@ -623,6 +628,7 @@ esp_err_t bsp_display_exit_sleep(void)
     BSP_ERROR_CHECK_RETURN_ERR(bsp_touch_exit_sleep());
     return ESP_OK;
 }
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 static uint8_t bsp_get_main_button(void *param)
 {
