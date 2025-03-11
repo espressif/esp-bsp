@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -138,10 +138,6 @@ static esp_err_t bsp_enable_feature(bsp_feature_t feature)
         data[0] = 0x94;
         data[1] = 0b00011100; //3V3
         err |= i2c_master_transmit(axp2101_h, data, sizeof(data), 1000);
-        /* AW9523 P0 is in push-pull mode */
-        data[0] = 0x11;
-        data[1] = 0x10;
-        err |= i2c_master_transmit(aw9523_h, data, sizeof(data), 1000);
         /* Enable Codec AW88298 */
         aw9523_P0 |= (1 << 2);
         break;
@@ -150,6 +146,11 @@ static esp_err_t bsp_enable_feature(bsp_feature_t feature)
         aw9523_P1 |= (1);
         break;
     }
+
+    /* AW9523 P0 is in push-pull mode */
+    data[0] = 0x11;
+    data[1] = 0x10;
+    err |= i2c_master_transmit(aw9523_h, data, sizeof(data), 1000);
 
     data[0] = 0x02;
     data[1] = aw9523_P0;
