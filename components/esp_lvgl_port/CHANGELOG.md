@@ -1,9 +1,10 @@
 # Changelog
 
-## 2.5.0
+## 2.5.0 [Unreleased]
 
 ### Features (Functional change for button v4 users)
 - Updated LVGL port for using IoT button component v4 (LVGL port not anymore creating button, need to be created in app and included handle to LVGL port)
+- Added SIMD support also for LVGL 9.2 and above
 
 ### Fixes
 - Fixed buffer size by selected color format
