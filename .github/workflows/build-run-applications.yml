@@ -170,6 +170,9 @@ jobs:
           - runs-on: "esp_bsp_generic"
             marker: "esp_bsp_generic"
             target: "esp32s3"
+          - runs-on: "esp32_s3_korvo_2"
+            marker: "esp32_s3_korvo_2"
+            target: "esp32s3"
     env:
       TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
       BENCHMARK_RESULT_NAME: benchmark_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
