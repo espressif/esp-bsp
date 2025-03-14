@@ -117,9 +117,68 @@ sdmmc_card_t *bsp_sdcard_get_handle(void)
     return bsp_sdcard;
 }
 
+sdmmc_host_t *bsp_sdcard_get_host(void)
+{
+    static sdmmc_host_t host_config = SDMMC_HOST_DEFAULT();
+    host_config.slot = SDMMC_HOST_SLOT_0;
+    host_config.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
+
+    return &host_config;
+}
+
+const sdmmc_slot_config_t *bsp_sdcard_mmc_get_slot(void)
+{
+    /* SD card is connected to Slot 0 pins. Slot 0 uses IO MUX, so not specifying the pins here */
+    static const sdmmc_slot_config_t slot_config = {
+        .cd = SDMMC_SLOT_NO_CD,
+        .wp = SDMMC_SLOT_NO_WP,
+        .width = 4,
+        .flags = 0,
+    };
+
+    return &slot_config;
+}
+
+const sdspi_device_config_t *bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host)
+{
+    /* SD card is connected to Slot 0 pins. Slot 0 uses IO MUX, so not specifying the pins here */
+    static sdspi_device_config_t slot_config = {
+        .gpio_cs   = BSP_SD_SPI_CS,
+        .gpio_cd   = SDSPI_SLOT_NO_CD,
+        .gpio_wp   = SDSPI_SLOT_NO_WP,
+        .gpio_int  = GPIO_NUM_NC,
+        .gpio_wp_polarity = SDSPI_IO_ACTIVE_LOW,
+        .duty_cycle_pos = 0,
+    };
+    slot_config.host_id = spi_host;
+
+    return &slot_config;
+}
+
 esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
 {
     assert(cfg);
+
+    if (!cfg->mount) {
+        const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
+            .format_if_mount_failed = true,
+#else
+            .format_if_mount_failed = false,
+#endif
+            .max_files = 5,
+            .allocation_unit_size = 64 * 1024
+        };
+        cfg->mount = &mount_config;
+    }
+
+    if (!cfg->host) {
+        cfg->host = bsp_sdcard_get_host();
+    }
+
+    if (!cfg->slot.sdmmc) {
+        cfg->slot.sdmmc = bsp_sdcard_mmc_get_slot();
+    }
 
     sd_pwr_ctrl_ldo_config_t ldo_config = {
         .ldo_chan_id = 4,
@@ -130,15 +189,36 @@ esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
         ESP_LOGE(TAG, "Failed to create a new on-chip LDO power control driver");
         return ret;
     }
-    cfg->host.pwr_ctrl_handle = pwr_ctrl_handle;
+    cfg->host->pwr_ctrl_handle = pwr_ctrl_handle;
 
-    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, &cfg->host, &cfg->slot.sdmmc, &cfg->mount, &bsp_sdcard);
+    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, cfg->host, cfg->slot.sdmmc, cfg->mount, &bsp_sdcard);
 }
 
 esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg)
 {
     assert(cfg);
 
+    if (!cfg->mount) {
+        const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
+            .format_if_mount_failed = true,
+#else
+            .format_if_mount_failed = false,
+#endif
+            .max_files = 5,
+            .allocation_unit_size = 64 * 1024
+        };
+        cfg->mount = &mount_config;
+    }
+
+    if (!cfg->host) {
+        cfg->host = bsp_sdcard_get_host();
+    }
+
+    if (!cfg->slot.sdspi) {
+        cfg->slot.sdspi = bsp_sdcard_sdspi_get_slot(SDSPI_DEFAULT_HOST);
+    }
+
     sd_pwr_ctrl_ldo_config_t ldo_config = {
         .ldo_chan_id = 4,
     };
@@ -148,25 +228,14 @@ esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg)
         ESP_LOGE(TAG, "Failed to create a new on-chip LDO power control driver");
         return ret;
     }
-    cfg->host.pwr_ctrl_handle = pwr_ctrl_handle;
+    cfg->host->pwr_ctrl_handle = pwr_ctrl_handle;
 
-    return esp_vfs_fat_sdspi_mount(BSP_SD_MOUNT_POINT, &cfg->host, &cfg->slot.sdspi, &cfg->mount, &bsp_sdcard);
+    return esp_vfs_fat_sdspi_mount(BSP_SD_MOUNT_POINT, cfg->host, cfg->slot.sdspi, cfg->mount, &bsp_sdcard);
 }
 
 esp_err_t bsp_sdcard_mount(void)
 {
-    bsp_sdcard_cfg_t cfg = {
-        .mount = BSP_SDCARD_MOUNT_DEFAULT(),
-        .host = SDMMC_HOST_DEFAULT(),
-        .slot.sdmmc = BSP_SDCARD_MMCSLOT_DEFAULT()
-    };
-    cfg.host.slot = SDMMC_HOST_SLOT_0;
-    cfg.host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
-
-#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
-    cfg.mount.format_if_mount_failed = true;
-#endif
-
+    bsp_sdcard_cfg_t cfg = {0};
     return bsp_sdcard_sdmmc_mount(&cfg);
 }
 

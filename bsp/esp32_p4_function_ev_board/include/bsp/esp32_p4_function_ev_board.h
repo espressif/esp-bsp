@@ -227,36 +227,12 @@ esp_err_t bsp_spiffs_unmount(void);
  **************************************************************************************************/
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 
-/* SD card is connected to Slot 0 pins. Slot 0 uses IO MUX, so not specifying the pins here */
-#define BSP_SDCARD_MMCSLOT_DEFAULT() {\
-    .cd = SDMMC_SLOT_NO_CD,\
-    .wp = SDMMC_SLOT_NO_WP,\
-    .width = 4,\
-    .flags = 0,\
-}
-
-#define BSP_SDCARD_SPISLOT_DEFAULT(spi_host) {\
-    .host_id   = spi_host, \
-    .gpio_cs   = BSP_SD_SPI_CS, \
-    .gpio_cd   = SDSPI_SLOT_NO_CD, \
-    .gpio_wp   = SDSPI_SLOT_NO_WP, \
-    .gpio_int  = GPIO_NUM_NC, \
-    .gpio_wp_polarity = SDSPI_IO_ACTIVE_LOW, \
-    .duty_cycle_pos = 0,\
-}
-
-#define BSP_SDCARD_MOUNT_DEFAULT() {\
-    .format_if_mount_failed = false,\
-    .max_files = 5,\
-    .allocation_unit_size = 64 * 1024\
-}
-
 typedef struct {
-    esp_vfs_fat_sdmmc_mount_config_t mount;
-    sdmmc_host_t host;
+    const esp_vfs_fat_sdmmc_mount_config_t *mount;
+    sdmmc_host_t *host;
     union {
-        const sdmmc_slot_config_t   sdmmc;
-        const sdspi_device_config_t sdspi;
+        const sdmmc_slot_config_t   *sdmmc;
+        const sdspi_device_config_t *sdspi;
     } slot;
 } bsp_sdcard_cfg_t;
 
@@ -291,6 +267,27 @@ esp_err_t bsp_sdcard_unmount(void);
  * @return SD card handle
  */
 sdmmc_card_t *bsp_sdcard_get_handle(void);
+
+/**
+ * @brief Get SD card host config
+ *
+ * @return SD card host config
+ */
+sdmmc_host_t *bsp_sdcard_get_host(void);
+
+/**
+ * @brief Get SD card MMC slot config
+ *
+ * @return SD card host config
+ */
+const sdmmc_slot_config_t *bsp_sdcard_mmc_get_slot(void);
+
+/**
+ * @brief Get SD card SPI slot config
+ *
+ * @return SD card host config
+ */
+const sdspi_device_config_t *bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host);
 
 /**
  * @brief Mount microSD card to virtual file system (MMC mode)
