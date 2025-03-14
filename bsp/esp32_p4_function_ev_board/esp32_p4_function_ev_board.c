@@ -41,7 +41,7 @@ static const char *TAG = "ESP32_P4_EV";
 static lv_indev_t *disp_indev = NULL;
 #endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
-sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
+static sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 static bool i2c_initialized = false;
 static TaskHandle_t usb_host_task;  // USB Host Library task
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
@@ -112,21 +112,73 @@ i2c_master_bus_handle_t bsp_i2c_get_handle(void)
     return i2c_handle;
 }
 
-esp_err_t bsp_sdcard_mount(void)
+sdmmc_card_t *bsp_sdcard_get_handle(void)
 {
-    const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
-        .format_if_mount_failed = true,
-#else
-        .format_if_mount_failed = false,
-#endif
-        .max_files = 5,
-        .allocation_unit_size = 64 * 1024
+    return bsp_sdcard;
+}
+
+sdmmc_host_t *bsp_sdcard_get_host(void)
+{
+    static sdmmc_host_t host_config = SDMMC_HOST_DEFAULT();
+    host_config.slot = SDMMC_HOST_SLOT_0;
+    host_config.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
+
+    return &host_config;
+}
+
+const sdmmc_slot_config_t *bsp_sdcard_mmc_get_slot(void)
+{
+    /* SD card is connected to Slot 0 pins. Slot 0 uses IO MUX, so not specifying the pins here */
+    static const sdmmc_slot_config_t slot_config = {
+        .cd = SDMMC_SLOT_NO_CD,
+        .wp = SDMMC_SLOT_NO_WP,
+        .width = 4,
+        .flags = 0,
     };
 
-    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-    host.slot = SDMMC_HOST_SLOT_0;
-    host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
+    return &slot_config;
+}
+
+const sdspi_device_config_t *bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host)
+{
+    /* SD card is connected to Slot 0 pins. Slot 0 uses IO MUX, so not specifying the pins here */
+    static sdspi_device_config_t slot_config = {
+        .gpio_cs   = BSP_SD_SPI_CS,
+        .gpio_cd   = SDSPI_SLOT_NO_CD,
+        .gpio_wp   = SDSPI_SLOT_NO_WP,
+        .gpio_int  = GPIO_NUM_NC,
+        .gpio_wp_polarity = SDSPI_IO_ACTIVE_LOW,
+        .duty_cycle_pos = 0,
+    };
+    slot_config.host_id = spi_host;
+
+    return &slot_config;
+}
+
+esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
+{
+    assert(cfg);
+
+    if (!cfg->mount) {
+        const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
+            .format_if_mount_failed = true,
+#else
+            .format_if_mount_failed = false,
+#endif
+            .max_files = 5,
+            .allocation_unit_size = 64 * 1024
+        };
+        cfg->mount = &mount_config;
+    }
+
+    if (!cfg->host) {
+        cfg->host = bsp_sdcard_get_host();
+    }
+
+    if (!cfg->slot.sdmmc) {
+        cfg->slot.sdmmc = bsp_sdcard_mmc_get_slot();
+    }
 
     sd_pwr_ctrl_ldo_config_t ldo_config = {
         .ldo_chan_id = 4,
@@ -137,17 +189,54 @@ esp_err_t bsp_sdcard_mount(void)
         ESP_LOGE(TAG, "Failed to create a new on-chip LDO power control driver");
         return ret;
     }
-    host.pwr_ctrl_handle = pwr_ctrl_handle;
+    cfg->host->pwr_ctrl_handle = pwr_ctrl_handle;
 
-    const sdmmc_slot_config_t slot_config = {
-        /* SD card is connected to Slot 0 pins. Slot 0 uses IO MUX, so not specifying the pins here */
-        .cd = SDMMC_SLOT_NO_CD,
-        .wp = SDMMC_SLOT_NO_WP,
-        .width = 4,
-        .flags = 0,
+    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, cfg->host, cfg->slot.sdmmc, cfg->mount, &bsp_sdcard);
+}
+
+esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg)
+{
+    assert(cfg);
+
+    if (!cfg->mount) {
+        const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
+            .format_if_mount_failed = true,
+#else
+            .format_if_mount_failed = false,
+#endif
+            .max_files = 5,
+            .allocation_unit_size = 64 * 1024
+        };
+        cfg->mount = &mount_config;
+    }
+
+    if (!cfg->host) {
+        cfg->host = bsp_sdcard_get_host();
+    }
+
+    if (!cfg->slot.sdspi) {
+        cfg->slot.sdspi = bsp_sdcard_sdspi_get_slot(SDSPI_DEFAULT_HOST);
+    }
+
+    sd_pwr_ctrl_ldo_config_t ldo_config = {
+        .ldo_chan_id = 4,
     };
+    sd_pwr_ctrl_handle_t pwr_ctrl_handle = NULL;
+    esp_err_t ret = sd_pwr_ctrl_new_on_chip_ldo(&ldo_config, &pwr_ctrl_handle);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to create a new on-chip LDO power control driver");
+        return ret;
+    }
+    cfg->host->pwr_ctrl_handle = pwr_ctrl_handle;
 
-    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
+    return esp_vfs_fat_sdspi_mount(BSP_SD_MOUNT_POINT, cfg->host, cfg->slot.sdspi, cfg->mount, &bsp_sdcard);
+}
+
+esp_err_t bsp_sdcard_mount(void)
+{
+    bsp_sdcard_cfg_t cfg = {0};
+    return bsp_sdcard_sdmmc_mount(&cfg);
 }
 
 esp_err_t bsp_sdcard_unmount(void)
@@ -654,7 +743,7 @@ void bsp_display_delete(void)
         disp_phy_pwr_chan = NULL;
     }
 
-    esp_err_t err = bsp_display_brightness_deinit();
+    bsp_display_brightness_deinit();
 }
 
 #if !CONFIG_BSP_LCD_TYPE_HDMI
