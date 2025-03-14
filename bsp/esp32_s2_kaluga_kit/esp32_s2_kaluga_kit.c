@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2021-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2021-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -19,6 +19,7 @@
 #include "esp_lvgl_port.h"
 #include "esp_codec_dev_defaults.h"
 #include "bsp_err_check.h"
+#include "button_adc.h"
 
 static const char *TAG = "Kaluga";
 
@@ -44,60 +45,55 @@ static const touch_pad_t bsp_touch_button[TOUCH_BUTTON_NUM] = {
     TOUCH_BUTTON_GUARD,      /*!< Guard ring for waterproof design. If this pad is touched, other pads no response.*/
 };
 
-static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+static const button_adc_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
-        .adc_button_config.button_index = BSP_BUTTON_REC,
-        .adc_button_config.min = 2310, // middle is 2410mV
-        .adc_button_config.max = 2510
+        .adc_handle = &bsp_adc_handle,
+        .adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .button_index = BSP_BUTTON_REC,
+        .min = 2310, // middle is 2410mV
+        .max = 2510
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
-        .adc_button_config.button_index = BSP_BUTTON_MODE,
-        .adc_button_config.min = 1880, // middle is 1980mV
-        .adc_button_config.max = 2080
+        .adc_handle = &bsp_adc_handle,
+        .adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .button_index = BSP_BUTTON_MODE,
+        .min = 1880, // middle is 1980mV
+        .max = 2080
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
-        .adc_button_config.button_index = BSP_BUTTON_PLAY,
-        .adc_button_config.min = 1550, // middle is 1650mV
-        .adc_button_config.max = 1750
+        .adc_handle = &bsp_adc_handle,
+        .adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .button_index = BSP_BUTTON_PLAY,
+        .min = 1550, // middle is 1650mV
+        .max = 1750
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
-        .adc_button_config.button_index = BSP_BUTTON_SET,
-        .adc_button_config.min = 1010, // middle is 1110mV
-        .adc_button_config.max = 1210
+        .adc_handle = &bsp_adc_handle,
+        .adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .button_index = BSP_BUTTON_SET,
+        .min = 1010, // middle is 1110mV
+        .max = 1210
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
-        .adc_button_config.button_index = BSP_BUTTON_VOLDOWN,
-        .adc_button_config.min = 720, // middle is 820mV
-        .adc_button_config.max = 920
+        .adc_handle = &bsp_adc_handle,
+        .adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .button_index = BSP_BUTTON_VOLDOWN,
+        .min = 720, // middle is 820mV
+        .max = 920
     },
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
-        .adc_button_config.button_index = BSP_BUTTON_VOLUP,
-        .adc_button_config.min = 280, // middle is 380mV
-        .adc_button_config.max = 480
+        .adc_handle = &bsp_adc_handle,
+        .adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .button_index = BSP_BUTTON_VOLUP,
+        .min = 280, // middle is 380mV
+        .max = 480
     }
 };
 
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
+    const button_config_t btn_config = {0};
     if ((btn_array_size < BSP_BUTTON_NUM) ||
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
@@ -111,11 +107,7 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
-        }
+        ret |= iot_button_new_adc_device(&btn_config, &bsp_button_config[i], &btn_array[i]);
         if (btn_cnt) {
             (*btn_cnt)++;
         }
