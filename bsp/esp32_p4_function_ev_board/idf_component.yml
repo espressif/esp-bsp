@@ -1,4 +1,4 @@
-version: "4.2.2"
+version: "4.2.3"
 description: Board Support Package (BSP) for ESP32-P4 Function EV Board (preview)
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_p4_function_ev_board
 

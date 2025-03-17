@@ -654,7 +654,7 @@ void bsp_display_delete(void)
         disp_phy_pwr_chan = NULL;
     }
 
-    esp_err_t err = bsp_display_brightness_deinit();
+    bsp_display_brightness_deinit();
 }
 
 #if !CONFIG_BSP_LCD_TYPE_HDMI
