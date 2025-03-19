@@ -41,7 +41,7 @@ static const char *TAG = "ESP32_P4_EV";
 static lv_indev_t *disp_indev = NULL;
 #endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
-static sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
+static sdmmc_card_t *bsp_sdcard = NULL;    // uSD card handle
 static bool i2c_initialized = false;
 static TaskHandle_t usb_host_task;  // USB Host Library task
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
@@ -131,7 +131,7 @@ void bsp_sdcard_get_host(const int slot, sdmmc_host_t *config)
 void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config)
 {
     assert(config);
-    memset(config, 0, sizeof(sdspi_device_config_t));
+    memset(config, 0, sizeof(sdmmc_slot_config_t));
 
     /* SD card is connected to Slot 0 pins. Slot 0 uses IO MUX, so not specifying the pins here */
     config->cd = SDMMC_SLOT_NO_CD;
@@ -155,29 +155,29 @@ void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_co
 
 esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
 {
+    sdmmc_host_t sdhost = {0};
+    sdmmc_slot_config_t sdslot = {0};
+    const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
+        .format_if_mount_failed = true,
+#else
+        .format_if_mount_failed = false,
+#endif
+        .max_files = 5,
+        .allocation_unit_size = 64 * 1024
+    };
     assert(cfg);
 
     if (!cfg->mount) {
-        const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
-            .format_if_mount_failed = true,
-#else
-            .format_if_mount_failed = false,
-#endif
-            .max_files = 5,
-            .allocation_unit_size = 64 * 1024
-        };
         cfg->mount = &mount_config;
     }
 
     if (!cfg->host) {
-        sdmmc_host_t sdhost;
         bsp_sdcard_get_host(SDMMC_HOST_SLOT_0, &sdhost);
         cfg->host = &sdhost;
     }
 
     if (!cfg->slot.sdmmc) {
-        sdmmc_slot_config_t sdslot;
         bsp_sdcard_sdmmc_get_slot(SDMMC_HOST_SLOT_0, &sdslot);
         cfg->slot.sdmmc = &sdslot;
     }
@@ -198,29 +198,29 @@ esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
 
 esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg)
 {
+    sdmmc_host_t sdhost = {0};
+    sdspi_device_config_t sdslot = {0};
+    const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
+        .format_if_mount_failed = true,
+#else
+        .format_if_mount_failed = false,
+#endif
+        .max_files = 5,
+        .allocation_unit_size = 64 * 1024
+    };
     assert(cfg);
 
     if (!cfg->mount) {
-        const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
-            .format_if_mount_failed = true,
-#else
-            .format_if_mount_failed = false,
-#endif
-            .max_files = 5,
-            .allocation_unit_size = 64 * 1024
-        };
         cfg->mount = &mount_config;
     }
 
     if (!cfg->host) {
-        sdmmc_host_t sdhost;
         bsp_sdcard_get_host(SDMMC_HOST_SLOT_0, &sdhost);
         cfg->host = &sdhost;
     }
 
     if (!cfg->slot.sdspi) {
-        sdspi_device_config_t sdslot;
         bsp_sdcard_sdspi_get_slot(SDSPI_DEFAULT_HOST, &sdslot);
         cfg->slot.sdspi = &sdslot;
     }
@@ -247,7 +247,9 @@ esp_err_t bsp_sdcard_mount(void)
 
 esp_err_t bsp_sdcard_unmount(void)
 {
-    return esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    esp_err_t ret = esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    bsp_sdcard = NULL;
+    return ret;
 }
 
 esp_err_t bsp_spiffs_mount(void)
