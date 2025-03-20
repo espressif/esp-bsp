@@ -21,6 +21,7 @@ Board support packages for development boards using Espressif's SoCs, written in
 | [M5Stack CoreS3](bsp/m5stack_core_s3)                | ESP32-S3 | LCD display with touch, uSD card slot, microphone, audio codec                                                    | <img src="docu/pics/m5stack_cores3.webp" width="150">               |
 | [M5Stack Core2](bsp/m5stack_core_2)                  | ESP32    | LCD display with touch, uSD card slot                                                                             | <img src="docu/pics/m5stack_core2.webp" width="150">                |
 | [M5Dial](bsp/m5dial)                                 | ESP32-S3 | LCD display with touch and encoder                                                                                | <img src="docu/pics/m5dial.webp" width="150">                       |
+| [M5 Atom S3](bsp/m5_atom_s3)                                 | ESP32-S3 | LCD display with button                                                                                | <img src="docu/pics/m5atoms3.webp" width="150">                       |
 
 ### Deprecated boards
 | Board name                                           | SoC      | Features                                                                                                          | Photo                                                               |
