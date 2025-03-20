@@ -17,7 +17,7 @@ jobs:
         run: |
           cd SquareLine
           python3 gen.py -o out_dir
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: artifacts
           path: SquareLine/out_dir/espressif/
