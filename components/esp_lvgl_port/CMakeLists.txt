@@ -24,7 +24,7 @@ endif()
 
 if("${lvgl_ver}" STREQUAL "")
     message("Could not determine LVGL version, assuming v9.x")
-    set(lvgl_ver "9.0.0")
+    set(lvgl_ver "9.1.0") # With 9.1 we assume support for SIMD acceleration
 endif()
 
 # Select folder by LVGL version
@@ -76,10 +76,9 @@ if("usb_host_hid" IN_LIST build_components)
     list(APPEND ADD_LIBS idf::usb_host_hid)
 endif()
 
-# Include SIMD assembly source code for rendering, only for (9.1.0 <= LVG_version < 9.2.0) and only for esp32 and esp32s3
-if((lvgl_ver VERSION_GREATER_EQUAL "9.1.0") AND (lvgl_ver VERSION_LESS "9.2.0"))
+# Include SIMD assembly source code for rendering, only for LVGL_version >= 9.1.0 and only for esp32 and esp32s3
+if((lvgl_ver VERSION_GREATER_EQUAL "9.1.0"))
     if(CONFIG_IDF_TARGET_ESP32 OR CONFIG_IDF_TARGET_ESP32S3)
-        message(VERBOSE "Compiling SIMD")
         if(CONFIG_IDF_TARGET_ESP32S3)
             file(GLOB_RECURSE ASM_SRCS ${PORT_PATH}/simd/*_esp32s3.S)    # Select only esp32s3 related files
         else()
