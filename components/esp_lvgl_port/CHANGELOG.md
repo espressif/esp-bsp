@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.6.0
+
+## Features
+- Added support for PPA rotation in LVGL9 (available for ESP32P4)
+
 ## 2.5.0
 
 ### Features (Functional change for button v4 users)
