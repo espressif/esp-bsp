@@ -20,6 +20,7 @@
 #include "bsp/display.h"
 #include "driver/i2s_std.h"
 #include "driver/i2c_master.h"
+#include "esp_adc/adc_oneshot.h"
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 #include "lvgl.h"

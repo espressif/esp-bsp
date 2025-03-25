@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -18,6 +18,7 @@
 #include "esp_codec_dev_defaults.h"
 #include "led_indicator.h"
 #include "esp_vfs_fat.h"
+#include "button_adc.h"
 
 static const char *TAG = "S3-Korvo-1";
 
@@ -150,72 +151,67 @@ static adc_oneshot_unit_handle_t bsp_adc_handle = NULL;
 
 extern blink_step_t const *bsp_led_blink_defaults_lists[];
 
-static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+static const button_adc_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
+        .adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
+        .adc_handle = &bsp_adc_handle,
 #endif
-        .adc_button_config.button_index = BSP_BUTTON_REC,
-        .adc_button_config.min = 2310, // middle is 2410mV
-        .adc_button_config.max = 2510,
+        .button_index = BSP_BUTTON_REC,
+        .min = 2310, // middle is 2410mV
+        .max = 2510,
     },
     {
-        .type = BUTTON_TYPE_ADC,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
+        .adc_handle = &bsp_adc_handle,
 #endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
-        .adc_button_config.button_index = BSP_BUTTON_MODE,
-        .adc_button_config.min = 1880, // middle is 1980mV
-        .adc_button_config.max = 2080,
+        .adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
+        .button_index = BSP_BUTTON_MODE,
+        .min = 1880, // middle is 1980mV
+        .max = 2080,
     },
     {
-        .type = BUTTON_TYPE_ADC,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
+        .adc_handle = &bsp_adc_handle,
 #endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
-        .adc_button_config.button_index = BSP_BUTTON_PLAY,
-        .adc_button_config.min = 1560, // middle is 1660mV
-        .adc_button_config.max = 1760,
+        .adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
+        .button_index = BSP_BUTTON_PLAY,
+        .min = 1560, // middle is 1660mV
+        .max = 1760,
     },
     {
-        .type = BUTTON_TYPE_ADC,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
+        .adc_handle = &bsp_adc_handle,
 #endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
-        .adc_button_config.button_index = BSP_BUTTON_SET,
-        .adc_button_config.min = 1010, // middle is 1100mV
-        .adc_button_config.max = 1210,
+        .adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
+        .button_index = BSP_BUTTON_SET,
+        .min = 1010, // middle is 1100mV
+        .max = 1210,
     },
     {
-        .type = BUTTON_TYPE_ADC,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
+        .adc_handle = &bsp_adc_handle,
 #endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
-        .adc_button_config.button_index = BSP_BUTTON_VOLDOWN,
-        .adc_button_config.min = 720, // middle is 820mV
-        .adc_button_config.max = 920,
+        .adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
+        .button_index = BSP_BUTTON_VOLDOWN,
+        .min = 720, // middle is 820mV
+        .max = 920,
     },
     {
-        .type = BUTTON_TYPE_ADC,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
+        .adc_handle = &bsp_adc_handle,
 #endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
-        .adc_button_config.button_index = BSP_BUTTON_VOLUP,
-        .adc_button_config.min = 280, // middle is 380mV
-        .adc_button_config.max = 480,
+        .adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
+        .button_index = BSP_BUTTON_VOLUP,
+        .min = 280, // middle is 380mV
+        .max = 480,
     }
 };
 
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
+    const button_config_t btn_config = {0};
     if ((btn_array_size < BSP_BUTTON_NUM) ||
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
@@ -230,11 +226,7 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
-        }
+        ret |= iot_button_new_adc_device(&btn_config, &bsp_button_config[i], &btn_array[i]);
         if (btn_cnt) {
             (*btn_cnt)++;
         }
