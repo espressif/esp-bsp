@@ -34,8 +34,9 @@ typedef enum {
  *    - For example, ideally, for RGB565 we would need 8 canary pixels -> 8 * sizeof(uint16_t) = 16
  */
 typedef enum {
-    CANARY_PIXELS_ARGB8888 = 4,                                /*!< Canary pixels: 4 * sizeof(uint32_t) = 16 */
-    CANARY_PIXELS_RGB565 = 8,                                  /*!< Canary pixels: 8 * sizeof(uint16_t) = 16 */
+    CANARY_PIXELS_ARGB8888 = 4,                               /*!< Canary pixels: 4 * sizeof(uint32_t) = 16 */
+    CANARY_PIXELS_RGB565 = 8,                                 /*!< Canary pixels: 8 * sizeof(uint16_t) = 16 */
+    CANARY_PIXELS_RGB888 = 6,                                 /*!< Canary pixels: 6 * sizeof(uint24_t) = 18 */
 } canary_pixels_t;
 
 /**
@@ -70,7 +71,8 @@ typedef struct {
         void *p_dest_asm_alloc;                               /*!< pointer to the beginning of the memory allocated for the destination ASM test buf, used in free() */
         void *p_dest_ansi_alloc;                              /*!< pointer to the beginning of the memory allocated for the destination ANSI test buf, used in free() */
     } buf;
-    void (*blend_api_func)(_lv_draw_sw_blend_image_dsc_t *);  /*!< pointer to LVGL API function */
+    void (*blend_api_func)(_lv_draw_sw_blend_image_dsc_t *);                    /*!< pointer to LVGL API function */
+    void (*blend_api_func_px_size)(_lv_draw_sw_blend_image_dsc_t *, uint32_t);  /*!< pointer to LVGL API function, with additional parameter: pixel size */
     lv_color_format_t color_format;                           /*!< LV color format */
     size_t src_data_type_size;                                /*!< Used data type size in the source buffer, eg sizeof(src_buff[0]) */
     size_t dest_data_type_size;                               /*!< Used data type size in the destination buffer, eg sizeof(dest_buff[0]) */
@@ -78,6 +80,7 @@ typedef struct {
     size_t active_dest_buf_len;                               /*!< Length of the destination buffer, where the actual data are stored, including matrix padding, not including Canary pixels */
     size_t total_dest_buf_len;                                /*!< Total length of the destination buffer (including Canary pixels and matrix padding) */
     size_t canary_pixels;                                     /*!< Canary pixels must be adjusted according to the used color type, to achieve aligned memory effect */
+    size_t memory_alignment_offset;                           /*!< Memory offset, to correct canary pixels memory shift for RGB888 */
     unsigned int dest_w;                                      /*!< Destination buffer width */
     unsigned int dest_h;                                      /*!< Destination buffer height */
     unsigned int src_stride;                                  /*!< Source buffer stride */
@@ -103,7 +106,9 @@ typedef struct {
     void *src_array_align1;                                   /*!< Source test array with 1 byte alignment - testing worst case */
     void *dest_array_align16;                                 /*!< Destination test array with 16 byte alignment - testing most ideal case */
     void *dest_array_align1;                                  /*!< Destination test array with 1 byte alignment - testing worst case */
-    void (*blend_api_func)(_lv_draw_sw_blend_image_dsc_t *);  /*!< pointer to LVGL API function */
+    void (*blend_api_func)(_lv_draw_sw_blend_image_dsc_t *);                     /*!< pointer to LVGL API function */
+    void (*blend_api_func_px_size)(_lv_draw_sw_blend_image_dsc_t *, uint32_t);   /*!< pointer to LVGL API function, with additional parameter: pixel size */
+    lv_color_format_t color_format;                           /*!< LV color format */
 } bench_test_case_lv_image_params_t;
 
 #ifdef __cplusplus

@@ -712,7 +712,9 @@ static void LV_ATTRIBUTE_FAST_MEM rgb888_image_blend(_lv_draw_sw_blend_image_dsc
     if (dsc->blend_mode == LV_BLEND_MODE_NORMAL) {
         /*Special case*/
         if (mask_buf == NULL && opa >= LV_OPA_MAX) {
-            if (LV_RESULT_INVALID == LV_DRAW_SW_RGB888_BLEND_NORMAL_TO_RGB888(dsc, dest_px_size, src_px_size)) {
+            if (dsc->use_asm && dest_px_size == 3 && src_px_size == 3) {
+                LV_DRAW_SW_RGB888_BLEND_NORMAL_TO_RGB888(dsc, src_px_size, dest_px_size);
+            } else {
                 if (src_px_size == dest_px_size) {
                     for (y = 0; y < h; y++) {
                         lv_memcpy(dest_buf, src_buf, w);
