@@ -13,6 +13,7 @@
 #include "lv_image_common.h"
 #include "lv_draw_sw_blend.h"
 #include "lv_draw_sw_blend_to_rgb565.h"
+#include "lv_draw_sw_blend_to_rgb888.h"
 
 // ------------------------------------------------- Defines -----------------------------------------------------------
 
@@ -37,7 +38,7 @@
 static const char *TAG_LV_IMAGE_FUNC = "LV Image Functionality";
 static char test_msg_buf[200];
 
-static const test_matrix_lv_image_params_t default_test_matrix_image_rgb565_blend_rgb565 = {
+static const test_matrix_lv_image_params_t default_test_matrix_image_blend = {
 #if CONFIG_IDF_TARGET_ESP32S3
     .min_w = 8,                   // 8 is the lower limit for the esp32s3 asm implementation, otherwise esp32 is executed
     .min_h = 1,
@@ -101,6 +102,13 @@ static void lv_image_functionality(func_test_case_lv_image_params_t *test_case);
  */
 static void test_eval_image_16bit_data(func_test_case_lv_image_params_t *test_case);
 
+/**
+ * @brief Evaluate results of LV Image functionality for 24bit data length
+ *
+ * @param[in] test_case Pointer ot structure defining functionality test case
+ */
+static void test_eval_image_24bit_data(func_test_case_lv_image_params_t *test_case);
+
 // ------------------------------------------------ Test cases ---------------------------------------------------------
 
 /*
@@ -122,18 +130,37 @@ Procedure:
 
 TEST_CASE("LV Image functionality RGB565 blend to RGB565", "[image][functionality][RGB565]")
 {
-    test_matrix_lv_image_params_t test_matrix = default_test_matrix_image_rgb565_blend_rgb565;
+    test_matrix_lv_image_params_t test_matrix = default_test_matrix_image_blend;
 
     func_test_case_lv_image_params_t test_case = {
         .blend_api_func = &lv_draw_sw_blend_image_to_rgb565,
         .color_format = LV_COLOR_FORMAT_RGB565,
         .canary_pixels = CANARY_PIXELS_RGB565,
+        .memory_alignment_offset = 0,
         .src_data_type_size = sizeof(uint16_t),
         .dest_data_type_size = sizeof(uint16_t),
         .operation_type = OPERATION_FILL,
     };
 
     ESP_LOGI(TAG_LV_IMAGE_FUNC, "running test for RGB565 color format");
+    functionality_test_matrix(&test_matrix, &test_case);
+}
+
+TEST_CASE("LV Image functionality RGB888 blend to RGB888", "[image][functionality][RGB888]")
+{
+    test_matrix_lv_image_params_t test_matrix = default_test_matrix_image_blend;
+
+    func_test_case_lv_image_params_t test_case = {
+        .blend_api_func_px_size = &lv_draw_sw_blend_image_to_rgb888,    // The blending API function takes additional parameter, pixel size
+        .color_format = LV_COLOR_FORMAT_RGB888,
+        .canary_pixels = CANARY_PIXELS_RGB888,
+        .memory_alignment_offset = 32 - (CANARY_PIXELS_RGB888 * 3),     // Closes 16-byte boundary (32) - RGB888 canary pixels
+        .src_data_type_size = sizeof(uint8_t) * 3,
+        .dest_data_type_size = sizeof(uint8_t) * 3,
+        .operation_type = OPERATION_FILL,
+    };
+
+    ESP_LOGI(TAG_LV_IMAGE_FUNC, "running test for RGB888 color format");
     functionality_test_matrix(&test_matrix, &test_case);
 }
 
@@ -196,8 +223,15 @@ static void lv_image_functionality(func_test_case_lv_image_params_t *test_case)
     dsc_ansi.dest_buf = test_case->buf.p_dest_ansi;
     dsc_ansi.use_asm = false;
 
-    test_case->blend_api_func(&dsc_asm);    // Call the LVGL API with Assembly code
-    test_case->blend_api_func(&dsc_ansi);   // Call the LVGL API with ANSI code
+    if (test_case->blend_api_func != NULL) {
+        test_case->blend_api_func(&dsc_asm);                    // Call the LVGL API with Assembly code
+        test_case->blend_api_func(&dsc_ansi);                   // Call the LVGL API with ANSI code
+    } else if (test_case->blend_api_func_px_size != NULL) {
+        test_case->blend_api_func_px_size(&dsc_asm, 3);         // Call the LVGL API with Assembly code with set pixel size
+        test_case->blend_api_func_px_size(&dsc_ansi, 3);        // Call the LVGL API with ANSI code with set pixel size
+    } else {
+        TEST_ASSERT_MESSAGE(false, "Not supported: Both API pointers can't be NULL");
+    }
 
     // Shift array pointers by (Canary pixels amount * data type length) back
     test_case->buf.p_dest_asm -= test_case->canary_pixels * test_case->dest_data_type_size;
@@ -212,6 +246,9 @@ static void lv_image_functionality(func_test_case_lv_image_params_t *test_case)
     switch (test_case->color_format) {
     case LV_COLOR_FORMAT_RGB565:
         test_eval_image_16bit_data(test_case);
+        break;
+    case LV_COLOR_FORMAT_RGB888:
+        test_eval_image_24bit_data(test_case);
         break;
     default:
         TEST_ASSERT_MESSAGE(false, "LV Color format not found");
@@ -231,14 +268,15 @@ static void fill_test_bufs(func_test_case_lv_image_params_t *test_case)
     const size_t src_buf_len = test_case->src_buf_len;                      // Total source buffer length, data part of the source buffer including matrix padding (no Canary pixels are used for source buffer)
     const size_t total_dest_buf_len = test_case->total_dest_buf_len;        // Total destination buffer length, data part of the destination buffer including the Canary pixels and matrix padding
     const size_t active_dest_buf_len = test_case->active_dest_buf_len;      // Length of the data part of the destination buffer including matrix padding
-    const size_t canary_pixels = test_case->canary_pixels;                    // Canary pixels, according to the data type
+    const size_t canary_pixels = test_case->canary_pixels;                  // Canary pixels, according to the data type
     const unsigned int src_unalign_byte = test_case->src_unalign_byte;      // Unalignment bytes for source buffer
     const unsigned int dest_unalign_byte = test_case->dest_unalign_byte;    // Unalignment bytes for destination buffer
+    const unsigned int memory_offset = test_case->memory_alignment_offset;  // Memory alignment offset for 16-byte boundary
 
     // Allocate destination arrays and source array for Assembly and ANSI LVGL Blend API
     void *src_mem_common = memalign(16, (src_buf_len * src_data_type_size) + src_unalign_byte);
-    void *dest_mem_asm   = memalign(16, (total_dest_buf_len * dest_data_type_size) + dest_unalign_byte);
-    void *dest_mem_ansi  = memalign(16, (total_dest_buf_len * dest_data_type_size) + dest_unalign_byte);
+    void *dest_mem_asm   = memalign(16, (total_dest_buf_len * dest_data_type_size) + dest_unalign_byte + memory_offset);
+    void *dest_mem_ansi  = memalign(16, (total_dest_buf_len * dest_data_type_size) + dest_unalign_byte + memory_offset);
     TEST_ASSERT_NOT_NULL_MESSAGE(src_mem_common, "Lack of memory");
     TEST_ASSERT_NOT_NULL_MESSAGE(dest_mem_asm, "Lack of memory");
     TEST_ASSERT_NOT_NULL_MESSAGE(dest_mem_ansi, "Lack of memory");
@@ -250,8 +288,8 @@ static void fill_test_bufs(func_test_case_lv_image_params_t *test_case)
 
     // Apply destination and source array unalignment
     uint8_t *src_buf_common = (uint8_t *)src_mem_common + src_unalign_byte;
-    uint8_t *dest_buf_asm = (uint8_t *)dest_mem_asm + dest_unalign_byte;
-    uint8_t *dest_buf_ansi = (uint8_t *)dest_mem_ansi + dest_unalign_byte;
+    uint8_t *dest_buf_asm = (uint8_t *)dest_mem_asm + dest_unalign_byte + memory_offset;
+    uint8_t *dest_buf_ansi = (uint8_t *)dest_mem_ansi + dest_unalign_byte + memory_offset;
 
     // Set the whole buffer to 0, including the Canary pixels part
     memset(src_buf_common, 0, src_buf_len * src_data_type_size);
@@ -277,6 +315,23 @@ static void fill_test_bufs(func_test_case_lv_image_params_t *test_case)
             // Fill source buffer
             for (int i = 0; i < src_buf_len; i++) {
                 src_buf_uint16[i] = i + ((i & 1) ? 0x55AA : 0xAA55);
+            }
+        }
+
+        if (test_case->color_format == LV_COLOR_FORMAT_RGB888) {
+            uint8_t *dest_buf_asm_uint8 = dest_buf_asm;
+            uint8_t *dest_buf_ansi_uint8 = dest_buf_ansi;
+            uint8_t *src_buf_uint8 = src_buf_common;
+
+            // Fill destination buffers
+            for (int i = 0; i < active_dest_buf_len * 3; i++) {
+                dest_buf_asm_uint8[(canary_pixels * 3) + i] = i + ((i & 1) ? 0x66 : 0x99);
+                dest_buf_ansi_uint8[(canary_pixels * 3) + i] = dest_buf_asm_uint8[(canary_pixels * 3) + i];
+            }
+
+            // Fill source buffer
+            for (int i = 0; i < src_buf_len * 3; i++) {
+                src_buf_uint8[i] = i + ((i & 1) ? 0x55 : 0xAA);
             }
         }
 
@@ -348,4 +403,57 @@ static void test_eval_image_16bit_data(func_test_case_lv_image_params_t *test_ca
     // Canary pixels area must stay 0
     TEST_ASSERT_EACH_EQUAL_UINT16_MESSAGE(0, (uint16_t *)test_case->buf.p_dest_ansi + (test_case->total_dest_buf_len - canary_pixels), canary_pixels, test_msg_buf);
     TEST_ASSERT_EACH_EQUAL_UINT16_MESSAGE(0, (uint16_t *)test_case->buf.p_dest_asm + (test_case->total_dest_buf_len - canary_pixels), canary_pixels, test_msg_buf);
+}
+
+static void test_eval_image_24bit_data(func_test_case_lv_image_params_t *test_case)
+{
+
+// Print results, 24bit data
+#if DBG_PRINT_OUTPUT
+
+    printf("\nEval\nDestination buffers fill:\n");
+    size_t dest_data_type_size = test_case->dest_data_type_size;
+    for (uint32_t i = 0; i < test_case->total_dest_buf_len; i++) {
+        uint32_t ansi_value = ((uint8_t *)test_case->buf.p_dest_ansi)[i * dest_data_type_size]
+                              | (((uint8_t *)test_case->buf.p_dest_ansi)[i * dest_data_type_size + 1] << 8)
+                              | (((uint8_t *)test_case->buf.p_dest_ansi)[i * dest_data_type_size + 2] << 16);
+        uint32_t asm_value  = ((uint8_t *)test_case->buf.p_dest_asm)[i * dest_data_type_size]
+                              | (((uint8_t *)test_case->buf.p_dest_asm)[i * dest_data_type_size + 1] << 8)
+                              | (((uint8_t *)test_case->buf.p_dest_asm)[i * dest_data_type_size + 2] << 16);
+        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx32" \t asm = %8"PRIx32" \n", i, ((i < 10) ? (" ") : ("")), ansi_value, asm_value);
+    }
+    printf("\n");
+
+    printf("Source buffer fill:\n");
+    printf("src_buf_len = %d\n", test_case->src_buf_len);
+    size_t src_data_type_size = test_case->src_data_type_size;
+    for (uint32_t i = 0; i < test_case->src_buf_len; i++) {
+        uint32_t value = ((uint8_t *)test_case->buf.p_src)[i * src_data_type_size]
+                         | (((uint8_t *)test_case->buf.p_src)[i * src_data_type_size + 1] << 8)
+                         | (((uint8_t *)test_case->buf.p_src)[i * src_data_type_size + 2] << 16);
+        printf("dest_buf[%"PRIi32"] %s = %8"PRIx32" \n", i, ((i < 10) ? (" ") : ("")), value);
+    }
+    printf("\n");
+#endif
+
+    // Canary pixels area must stay 0
+    const size_t canary_pixels = test_case->canary_pixels;
+    TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0, (uint8_t *)test_case->buf.p_dest_ansi, canary_pixels * 3, test_msg_buf);
+    TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0, (uint8_t *)test_case->buf.p_dest_asm, canary_pixels * 3, test_msg_buf);
+
+    // dest_buf_asm and dest_buf_ansi must be equal
+    TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE((uint8_t *)test_case->buf.p_dest_ansi + (canary_pixels * 3), (uint8_t *)test_case->buf.p_dest_asm + (canary_pixels * 3), test_case->active_dest_buf_len, test_msg_buf);
+
+    // Data part of the destination buffer and source buffer (not considering matrix padding) must be equal
+    uint8_t *dest_row_begin = (uint8_t *)test_case->buf.p_dest_asm + (canary_pixels * 3);
+    uint8_t *src_row_begin = (uint8_t *)test_case->buf.p_src;
+    for (int row = 0; row < test_case->dest_h; row++) {
+        TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE(dest_row_begin, src_row_begin, test_case->dest_w * 3, test_msg_buf);
+        dest_row_begin += (test_case->dest_stride * 3);   // Move pointer of the destination buffer to the next row
+        src_row_begin += (test_case->src_stride * 3);     // Move pointer of the source buffer to the next row
+    }
+
+    // Canary pixels area must stay 0
+    TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0, (uint8_t *)test_case->buf.p_dest_ansi + ((test_case->total_dest_buf_len * 3) - (canary_pixels * 3)), canary_pixels * 3, test_msg_buf);
+    TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0, (uint8_t *)test_case->buf.p_dest_asm + ((test_case->total_dest_buf_len * 3) - (canary_pixels * 3)), canary_pixels * 3, test_msg_buf);
 }
