@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.6.0
+
+### Features
+- Scaling feature in touch
+
 ## 2.5.0
 
 ### Features (Functional change for button v4 users)
