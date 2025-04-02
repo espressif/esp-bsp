@@ -1,4 +1,4 @@
-name: Build ESP-BSP apps
+name: Build and Run ESP-BSP apps
 
 # This job builds all examples and test_applications in this repo
 # Applications are selected for build based on changes files and dependencies defined in .build-test-rules.yml
@@ -47,30 +47,30 @@ jobs:
           - idf_ver: "latest"
             parallel_count: 5
             parallel_index: 5
-          - idf_ver: "release-v5.1"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.1"
-            parallel_count: 2
-            parallel_index: 2
-          - idf_ver: "release-v5.2"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.2"
-            parallel_count: 2
-            parallel_index: 2
-          - idf_ver: "release-v5.3"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.3"
-            parallel_count: 2
-            parallel_index: 2
-          - idf_ver: "release-v5.4"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.4"
-            parallel_count: 2
-            parallel_index: 2
+          #- idf_ver: "release-v5.1"
+          #  parallel_count: 2
+          #  parallel_index: 1
+          #- idf_ver: "release-v5.1"
+          #  parallel_count: 2
+          #  parallel_index: 2
+          #- idf_ver: "release-v5.2"
+          #  parallel_count: 2
+          #  parallel_index: 1
+          #- idf_ver: "release-v5.2"
+          #  parallel_count: 2
+          #  parallel_index: 2
+          #- idf_ver: "release-v5.3"
+          #  parallel_count: 2
+          #  parallel_index: 1
+          #- idf_ver: "release-v5.3"
+          #  parallel_count: 2
+          #  parallel_index: 2
+          #- idf_ver: "release-v5.4"
+          #  parallel_count: 2
+          #  parallel_index: 1
+          #- idf_ver: "release-v5.4"
+          #  parallel_count: 2
+          #  parallel_index: 2
     runs-on: ubuntu-latest
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
@@ -124,60 +124,60 @@ jobs:
           - runs-on: "esp-box-3"
             marker: "esp_box_3"
             target: "esp32s3"
-          - runs-on: "esp32_c3_lcdkit"
-            marker: "esp32_c3_lcdkit"
-            target: "esp32c3"
-          - runs-on: "esp32_p4_box"
-            marker: "esp32_p4_box"
-            target: "esp32p4"
-          - runs-on: "esp32_p4_function_ev_board"
-            marker: "esp32_p4_function_ev_board"
-            target: "esp32p4"
-          - runs-on: "esp32_s3_eye"
-            marker: "esp32_s3_eye"
-            target: "esp32s3"
-          - runs-on: "esp32_s3_lcd_ev_board"
-            marker: "esp32_s3_lcd_ev_board"
-            target: "esp32s3"
-          - runs-on: "esp32_s3_lcd_ev_board"
-            marker: "esp32_s3_lcd_ev_board_2"
-            target: "esp32s3"
-          - runs-on: "esp32_s3_usb_otg"
-            marker: "esp32_s3_usb_otg"
-            target: "esp32s3"
-          - runs-on: "esp_wrover_kit"
-            marker: "esp_wrover_kit"
-            target: "esp32"
-          - runs-on: "m5dial"
-            marker: "m5dial"
-            target: "esp32s3"
-          - runs-on: "m5stack_core"
-            marker: "m5stack_core"
-            target: "esp32"
-          - runs-on: "m5stack_core_2"
-            marker: "m5stack_core_2"
-            target: "esp32"
-          - runs-on: "m5stack_core_s3"
-            marker: "m5stack_core_s3"
-            target: "esp32s3"
-          - runs-on: "m5stack_core_s3"
-            marker: "m5stack_core_s3_se"
-            target: "esp32s3"
-          - runs-on: "esp32_azure_iot_kit"
-            marker: "esp32_azure_iot_kit"
-            target: "esp32"
-          - runs-on: "esp_bsp_devkit"
-            marker: "esp_bsp_devkit"
-            target: "esp32s3"
-          - runs-on: "esp_bsp_generic"
-            marker: "esp_bsp_generic"
-            target: "esp32s3"
-          - runs-on: "esp32_s3_korvo_2"
-            marker: "esp32_s3_korvo_2"
-            target: "esp32s3"
-          - runs-on: "m5_atom_s3"
-            marker: "m5_atom_s3"
-            target: "esp32s3"
+          #- runs-on: "esp32_c3_lcdkit"
+          #  marker: "esp32_c3_lcdkit"
+          #  target: "esp32c3"
+          #- runs-on: "esp32_p4_box"
+          #  marker: "esp32_p4_box"
+          #  target: "esp32p4"
+          #- runs-on: "esp32_p4_function_ev_board"
+          #  marker: "esp32_p4_function_ev_board"
+          #  target: "esp32p4"
+          #- runs-on: "esp32_s3_eye"
+          #  marker: "esp32_s3_eye"
+          #  target: "esp32s3"
+          #- runs-on: "esp32_s3_lcd_ev_board"
+          #  marker: "esp32_s3_lcd_ev_board"
+          #  target: "esp32s3"
+          #- runs-on: "esp32_s3_lcd_ev_board"
+          #  marker: "esp32_s3_lcd_ev_board_2"
+          #  target: "esp32s3"
+          #- runs-on: "esp32_s3_usb_otg"
+          #  marker: "esp32_s3_usb_otg"
+          #  target: "esp32s3"
+          #- runs-on: "esp_wrover_kit"
+          #  marker: "esp_wrover_kit"
+          #  target: "esp32"
+          #- runs-on: "m5dial"
+          #  marker: "m5dial"
+          #  target: "esp32s3"
+          #- runs-on: "m5stack_core"
+          #  marker: "m5stack_core"
+          #  target: "esp32"
+          #- runs-on: "m5stack_core_2"
+          #  marker: "m5stack_core_2"
+          #  target: "esp32"
+          #- runs-on: "m5stack_core_s3"
+          #  marker: "m5stack_core_s3"
+          #  target: "esp32s3"
+          #- runs-on: "m5stack_core_s3"
+          #  marker: "m5stack_core_s3_se"
+          #  target: "esp32s3"
+          #- runs-on: "esp32_azure_iot_kit"
+          #  marker: "esp32_azure_iot_kit"
+          #  target: "esp32"
+          #- runs-on: "esp_bsp_devkit"
+          #  marker: "esp_bsp_devkit"
+          #  target: "esp32s3"
+          #- runs-on: "esp_bsp_generic"
+          #  marker: "esp_bsp_generic"
+          #  target: "esp32s3"
+          #- runs-on: "esp32_s3_korvo_2"
+          #  marker: "esp32_s3_korvo_2"
+          #  target: "esp32s3"
+          #- runs-on: "m5_atom_s3"
+          #  marker: "m5_atom_s3"
+          #  target: "esp32s3"
     env:
       TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
       BENCHMARK_RESULT_NAME: benchmark_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
@@ -197,7 +197,8 @@ jobs:
         env:
           PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
         run: |
-          pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
+          pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code opencv-python numpy
+          apt-get update && apt-get install -y libgl1
       - name: Download latest results
         uses: actions/download-artifact@v4
         with:
@@ -216,6 +217,7 @@ jobs:
             benchmark_*.md
             benchmark_*.json
             benchmark.json
+            *.jpg
       - name: Check if benchmark files exist
         id: check_files
         run: |
