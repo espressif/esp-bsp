@@ -18,7 +18,7 @@ The ESP32-S3-Korvo-1 board consists of two parts: the main board (ESP32-S3-Korvo
 |-------------|------------------|----------------------------------------------------------------------------------------------|-----------|
 |   DISPLAY   |        :x:       |                                                                                              |           |
 |    TOUCH    |        :x:       |                                                                                              |           |
-|   BUTTONS   |:heavy_check_mark:|       [espressif/button](https://components.espressif.com/components/espressif/button)       | >=2.5,<4.0|
+|   BUTTONS   |:heavy_check_mark:|       [espressif/button](https://components.espressif.com/components/espressif/button)       |     ^4    |
 |    AUDIO    |:heavy_check_mark:|[espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)|   ~1.1.0  |
 |AUDIO_SPEAKER|:heavy_check_mark:|                                                                                              |           |
 |  AUDIO_MIC  |:heavy_check_mark:|                                                                                              |           |

@@ -22,6 +22,7 @@
 #else
 #include "driver/i2s_std.h"
 #include "driver/i2s_tdm.h"
+#include "esp_adc/adc_oneshot.h"
 #endif
 /**************************************************************************************************
  *  BSP Capabilities
