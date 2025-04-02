@@ -1,5 +1,9 @@
 # ChangeLog
 
+## V3.0.2
+
+* Fix I2C master transmission issue by adding glitch filtering
+
 ## v3.0.1
 
 * Added missing public driver/i2c_master.h include

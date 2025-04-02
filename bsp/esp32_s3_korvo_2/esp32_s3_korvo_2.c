@@ -120,6 +120,7 @@ esp_err_t bsp_i2c_init(void)
         .sda_io_num = BSP_I2C_SDA,
         .scl_io_num = BSP_I2C_SCL,
         .clk_source = I2C_CLK_SRC_DEFAULT,
+        .glitch_ignore_cnt = 7,
         .flags.enable_internal_pullup = true,
     };
     BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
