@@ -43,9 +43,11 @@ static void sensor_detect(void)
         search_result = onewire_device_iter_get_next(iter, &next_onewire_device);
         if (search_result == ESP_OK) { // found a new device, let's check if we can upgrade it to a DS18B20
             ds18b20_config_t ds_cfg = {};
+            onewire_device_address_t address;
             // check if the device is a DS18B20, if so, return the ds18b20 handle
             if (ds18b20_new_device(&next_onewire_device, &ds_cfg, &s_ds18b20s[s_ds18b20_device_num]) == ESP_OK) {
-                ESP_LOGI(TAG, "Found a DS18B20[%d], address: %016llX", s_ds18b20_device_num, next_onewire_device.address);
+                ds18b20_get_device_address(s_ds18b20s[s_ds18b20_device_num], &address);
+                ESP_LOGI(TAG, "Found a DS18B20[%d], address: %016llX", s_ds18b20_device_num, address);
                 s_ds18b20_device_num++;
             } else {
                 ESP_LOGI(TAG, "Found an unknown device, address: %016llX", next_onewire_device.address);
@@ -58,10 +60,10 @@ static void sensor_detect(void)
 
 void sensor_read(void)
 {
-    for (int i = 0; i < s_ds18b20_device_num; i ++) {
+    for (int i = 0; i < s_ds18b20_device_num; i++) {
         ESP_ERROR_CHECK(ds18b20_trigger_temperature_conversion(s_ds18b20s[i]));
         ESP_ERROR_CHECK(ds18b20_get_temperature(s_ds18b20s[i], &s_temperature));
-        ESP_LOGI(TAG, "temperature read from DS18B20[%d]: %.2fC", i, s_temperature);
+        ESP_LOGI(TAG, "Temperature read from DS18B20[%d]: %.2fC", i, s_temperature);
     }
 }
 
