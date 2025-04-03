@@ -163,3 +163,10 @@ esp_err_t ds18b20_get_temperature(ds18b20_device_handle_t ds18b20, float *ret_te
 
     return ESP_OK;
 }
+
+esp_err_t ds18b20_get_device_address(ds18b20_device_handle_t ds18b20, onewire_device_address_t *ret_address)
+{
+    ESP_RETURN_ON_FALSE(ds18b20 && ret_address, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
+    *ret_address = ds18b20->addr;
+    return ESP_OK;
+}
