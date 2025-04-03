@@ -1,6 +1,7 @@
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import pytest
+import cv2
 
 
 def pytest_generate_tests(metafunc):
@@ -38,3 +39,41 @@ def pytest_collection_modifyitems(config, items):
         marker_option = "[" + config.getoption("-m") + "]"
         if marker_option not in item.nodeid:
             item.add_marker(pytest.mark.skip(reason="Not for selected params"))
+
+
+def bsp_capture_image(image_path):
+    # Return video from the first webcam on your computer.
+    cap = cv2.VideoCapture(0)
+    # Set FullHD resolution (1920x1080)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    # reads frames from a camera
+    # ret checks return at each frame
+    ret, frame = cap.read()
+    if ret:
+        # TODO: Change size image
+        # TODO: Crop image
+
+        # Save image
+        cv2.imwrite(image_path, frame)
+        print(f"Image saved {image_path}")
+    else:
+        print("Cannot save image.")
+
+    # Close the window / Release webcam
+    cap.release()
+
+
+def bsp_test_image(board, example, expectation):
+    image_file = f"snapshot_{example}_{board}.jpg"
+    bsp_capture_image(image_file)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def bsp_test(request):
+    board = request.node.callspec.id
+    # test_name = item.name
+    print(dir(request.node.callspec))
+    yield
+    print(f"Capturing image for: {board}")
+    bsp_test_image(board, "xxx", "")
