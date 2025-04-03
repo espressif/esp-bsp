@@ -107,6 +107,17 @@ esp_err_t ds18b20_trigger_temperature_conversion(ds18b20_device_handle_t ds18b20
  */
 esp_err_t ds18b20_get_temperature(ds18b20_device_handle_t ds18b20, float *temperature);
 
+/**
+ * @brief Get the address of the DS18B20 device
+ *
+ * @param[in] ds18b20 DS18B20 device handle returned by `ds18b20_new_device`
+ * @param[out] ret_address Pointer to store the device address
+ * @return
+ *      - ESP_OK: Get device address successfully
+ *      - ESP_ERR_INVALID_ARG: Get device address failed due to invalid argument
+ */
+esp_err_t ds18b20_get_device_address(ds18b20_device_handle_t ds18b20, onewire_device_address_t *ret_address);
+
 #ifdef __cplusplus
 }
 #endif
