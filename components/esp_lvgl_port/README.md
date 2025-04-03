@@ -108,6 +108,9 @@ Add touch input to the LVGL. It can be called more times for adding more touch i
     lvgl_port_remove_touch(touch_handle);
 ```
 
+> [!NOTE]
+> If the screen has another resolution than the touch resolution, you can use scaling by add `.scale.x` or `.scale.y` into `lvgl_port_touch_cfg_t` configuration structure.
+
 ### Add buttons input
 
 Add buttons input to the LVGL. It can be called more times for adding more buttons inputs for different displays. This feature is available only when the component `espressif/button` was added into the project.

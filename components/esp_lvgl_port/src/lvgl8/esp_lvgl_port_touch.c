@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -19,6 +19,10 @@ static const char *TAG = "LVGL";
 typedef struct {
     esp_lcd_touch_handle_t   handle;     /* LCD touch IO handle */
     lv_indev_drv_t           indev_drv;  /* LVGL input device driver */
+    struct {
+        float x;
+        float y;
+    } scale;                            /* Touch scale */
 } lvgl_port_touch_ctx_t;
 
 /*******************************************************************************
@@ -44,6 +48,8 @@ lv_indev_t *lvgl_port_add_touch(const lvgl_port_touch_cfg_t *touch_cfg)
         return NULL;
     }
     touch_ctx->handle = touch_cfg->handle;
+    touch_ctx->scale.x = (touch_cfg->scale.x ? touch_cfg->scale.x : 1);
+    touch_ctx->scale.y = (touch_cfg->scale.y ? touch_cfg->scale.y : 1);
 
     /* Register a touchpad input device */
     lv_indev_drv_init(&touch_ctx->indev_drv);
@@ -92,8 +98,8 @@ static void lvgl_port_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *
     bool touchpad_pressed = esp_lcd_touch_get_coordinates(touch_ctx->handle, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 1);
 
     if (touchpad_pressed && touchpad_cnt > 0) {
-        data->point.x = touchpad_x[0];
-        data->point.y = touchpad_y[0];
+        data->point.x = touch_ctx->scale.x * touchpad_x[0];
+        data->point.y = touch_ctx->scale.y * touchpad_y[0];
         data->state = LV_INDEV_STATE_PRESSED;
     } else {
         data->state = LV_INDEV_STATE_RELEASED;
