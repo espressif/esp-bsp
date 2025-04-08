@@ -286,6 +286,10 @@ void app_main(void)
     button_handle_t btns[BSP_BUTTON_NUM];
     ESP_ERROR_CHECK(bsp_iot_button_create(btns, NULL, BSP_BUTTON_NUM));
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
+#if BUTTON_VER_MAJOR >= 4
+        ESP_ERROR_CHECK(iot_button_register_cb(btns[i], BUTTON_PRESS_DOWN, NULL, btn_handler, (void *) i));
+#else
         ESP_ERROR_CHECK(iot_button_register_cb(btns[i], BUTTON_PRESS_DOWN, btn_handler, (void *) i));
+#endif
     }
 }

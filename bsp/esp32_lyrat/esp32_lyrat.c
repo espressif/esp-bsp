@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,54 +13,88 @@
 #include "esp_spiffs.h"
 #include "bsp_err_check.h"
 #include "esp_codec_dev_defaults.h"
+#include "button_gpio.h"
 
 static const char *TAG = "LyraT";
 
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 
-static esp_err_t  bsp_touchpad_custom_init(void *param);
-static esp_err_t  bsp_touchpad_custom_deinit(void *param);
-static uint8_t bsp_touchpad_custom_get_key_value(void *param);
+static esp_err_t  bsp_touchpad_custom_deinit(button_driver_t *button_driver);
+static uint8_t bsp_touchpad_custom_get_key_value(button_driver_t *button_driver);
 static bool i2c_initialized = false;
 
-static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+typedef enum {
+    BSP_BUTTON_TYPE_GPIO,
+    BSP_BUTTON_TYPE_CUSTOM
+} bsp_button_type_t;
+
+typedef struct {
+    button_driver_t base;
+    touch_pad_t     key;
+} bsp_button_type_custom_t;
+
+typedef struct {
+    bsp_button_type_t type;
+    union {
+        button_gpio_config_t     gpio;
+        bsp_button_type_custom_t custom;
+    } cfg;
+} bsp_button_config_t;
+
+static const bsp_button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_REC_IO,
-        .gpio_button_config.active_level = 0,
+        .type = BSP_BUTTON_TYPE_GPIO,
+        .cfg.gpio = {
+            .gpio_num = BSP_BUTTON_REC_IO,
+            .active_level = 0,
+        }
     },
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_MODE_IO,
-        .gpio_button_config.active_level = 0,
+        .type = BSP_BUTTON_TYPE_GPIO,
+        .cfg.gpio = {
+            .gpio_num = BSP_BUTTON_MODE_IO,
+            .active_level = 0,
+        }
     },
     {
-        .type = BUTTON_TYPE_CUSTOM,
-        .custom_button_config.button_custom_init = bsp_touchpad_custom_init,
-        .custom_button_config.button_custom_get_key_value = bsp_touchpad_custom_get_key_value,
-        .custom_button_config.button_custom_deinit = bsp_touchpad_custom_deinit,
-        .custom_button_config.priv = (void *)BSP_BUTTON_PLAY_TOUCH,
+        .type = BSP_BUTTON_TYPE_CUSTOM,
+        .cfg.custom = {
+            .base = {
+                .get_key_level = bsp_touchpad_custom_get_key_value,
+                .del = bsp_touchpad_custom_deinit,
+            },
+            .key = BSP_BUTTON_PLAY_TOUCH
+        }
     },
     {
-        .type = BUTTON_TYPE_CUSTOM,
-        .custom_button_config.button_custom_init = bsp_touchpad_custom_init,
-        .custom_button_config.button_custom_get_key_value = bsp_touchpad_custom_get_key_value,
-        .custom_button_config.button_custom_deinit = bsp_touchpad_custom_deinit,
-        .custom_button_config.priv = (void *)BSP_BUTTON_SET_TOUCH,
+        .type = BSP_BUTTON_TYPE_CUSTOM,
+        .cfg.custom = {
+            .base = {
+                .get_key_level = bsp_touchpad_custom_get_key_value,
+                .del = bsp_touchpad_custom_deinit,
+            },
+            .key = BSP_BUTTON_SET_TOUCH
+        }
     },
     {
-        .type = BUTTON_TYPE_CUSTOM,
-        .custom_button_config.button_custom_init = bsp_touchpad_custom_init,
-        .custom_button_config.button_custom_get_key_value = bsp_touchpad_custom_get_key_value,
-        .custom_button_config.button_custom_deinit = bsp_touchpad_custom_deinit,
-        .custom_button_config.priv = (void *)BSP_BUTTON_VOLUP_TOUCH,
+        .type = BSP_BUTTON_TYPE_CUSTOM,
+        .cfg.custom = {
+            .base = {
+                .get_key_level = bsp_touchpad_custom_get_key_value,
+                .del = bsp_touchpad_custom_deinit,
+            },
+            .key = BSP_BUTTON_VOLUP_TOUCH
+        }
     },
     {
-        .type = BUTTON_TYPE_CUSTOM,
-        .custom_button_config.button_custom_init = bsp_touchpad_custom_init,
-        .custom_button_config.button_custom_get_key_value = bsp_touchpad_custom_get_key_value,
-        .custom_button_config.button_custom_deinit = bsp_touchpad_custom_deinit,
-        .custom_button_config.priv = (void *)BSP_BUTTON_VOLDOWN_TOUCH,
+        .type = BSP_BUTTON_TYPE_CUSTOM,
+        .cfg.custom = {
+            .base = {
+                .get_key_level = bsp_touchpad_custom_get_key_value,
+                .del = bsp_touchpad_custom_deinit,
+            },
+            .key = BSP_BUTTON_VOLDOWN_TOUCH
+        }
     }
 };
 
@@ -217,10 +251,9 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
 #define TOUCHPAD_FILTER_TOUCH_PERIOD (50)
 #define TOUCHPAD_THRESH              (400)
 
-static esp_err_t bsp_touchpad_custom_init(void *param)
+static esp_err_t bsp_touchpad_custom_init(touch_pad_t key)
 {
     static bool touch_pad_initialized = false;
-    touch_pad_t btn = (touch_pad_t)param;
 
     if (!touch_pad_initialized) {
         /*!< Initialize touch pad peripheral, it will start a timer to run a filter */
@@ -235,26 +268,24 @@ static esp_err_t bsp_touchpad_custom_init(void *param)
 
         touch_pad_initialized = true;
     }
-    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_config(btn, 0));
+    BSP_ERROR_CHECK_RETURN_ERR(touch_pad_config(key, 0));
 
-    ESP_LOGI(TAG, "Initialized touch button %d", btn);
-
-    return ESP_OK;
-}
-
-static esp_err_t  bsp_touchpad_custom_deinit(void *param)
-{
-    //touch_pad_t btn = (touch_pad_t)param;
+    ESP_LOGI(TAG, "Initialized touch button %d", key);
 
     return ESP_OK;
 }
 
-static uint8_t bsp_touchpad_custom_get_key_value(void *param)
+static esp_err_t  bsp_touchpad_custom_deinit(button_driver_t *button_driver)
 {
-    touch_pad_t btn = (touch_pad_t)param;
+    return ESP_OK;
+}
+
+static uint8_t bsp_touchpad_custom_get_key_value(button_driver_t *button_driver)
+{
+    bsp_button_type_custom_t *custom_btn = __containerof(button_driver, bsp_button_type_custom_t, base);
     uint16_t touch_value;
 
-    touch_pad_read_raw_data(btn, &touch_value);
+    touch_pad_read_raw_data(custom_btn->key, &touch_value);
 
     return (touch_value > 0 && touch_value < TOUCHPAD_THRESH ? 0 : 1);
 }
@@ -281,6 +312,7 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on)
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
+    const button_config_t btn_config = {0};
     if ((btn_array_size < BSP_BUTTON_NUM) ||
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
@@ -290,10 +322,13 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
+        if (bsp_button_config[i].type == BSP_BUTTON_TYPE_CUSTOM) {
+            ret |= bsp_touchpad_custom_init(bsp_button_config[i].cfg.custom.key);
+            ret |= iot_button_create(&btn_config, &bsp_button_config[i].cfg.custom.base, &btn_array[i]);
+        } else if (bsp_button_config[i].type == BSP_BUTTON_TYPE_GPIO) {
+            ret |= iot_button_new_gpio_device(&btn_config, &bsp_button_config[i].cfg.gpio, &btn_array[i]);
+        } else {
+            ESP_LOGW(TAG, "Unsupported button type!");
         }
         if (btn_cnt) {
             (*btn_cnt)++;

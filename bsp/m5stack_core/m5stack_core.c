@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -25,6 +25,7 @@
 #include "bsp/display.h"
 #include "esp_lcd_ili9341.h"
 #include "bsp_err_check.h"
+#include "button_gpio.h"
 
 static const char *TAG = "M5Stack";
 
@@ -363,31 +364,36 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
     return lvgl_port_add_disp(&disp_cfg);
 }
 
-static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+static const button_gpio_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.active_level = false,
-        .gpio_button_config.gpio_num = BSP_BUTTON_LEFT,
+        .gpio_num = BSP_BUTTON_LEFT,
+        .active_level = 0,
     },
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.active_level = false,
-        .gpio_button_config.gpio_num = BSP_BUTTON_MIDDLE,
+        .gpio_num = BSP_BUTTON_MIDDLE,
+        .active_level = 0,
     },
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.active_level = false,
-        .gpio_button_config.gpio_num = BSP_BUTTON_RIGHT,
+        .gpio_num = BSP_BUTTON_RIGHT,
+        .active_level = 0,
     },
 };
 
 static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 {
+    const button_config_t btn_cfg = {0};
+    button_handle_t prev_btn = NULL;
+    button_handle_t next_btn = NULL;
+    button_handle_t enter_btn = NULL;
+    BSP_ERROR_CHECK_RETURN_NULL(iot_button_new_gpio_device(&btn_cfg, &bsp_button_config[BSP_BUTTON_PREV], &prev_btn));
+    BSP_ERROR_CHECK_RETURN_NULL(iot_button_new_gpio_device(&btn_cfg, &bsp_button_config[BSP_BUTTON_NEXT], &next_btn));
+    BSP_ERROR_CHECK_RETURN_NULL(iot_button_new_gpio_device(&btn_cfg, &bsp_button_config[BSP_BUTTON_ENTER], &enter_btn));
+
     const lvgl_port_nav_btns_cfg_t btns = {
         .disp = disp,
-        .button_prev = &bsp_button_config[BSP_BUTTON_PREV],
-        .button_next = &bsp_button_config[BSP_BUTTON_NEXT],
-        .button_enter = &bsp_button_config[BSP_BUTTON_ENTER]
+        .button_prev = prev_btn,
+        .button_next = next_btn,
+        .button_enter = enter_btn
     };
 
     return lvgl_port_add_navigation_buttons(&btns);
@@ -455,8 +461,9 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
     if (btn_cnt) {
         *btn_cnt = 0;
     }
+    const button_config_t btn_cfg = {0};
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
+        ret |= iot_button_new_gpio_device(&btn_cfg, &bsp_button_config[i], &btn_array[i]);
         if (btn_array[i] == NULL) {
             ret = ESP_FAIL;
             break;

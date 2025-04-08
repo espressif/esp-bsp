@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -23,6 +23,7 @@
 #include "bsp_err_check.h"
 #include "esp_lcd_gc9a01.h"
 #include "iot_knob.h"
+#include "button_gpio.h"
 #include "esp_lvgl_port.h"
 #include "esp_codec_dev_defaults.h"
 
@@ -78,10 +79,9 @@ static const led_strip_rmt_config_t bsp_rmt_config = {
     .flags.with_dma = false,
 };
 
-static const button_config_t bsp_encoder_btn_config = {
-    .type = BUTTON_TYPE_GPIO,
-    .gpio_button_config.active_level = false,
-    .gpio_button_config.gpio_num = BSP_BTN_PRESS,
+static const button_gpio_config_t bsp_encoder_btn_config = {
+    .gpio_num = BSP_BTN_PRESS,
+    .active_level = 0,
 };
 
 static const knob_config_t bsp_encoder_a_b_config = {
@@ -241,10 +241,15 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 
 static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 {
+
+    const button_config_t btn_cfg = {0};
+    button_handle_t encoder_btn = NULL;
+    BSP_ERROR_CHECK_RETURN_NULL(iot_button_new_gpio_device(&btn_cfg, &bsp_encoder_btn_config, &encoder_btn));
+
     const lvgl_port_encoder_cfg_t encoder = {
         .disp = disp,
         .encoder_a_b = &bsp_encoder_a_b_config,
-        .encoder_enter = &bsp_encoder_btn_config
+        .encoder_enter = encoder_btn
     };
 
     return lvgl_port_add_encoder(&encoder);

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -16,6 +16,7 @@
 #include "bsp/display.h"
 #include "esp_lvgl_port.h"
 #include "bsp_err_check.h"
+#include "button_gpio.h"
 
 static const char *TAG = "Azure-IoT";
 
@@ -23,11 +24,10 @@ static lv_display_t *disp;
 sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 static bool i2c_initialized = false;
 
-static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+static const button_gpio_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_MAIN_IO,
-        .gpio_button_config.active_level = 0,
+        .gpio_num = BSP_BUTTON_MAIN_IO,
+        .active_level = 0,
     }
 };
 
@@ -382,6 +382,7 @@ bool bsp_button_get(void)
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
+    const button_config_t btn_config = {0};
     if ((btn_array_size < BSP_BUTTON_NUM) ||
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
@@ -391,11 +392,7 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
-        }
+        ret |= iot_button_new_gpio_device(&btn_config, &bsp_button_config[i], &btn_array[i]);
         if (btn_cnt) {
             (*btn_cnt)++;
         }
