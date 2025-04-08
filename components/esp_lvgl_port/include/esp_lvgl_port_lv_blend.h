@@ -42,6 +42,11 @@ extern "C" {
     _lv_rgb565_blend_normal_to_rgb565_esp(dsc)
 #endif
 
+#ifndef LV_DRAW_SW_RGB888_BLEND_NORMAL_TO_RGB888
+#define LV_DRAW_SW_RGB888_BLEND_NORMAL_TO_RGB888(dsc, dest_px_size, src_px_size)  \
+    _lv_rgb888_blend_normal_to_rgb888_esp(dsc, dest_px_size, src_px_size)
+#endif
+
 /**********************
  *      TYPEDEFS
  **********************/
@@ -124,6 +129,26 @@ static inline lv_result_t _lv_rgb565_blend_normal_to_rgb565_esp(_lv_draw_sw_blen
     };
 
     return lv_rgb565_blend_normal_to_rgb565_esp(&asm_dsc);
+}
+
+extern int lv_rgb888_blend_normal_to_rgb888_esp(asm_dsc_t *asm_dsc);
+
+static inline lv_result_t _lv_rgb888_blend_normal_to_rgb888_esp(_lv_draw_sw_blend_image_dsc_t *dsc, uint32_t dest_px_size, uint32_t src_px_size)
+{
+    if (!(dest_px_size == 3 && src_px_size == 3)) {
+        return LV_RESULT_INVALID;
+    }
+
+    asm_dsc_t asm_dsc = {
+        .dst_buf = dsc->dest_buf,
+        .dst_w = dsc->dest_w,
+        .dst_h = dsc->dest_h,
+        .dst_stride = dsc->dest_stride,
+        .src_buf = dsc->src_buf,
+        .src_stride = dsc->src_stride
+    };
+
+    return lv_rgb888_blend_normal_to_rgb888_esp(&asm_dsc);
 }
 
 #endif // CONFIG_LV_DRAW_SW_ASM_CUSTOM

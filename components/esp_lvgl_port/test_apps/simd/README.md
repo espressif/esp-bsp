@@ -23,6 +23,8 @@ Assembly source files could be found in the [`lvgl_port`](../../src/lvgl9/simd/)
 | :----------- | :---------- | :--------------- | :------------- | :------------- |
 | RGB565       | 128x128     |     16 byte      |     0.352      |     3.437      |
 |              | 127x128     |      1 byte      |     0.866      |     5.978      |
+| RGB888       | 128x128     |     16 byte      |     0.744      |     4.002      |
+|              | 127x128     |      1 byte      |     1.002      |     7.998      |
 * this data was obtained by running [benchmark tests](#benchmark-test) on 128x128 16 byte aligned matrix (ideal case) and 127x128 1 byte aligned matrix (worst case)
 * the values represent cycles per sample to perform memory copy between two matrices on esp32s3
 
