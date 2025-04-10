@@ -2,8 +2,9 @@
 
 ## 2.6.0
 
-### Features
+## Features
 - Scaling feature in touch
+- Added support for PPA rotation in LVGL9 (available for ESP32-P4)
 
 ## 2.5.0
 

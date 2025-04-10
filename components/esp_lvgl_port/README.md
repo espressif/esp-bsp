@@ -270,7 +270,7 @@ Display rotation can be changed at runtime.
 ```
 
 > [!NOTE]
-> This feature consume more RAM.
+> Software rotation consumes more RAM. Software rotation uses [PPA](https://docs.espressif.com/projects/esp-idf/en/latest/esp32p4/api-reference/peripherals/ppa.html) if available on the chip (e.g. ESP32P4).
 
 > [!NOTE]
 > During the hardware rotating, the component call [`esp_lcd`](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html) API. When using software rotation, you cannot use neither `direct_mode` nor `full_refresh` in the driver. See [LVGL documentation](https://docs.lvgl.io/8.3/porting/display.html?highlight=sw_rotate) for more info.
