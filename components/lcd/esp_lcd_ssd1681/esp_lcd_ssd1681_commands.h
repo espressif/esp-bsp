@@ -14,7 +14,8 @@
 #define SSD1681_CMD_SWRST                   0x12
 // --- Driver output control
 #define SSD1681_CMD_OUTPUT_CTRL             0x01
-#define SSD1681_PARAM_OUTPUT_CTRL           ((uint8_t[]) {0xc7, 0x00, 0x00})
+// Chipset wants (total row count - 1) i.e. 250 rows = 249 here
+#define SSD1681_PARAM_OUTPUT_CTRL(rows)     ((uint8_t[]) {(rows) & 0xFF, (rows) >> 8, 0x00})
 // --- Data Entry Sequence Setting
 #define SSD1681_CMD_DATA_ENTRY_MODE         0x11
 // A [1:0] = ID[1:0], A[2] = AM
