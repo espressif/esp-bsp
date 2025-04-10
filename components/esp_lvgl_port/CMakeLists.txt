@@ -4,13 +4,18 @@ if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
     return()
 endif()
 
+set(COMPONENT_REQUIRES esp_lcd)
+IF (${IDF_TARGET} STREQUAL "esp32p4")
+    list(APPEND COMPONENT_REQUIRES esp_driver_ppa)
+ENDIF ()
+
 # This component uses a CMake workaround, so we can compile esp_lvgl_port for both LVGL8.x and LVGL9.x
 # At the time of idf_component_register() we don't know which LVGL version is used, so we only register an INTERFACE component (with no sources)
 # Later, when we know the LVGL version, we create another CMake library called 'lvgl_port_lib' and link it to the 'esp_lvgl_port' INTERFACE component
 idf_component_register(
         INCLUDE_DIRS "include"
         PRIV_INCLUDE_DIRS "priv_include"
-        REQUIRES "esp_lcd")
+        REQUIRES ${COMPONENT_REQUIRES})
 
 # Get LVGL version
 idf_build_get_property(build_components BUILD_COMPONENTS)
@@ -104,6 +109,21 @@ if((lvgl_ver VERSION_GREATER_EQUAL "9.1.0") AND (lvgl_ver VERSION_LESS "9.2.0"))
     endif()
 endif()
 
+# Include hardware acceleration code (PPA and DMA2D) for rendering, and only for esp32p4
+if(lvgl_ver VERSION_GREATER_EQUAL "9.1.0")
+    if(CONFIG_IDF_TARGET_ESP32P4)
+        message(VERBOSE "Using hardware acceleration for esp32p4")
+        # Include component libraries, so lvgl component would see lvgl_port includes
+        idf_component_get_property(lvgl_lib ${lvgl_name} COMPONENT_LIB)
+        target_include_directories(${lvgl_lib} PRIVATE "include")
+
+        file(GLOB_RECURSE PPA_SRCS ${PORT_PATH}/ppa/*)
+        list(APPEND ADD_SRCS ${PPA_SRCS})
+        set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_malloc_core")
+        set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u esp_ppa_fill_for_lvgl")
+    endif()
+endif()
+
 # Here we create the real lvgl_port_lib
 add_library(lvgl_port_lib STATIC
     ${PORT_PATH}/esp_lvgl_port.c
@@ -120,6 +140,10 @@ target_link_libraries(lvgl_port_lib PRIVATE
     idf::esp_timer
     ${ADD_LIBS}
     )
+
+if(CONFIG_IDF_TARGET_ESP32P4)
+    target_link_libraries(lvgl_port_lib PRIVATE idf::esp_driver_ppa idf::esp_mm)
+endif()
 
 # Finally, link the lvgl_port_lib its esp-idf interface library
 target_link_libraries(${COMPONENT_LIB} INTERFACE lvgl_port_lib)
