@@ -11,6 +11,6 @@ idf_component_register(
     SRCS "esp32_s3_usb_otg.c" ${SRC_VER}
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "priv_include"
-    REQUIRES driver esp_lcd
-    PRIV_REQUIRES fatfs usb spiffs ${REQ}
+    REQUIRES driver esp_lcd fatfs
+    PRIV_REQUIRES usb spiffs ${REQ}
 )

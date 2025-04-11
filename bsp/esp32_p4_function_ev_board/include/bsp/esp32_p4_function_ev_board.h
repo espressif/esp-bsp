@@ -188,7 +188,6 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
  * \endcode
  **************************************************************************************************/
 #define BSP_SPIFFS_MOUNT_POINT      CONFIG_BSP_SPIFFS_MOUNT_POINT
-#define BSP_SDSPI_HOST              (SDSPI_DEFAULT_HOST)
 
 /**
  * @brief Mount SPIFFS to virtual file system
@@ -227,6 +226,7 @@ esp_err_t bsp_spiffs_unmount(void);
  * \endcode
  **************************************************************************************************/
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
+#define BSP_SDSPI_HOST          (SDSPI_DEFAULT_HOST)
 
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
