@@ -78,10 +78,12 @@ esp_err_t esp_io_expander_new_i2c_tca9554(i2c_master_bus_handle_t i2c_bus, uint3
     tca9554->base.reset = reset;
 
     /* Reset configuration and register status */
-    ESP_GOTO_ON_ERROR(reset(&tca9554->base), err, TAG, "Reset failed");
+    ESP_GOTO_ON_ERROR(reset(&tca9554->base), err1, TAG, "Reset failed");
 
     *handle_ret = &tca9554->base;
     return ESP_OK;
+err1:
+    i2c_master_bus_rm_device(tca9554->i2c_handle);
 err:
     free(tca9554);
     return ret;
