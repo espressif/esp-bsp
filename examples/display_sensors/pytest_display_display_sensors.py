@@ -6,6 +6,6 @@ from pytest_embedded import Dut
 
 
 @pytest.mark.esp32_azure_iot_kit
-def test_display_example(dut: Dut) -> None:
+def test_example_display_sensors(dut: Dut) -> None:
     dut.expect_exact('main_task: Returned from app_main()')
     dut.expect(r'example: temperature: (\d+[.]\d+), humidity: (\d+[.]\d+), luminance: (\d+[.]\d+)')

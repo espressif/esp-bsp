@@ -24,7 +24,6 @@ static char *TAG = "app_main";
 void app_main(void)
 {
     /* Initialize display and LVGL */
-
 #if defined(BSP_BOARD_ESP32_S3_LCD_EV_BOARD)
     /* Only for esp32_s3_lcd_ev_board */
     bsp_display_cfg_t cfg = {

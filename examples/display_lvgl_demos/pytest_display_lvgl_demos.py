@@ -13,6 +13,6 @@ from pytest_embedded import Dut
 @pytest.mark.m5dial
 @pytest.mark.m5stack_core_s3
 @pytest.mark.m5stack_core_s3_se
-def test_display_example(dut: Dut) -> None:
+def test_example_lvgl_demos(dut: Dut) -> None:
     dut.expect_exact('app_main: Display LVGL demo')
     dut.expect_exact('main_task: Returned from app_main()')
