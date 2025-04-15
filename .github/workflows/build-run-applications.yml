@@ -197,7 +197,7 @@ jobs:
         env:
           PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
         run: |
-          pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
+          pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code pytest-xdist
       - name: Download latest results
         uses: actions/download-artifact@v4
         with:
@@ -205,7 +205,10 @@ jobs:
           path: benchmark/
       - name: Run apps
         run: |
-          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }} ${{ env.PYTEST_BENCHMARK_IGNORE }}
+          testcases=("test_example_display" "test_example_lvgl_demos" "test_example_display_sensors" "test_example_generic_button_led")
+          for testcase in testcases; do
+            pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} -k $testcase -n auto ${{ env.PYTEST_BENCHMARK_IGNORE }}
+          done
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
