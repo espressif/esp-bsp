@@ -42,18 +42,22 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.skip(reason="Not for selected params"))
 
 
-def bsp_capture_image(image_path):
+def bsp_capture_image(image_path, board):
     # Return video from the first webcam on your computer.
     cap = cv2.VideoCapture(0)
     # Set FullHD resolution (1920x1080)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+
+    # TODO: Camera calibration
+
     # reads frames from a camera
     # ret checks return at each frame
     ret, frame = cap.read()
     if ret:
+        # TODO: Camera calibration / Perspective transform
         # TODO: Change size image
-        # TODO: Crop image
+        # TODO: Crop image for {board}
 
         # Save image
         cv2.imwrite(image_path, frame)
@@ -67,7 +71,7 @@ def bsp_capture_image(image_path):
 
 def bsp_test_image(board, example, expectation):
     image_file = f"snapshot_{board}_{example}.jpg"
-    bsp_capture_image(image_file)
+    bsp_capture_image(image_file, board)
 
 
 @pytest.fixture(autouse=True)
