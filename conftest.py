@@ -112,6 +112,7 @@ def build_dir(build_dir: str) -> str:
     return f'{build_dir}'
 
 
+# This fixing using cache when used "-n auto" (parallel)
 @pytest.hookimpl(tryfirst=True)
 def pytest_configure(config):
     if "PYTEST_XDIST_WORKER" in os.environ:
