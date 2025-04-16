@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
+import os
+import uuid
 import pytest
 
 
@@ -111,3 +113,12 @@ def build_dir(build_dir: str) -> str:
 
 
 # This fixing using cache when used "-n auto" (parallel)
+def pytest_configure(config):
+    # Pokud běží pytest-xdist (paralelně), nastavíme unikátní cache adresář
+    worker_id = os.getenv("PYTEST_XDIST_WORKER", None)
+    if worker_id:
+        # Vygeneruj unikátní adresář pro každý worker
+        cache_dir = f"/tmp/pytest-embedded-cache-{uuid.uuid4()}"
+        os.environ["PYTEST_EMBEDDED_CACHE_DIR"] = cache_dir
+        os.makedirs(cache_dir, exist_ok=True)
+        print(f"Using embedded cache dir: {cache_dir}")
