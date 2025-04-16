@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import pytest
+import os
+import tempfile
 
 
 def pytest_generate_tests(metafunc):
@@ -108,3 +110,9 @@ def pytest_generate_tests(metafunc):
 @pytest.fixture
 def build_dir(build_dir: str) -> str:
     return f'{build_dir}'
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_configure(config):
+    if "PYTEST_XDIST_WORKER" in os.environ:
+        os.environ["PYTEST_EMBEDDED_CACHE_DIR"] = tempfile.mkdtemp(prefix="pytest-embedded-cache-")
