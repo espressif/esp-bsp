@@ -151,7 +151,7 @@ jobs:
           path: benchmark/
       - name: Run apps
         run: |
-          export PYTEST_EMBEDDED_CACHE_DIR=$(mktemp -d -t pytest-embedded-cache-XXXX)
+          export PYTEST_EMBEDDED_CACHE_DIR=/dev/null
           pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} -k ${{ matrix.runner.example }} -n auto ${{ env.PYTEST_BENCHMARK_IGNORE }}
       - name: Upload test results
         uses: actions/upload-artifact@v4
