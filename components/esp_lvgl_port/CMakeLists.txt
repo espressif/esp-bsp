@@ -4,13 +4,24 @@ if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
     return()
 endif()
 
+set(ADD_SRCS "")
+set(ADD_LIBS "")
+set(PRIV_REQ "")
+idf_build_get_property(target IDF_TARGET)
+if(${target} STREQUAL "esp32p4")
+    list(APPEND ADD_SRCS "src/common/ppa/lcd_ppa.c")
+    list(APPEND ADD_LIBS idf::esp_driver_ppa)
+    list(APPEND PRIV_REQ esp_driver_ppa)
+endif()
+
 # This component uses a CMake workaround, so we can compile esp_lvgl_port for both LVGL8.x and LVGL9.x
 # At the time of idf_component_register() we don't know which LVGL version is used, so we only register an INTERFACE component (with no sources)
 # Later, when we know the LVGL version, we create another CMake library called 'lvgl_port_lib' and link it to the 'esp_lvgl_port' INTERFACE component
 idf_component_register(
         INCLUDE_DIRS "include"
         PRIV_INCLUDE_DIRS "priv_include"
-        REQUIRES "esp_lcd")
+        REQUIRES "esp_lcd"
+        PRIV_REQUIRES "${PRIV_REQ}")
 
 # Get LVGL version
 idf_build_get_property(build_components BUILD_COMPONENTS)
@@ -39,8 +50,6 @@ endif()
 
 # Add LVGL port extensions
 set(PORT_PATH "src/${PORT_FOLDER}")
-set(ADD_SRCS "")
-set(ADD_LIBS "")
 
 idf_build_get_property(build_components BUILD_COMPONENTS)
 if("espressif__button" IN_LIST build_components)
