@@ -234,9 +234,10 @@ void app_main(void)
     // Mount uSD card, light up WiFi LED on success
     if (ESP_OK == bsp_sdcard_mount()) {
         bsp_led_set(BSP_LED_WIFI, true); // Signal successful SD card access
-        sdmmc_card_print_info(stdout, bsp_sdcard);
+        sdmmc_card_t *sdcard = bsp_sdcard_get_handle();
+        sdmmc_card_print_info(stdout, sdcard);
         FILE *f = fopen(BSP_SD_MOUNT_POINT "/hello.txt", "w");
-        fprintf(f, "Hello %s!\n", bsp_sdcard->cid.name);
+        fprintf(f, "Hello %s!\n", sdcard->cid.name);
         fclose(f);
         bsp_sdcard_unmount();
     }

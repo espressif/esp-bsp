@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <string.h>
 #include "driver/gpio.h"
 #include "driver/ledc.h"
 #include "driver/spi_master.h"
@@ -42,7 +43,7 @@ static const char *TAG = "S3-KORVO-2";
 static i2c_master_bus_handle_t i2c_handle = NULL;
 static bool i2c_initialized = false;
 static esp_io_expander_handle_t io_expander = NULL; // IO expander tca9554 handle
-sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
+static sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
 static lv_indev_t *disp_indev = NULL;
 static adc_oneshot_unit_handle_t bsp_adc_handle = NULL;
@@ -169,8 +170,59 @@ i2c_master_bus_handle_t bsp_i2c_get_handle(void)
     return i2c_handle;
 }
 
-esp_err_t bsp_sdcard_mount(void)
+sdmmc_card_t *bsp_sdcard_get_handle(void)
 {
+    return bsp_sdcard;
+}
+
+void bsp_sdcard_get_sdmmc_host(const int slot, sdmmc_host_t *config)
+{
+    assert(config);
+
+    sdmmc_host_t host_config = SDMMC_HOST_DEFAULT();
+
+    memcpy(config, &host_config, sizeof(sdmmc_host_t));
+}
+
+void bsp_sdcard_get_sdspi_host(const int slot, sdmmc_host_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdmmc_host_t));
+    ESP_LOGE(TAG, "SD card SPI mode is not supported by HW!");
+}
+
+void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdmmc_slot_config_t));
+
+    config->clk = BSP_SD_CLK;
+    config->cmd = BSP_SD_CMD;
+    config->d0 = BSP_SD_D0;
+    config->d1 = GPIO_NUM_NC;
+    config->d2 = GPIO_NUM_NC;
+    config->d3 = GPIO_NUM_NC;
+    config->d4 = GPIO_NUM_NC;
+    config->d5 = GPIO_NUM_NC;
+    config->d6 = GPIO_NUM_NC;
+    config->d7 = GPIO_NUM_NC;
+    config->cd = SDMMC_SLOT_NO_CD;
+    config->wp = SDMMC_SLOT_NO_WP;
+    config->width = 1;
+    config->flags = 0;
+}
+
+void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_config_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdspi_device_config_t));
+    ESP_LOGE(TAG, "SD card SPI mode is not supported by HW!");
+}
+
+esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
+{
+    sdmmc_host_t sdhost = {0};
+    sdmmc_slot_config_t sdslot = {0};
     const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
 #ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
         .format_if_mount_failed = true,
@@ -180,31 +232,49 @@ esp_err_t bsp_sdcard_mount(void)
         .max_files = 5,
         .allocation_unit_size = 16 * 1024
     };
+    assert(cfg);
 
-    const sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-    const sdmmc_slot_config_t slot_config = {
-        .clk = BSP_SD_CLK,
-        .cmd = BSP_SD_CMD,
-        .d0 = BSP_SD_D0,
-        .d1 = GPIO_NUM_NC,
-        .d2 = GPIO_NUM_NC,
-        .d3 = GPIO_NUM_NC,
-        .d4 = GPIO_NUM_NC,
-        .d5 = GPIO_NUM_NC,
-        .d6 = GPIO_NUM_NC,
-        .d7 = GPIO_NUM_NC,
-        .cd = SDMMC_SLOT_NO_CD,
-        .wp = SDMMC_SLOT_NO_WP,
-        .width = 1,
-        .flags = 0,
-    };
+    if (!cfg->mount) {
+        cfg->mount = &mount_config;
+    }
 
-    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
+    if (!cfg->host) {
+        bsp_sdcard_get_sdmmc_host(SDMMC_HOST_SLOT_0, &sdhost);
+        cfg->host = &sdhost;
+    }
+
+    if (!cfg->slot.sdmmc) {
+        bsp_sdcard_sdmmc_get_slot(SDMMC_HOST_SLOT_0, &sdslot);
+        cfg->slot.sdmmc = &sdslot;
+    }
+
+#if !CONFIG_FATFS_LONG_FILENAMES
+    ESP_LOGW(TAG, "Warning: Long filenames on SD card are disabled in menuconfig!");
+#endif
+
+    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, cfg->host, cfg->slot.sdmmc, cfg->mount, &bsp_sdcard);
+}
+
+esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg)
+{
+    ESP_LOGE(TAG, "SD card SPI mode is not supported by HW!");
+    return ESP_ERR_NOT_SUPPORTED;
+}
+
+esp_err_t bsp_sdcard_mount(void)
+{
+    bsp_sdcard_cfg_t cfg = {0};
+    return bsp_sdcard_sdmmc_mount(&cfg);
 }
 
 esp_err_t bsp_sdcard_unmount(void)
 {
-    return esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    esp_err_t ret = ESP_OK;
+
+    ret |= esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    bsp_sdcard = NULL;
+
+    return ret;
 }
 
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)

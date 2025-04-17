@@ -4,7 +4,7 @@ if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "5.0")
     set(REQ driver spiffs fatfs)
 else()
     set(SRC_VER "esp32_s3_korvo_1_idf5.c")
-    set(REQ driver spiffs fatfs esp_adc)
+    set(REQ driver spiffs fatfs esp_adc vfs)
 endif()
 
 idf_component_register(

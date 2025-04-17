@@ -1,4 +1,4 @@
-version: "1.6.0"
+version: "2.0.0"
 description: Board Support Package (BSP) for ESP-WROVER-KIT
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp_wrover_kit
 

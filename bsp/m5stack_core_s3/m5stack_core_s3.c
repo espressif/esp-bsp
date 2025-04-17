@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <string.h>
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
 #include "driver/spi_master.h"
@@ -44,7 +45,7 @@ static lv_display_t *disp;
 static lv_indev_t *disp_indev = NULL;
 #endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
-sdmmc_card_t *bsp_sdcard = NULL;    // Global SD card handler
+static sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 
 /**
  * @brief I2C handle for BSP usage
@@ -219,10 +220,60 @@ esp_err_t bsp_spiffs_unmount(void)
     return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
 }
 
-esp_err_t bsp_sdcard_mount(void)
+sdmmc_card_t *bsp_sdcard_get_handle(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(bsp_enable_feature(BSP_FEATURE_SD));
+    return bsp_sdcard;
+}
 
+void bsp_sdcard_get_sdmmc_host(const int slot, sdmmc_host_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdmmc_host_t));
+    ESP_LOGE(TAG, "SD card MMC mode is not supported by HW (Shared SPI)!");
+}
+
+void bsp_sdcard_get_sdspi_host(const int slot, sdmmc_host_t *config)
+{
+    assert(config);
+
+    sdmmc_host_t host_config = SDSPI_HOST_DEFAULT();
+    host_config.slot = slot;
+
+    memcpy(config, &host_config, sizeof(sdmmc_host_t));
+}
+
+void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdmmc_slot_config_t));
+    ESP_LOGE(TAG, "SD card MMC mode is not supported by HW (Shared SPI)!");
+}
+
+void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_config_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdspi_device_config_t));
+
+    config->gpio_cs   = BSP_SD_SPI_CS;
+    config->gpio_cd   = SDSPI_SLOT_NO_CD;
+    config->gpio_wp   = SDSPI_SLOT_NO_WP;
+    config->gpio_int  = GPIO_NUM_NC;
+    config->host_id = spi_host;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 2, 0)
+    config->gpio_wp_polarity = SDSPI_IO_ACTIVE_LOW;
+#endif
+}
+
+esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
+{
+    ESP_LOGE(TAG, "SD card MMC mode is not supported by HW (Shared SPI)!");
+    return ESP_ERR_NOT_SUPPORTED;
+}
+
+esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg)
+{
+    sdmmc_host_t sdhost = {0};
+    sdspi_device_config_t sdslot = {0};
     const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
 #ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
         .format_if_mount_failed = true,
@@ -232,21 +283,53 @@ esp_err_t bsp_sdcard_mount(void)
         .max_files = 5,
         .allocation_unit_size = 16 * 1024
     };
+    assert(cfg);
 
-    sdmmc_host_t host = SDSPI_HOST_DEFAULT();
-    host.slot = BSP_LCD_SPI_NUM;
-    sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
-    slot_config.gpio_cs = BSP_SD_CS;
-    slot_config.host_id = host.slot;
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_enable_feature(BSP_FEATURE_SD));
 
     ESP_RETURN_ON_ERROR(bsp_spi_init((BSP_LCD_H_RES * BSP_LCD_V_RES) * sizeof(uint16_t)), TAG, "");
 
-    return esp_vfs_fat_sdspi_mount(BSP_SD_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
+    if (!cfg->mount) {
+        cfg->mount = &mount_config;
+    }
+
+    if (!cfg->host) {
+        bsp_sdcard_get_sdspi_host(SDMMC_HOST_SLOT_0, &sdhost);
+        cfg->host = &sdhost;
+    }
+
+    if (!cfg->slot.sdspi) {
+        bsp_sdcard_sdspi_get_slot(BSP_SDSPI_HOST, &sdslot);
+        cfg->slot.sdspi = &sdslot;
+    }
+
+#if !CONFIG_FATFS_LONG_FILENAMES
+    ESP_LOGW(TAG, "Warning: Long filenames on SD card are disabled in menuconfig!");
+#endif
+
+    return esp_vfs_fat_sdspi_mount(BSP_SD_MOUNT_POINT, cfg->host, cfg->slot.sdspi, cfg->mount, &bsp_sdcard);
+}
+
+esp_err_t bsp_sdcard_mount(void)
+{
+    bsp_sdcard_cfg_t cfg = {0};
+    return bsp_sdcard_sdspi_mount(&cfg);
 }
 
 esp_err_t bsp_sdcard_unmount(void)
 {
-    return esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    esp_err_t ret = ESP_OK;
+
+    ret |= esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    bsp_sdcard = NULL;
+
+    //TODO: Check if LCD initialized (when LCD deinit will be covered by BSP)
+    if (spi_initialized) {
+        ret |= spi_bus_free(BSP_SDSPI_HOST);
+        spi_initialized = false;
+    }
+
+    return ret;
 }
 
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
