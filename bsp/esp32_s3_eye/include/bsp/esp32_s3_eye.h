@@ -6,7 +6,7 @@
 
 /**
  * @file
- * @brief ESP BSP: S3-EYE
+ * @brief ESP BSP: ESP32-S3-EYE
  */
 
 #pragma once

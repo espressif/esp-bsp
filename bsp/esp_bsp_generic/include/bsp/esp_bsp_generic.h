@@ -6,7 +6,7 @@
 
 /**
  * @file
- * @brief ESP BSP: Generic
+ * @brief ESP BSP: Generic BSP
  */
 
 #pragma once
@@ -36,7 +36,7 @@
 #define BSP_CAPS_BUTTONS    1
 #endif
 #if CONFIG_BSP_LEDS_NUM > 0
-#define BSP_CAPS_LEDS       1
+#define BSP_CAPS_LED       1
 #endif
 #define BSP_CAPS_AUDIO          0
 #define BSP_CAPS_AUDIO_SPEAKER  0

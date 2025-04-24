@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief ESP BSP: ESP32-S3-Korvo-2
+ */
+
 #pragma once
 
 #include "sdkconfig.h"

@@ -6,7 +6,7 @@
 
 /**
  * @file
- * @brief ESP BSP: Wrover-kit
+ * @brief ESP BSP: ESP-WROVER-KIT
  */
 
 #pragma once

@@ -6,7 +6,7 @@
 
 /**
  * @file
- * @brief ESP BSP: S3-LCD-EV board
+ * @brief ESP BSP: ESP32-S3-LCD-EV-Board
  */
 
 #pragma once

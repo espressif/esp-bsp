@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief ESP BSP: ESP32-LyraT
+ */
+
 #pragma once
 
 #include "sdkconfig.h"

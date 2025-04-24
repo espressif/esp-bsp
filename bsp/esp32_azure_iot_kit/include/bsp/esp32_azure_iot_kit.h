@@ -6,7 +6,8 @@
 
 /**
  * @file
- * @brief ESP BSP: Azure IoT kit
+ * @brief ESP BSP: ESP32-Azure IoT Kit
+ * @deprecated This board is deprecated and no longer maintained
  */
 
 #pragma once

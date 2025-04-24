@@ -7,7 +7,7 @@
 
 /**
  * @file
- * @brief ESP BSP: ESP32-S3-Korvo-1
+ * @brief ESP BSP: ESP32-S3-KORVO-1
  */
 
 #pragma once
