@@ -17,6 +17,10 @@
 #pragma once
 #include "esp_lcd_types.h"
 
+/** \addtogroup g4_display
+ *  @{
+ */
+
 /* LCD color formats */
 #define ESP_LCD_COLOR_FORMAT_RGB565    (1)
 #define ESP_LCD_COLOR_FORMAT_RGB888    (2)
@@ -117,6 +121,8 @@ esp_err_t bsp_display_backlight_on(void);
  *      - ESP_ERR_INVALID_ARG   Parameter error
  */
 esp_err_t bsp_display_backlight_off(void);
+
+/** @} */ // end of display
 
 #ifdef __cplusplus
 }

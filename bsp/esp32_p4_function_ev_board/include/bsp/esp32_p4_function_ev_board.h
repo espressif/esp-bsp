@@ -29,6 +29,12 @@
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_ESP32_P4_FUNCTION_EV_BOARD
+
+/**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
@@ -228,6 +234,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SDSPI_DEFAULT_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;
@@ -392,7 +401,7 @@ lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
  *
  * This function deinitializes MIPI-DSI, display controller and stops LVGL.
  *
- * @param @param[in] disp Pointer to LVGL display
+ * @param display Pointer to LVGL display
  */
 void bsp_display_stop(lv_display_t *display);
 

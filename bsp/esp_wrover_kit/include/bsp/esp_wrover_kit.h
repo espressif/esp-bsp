@@ -6,7 +6,7 @@
 
 /**
  * @file
- * @brief ESP BSP: Wrover-kit
+ * @brief ESP BSP: ESP-WROVER-KIT
  */
 
 #pragma once
@@ -24,6 +24,12 @@
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_ESP_WROVER_KIT
 
 /**************************************************************************************************
  *  BSP Capabilities
@@ -145,6 +151,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SPI3_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;

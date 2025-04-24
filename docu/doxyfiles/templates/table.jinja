@@ -1,0 +1,15 @@
+{%- if nodes -%}
+## {{title}}
+
+| Type | Name |
+| ---: | :--- |
+{% for node in nodes -%}
+{% if node.is_struct -%}
+| {{node.kind.value}} | [**{{node.name_long if node.is_group else node.name_short}}**]({{node.relative_link}}) {{node.suffix}}<br>{{node.brief}} |
+{% elif node.is_enum or node.is_function or node.is_variable or node.is_union or node.is_typedef -%}
+| {{node.prefix}} {{node.type}} | [**{{node.name_long if node.is_group else node.name_short}}**]({{node.relative_link}}) {{node.params}} {{node.suffix}}<br>{{node.brief}} |
+{% else -%}
+| {{node.prefix}} {{node.type}} | [**{{node.name_long if node.is_group else node.name_short}}**]({{node.relative_link}}) {{node.params}} {{node.suffix | replace('|', '\|')}}<br>{{node.brief}} |
+{% endif -%}
+{%- endfor -%}
+{%- endif -%}
