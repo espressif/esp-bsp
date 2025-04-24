@@ -4,6 +4,12 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+/**
+ * @file
+ * @brief BSP Generic Button and LED Example
+ * @details Minimal example using the Generic BSP: button and LED control
+ */
+
 #include <stdio.h>
 #include "bsp/esp-bsp.h"
 #include "esp_log.h"

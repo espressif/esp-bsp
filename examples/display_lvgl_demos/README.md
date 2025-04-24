@@ -1,21 +1,25 @@
-# Display LVGL Demos
+# BSP: Display LVGL Demos
 
-This example shows LVGL internal demos with RGB LCD.
+## Overview
 
-For common issues about RGB LCD, please refer to [LCD Development Guide](https://docs.espressif.com/projects/esp-iot-solution/en/latest/display/lcd/lcd_development_guide.html#common-problems).
+<table>
+<tr><td valign="top">
 
-## How to use the example
+This example shows LVGL internal demo - LVGL demo player (all LVGL examples are included).
 
-### Hardware Required
+</td><td width="200" valign="top">
+  <img src="doc/pic.webp">
+</td></tr>
+</table>
 
-* ESP32-S3-LCD-EV-Board or ESP32-S3-LCD-EV-Board-2
-* USB-C Cable
+## Build and Flash
 
-### Compile and flash
+To build and flash the example for a specific `{board}` and `{port}`, use the following command:
 
 ```
-idf.py -p COMx build flash monitor
+idf.py -D SDKCONFIG_DEFAULTS=sdkconfig.bsp.{board} -p {port} flash monitor
 ```
+Make sure the correct board name is set in the `main/idf_component.yml` file under the `dependencies` section.
 
 ### Example outputs
 
@@ -62,6 +66,10 @@ W (1165) S3-LCD-EV-BOARD: This board doesn't support to change brightness of LCD
 I (1171) app_main: Display LVGL demo
 I (1370) main_task: Returned from app_main()
 ```
+
+## Launch Example
+
+You can also try this example using ESP Launchpad:
 
 <a href="https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos">
     <img alt="Try it with ESP Launchpad" src="https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png" width="250" height="70">

@@ -1,6 +1,16 @@
 # BSP: Display USB HID Example
 
+## Overview
+
+<table>
+<tr><td valign="top">
+
 This example demonstrates usage of the USB HID (keyboard, mouse or GamePad) with Board Support Package.
+
+</td><td width="200" valign="top">
+  <img src="doc/pic.webp">
+</td></tr>
+</table>
 
 ## How to use the example
 
@@ -10,11 +20,14 @@ This example demonstrates usage of the USB HID (keyboard, mouse or GamePad) with
   - connect 5V USB power supply to the left "USB DEV" connector
   - connect USB keyboard/mouse to the right "USB Host" connector
 
-### Compile and flash
+## Build and Flash
+
+To build and flash the example for a specific `{board}` and `{port}`, use the following command:
 
 ```
-idf.py -p COMx flash monitor
+idf.py -D SDKCONFIG_DEFAULTS=sdkconfig.bsp.{board} -p {port} flash monitor
 ```
+Make sure the correct board name is set in the `main/idf_component.yml` file under the `dependencies` section.
 
 ### Example outputs
 

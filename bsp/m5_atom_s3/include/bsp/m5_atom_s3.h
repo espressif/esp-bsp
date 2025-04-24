@@ -24,9 +24,24 @@
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_M5_ATOM_S3
+/** @} */ // end of boardname
+
+/**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          0
 #define BSP_CAPS_BUTTONS        1
@@ -36,15 +51,24 @@
 #define BSP_CAPS_AUDIO_MIC      0
 #define BSP_CAPS_SDCARD         0
 #define BSP_CAPS_IMU            0
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  *  Atom S3 pinout
  **************************************************************************************************/
-/* I2C */
+
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_SCL           (GPIO_NUM_39)
 #define BSP_I2C_SDA           (GPIO_NUM_38)
+/** @} */ // end of i2c
 
-/* Display */
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
 #define BSP_LCD_MOSI          (GPIO_NUM_21)
 #define BSP_LCD_MISO          (GPIO_NUM_NC)
 #define BSP_LCD_PCLK          (GPIO_NUM_17)
@@ -52,8 +76,12 @@
 #define BSP_LCD_DC            (GPIO_NUM_33)
 #define BSP_LCD_RST           (GPIO_NUM_34)
 #define BSP_LCD_BACKLIGHT     (GPIO_NUM_16)
+/** @} */ // end of display
 
-/* Buttons */
+/** @defgroup g05_buttons Buttons
+ *  @brief Buttons BSP API
+ *  @{
+ */
 #define BSP_BUTTON_PRESS_IO  (GPIO_NUM_41)
 
 /* Buttons */
@@ -61,10 +89,15 @@ typedef enum {
     BSP_BUTTON_PRESS,
     BSP_BUTTON_NUM
 } bsp_button_t;
+/** @} */ // end of buttons
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** \addtogroup g01_i2c
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -104,6 +137,13 @@ esp_err_t bsp_i2c_deinit(void);
  */
 i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
+/** @} */ // end of i2c
+
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * SPIFFS
@@ -141,6 +181,12 @@ esp_err_t bsp_spiffs_mount(void);
  *      - other error codes
  */
 esp_err_t bsp_spiffs_unmount(void);
+
+/** @} */ // end of storage
+
+/** \addtogroup g04_display
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -232,6 +278,12 @@ void bsp_display_unlock(void);
 void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation);
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
+/** @} */ // end of display
+
+/** \addtogroup g05_buttons
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * Button
@@ -255,6 +307,8 @@ void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation);
  *     - ESP_FAIL             Underlaying iot_button_create failed
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
+
+/** @} */ // end of buttons
 
 #ifdef __cplusplus
 }

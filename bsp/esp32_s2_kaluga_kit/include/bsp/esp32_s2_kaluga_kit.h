@@ -1,12 +1,12 @@
 /*
- * SPDX-FileCopyrightText: 2021-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2021-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
  * @file
- * @brief ESP BSP: Kaluga kit
+ * @brief ESP BSP: ESP32-S2-Kaluga Kit
  */
 
 #pragma once
@@ -23,9 +23,24 @@
 #include "esp_adc/adc_oneshot.h"
 
 /**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_ESP32_S2_KALUGA_KIT
+/** @} */ // end of boardname
+
+/**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          0
 #define BSP_CAPS_BUTTONS        1
@@ -36,41 +51,47 @@
 #define BSP_CAPS_SDCARD         0
 #define BSP_CAPS_IMU            0
 #define BSP_CAPS_CAMERA         1
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  * ESP32-S2 Kaluga Kit pinout
  **************************************************************************************************/
-/* I2C */
+
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_SCL           (GPIO_NUM_7)
 #define BSP_I2C_SDA           (GPIO_NUM_8)
+/** @} */ // end of i2c
 
-/* Audio */
+/** @defgroup g03_audio Audio
+ *  @brief Audio BSP API
+ *  @{
+ */
 #define BSP_I2S_SCLK          (GPIO_NUM_18)
 #define BSP_I2S_MCLK          (GPIO_NUM_35)
 #define BSP_I2S_LCLK          (GPIO_NUM_17)
 #define BSP_I2S_DOUT          (GPIO_NUM_12)
 #define BSP_I2S_DSIN          (GPIO_NUM_34)
 #define BSP_POWER_AMP_IO      (GPIO_NUM_10)
+/** @} */ // end of audio
 
-/* Display */
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
 #define BSP_LCD_SPI_MOSI      (GPIO_NUM_9)
 #define BSP_LCD_SPI_CLK       (GPIO_NUM_15)
 #define BSP_LCD_SPI_CS        (GPIO_NUM_11)
 #define BSP_LCD_DC            (GPIO_NUM_13)
 #define BSP_LCD_RST           (GPIO_NUM_16)
+/** @} */ // end of display
 
-/* Touch pad */
-/* Make sure that microswitches T1-6, T11 and T14 at the bottom of the Kaluga board are in ON position */
-#define BSP_TOUCH_BUTTON_PLAY     (GPIO_NUM_2)
-#define BSP_TOUCH_BUTTON_PHOTO    (GPIO_NUM_6)
-#define BSP_TOUCH_BUTTON_NETWORK  (GPIO_NUM_11)
-#define BSP_TOUCH_BUTTON_RECORD   (GPIO_NUM_5)
-#define BSP_TOUCH_BUTTON_VOLUP    (GPIO_NUM_1)
-#define BSP_TOUCH_BUTTON_VOLDOWN  (GPIO_NUM_3)
-#define BSP_TOUCH_BUTTON_GUARD    (GPIO_NUM_4)
-#define BSP_TOUCH_SHELED_ELECT    (GPIO_NUM_14)
-
-/* Camera */
+/** @defgroup g08_camera Camera
+ *  @brief Camera BSP API
+ *  @{
+ */
 #define BSP_CAMERA_XCLK      (GPIO_NUM_1)
 #define BSP_CAMERA_PCLK      (GPIO_NUM_33)
 #define BSP_CAMERA_VSYNC     (GPIO_NUM_2)
@@ -83,28 +104,40 @@
 #define BSP_CAMERA_D5        (GPIO_NUM_40) /*!< Labeled as: D7 */
 #define BSP_CAMERA_D6        (GPIO_NUM_21) /*!< Labeled as: D8 */
 #define BSP_CAMERA_D7        (GPIO_NUM_38) /*!< Labeled as: D9 */
+/** @} */ // end of camera
 
-/* Others */
+/** @defgroup g06_led Leds
+ *  @brief Leds BSP API
+ *  @{
+ */
 #define BSP_LEDSTRIP_IO      (GPIO_NUM_45)
+/** @} */ // end of leds
+
+/** @defgroup g05_buttons Buttons
+ *  @brief Buttons BSP API
+ *  @{
+ */
 #define BSP_BUTTONS_IO       (GPIO_NUM_6) // Push buttons on audio board, all mapped to this GPIO
+
+/* Touch pad */
+/* Make sure that microswitches T1-6, T11 and T14 at the bottom of the Kaluga board are in ON position */
+#define BSP_TOUCH_BUTTON_PLAY     (GPIO_NUM_2)
+#define BSP_TOUCH_BUTTON_PHOTO    (GPIO_NUM_6)
+#define BSP_TOUCH_BUTTON_NETWORK  (GPIO_NUM_11)
+#define BSP_TOUCH_BUTTON_RECORD   (GPIO_NUM_5)
+#define BSP_TOUCH_BUTTON_VOLUP    (GPIO_NUM_1)
+#define BSP_TOUCH_BUTTON_VOLDOWN  (GPIO_NUM_3)
+#define BSP_TOUCH_BUTTON_GUARD    (GPIO_NUM_4)
+#define BSP_TOUCH_SHELED_ELECT    (GPIO_NUM_14)
+/** @} */ // end of buttons
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * @brief BSP display configuration structure
- *
+/** \addtogroup g03_audio
+ *  @{
  */
-typedef struct {
-    lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
-    uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
-    bool            double_buffer;  /*!< True, if should be allocated two buffers */
-    struct {
-        unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
-        unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
-    } flags;
-} bsp_display_cfg_t;
 
 /**************************************************************************************************
  *
@@ -132,8 +165,6 @@ typedef struct {
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
  * @warning The type of i2s_config param is depending on IDF version.
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
- * @param[out] tx_channel I2S TX channel
- * @param[out] rx_channel I2S RX channel
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
@@ -165,6 +196,12 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
  * @return Pointer to codec device handle or NULL when error occurred
  */
 esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
+
+/** @} */ // end of audio
+
+/** \addtogroup g01_i2c
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -205,6 +242,13 @@ esp_err_t bsp_i2c_deinit(void);
  */
 i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
+/** @} */ // end of i2c
+
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * SPIFFS
@@ -242,6 +286,12 @@ esp_err_t bsp_spiffs_mount(void);
  *      - other error codes
  */
 esp_err_t bsp_spiffs_unmount(void);
+
+/** @} */ // end of storage
+
+/** \addtogroup g08_camera
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -298,6 +348,12 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_CAMERA_VFLIP        1
 #define BSP_CAMERA_HMIRROR      0
 
+/** @} */ // end of camera
+
+/** \addtogroup g04_display
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * LCD interface
@@ -317,6 +373,20 @@ esp_err_t bsp_spiffs_unmount(void);
 
 #define BSP_LCD_DRAW_BUFF_SIZE     (BSP_LCD_H_RES * 20)
 #define BSP_LCD_DRAW_BUFF_DOUBLE   (0)
+
+/**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
+    uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
+    bool            double_buffer;  /*!< True, if should be allocated two buffers */
+    struct {
+        unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
+        unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
+    } flags;
+} bsp_display_cfg_t;
 
 /**
  * @brief Initialize display and graphics library
@@ -372,6 +442,13 @@ void bsp_display_unlock(void);
  */
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 
+/** @} */ // end of display
+
+/** @defgroup g01_adc ADC
+ *  @brief ADC BSP API
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * ADC interface
@@ -389,8 +466,6 @@ void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
  * @brief Initialize ADC
  *
  * The ADC can be initialized inside BSP, when needed.
- *
- * @param[out] adc_handle Returned ADC handle
  */
 esp_err_t bsp_adc_initialize(void);
 
@@ -402,6 +477,12 @@ esp_err_t bsp_adc_initialize(void);
  * @return ADC handle
  */
 adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
+
+/** @} */ // end of adc
+
+/** \addtogroup g05_buttons
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -502,6 +583,8 @@ esp_err_t bsp_touchpad_deinit(void);
  *      - ESP_ERR_INVALID_ARG   NULL pointer or invalid configuration
  */
 esp_err_t bsp_touchpad_calibrate(bsp_touchpad_button_t tch_pad, float tch_threshold);
+
+/** @} */ // end of buttons
 
 #ifdef __cplusplus
 }

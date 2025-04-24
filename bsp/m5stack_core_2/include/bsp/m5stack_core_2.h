@@ -29,9 +29,24 @@
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_M5STACK_CORE_2
+/** @} */ // end of boardname
+
+/**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          1
 #define BSP_CAPS_BUTTONS        0
@@ -40,14 +55,24 @@
 #define BSP_CAPS_AUDIO_MIC      0
 #define BSP_CAPS_SDCARD         1
 #define BSP_CAPS_IMU            0
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  *  M5Stack-Core-2 pinout
  **************************************************************************************************/
-/* I2C */
+
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_SCL           (GPIO_NUM_22)
 #define BSP_I2C_SDA           (GPIO_NUM_21)
-/* Audio */
+/** @} */ // end of i2c
+
+/** @defgroup g03_audio Audio
+ *  @brief Audio BSP API
+ *  @{
+ */
 #define BSP_I2S_SCLK          (GPIO_NUM_12) //I2S_BCK
 #define BSP_I2S_MCLK          (GPIO_NUM_NC)
 #define BSP_I2S_LCLK          (GPIO_NUM_0) //I2S_WCK
@@ -55,7 +80,12 @@
 #define BSP_I2S_DSIN          (GPIO_NUM_34)
 #define BSP_POWER_AMP_IO      (GPIO_NUM_NC)
 #define BSP_MUTE_STATUS       (GPIO_NUM_NC)
-/* Display */
+/** @} */ // end of audio
+
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
 #define BSP_LCD_MOSI          (GPIO_NUM_23)
 #define BSP_LCD_MISO          (GPIO_NUM_38)
 #define BSP_LCD_PCLK          (GPIO_NUM_18)
@@ -64,17 +94,26 @@
 #define BSP_LCD_RST           (GPIO_NUM_NC)
 #define BSP_LCD_BACKLIGHT     (GPIO_NUM_NC)
 #define BSP_LCD_TOUCH_INT     (GPIO_NUM_39)
+/** @} */ // end of display
 
-/* SD card */
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
 #define BSP_SD_SPI_MOSI           (GPIO_NUM_23)
 #define BSP_SD_SPI_MISO           (GPIO_NUM_38)
 #define BSP_SD_SPI_SCK            (GPIO_NUM_18)
 #define BSP_SD_SPI_CS             (GPIO_NUM_4)
+/** @} */ // end of storage
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** \addtogroup g03_audio
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -126,6 +165,12 @@ const audio_codec_data_if_t *bsp_audio_get_codec_itf(void);
  */
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
 
+/** @} */ // end of audio
+
+/** \addtogroup g01_i2c
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * I2C interface
@@ -156,6 +201,12 @@ esp_err_t bsp_i2c_init(void);
  *
  */
 esp_err_t bsp_i2c_deinit(void);
+
+/** @} */ // end of i2c
+
+/** \addtogroup g02_storage
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -211,6 +262,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SPI2_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;
@@ -312,6 +366,12 @@ esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg);
  */
 esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
 
+/** @} */ // end of storage
+
+/** \addtogroup g04_display
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * LCD interface
@@ -402,6 +462,13 @@ void bsp_display_unlock(void);
 void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation);
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
+/** @} */ // end of display
+
+/** @defgroup g99_others Others
+ *  @brief Other BSP API
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * BSP Features
@@ -433,6 +500,8 @@ typedef enum {
 } bsp_feature_t;
 
 esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable);
+
+/** @} */ // end of others
 
 #ifdef __cplusplus
 }
