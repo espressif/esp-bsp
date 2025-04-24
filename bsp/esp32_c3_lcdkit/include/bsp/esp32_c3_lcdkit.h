@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -7,7 +7,7 @@
 
 /**
  * @file
- * @brief ESP BSP: ESP32-C3-LCDkit
+ * @brief ESP BSP: ESP32-C3-LCDKit
  */
 
 #pragma once
@@ -19,6 +19,13 @@
 #include "esp_lvgl_port.h"
 #include "esp_codec_dev.h"
 #include "bsp/display.h"
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_ESP32_C3_LCDKIT
+
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
@@ -26,6 +33,7 @@
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          0
 #define BSP_CAPS_BUTTONS        0
+#define BSP_CAPS_KNOB           1
 #define BSP_CAPS_AUDIO          1
 #define BSP_CAPS_AUDIO_SPEAKER  1
 #define BSP_CAPS_AUDIO_MIC      0

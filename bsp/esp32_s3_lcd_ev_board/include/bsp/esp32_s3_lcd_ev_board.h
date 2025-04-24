@@ -6,7 +6,7 @@
 
 /**
  * @file
- * @brief ESP BSP: S3-LCD-EV board
+ * @brief ESP BSP: ESP32-S3-LCD-EV-Board
  */
 
 #pragma once
@@ -26,6 +26,13 @@
 #include "esp_lvgl_port.h"
 
 #include "sdkconfig.h"
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_ESP32_S3_LCD_EV_BOARD
+
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
@@ -480,8 +487,6 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
  * @brief Initialize ADC
  *
  * The ADC can be initialized inside BSP, when needed.
- *
- * @param[out] adc_handle Returned ADC handle
  */
 esp_err_t bsp_adc_initialize(void);
 

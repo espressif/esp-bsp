@@ -4,6 +4,12 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+/**
+ * @file
+ * @brief BSP LVGL Benchmark Example
+ * @details Run LVGL benchmark tests
+ */
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"

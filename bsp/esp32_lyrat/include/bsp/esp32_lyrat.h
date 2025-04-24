@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief ESP BSP: ESP32-LyraT
+ */
+
 #pragma once
 
 #include "sdkconfig.h"
@@ -22,6 +27,13 @@
 #else
 #include "driver/i2s_std.h"
 #endif
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_ESP32_LYRAT
+
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
@@ -264,6 +276,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SDSPI_DEFAULT_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;

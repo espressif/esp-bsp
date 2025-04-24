@@ -7,7 +7,7 @@
 
 /**
  * @file
- * @brief ESP BSP: ESP32-S3-Korvo-1
+ * @brief ESP BSP: ESP32-S3-KORVO-1
  */
 
 #pragma once
@@ -26,6 +26,13 @@
 #include "driver/i2s_tdm.h"
 #include "esp_adc/adc_oneshot.h"
 #endif
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_ESP32_S3_KORVO_1
+
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
@@ -143,8 +150,6 @@ typedef enum {
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
  * @warning The type of i2s_config param is depending on IDF version.
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
- * @param[out] tx_channel I2S TX channel
- * @param[out] rx_channel I2S RX channel
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
@@ -238,8 +243,6 @@ esp_err_t bsp_i2c_deinit(void);
  * @brief Initialize ADC
  *
  * The ADC can be initialized inside BSP, when needed.
- *
- * @param[out] adc_handle Returned ADC handle
  */
 esp_err_t bsp_adc_initialize(void);
 
@@ -336,11 +339,11 @@ esp_err_t bsp_spiffs_unmount(void);
 
 /**************************************************************************************************
  *
- * uSD card
+ * SD card
  *
- * After mounting the uSD card, it can be accessed with stdio functions ie.:
+ * After mounting the SD card, it can be accessed with stdio functions ie.:
  * \code{.c}
- * FILE* f = fopen(BSP_MOUNT_POINT"/hello.txt", "w");
+ * FILE* f = fopen(BSP_SD_MOUNT_POINT"/hello.txt", "w");
  * fprintf(f, "Hello %s!\n", bsp_sdcard->cid.name);
  * fclose(f);
  * \endcode
@@ -348,6 +351,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SDSPI_DEFAULT_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;
