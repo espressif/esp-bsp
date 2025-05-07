@@ -7,7 +7,7 @@
 
 /**
  * @file
- * @brief ESP BSP: ESP32-C3-LCDkit
+ * @brief ESP BSP: ESP32-C3-LCDKit
  */
 
 #pragma once
@@ -26,6 +26,7 @@
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          0
 #define BSP_CAPS_BUTTONS        0
+#define BSP_CAPS_KNOB           1
 #define BSP_CAPS_AUDIO          1
 #define BSP_CAPS_AUDIO_SPEAKER  1
 #define BSP_CAPS_AUDIO_MIC      0

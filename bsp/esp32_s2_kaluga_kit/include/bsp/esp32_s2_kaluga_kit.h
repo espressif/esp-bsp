@@ -6,7 +6,7 @@
 
 /**
  * @file
- * @brief ESP BSP: Kaluga kit
+ * @brief ESP BSP: ESP32-S2-Kaluga Kit
  */
 
 #pragma once

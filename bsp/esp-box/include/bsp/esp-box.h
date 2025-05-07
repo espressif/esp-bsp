@@ -7,6 +7,7 @@
 /**
  * @file
  * @brief ESP BSP: ESP-BOX
+ * @deprecated This board is deprecated and no longer maintained
  */
 
 #pragma once

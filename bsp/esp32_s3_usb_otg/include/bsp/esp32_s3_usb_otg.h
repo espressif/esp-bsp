@@ -6,7 +6,7 @@
 
 /**
  * @file
- * @brief ESP BSP: S3-USB-OTG kit
+ * @brief ESP BSP: ESP32-S3-USB-OTG
  */
 
 #pragma once
