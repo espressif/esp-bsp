@@ -3,7 +3,9 @@ PROJECT_BRIEF          = "Board support packages for development boards using Es
 OUTPUT_DIRECTORY       = ./doxygen_output
 OPTIMIZE_OUTPUT_FOR_C  = YES
 WARN_IF_UNDOCUMENTED   = NO
-INPUT                  = ./
+INPUT                  = 
+    ./
+    bsp/
 RECURSIVE              = YES
 EXCLUDE                = docu \
                          examples \
