@@ -25,5 +25,11 @@ PREDEFINED             = \
     ESP_LVGL_PORT_USB_HOST_HID_COMPONENT=1
 
 # Warning-related settings, it's recommended to keep them enabled
-WARN_IF_UNDOC_ENUM_VAL = YES
 WARN_AS_ERROR = YES
+
+FULL_PATH_NAMES = YES
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+HAVE_DOT = NO
+QUIET = YES
