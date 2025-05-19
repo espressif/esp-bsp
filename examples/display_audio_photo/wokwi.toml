@@ -1,0 +1,6 @@
+
+
+[wokwi]
+version = 1
+elf = "build/display_audio_photo.elf"
+firmware = "build/display_audio_photo.bin"

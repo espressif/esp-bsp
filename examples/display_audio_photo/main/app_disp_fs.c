@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -179,10 +179,11 @@ void app_disp_fs_init(void)
     assert(file_buffer);
 
     /* Initialize root path */
-    strcpy(fs_current_path, FS_MNT_PATH);
+    //strcpy(fs_current_path, FS_MNT_PATH);
 
     /* Show list of files */
     app_disp_lvgl_show_files(FS_MNT_PATH);
+
 }
 
 /*******************************************************************************
@@ -677,6 +678,15 @@ static void app_lvgl_add_folder(const char *filename)
 
 static void app_disp_lvgl_show_files(const char *path)
 {
+
+    //app_lvgl_add_folder("Documents");
+    app_lvgl_add_file("Death Star.jpg");
+    app_lvgl_add_file("esp_logo.jpg");
+    app_lvgl_add_file("imperial_march.wav");
+    app_lvgl_add_file("Millenium Falcon.jpg");
+    app_lvgl_add_file("Readme.txt");
+
+#if 0
     struct dirent *dir;
     DIR *d;
 
@@ -709,6 +719,7 @@ static void app_disp_lvgl_show_files(const char *path)
     }
 
     bsp_display_unlock();
+#endif
 }
 
 static void app_disp_lvgl_show_filesystem(lv_obj_t *screen, lv_group_t *group)

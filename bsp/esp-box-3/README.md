@@ -36,7 +36,7 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 |:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     es8311     |                                                                                                                                                                                                                             |            |
 |:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                                                                                                                                             |            |
 |:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                                                                             idf                                                                                                             |    >=5.3   |
-|:heavy_check_mark:|    :video_game: IMU    |                |                                                                     [espressif/icm42670](https://components.espressif.com/components/espressif/icm42670)                                                                    |   ^2.0.1   |
+|        :x:       |    :video_game: IMU    |                |                                                                                                                                                                                                                             |            |
 
 <!-- END_DEPENDENCIES -->
 </div>

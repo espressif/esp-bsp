@@ -1,0 +1,6 @@
+
+
+[wokwi]
+version = 1
+elf = "build/display_lvgl_demos.elf"
+firmware = "build/display_lvgl_demos.bin"

@@ -1,0 +1,6 @@
+
+
+[wokwi]
+version = 1
+elf = "build/display.elf"
+firmware = "build/display.bin"

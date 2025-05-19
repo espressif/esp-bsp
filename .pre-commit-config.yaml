@@ -62,9 +62,3 @@ repos:
         types_or: [c, c++, text]
         args: ['--fix=lf']
         description: Forces to replace line ending by the UNIX 'lf' character
-
-  - repo: https://github.com/espressif/doxybook
-    rev: v0.2.2
-    hooks:
-      - id: doxygen-api-md
-        args: ["-i", "doxygen/xml", "-o", "./API.md"]

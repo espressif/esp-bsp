@@ -1,0 +1,16 @@
+{
+    "version": 1,
+    "author": "Uri Shaked",
+    "editor": "wokwi",
+    "parts": [
+      {
+        "type": "board-esp32-s3-box-3",
+        "id": "esp32",
+        "top": -24.91,
+        "left": -388.54,
+        "attrs": { "builder": "esp-idf", "psramSize": "16", "flashSize": "16" }
+      }
+    ],
+    "connections": [ [ "$serialMonitor:RX", "esp32:G14", "", [] ], [ "$serialMonitor:TX", "esp32:G11", "", [] ] ],
+    "dependencies": {}
+  }

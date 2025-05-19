@@ -24,7 +24,7 @@ static const char *TAG = "example";
 void app_main(void)
 {
     /* Initialize and mount SPIFFS */
-    bsp_spiffs_mount();
+    //bsp_spiffs_mount();
 
     /* Initialize I2C (for touch and audio) */
     bsp_i2c_init();
@@ -42,7 +42,7 @@ void app_main(void)
     app_disp_fs_init();
 
     /* Initialize audio */
-    app_audio_init();
+    //app_audio_init();
 
     ESP_LOGI(TAG, "Example initialization done.");
 

@@ -45,7 +45,7 @@
 #define BSP_CAPS_AUDIO_SPEAKER  1
 #define BSP_CAPS_AUDIO_MIC      1
 #define BSP_CAPS_SDCARD         1
-#define BSP_CAPS_IMU            1
+#define BSP_CAPS_IMU            0
 
 /**************************************************************************************************
  *  ESP-BOX pinout
