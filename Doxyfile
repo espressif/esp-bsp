@@ -12,7 +12,6 @@ EXCLUDE                = docu \
 EXCLUDE_PATTERNS       = */build/* \
                          */managed_components/* \
                          */dist/*
-USE_MDFILE_AS_MAINPAGE = ./README.md
 GENERATE_LATEX         = NO
 GENERATE_HTML          = NO
 GENERATE_XML           = YES
