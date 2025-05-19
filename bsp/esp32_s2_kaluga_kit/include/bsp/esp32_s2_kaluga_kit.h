@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2021-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2021-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -21,6 +21,12 @@
 #include "esp_codec_dev.h"
 #include "bsp/display.h"
 #include "esp_adc/adc_oneshot.h"
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_ESP32_S2_KALUGA_KIT
 
 /**************************************************************************************************
  *  BSP Capabilities

@@ -20,7 +20,7 @@ The goal of this document is to make it easier for developers to understand the 
 
 ### Identification
 
-Each BSP defines an identifier macro in the form of `BSP_NAME_*`.
+Each BSP defines an identifier macro in the form of `BSP_BOARD_*`.
 
 ### Capabilities
 

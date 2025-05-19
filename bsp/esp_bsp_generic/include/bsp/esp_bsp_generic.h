@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -22,6 +22,13 @@
 #include "bsp/display.h"
 #include "esp_lvgl_port.h"
 #endif //CONFIG_BSP_DISPLAY_ENABLED
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_GENERIC
+
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
