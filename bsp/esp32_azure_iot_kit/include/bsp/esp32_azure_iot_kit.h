@@ -6,7 +6,8 @@
 
 /**
  * @file
- * @brief ESP BSP: Azure IoT kit
+ * @brief ESP BSP: ESP32-Azure IoT Kit
+ * @deprecated This board is deprecated and no longer maintained
  */
 
 #pragma once
@@ -20,6 +21,12 @@
 #include "iot_button.h"
 #include "esp_lvgl_port.h"
 #include "bsp/display.h"
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_ESP32_AZURE_IOT_KIT
 
 /**************************************************************************************************
  *  BSP Capabilities
@@ -188,6 +195,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SDSPI_DEFAULT_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;

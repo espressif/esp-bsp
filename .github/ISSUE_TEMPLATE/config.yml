@@ -5,4 +5,4 @@ url: https://github.com/espressif/esp-bsp/blob/master/README.md
 - name: ESP32 Forum
 url: www.esp32.com
 - name: Development Guide for BSP
-url: https://github.com/espressif/esp-bsp/blob/master/BSP_development_guide.md
+url: https://github.com/espressif/esp-bsp/blob/master/docu/BSP_development_guide.md

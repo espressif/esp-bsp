@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -21,6 +21,12 @@
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_M5DIAL
 
 /**************************************************************************************************
  *  BSP Capabilities

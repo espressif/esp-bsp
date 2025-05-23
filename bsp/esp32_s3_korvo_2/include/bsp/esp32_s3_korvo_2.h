@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief ESP BSP: ESP32-S3-Korvo-2
+ */
+
 #pragma once
 
 #include "sdkconfig.h"
@@ -20,6 +25,12 @@
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
 #include "bsp/display.h"
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_ESP32_S3_KORVO_2
 
 /**************************************************************************************************
  *  BSP Capabilities
@@ -201,8 +212,6 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
  *
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
- * @param[out] tx_channel I2S TX channel
- * @param[out] rx_channel I2S RX channel
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
@@ -406,6 +415,9 @@ esp_io_expander_handle_t bsp_io_expander_init(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SPI3_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;
@@ -627,8 +639,6 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
  * @brief Initialize ADC
  *
  * The ADC can be initialized inside BSP, when needed.
- *
- * @param[out] adc_handle Returned ADC handle
  */
 esp_err_t bsp_adc_initialize(void);
 
