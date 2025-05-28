@@ -3,3 +3,6 @@ dependencies:
   esp32_p4_function_ev_board:
     version: '*'
     override_path: ../../../bsp/esp32_p4_function_ev_board
+  lvgl:
+    version: '*'
+    path: '../components/lvgl'
