@@ -91,6 +91,7 @@ jobs:
         run: |
           . ${IDF_PATH}/export.sh
           pip install idf-component-manager==1.* ruamel.yaml idf-build-apps==2.4.3 --upgrade
+          git config --global --add safe.directory /__w/esp-bsp/esp-bsp
 
           echo "Files changed: "${{env.ALL_CHANGED_FILES}}
           idf-build-apps find ${{env.ALL_CHANGED_FILES}}
