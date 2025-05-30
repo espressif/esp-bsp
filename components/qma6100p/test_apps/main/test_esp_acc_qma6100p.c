@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include "unity.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "qma6100p.h"
 #include "esp_system.h"
 #include "esp_log.h"
@@ -21,25 +21,21 @@
 
 static const char *TAG = "qma6100p test";
 static qma6100p_handle_t qma6100p = NULL;
+static i2c_master_bus_handle_t i2c_handle = NULL;
 
 /**
  * @brief i2c master initialization
  */
 static void i2c_bus_init(void)
 {
-    i2c_config_t conf;
-    conf.mode = I2C_MODE_MASTER;
-    conf.sda_io_num = (gpio_num_t)I2C_MASTER_SDA_IO;
-    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.scl_io_num = (gpio_num_t)I2C_MASTER_SCL_IO;
-    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.master.clk_speed = I2C_MASTER_FREQ_HZ;
-    conf.clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL;
+    const i2c_master_bus_config_t bus_config = {
+        .i2c_port = I2C_MASTER_NUM,
+        .sda_io_num = I2C_MASTER_SDA_IO,
+        .scl_io_num = I2C_MASTER_SCL_IO,
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+    };
 
-    esp_err_t ret = i2c_param_config(I2C_MASTER_NUM, &conf);
-    TEST_ASSERT_EQUAL_MESSAGE(ESP_OK, ret, "I2C config returned error");
-
-    ret = i2c_driver_install(I2C_MASTER_NUM, conf.mode, 0, 0, 0);
+    esp_err_t ret = i2c_new_master_bus(&bus_config, &i2c_handle);
     TEST_ASSERT_EQUAL_MESSAGE(ESP_OK, ret, "I2C install returned error");
 }
 
@@ -51,7 +47,8 @@ static void i2c_sensor_qma6100p_init(void)
     esp_err_t ret;
 
     i2c_bus_init();
-    qma6100p = qma6100p_create(I2C_MASTER_NUM, QMA6100P_I2C_ADDRESS);
+    ret = qma6100p_create(i2c_handle, QMA6100P_I2C_ADDRESS, &qma6100p);
+    TEST_ASSERT_EQUAL(ESP_OK, ret);
     TEST_ASSERT_NOT_NULL_MESSAGE(qma6100p, "QMA6100P create returned NULL");
 
     ret = qma6100p_wake_up(qma6100p);
@@ -75,7 +72,7 @@ TEST_CASE("Sensor qma6100p test", "[qma6100p][iot][sensor]")
     ESP_LOGI(TAG, "acce_x:%.2f, acce_y:%.2f, acce_z:%.2f\n", acce.acce_x, acce.acce_y, acce.acce_z);
 
     qma6100p_delete(qma6100p);
-    ret = i2c_driver_delete(I2C_MASTER_NUM);
+    ret = i2c_del_master_bus(i2c_handle);
     TEST_ASSERT_EQUAL(ESP_OK, ret);
 }
 

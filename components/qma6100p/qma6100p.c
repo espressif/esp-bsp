@@ -8,8 +8,12 @@
 #include <time.h>
 #include <sys/time.h>
 #include "esp_system.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "qma6100p.h"
+#include "esp_err.h"
+#include "esp_check.h"
+
+#define I2C_CLK_SPEED 400000
 
 #define QMA6100P_WHO_AM_I             0x00u
 #define QMA6100P_ACCEL_CONFIG         0x0Fu
@@ -38,7 +42,6 @@
 #define QMA6100P_FIFO_DATA            0x3Fu
 #define QMA6100P_FIFO_MODE            0x3Eu
 
-
 const uint8_t QMA6100P_DATA_RDY_INT_BIT =      (uint8_t) BIT4;
 // FIFO full interrupt
 const uint8_t QMA6100P_FIFO_FULL_INT_BIT =     (uint8_t) BIT5;
@@ -47,11 +50,11 @@ const uint8_t QMA6100P_FIFO_WM_INT_BIT =       (uint8_t) BIT6;
 const uint8_t QMA6100P_FIFO_OF_INT_BIT =       (uint8_t) BIT7;
 const uint8_t QMA6100P_ALL_INTERRUPTS = (QMA6100P_DATA_RDY_INT_BIT | QMA6100P_FIFO_FULL_INT_BIT | QMA6100P_FIFO_WM_INT_BIT | QMA6100P_FIFO_OF_INT_BIT);
 
+static const char *TAG = "QMA6100P";
 
 typedef struct {
-    i2c_port_t bus;
+    i2c_master_dev_handle_t i2c_handle;
     gpio_num_t int_pin;
-    uint16_t dev_addr;
     uint32_t counter;
     float dt;  /*!< delay time between two measurements, dt should be small (ms level) */
     struct timeval *timer;
@@ -60,65 +63,55 @@ typedef struct {
 static esp_err_t qma6100p_write(qma6100p_handle_t sensor, const uint8_t reg_start_addr, const uint8_t data_buf)
 {
     qma6100p_dev_t *sens = (qma6100p_dev_t *) sensor;
-    esp_err_t  ret;
 
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    ret = i2c_master_start(cmd);
-    assert(ESP_OK == ret);
-    ret = i2c_master_write_byte(cmd, sens->dev_addr | I2C_MASTER_WRITE, true);
-    assert(ESP_OK == ret);
-    ret = i2c_master_write_byte(cmd, reg_start_addr, true);
-    assert(ESP_OK == ret);
-    ret = i2c_master_write_byte(cmd, data_buf, true);
-    assert(ESP_OK == ret);
-    ret = i2c_master_stop(cmd);
-    assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd);
-
-    return ret;
+    uint8_t write_buff[2] = {reg_start_addr, data_buf};
+    return i2c_master_transmit(sens->i2c_handle, write_buff, 2, -1);
 }
 
 static esp_err_t qma6100p_read(qma6100p_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf, const uint8_t data_len)
 {
     qma6100p_dev_t *sens = (qma6100p_dev_t *) sensor;
-    esp_err_t  ret;
 
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    ret = i2c_master_start(cmd);
-    assert(ESP_OK == ret);
-    ret = i2c_master_write_byte(cmd, sens->dev_addr | I2C_MASTER_WRITE, true);
-    assert(ESP_OK == ret);
-    ret = i2c_master_write_byte(cmd, reg_start_addr, true);
-    assert(ESP_OK == ret);
-    ret = i2c_master_start(cmd);
-    assert(ESP_OK == ret);
-    ret = i2c_master_write_byte(cmd, sens->dev_addr | I2C_MASTER_READ, true);
-    assert(ESP_OK == ret);
-    ret = i2c_master_read(cmd, data_buf, data_len, I2C_MASTER_LAST_NACK);
-    assert(ESP_OK == ret);
-    ret = i2c_master_stop(cmd);
-    assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd);
+    uint8_t reg_buff[] = {reg_start_addr};
+    assert(sens);
 
-    return ret;
+    return i2c_master_transmit_receive(sens->i2c_handle, reg_buff, sizeof(reg_buff), data_buf, data_len, -1);
 }
 
-qma6100p_handle_t qma6100p_create(i2c_port_t port, const uint16_t dev_addr)
+esp_err_t qma6100p_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_addr, qma6100p_handle_t *handle_ret)
 {
+    esp_err_t ret = ESP_OK;
+
     qma6100p_dev_t *sensor = (qma6100p_dev_t *) calloc(1, sizeof(qma6100p_dev_t));
-    sensor->bus = port;
-    sensor->dev_addr = dev_addr << 1;
-    sensor->counter = 0;
-    sensor->dt = 0;
-    sensor->timer = (struct timeval *) calloc(1, sizeof(struct timeval));
-    return (qma6100p_handle_t) sensor;
+    struct timeval *timer = (struct timeval *) calloc(1, sizeof(struct timeval));
+    ESP_RETURN_ON_FALSE(sensor != NULL && timer != NULL, ESP_ERR_NO_MEM, TAG, "Not enough memory");
+    sensor->timer = timer;
+
+    // Add new I2C device
+    const i2c_device_config_t i2c_dev_cfg = {
+        .device_address = dev_addr,
+        .scl_speed_hz = I2C_CLK_SPEED,
+    };
+    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg, &sensor->i2c_handle), err, TAG, "Failed to add new I2C device");
+    assert(sensor->i2c_handle);
+
+    *handle_ret = sensor;
+    return ret;
+
+err:
+    qma6100p_delete(sensor);
+    return ret;
 }
 
 void qma6100p_delete(qma6100p_handle_t sensor)
 {
     qma6100p_dev_t *sens = (qma6100p_dev_t *) sensor;
+    if (sens->i2c_handle) {
+        i2c_master_bus_rm_device(sens->i2c_handle);
+    }
+    if (sens->timer) {
+        free(sens->timer);
+    }
     free(sens);
 }
 

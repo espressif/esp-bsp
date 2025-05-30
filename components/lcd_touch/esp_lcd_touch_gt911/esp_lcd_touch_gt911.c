@@ -132,7 +132,7 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
 
         vTaskDelay(pdMS_TO_TICKS(50));
     } else {
-        ESP_LOGW(TAG, "Unable to initialize the I2C address");
+        ESP_LOGI(TAG, "I2C address initialization procedure skipped - using default GT9xx setup");
         /* Reset controller */
         ret = touch_gt911_reset(esp_lcd_touch_gt911);
         ESP_GOTO_ON_ERROR(ret, err, TAG, "GT911 reset failed");
@@ -158,6 +158,8 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
     ret = touch_gt911_read_cfg(esp_lcd_touch_gt911);
     ESP_GOTO_ON_ERROR(ret, err, TAG, "GT911 init failed");
 
+    *out_touch = esp_lcd_touch_gt911;
+
 err:
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error (0x%x)! Touch controller GT911 initialization failed!", ret);
@@ -165,8 +167,6 @@ err:
             esp_lcd_touch_gt911_del(esp_lcd_touch_gt911);
         }
     }
-
-    *out_touch = esp_lcd_touch_gt911;
 
     return ret;
 }
@@ -239,19 +239,21 @@ static esp_err_t esp_lcd_touch_gt911_read_data(esp_lcd_touch_handle_t tp)
         /* Buttons count */
         tp->data.buttons = key_max;
         for (i = 0; i < key_max; i++) {
-            tp->data.button[i].status = buf[0] ? 1 : 0;
+            tp->data.button[i].status = buf[i] ? 1 : 0;
         }
 
         portEXIT_CRITICAL(&tp->data.lock);
 #endif
     } else if ((buf[0] & 0x80) == 0x80) {
-#if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
         portENTER_CRITICAL(&tp->data.lock);
+        /* Invalidate */
+        tp->data.points = 0;
+#if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
         for (i = 0; i < CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS; i++) {
             tp->data.button[i].status = 0;
         }
-        portEXIT_CRITICAL(&tp->data.lock);
 #endif
+        portEXIT_CRITICAL(&tp->data.lock);
         /* Count of touched points */
         touch_cnt = buf[0] & 0x0f;
         if (touch_cnt > 5 || touch_cnt == 0) {
@@ -307,9 +309,6 @@ static bool esp_lcd_touch_gt911_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, u
             strength[i] = tp->data.coords[i].strength;
         }
     }
-
-    /* Invalidate */
-    tp->data.points = 0;
 
     portEXIT_CRITICAL(&tp->data.lock);
 

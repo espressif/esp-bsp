@@ -1,9 +1,10 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <string.h>
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "driver/i2c.h"
@@ -18,11 +19,13 @@
 #include "esp_codec_dev_defaults.h"
 #include "led_indicator.h"
 #include "esp_vfs_fat.h"
+#include "button_adc.h"
 
 static const char *TAG = "S3-Korvo-1";
 
 static bool i2c_initialized = false;
-sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
+static sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
+static bool spi_sd_initialized = false;
 
 esp_err_t bsp_i2c_init(void)
 {
@@ -150,72 +153,67 @@ static adc_oneshot_unit_handle_t bsp_adc_handle = NULL;
 
 extern blink_step_t const *bsp_led_blink_defaults_lists[];
 
-static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+static const button_adc_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
+        .adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
+        .adc_handle = &bsp_adc_handle,
 #endif
-        .adc_button_config.button_index = BSP_BUTTON_REC,
-        .adc_button_config.min = 2310, // middle is 2410mV
-        .adc_button_config.max = 2510,
+        .button_index = BSP_BUTTON_REC,
+        .min = 2310, // middle is 2410mV
+        .max = 2510,
     },
     {
-        .type = BUTTON_TYPE_ADC,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
+        .adc_handle = &bsp_adc_handle,
 #endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
-        .adc_button_config.button_index = BSP_BUTTON_MODE,
-        .adc_button_config.min = 1880, // middle is 1980mV
-        .adc_button_config.max = 2080,
+        .adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
+        .button_index = BSP_BUTTON_MODE,
+        .min = 1880, // middle is 1980mV
+        .max = 2080,
     },
     {
-        .type = BUTTON_TYPE_ADC,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
+        .adc_handle = &bsp_adc_handle,
 #endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
-        .adc_button_config.button_index = BSP_BUTTON_PLAY,
-        .adc_button_config.min = 1560, // middle is 1660mV
-        .adc_button_config.max = 1760,
+        .adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
+        .button_index = BSP_BUTTON_PLAY,
+        .min = 1560, // middle is 1660mV
+        .max = 1760,
     },
     {
-        .type = BUTTON_TYPE_ADC,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
+        .adc_handle = &bsp_adc_handle,
 #endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
-        .adc_button_config.button_index = BSP_BUTTON_SET,
-        .adc_button_config.min = 1010, // middle is 1100mV
-        .adc_button_config.max = 1210,
+        .adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
+        .button_index = BSP_BUTTON_SET,
+        .min = 1010, // middle is 1100mV
+        .max = 1210,
     },
     {
-        .type = BUTTON_TYPE_ADC,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
+        .adc_handle = &bsp_adc_handle,
 #endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
-        .adc_button_config.button_index = BSP_BUTTON_VOLDOWN,
-        .adc_button_config.min = 720, // middle is 820mV
-        .adc_button_config.max = 920,
+        .adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
+        .button_index = BSP_BUTTON_VOLDOWN,
+        .min = 720, // middle is 820mV
+        .max = 920,
     },
     {
-        .type = BUTTON_TYPE_ADC,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
+        .adc_handle = &bsp_adc_handle,
 #endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
-        .adc_button_config.button_index = BSP_BUTTON_VOLUP,
-        .adc_button_config.min = 280, // middle is 380mV
-        .adc_button_config.max = 480,
+        .adc_channel = ADC_CHANNEL_7, // ADC1 channel 7 is GPIO8
+        .button_index = BSP_BUTTON_VOLUP,
+        .min = 280, // middle is 380mV
+        .max = 480,
     }
 };
 
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
+    const button_config_t btn_config = {0};
     if ((btn_array_size < BSP_BUTTON_NUM) ||
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
@@ -230,11 +228,7 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
-        }
+        ret |= iot_button_new_adc_device(&btn_config, &bsp_button_config[i], &btn_array[i]);
         if (btn_cnt) {
             (*btn_cnt)++;
         }
@@ -245,7 +239,6 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
 static const led_strip_config_t bsp_leds_rgb_strip_config = {
     .strip_gpio_num = BSP_LED_RGB_GPIO,   // The GPIO that connected to the LED strip's data line
     .max_leds = BSP_LED_NUM,                  // The number of LEDs in the strip,
-    .led_pixel_format = LED_PIXEL_FORMAT_GRB, // Pixel format of your LED strip
     .led_model = LED_MODEL_WS2812,            // LED strip model
     .flags.invert_out = false,                // whether to invert the output signal
 };
@@ -320,40 +313,167 @@ esp_err_t bsp_spiffs_unmount(void)
     return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
 }
 
-esp_err_t bsp_sdcard_mount(void)
+sdmmc_card_t *bsp_sdcard_get_handle(void)
 {
+    return bsp_sdcard;
+}
+
+void bsp_sdcard_get_sdmmc_host(const int slot, sdmmc_host_t *config)
+{
+    assert(config);
+
+    sdmmc_host_t host_config = SDMMC_HOST_DEFAULT();
+
+    memcpy(config, &host_config, sizeof(sdmmc_host_t));
+}
+
+void bsp_sdcard_get_sdspi_host(const int slot, sdmmc_host_t *config)
+{
+    assert(config);
+
+    sdmmc_host_t host_config = SDSPI_HOST_DEFAULT();
+    host_config.slot = slot;
+
+    memcpy(config, &host_config, sizeof(sdmmc_host_t));
+}
+
+void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdmmc_slot_config_t));
+
+    config->cd = SDMMC_SLOT_NO_CD;
+    config->wp = SDMMC_SLOT_NO_WP;
+    config->clk = BSP_SD_CLK;
+    config->cmd = BSP_SD_CMD;
+    config->d0 = BSP_SD_D0;
+    config->d1 = GPIO_NUM_NC;
+    config->d2 = GPIO_NUM_NC;
+    config->d3 = GPIO_NUM_NC;
+    config->d4 = GPIO_NUM_NC;
+    config->d5 = GPIO_NUM_NC;
+    config->d6 = GPIO_NUM_NC;
+    config->d7 = GPIO_NUM_NC;
+    config->width = 1;
+    config->flags = SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
+}
+
+void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_config_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdspi_device_config_t));
+
+    config->gpio_cs   = BSP_SD_SPI_CS;
+    config->gpio_cd   = SDSPI_SLOT_NO_CD;
+    config->gpio_wp   = SDSPI_SLOT_NO_WP;
+    config->gpio_int  = GPIO_NUM_NC;
+    config->host_id = spi_host;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 2, 0)
+    config->gpio_wp_polarity = SDSPI_IO_ACTIVE_LOW;
+#endif
+}
+
+esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
+{
+    sdmmc_host_t sdhost = {0};
+    sdmmc_slot_config_t sdslot = {0};
     const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
 #ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
         .format_if_mount_failed = true,
 #else
         .format_if_mount_failed = false,
 #endif
-        .max_files = CONFIG_BSP_SD_MAX_FILES,
+        .max_files = 5,
         .allocation_unit_size = 16 * 1024
     };
+    assert(cfg);
 
-    const sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-    const sdmmc_slot_config_t slot_config = {
-        .clk = BSP_SD_CLK,
-        .cmd = BSP_SD_CMD,
-        .d0 = BSP_SD_D0,
-        .d1 = GPIO_NUM_NC,
-        .d2 = GPIO_NUM_NC,
-        .d3 = GPIO_NUM_NC,
-        .d4 = GPIO_NUM_NC,
-        .d5 = GPIO_NUM_NC,
-        .d6 = GPIO_NUM_NC,
-        .d7 = GPIO_NUM_NC,
-        .cd = SDMMC_SLOT_NO_CD,
-        .wp = SDMMC_SLOT_NO_WP,
-        .width = 1,
-        .flags = 0,
+    if (!cfg->mount) {
+        cfg->mount = &mount_config;
+    }
+
+    if (!cfg->host) {
+        bsp_sdcard_get_sdmmc_host(SDMMC_HOST_SLOT_0, &sdhost);
+        cfg->host = &sdhost;
+    }
+
+    if (!cfg->slot.sdmmc) {
+        bsp_sdcard_sdmmc_get_slot(SDMMC_HOST_SLOT_0, &sdslot);
+        cfg->slot.sdmmc = &sdslot;
+    }
+
+#if !CONFIG_FATFS_LONG_FILENAMES
+    ESP_LOGW(TAG, "Warning: Long filenames on SD card are disabled in menuconfig!");
+#endif
+
+    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, cfg->host, cfg->slot.sdmmc, cfg->mount, &bsp_sdcard);
+}
+
+esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg)
+{
+    sdmmc_host_t sdhost = {0};
+    sdspi_device_config_t sdslot = {0};
+    const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
+        .format_if_mount_failed = true,
+#else
+        .format_if_mount_failed = false,
+#endif
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024
     };
+    assert(cfg);
 
-    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
+    ESP_LOGD(TAG, "Initialize SPI bus");
+    const spi_bus_config_t buscfg = {
+        .sclk_io_num     = BSP_SD_SPI_CLK,
+        .mosi_io_num     = BSP_SD_SPI_MOSI,
+        .miso_io_num     = BSP_SD_SPI_MISO,
+        .quadwp_io_num   = GPIO_NUM_NC,
+        .quadhd_io_num   = GPIO_NUM_NC,
+        .max_transfer_sz = 4000,
+    };
+    ESP_RETURN_ON_ERROR(spi_bus_initialize(BSP_SDSPI_HOST, &buscfg, SPI_DMA_CH_AUTO), TAG, "SPI init failed");
+    spi_sd_initialized = true;
+
+    if (!cfg->mount) {
+        cfg->mount = &mount_config;
+    }
+
+    if (!cfg->host) {
+        bsp_sdcard_get_sdspi_host(SDMMC_HOST_SLOT_0, &sdhost);
+        cfg->host = &sdhost;
+    }
+
+    if (!cfg->slot.sdspi) {
+        bsp_sdcard_sdspi_get_slot(BSP_SDSPI_HOST, &sdslot);
+        cfg->slot.sdspi = &sdslot;
+    }
+
+#if !CONFIG_FATFS_LONG_FILENAMES
+    ESP_LOGW(TAG, "Warning: Long filenames on SD card are disabled in menuconfig!");
+#endif
+
+    return esp_vfs_fat_sdspi_mount(BSP_SD_MOUNT_POINT, cfg->host, cfg->slot.sdspi, cfg->mount, &bsp_sdcard);
+}
+
+esp_err_t bsp_sdcard_mount(void)
+{
+    bsp_sdcard_cfg_t cfg = {0};
+    return bsp_sdcard_sdmmc_mount(&cfg);
 }
 
 esp_err_t bsp_sdcard_unmount(void)
 {
-    return esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    esp_err_t ret = ESP_OK;
+
+    ret |= esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    bsp_sdcard = NULL;
+
+    if (spi_sd_initialized) {
+        ret |= spi_bus_free(BSP_SDSPI_HOST);
+        spi_sd_initialized = false;
+    }
+
+    return ret;
 }

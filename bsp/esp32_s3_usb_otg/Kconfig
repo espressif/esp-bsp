@@ -39,7 +39,7 @@ menu "Board Support Package"
             help
                 The SDMMC host will format (FAT) the uSD card if it fails to mount the filesystem.
 
-        config BSP_uSD_MOUNT_POINT
+        config BSP_SD_MOUNT_POINT
             string "uSD card mount point"
             default "/sdcard"
             help

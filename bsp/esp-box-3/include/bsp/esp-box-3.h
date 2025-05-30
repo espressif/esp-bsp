@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,20 +13,21 @@
 
 #include "sdkconfig.h"
 #include "driver/gpio.h"
-#include "driver/i2c.h"
+#include "driver/i2s_std.h"
+#include "driver/i2c_master.h"
 #include "driver/sdmmc_host.h"
-#include "soc/usb_pins.h"
-#include "lvgl.h"
-#include "esp_lvgl_port.h"
+#include "driver/sdspi_host.h"
+#include "esp_vfs_fat.h"
 #include "esp_codec_dev.h"
 #include "iot_button.h"
+#include "bsp/config.h"
 #include "bsp/display.h"
 
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-#include "driver/i2s.h"
-#else
-#include "driver/i2s_std.h"
-#endif
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+#include "lvgl.h"
+#include "esp_lvgl_port.h"
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
+
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
@@ -67,14 +68,14 @@
 #define BSP_LCD_TOUCH_INT     (GPIO_NUM_3)
 
 /* USB */
-#define BSP_USB_POS           USBPHY_DP_NUM
-#define BSP_USB_NEG           USBPHY_DM_NUM
+#define BSP_USB_POS           (GPIO_NUM_20)
+#define BSP_USB_NEG           (GPIO_NUM_19)
 
 /* Buttons */
 #define BSP_BUTTON_CONFIG_IO  (GPIO_NUM_0)
 #define BSP_BUTTON_MUTE_IO    (GPIO_NUM_1)
 
-/* SD card */
+/* uSD card MMC */
 #define BSP_SD_D0             (GPIO_NUM_9)
 #define BSP_SD_D1             (GPIO_NUM_13)
 #define BSP_SD_D2             (GPIO_NUM_42)
@@ -83,6 +84,12 @@
 #define BSP_SD_CLK            (GPIO_NUM_11)
 #define BSP_SD_DET            (GPIO_NUM_NC)
 #define BSP_SD_POWER          (GPIO_NUM_43)
+
+/* uSD card SPI */
+#define BSP_SD_SPI_MISO       (GPIO_NUM_9)
+#define BSP_SD_SPI_CS         (GPIO_NUM_12)
+#define BSP_SD_SPI_MOSI       (GPIO_NUM_14)
+#define BSP_SD_SPI_CLK        (GPIO_NUM_11)
 
 /* PMOD */
 /*
@@ -133,20 +140,6 @@ typedef enum {
 extern "C" {
 #endif
 
-/**
- * @brief BSP display configuration structure
- *
- */
-typedef struct {
-    lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
-    uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
-    bool            double_buffer;  /*!< True, if should be allocated two buffers */
-    struct {
-        unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
-        unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
-    } flags;
-} bsp_display_cfg_t;
-
 /**************************************************************************************************
  *
  * I2S audio interface
@@ -181,11 +174,7 @@ typedef struct {
  *      - ESP_ERR_NO_MEM        No memory for storing the channel information
  *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
  */
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-esp_err_t bsp_audio_init(const i2s_config_t *i2s_config);
-#else
 esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
-#endif
 
 /**
  * @brief Get codec I2S interface (initialized in bsp_audio_init)
@@ -219,11 +208,6 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
  *  - Encryption chip ATECC608A (NOT populated on most boards)
  *  - LCD Touch controller
  *  - Inertial Measurement Unit ICM-42607-P
- *
- * After initialization of I2C, use BSP_I2C_NUM macro when creating I2C devices drivers ie.:
- * \code{.c}
- * icm42670_handle_t imu = icm42670_create(BSP_I2C_NUM, ICM42670_I2C_ADDRESS);
- * \endcode
  **************************************************************************************************/
 #define BSP_I2C_NUM     CONFIG_BSP_I2C_NUM
 
@@ -247,6 +231,14 @@ esp_err_t bsp_i2c_init(void);
  *
  */
 esp_err_t bsp_i2c_deinit(void);
+
+/**
+ * @brief Get I2C driver handle
+ *
+ * @return
+ *      - I2C handle
+ */
+i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
 /**************************************************************************************************
  *
@@ -300,7 +292,16 @@ esp_err_t bsp_spiffs_unmount(void);
  * @attention IO2 is also routed to RGB LED and push button
  **************************************************************************************************/
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
-extern sdmmc_card_t *bsp_sdcard;
+#define BSP_SDSPI_HOST          (SPI2_HOST)
+
+typedef struct {
+    const esp_vfs_fat_sdmmc_mount_config_t *mount;
+    sdmmc_host_t *host;
+    union {
+        const sdmmc_slot_config_t   *sdmmc;
+        const sdspi_device_config_t *sdspi;
+    } slot;
+} bsp_sdcard_cfg_t;
 
 /**
  * @brief Mount microSD card to virtual file system
@@ -327,6 +328,73 @@ esp_err_t bsp_sdcard_mount(void);
  */
 esp_err_t bsp_sdcard_unmount(void);
 
+/**
+ * @brief Get SD card handle
+ *
+ * @return SD card handle
+ */
+sdmmc_card_t *bsp_sdcard_get_handle(void);
+
+/**
+ * @brief Get SD card MMC host config
+ *
+ * @param slot SD card slot
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_get_sdmmc_host(const int slot, sdmmc_host_t *config);
+
+/**
+ * @brief Get SD card SPI host config
+ *
+ * @param slot SD card slot
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_get_sdspi_host(const int slot, sdmmc_host_t *config);
+
+/**
+ * @brief Get SD card MMC slot config
+ *
+ * @param slot SD card slot
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config);
+
+/**
+ * @brief Get SD card SPI slot config
+ *
+ * @param spi_host SPI host ID
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_config_t *config);
+
+/**
+ * @brief Mount microSD card to virtual file system (MMC mode)
+ *
+ * @param cfg SD card configuration
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_fat_sdmmc_mount was already called
+ *      - ESP_ERR_NO_MEM if memory cannot be allocated
+ *      - ESP_FAIL if partition cannot be mounted
+ *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+ */
+esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg);
+
+/**
+ * @brief Mount microSD card to virtual file system (SPI mode)
+ *
+ * @param cfg SD card configuration
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_fat_sdmmc_mount was already called
+ *      - ESP_ERR_NO_MEM if memory cannot be allocated
+ *      - ESP_FAIL if partition cannot be mounted
+ *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+ */
+esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
+
 /**************************************************************************************************
  *
  * LCD interface
@@ -342,6 +410,22 @@ esp_err_t bsp_sdcard_unmount(void);
  **************************************************************************************************/
 #define BSP_LCD_PIXEL_CLOCK_HZ     (40 * 1000 * 1000)
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
+
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+
+/**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
+    uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
+    bool            double_buffer;  /*!< True, if should be allocated two buffers */
+    struct {
+        unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
+        unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
+    } flags;
+} bsp_display_cfg_t;
 
 /**
  * @brief Initialize display
@@ -420,6 +504,7 @@ esp_err_t bsp_display_exit_sleep(void);
  * @param[in] rotation Angle of the display rotation
  */
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 /**************************************************************************************************
  *
  * Button

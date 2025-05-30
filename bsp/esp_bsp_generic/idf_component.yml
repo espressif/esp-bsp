@@ -1,5 +1,5 @@
 
-version: "1.2.0"
+version: "3.0.0"
 description: Generic Board Support Package (BSP)
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp_bsp_generic
 
@@ -7,7 +7,7 @@ tags:
   - bsp
 
 dependencies:
-  idf: ">=4.4.2"
+  idf: ">=5.2"
   esp_lcd_touch_tt21100:  "^1"
   esp_lcd_touch_gt1151:   "^1"
   esp_lcd_touch_gt911:    "^1"
@@ -17,11 +17,11 @@ dependencies:
   esp_lcd_gc9a01:   "^1"
 
   button:
-    version: ">=2.5,<4.0"
+    version: "^4"
     public: true
 
   led_indicator:
-    version: "^0.9"
+    version: "^1"
     public: true
 
   espressif/esp_lvgl_port:

@@ -153,6 +153,8 @@ esp_err_t esp_lcd_touch_new_i2c_ft5x06(const esp_lcd_panel_io_handle_t io, const
     ret = touch_ft5x06_init(esp_lcd_touch_ft5x06);
     ESP_GOTO_ON_ERROR(ret, err, TAG, "FT5x06 init failed");
 
+    *out_touch = esp_lcd_touch_ft5x06;
+
 err:
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error (0x%x)! Touch controller FT5x06 initialization failed!", ret);
@@ -160,8 +162,6 @@ err:
             esp_lcd_touch_ft5x06_del(esp_lcd_touch_ft5x06);
         }
     }
-
-    *out_touch = esp_lcd_touch_ft5x06;
 
     return ret;
 }

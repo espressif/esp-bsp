@@ -1,9 +1,10 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <string.h>
 #include "driver/gpio.h"
 #include "driver/ledc.h"
 #include "driver/spi_master.h"
@@ -17,13 +18,13 @@
 #include "esp_vfs_fat.h"
 
 #include "iot_button.h"
+#include "button_gpio.h"
 #include "bsp/esp-box-3.h"
 #include "bsp/display.h"
 #include "bsp/touch.h"
 #include "esp_lcd_touch_tt21100.h"
 #include "esp_lcd_touch_gt911.h"
 #include "esp_lcd_ili9341.h"
-#include "esp_lvgl_port.h"
 #include "bsp_err_check.h"
 #include "esp_codec_dev_defaults.h"
 
@@ -53,36 +54,66 @@ static const ili9341_lcd_init_cmd_t vendor_specific_init[] = {
     {0, (uint8_t []){0}, 0xff, 0},
 };
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *disp;
 static lv_indev_t *disp_indev = NULL;
-static esp_lcd_touch_handle_t tp;   // LCD touch handle
 static esp_lcd_panel_handle_t panel_handle = NULL;
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
-sdmmc_card_t *bsp_sdcard = NULL;    // Global SD card handler
+static esp_lcd_touch_handle_t tp;   // LCD touch handle
+static sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
+static bool spi_sd_initialized = false;
+
+/**
+ * @brief I2C handle for BSP usage
+ *
+ * In IDF v5.4 you can call i2c_master_get_bus_handle(BSP_I2C_NUM, i2c_master_bus_handle_t *ret_handle)
+ * from #include "esp_private/i2c_platform.h" to get this handle
+ *
+ * For IDF 5.2 and 5.3 you must call bsp_i2c_get_handle()
+ */
+static i2c_master_bus_handle_t i2c_handle = NULL;
 static bool i2c_initialized = false;
 
 // This is just a wrapper to get function signature for espressif/button API callback
-static uint8_t bsp_get_main_button(void *param);
-static esp_err_t bsp_init_main_button(void *param);
+static uint8_t bsp_get_main_button(button_driver_t *button_driver);
 
-static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+typedef enum {
+    BSP_BUTTON_TYPE_GPIO,
+    BSP_BUTTON_TYPE_CUSTOM
+} bsp_button_type_t;
+
+typedef struct {
+    bsp_button_type_t type;
+    union {
+        button_gpio_config_t gpio;
+        button_driver_t      custom;
+    } cfg;
+} bsp_button_config_t;
+
+static const bsp_button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_CONFIG_IO,
-        .gpio_button_config.active_level = 0,
+        .type = BSP_BUTTON_TYPE_GPIO,
+        .cfg.gpio = {
+            .gpio_num = BSP_BUTTON_CONFIG_IO,
+            .active_level = 0,
+        }
     },
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_MUTE_IO,
-        .gpio_button_config.active_level = 0,
+        .type = BSP_BUTTON_TYPE_GPIO,
+        .cfg.gpio = {
+            .gpio_num = BSP_BUTTON_MUTE_IO,
+            .active_level = 0,
+        }
     },
     {
-        .type = BUTTON_TYPE_CUSTOM,
-        .custom_button_config.button_custom_init = bsp_init_main_button,
-        .custom_button_config.button_custom_get_key_value = bsp_get_main_button,
-        .custom_button_config.button_custom_deinit = NULL,
-        .custom_button_config.active_level = 1,
-        .custom_button_config.priv = (void *) BSP_BUTTON_MAIN,
+        .type = BSP_BUTTON_TYPE_CUSTOM,
+        .cfg.custom = {
+            .enable_power_save = false,
+            .get_key_level = bsp_get_main_button,
+            .enter_power_save = NULL,
+            .del = NULL
+        }
     }
 };
 
@@ -93,41 +124,34 @@ esp_err_t bsp_i2c_init(void)
         return ESP_OK;
     }
 
-    const i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    const i2c_master_bus_config_t i2c_config = {
+        .i2c_port = BSP_I2C_NUM,
         .sda_io_num = BSP_I2C_SDA,
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_io_num = BSP_I2C_SCL,
-        .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
+        .clk_source = I2C_CLK_SRC_DEFAULT,
     };
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
     i2c_initialized = true;
-
     return ESP_OK;
 }
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
     i2c_initialized = false;
     return ESP_OK;
 }
 
+i2c_master_bus_handle_t bsp_i2c_get_handle(void)
+{
+    bsp_i2c_init();
+    return i2c_handle;
+}
+
 static esp_err_t bsp_i2c_device_probe(uint8_t addr)
 {
-    esp_err_t ret = ESP_ERR_NOT_FOUND;
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (addr << 1) | I2C_MASTER_WRITE, true);
-    i2c_master_stop(cmd);
-    if (i2c_master_cmd_begin(BSP_I2C_NUM, cmd, 1000) == ESP_OK) {
-        ret = ESP_OK;
-    }
-    i2c_cmd_link_delete(cmd);
-    return ret;
+    return i2c_master_probe(i2c_handle, addr, 100);
 }
 
 esp_err_t bsp_spiffs_mount(void)
@@ -163,17 +187,67 @@ esp_err_t bsp_spiffs_unmount(void)
     return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
 }
 
-esp_err_t bsp_sdcard_mount(void)
+sdmmc_card_t *bsp_sdcard_get_handle(void)
 {
-    gpio_config_t power_gpio_config = {
-        .mode = GPIO_MODE_OUTPUT,
-        .pin_bit_mask = 1ULL << BSP_SD_POWER
-    };
-    ESP_ERROR_CHECK(gpio_config(&power_gpio_config));
+    return bsp_sdcard;
+}
 
-    /* SD card power on first */
-    ESP_ERROR_CHECK(gpio_set_level(BSP_SD_POWER, 0));
+void bsp_sdcard_get_sdmmc_host(const int slot, sdmmc_host_t *config)
+{
+    assert(config);
 
+    sdmmc_host_t host_config = SDMMC_HOST_DEFAULT();
+
+    memcpy(config, &host_config, sizeof(sdmmc_host_t));
+}
+
+void bsp_sdcard_get_sdspi_host(const int slot, sdmmc_host_t *config)
+{
+    assert(config);
+
+    sdmmc_host_t host_config = SDSPI_HOST_DEFAULT();
+    host_config.slot = slot;
+
+    memcpy(config, &host_config, sizeof(sdmmc_host_t));
+}
+
+void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdmmc_slot_config_t));
+
+    /* SD card is connected to Slot 0 pins. Slot 0 uses IO MUX, so not specifying the pins here */
+    config->cd = SDMMC_SLOT_NO_CD;
+    config->wp = SDMMC_SLOT_NO_WP;
+    config->cmd = BSP_SD_CMD;
+    config->clk = BSP_SD_CLK;
+    config->d0 = BSP_SD_D0;
+    config->d1 = BSP_SD_D1;
+    config->d2 = BSP_SD_D2;
+    config->d3 = BSP_SD_D3;
+    config->width = 4;
+    config->flags = 0;
+}
+
+void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_config_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdspi_device_config_t));
+
+    config->gpio_cs   = BSP_SD_SPI_CS;
+    config->gpio_cd   = SDSPI_SLOT_NO_CD;
+    config->gpio_wp   = SDSPI_SLOT_NO_WP;
+    config->gpio_int  = GPIO_NUM_NC;
+    config->host_id = spi_host;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 2, 0)
+    config->gpio_wp_polarity = SDSPI_IO_ACTIVE_LOW;
+#endif
+}
+
+esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
+{
+    sdmmc_host_t sdhost = {0};
+    sdmmc_slot_config_t sdslot = {0};
     const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
 #ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
         .format_if_mount_failed = true,
@@ -183,23 +257,116 @@ esp_err_t bsp_sdcard_mount(void)
         .max_files = 5,
         .allocation_unit_size = 16 * 1024
     };
+    assert(cfg);
 
-    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
-    slot_config.width = 4;
-    slot_config.cmd = BSP_SD_CMD;
-    slot_config.clk = BSP_SD_CLK;
-    slot_config.d0 = BSP_SD_D0;
-    slot_config.d1 = BSP_SD_D1;
-    slot_config.d2 = BSP_SD_D2;
-    slot_config.d3 = BSP_SD_D3;
+    gpio_config_t power_gpio_config = {
+        .mode = GPIO_MODE_OUTPUT,
+        .pin_bit_mask = 1ULL << BSP_SD_POWER
+    };
+    ESP_ERROR_CHECK(gpio_config(&power_gpio_config));
 
-    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
+    /* SD card power on first */
+    ESP_ERROR_CHECK(gpio_set_level(BSP_SD_POWER, 0));
+
+    if (!cfg->mount) {
+        cfg->mount = &mount_config;
+    }
+
+    if (!cfg->host) {
+        bsp_sdcard_get_sdmmc_host(SDMMC_HOST_SLOT_0, &sdhost);
+        cfg->host = &sdhost;
+    }
+
+    if (!cfg->slot.sdmmc) {
+        bsp_sdcard_sdmmc_get_slot(SDMMC_HOST_SLOT_0, &sdslot);
+        cfg->slot.sdmmc = &sdslot;
+    }
+
+#if !CONFIG_FATFS_LONG_FILENAMES
+    ESP_LOGW(TAG, "Warning: Long filenames on SD card are disabled in menuconfig!");
+#endif
+
+    return esp_vfs_fat_sdmmc_mount(BSP_SD_MOUNT_POINT, cfg->host, cfg->slot.sdmmc, cfg->mount, &bsp_sdcard);
+}
+
+esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg)
+{
+    sdmmc_host_t sdhost = {0};
+    sdspi_device_config_t sdslot = {0};
+    const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
+        .format_if_mount_failed = true,
+#else
+        .format_if_mount_failed = false,
+#endif
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024
+    };
+    assert(cfg);
+
+    gpio_config_t power_gpio_config = {
+        .mode = GPIO_MODE_OUTPUT,
+        .pin_bit_mask = 1ULL << BSP_SD_POWER
+    };
+    ESP_ERROR_CHECK(gpio_config(&power_gpio_config));
+
+    /* SD card power on first */
+    ESP_ERROR_CHECK(gpio_set_level(BSP_SD_POWER, 0));
+
+    ESP_LOGD(TAG, "Initialize SPI bus");
+    const spi_bus_config_t buscfg = {
+        .sclk_io_num     = BSP_SD_SPI_CLK,
+        .mosi_io_num     = BSP_SD_SPI_MOSI,
+        .miso_io_num     = BSP_SD_SPI_MISO,
+        .quadwp_io_num   = GPIO_NUM_NC,
+        .quadhd_io_num   = GPIO_NUM_NC,
+        .max_transfer_sz = 4000,
+    };
+    ESP_RETURN_ON_ERROR(spi_bus_initialize(BSP_SDSPI_HOST, &buscfg, SPI_DMA_CH_AUTO), TAG, "SPI init failed");
+    spi_sd_initialized = true;
+
+    if (!cfg->mount) {
+        cfg->mount = &mount_config;
+    }
+
+    if (!cfg->host) {
+        bsp_sdcard_get_sdspi_host(SDMMC_HOST_SLOT_0, &sdhost);
+        cfg->host = &sdhost;
+    }
+
+    if (!cfg->slot.sdspi) {
+        bsp_sdcard_sdspi_get_slot(BSP_SDSPI_HOST, &sdslot);
+        cfg->slot.sdspi = &sdslot;
+    }
+
+#if !CONFIG_FATFS_LONG_FILENAMES
+    ESP_LOGW(TAG, "Warning: Long filenames on SD card are disabled in menuconfig!");
+#endif
+
+    return esp_vfs_fat_sdspi_mount(BSP_SD_MOUNT_POINT, cfg->host, cfg->slot.sdspi, cfg->mount, &bsp_sdcard);
+}
+
+esp_err_t bsp_sdcard_mount(void)
+{
+    bsp_sdcard_cfg_t cfg = {0};
+    return bsp_sdcard_sdmmc_mount(&cfg);
 }
 
 esp_err_t bsp_sdcard_unmount(void)
 {
-    return esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    esp_err_t ret = ESP_OK;
+
+    ret |= esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    bsp_sdcard = NULL;
+
+    if (spi_sd_initialized) {
+        ret |= spi_bus_free(BSP_SDSPI_HOST);
+        spi_sd_initialized = false;
+    }
+
+    gpio_reset_pin(BSP_SD_POWER);
+
+    return ret;
 }
 
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
@@ -219,6 +386,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     audio_codec_i2c_cfg_t i2c_cfg = {
         .port = BSP_I2C_NUM,
         .addr = ES8311_CODEC_DEFAULT_ADDR,
+        .bus_handle = i2c_handle,
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);
@@ -267,6 +435,7 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
     audio_codec_i2c_cfg_t i2c_cfg = {
         .port = BSP_I2C_NUM,
         .addr = ES7210_CODEC_DEFAULT_ADDR,
+        .bus_handle = i2c_handle,
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);
@@ -343,6 +512,7 @@ esp_err_t bsp_display_backlight_on(void)
     return bsp_display_brightness_set(100);
 }
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static esp_err_t bsp_lcd_enter_sleep(void)
 {
     assert(panel_handle);
@@ -354,6 +524,7 @@ static esp_err_t bsp_lcd_exit_sleep(void)
     assert(panel_handle);
     return esp_lcd_panel_disp_on_off(panel_handle, true);
 }
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
 {
@@ -424,6 +595,7 @@ err:
     return ret;
 }
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
@@ -526,8 +698,9 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
         ESP_LOGE(TAG, "Touch not found");
         return ESP_ERR_NOT_FOUND;
     }
+    tp_io_config.scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ; // This parameter was introduced together with I2C Driver-NG in IDF v5.2
 
-    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle), TAG, "");
+    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
     if (ESP_LCD_TOUCH_IO_I2C_TT21100_ADDRESS == tp_io_config.dev_addr) {
         ESP_RETURN_ON_ERROR(esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, ret_touch), TAG, "New tt21100 failed");
     } else {
@@ -618,8 +791,9 @@ esp_err_t bsp_display_exit_sleep(void)
     BSP_ERROR_CHECK_RETURN_ERR(bsp_touch_exit_sleep());
     return ESP_OK;
 }
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
-static uint8_t bsp_get_main_button(void *param)
+static uint8_t bsp_get_main_button(button_driver_t *button_driver)
 {
     assert(tp);
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
@@ -632,17 +806,10 @@ static uint8_t bsp_get_main_button(void *param)
 #endif
 }
 
-static esp_err_t bsp_init_main_button(void *param)
-{
-    if (tp == NULL) {
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_touch_new(NULL, &tp));
-    }
-    return ESP_OK;
-}
-
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
+    const button_config_t btn_config = {0};
     if ((btn_array_size < BSP_BUTTON_NUM) ||
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
@@ -652,10 +819,15 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
+        if (bsp_button_config[i].type == BSP_BUTTON_TYPE_CUSTOM) {
+            if (tp == NULL) {
+                BSP_ERROR_CHECK_RETURN_ERR(bsp_touch_new(NULL, &tp));
+            }
+            ret |= iot_button_create(&btn_config, &bsp_button_config[i].cfg.custom, &btn_array[i]);
+        } else if (bsp_button_config[i].type == BSP_BUTTON_TYPE_GPIO) {
+            ret |= iot_button_new_gpio_device(&btn_config, &bsp_button_config[i].cfg.gpio, &btn_array[i]);
+        } else {
+            ESP_LOGW(TAG, "Unsupported button type!");
         }
         if (btn_cnt) {
             (*btn_cnt)++;

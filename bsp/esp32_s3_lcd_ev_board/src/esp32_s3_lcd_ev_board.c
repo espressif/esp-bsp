@@ -1,10 +1,10 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "driver/i2s_std.h"
 #include "driver/gpio.h"
 #include "esp_codec_dev_defaults.h"
@@ -17,6 +17,7 @@
 #include "esp_log.h"
 #include "esp_spiffs.h"
 #include "iot_button.h"
+#include "button_gpio.h"
 #include "lvgl.h"
 
 #include "bsp/display.h"
@@ -54,6 +55,15 @@
 
 static const char *TAG = "S3-LCD-EV-BOARD";
 
+/**
+ * @brief I2C handle for BSP usage
+ *
+ * In IDF v5.4 you can call i2c_master_get_bus_handle(BSP_I2C_NUM, i2c_master_bus_handle_t *ret_handle)
+ * from #include "esp_private/i2c_platform.h" to get this handle
+ *
+ * For IDF 5.2 and 5.3 you must call bsp_i2c_get_handle()
+ */
+static i2c_master_bus_handle_t i2c_handle = NULL;
 static bool i2c_initialized = false;
 static const audio_codec_data_if_t *i2s_data_if = NULL;  /* Codec data interface */
 static i2s_chan_handle_t i2s_tx_chan = NULL;
@@ -65,11 +75,10 @@ static lv_display_t *disp;
 static lv_indev_t *disp_indev = NULL;
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
 
-static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+static const button_gpio_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_BOOT_IO,
-        .gpio_button_config.active_level = 0,
+        .gpio_num = BSP_BUTTON_BOOT_IO,
+        .active_level = 0,
     },
 };
 /**************************************************************************************************
@@ -89,32 +98,36 @@ esp_err_t bsp_i2c_init(void)
         ESP_LOGE(TAG, "Unknow module type");
         return ESP_FAIL;
     }
-
-    i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    i2c_master_bus_config_t i2c_config = {
+        .i2c_port = BSP_I2C_NUM,
         .sda_io_num = BSP_I2C_SDA,
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_io_num = BSP_I2C_SCL,
-        .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
+        .clk_source = I2C_CLK_SRC_DEFAULT,
     };
+
     // To compatible with ESP32-S3-WROOM-N16R16V module
     if (module_type == MODULE_TYPE_R16) {
-        i2c_conf.sda_io_num = BSP_I2C_SDA_R16;
-        i2c_conf.scl_io_num = BSP_I2C_SCL_R16;
+        i2c_config.sda_io_num = BSP_I2C_SDA_R16;
+        i2c_config.scl_io_num = BSP_I2C_SCL_R16;
     }
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
     i2c_initialized = true;
-
     return ESP_OK;
 }
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
+    i2c_initialized = false;
     return ESP_OK;
+}
+
+i2c_master_bus_handle_t bsp_i2c_get_handle(void)
+{
+    bsp_i2c_init();
+    return i2c_handle;
 }
 
 /**************************************************************************************************
@@ -163,7 +176,7 @@ esp_err_t bsp_spiffs_unmount(void)
 esp_io_expander_handle_t bsp_io_expander_init(void)
 {
     if (!io_expander) {
-        BSP_ERROR_CHECK_RETURN_NULL(esp_io_expander_new_i2c_tca9554(BSP_I2C_NUM, BSP_IO_EXPANDER_I2C_ADDRESS, &io_expander));
+        BSP_ERROR_CHECK_RETURN_NULL(esp_io_expander_new_i2c_tca9554(i2c_handle, BSP_IO_EXPANDER_I2C_ADDRESS, &io_expander));
     }
 
     return io_expander;
@@ -244,6 +257,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     audio_codec_i2c_cfg_t i2c_cfg = {
         .port = BSP_I2C_NUM,
         .addr = ES8311_CODEC_DEFAULT_ADDR,
+        .bus_handle = i2c_handle,
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);
@@ -290,6 +304,7 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
     audio_codec_i2c_cfg_t i2c_cfg = {
         .port = BSP_I2C_NUM,
         .addr = BSP_ES7210_CODEC_ADDR,
+        .bus_handle = i2c_handle,
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);
@@ -339,7 +354,9 @@ static lv_display_t *bsp_display_lcd_init()
         .monochrome = false,
         .hres = BSP_LCD_H_RES,
         .vres = BSP_LCD_V_RES,
+#if LVGL_VERSION_MAJOR >= 9
         .color_format = LV_COLOR_FORMAT_RGB565,
+#endif
 
         .rotation = {
             .swap_xy = false,
@@ -489,6 +506,7 @@ bool bsp_button_get(const bsp_button_t btn)
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
+    const button_config_t btn_config = {0};
     if ((btn_array_size < BSP_BUTTON_NUM) ||
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
@@ -498,11 +516,7 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
-        }
+        ret |= iot_button_new_gpio_device(&btn_config, &bsp_button_config[i], &btn_array[i]);
         if (btn_cnt) {
             (*btn_cnt)++;
         }

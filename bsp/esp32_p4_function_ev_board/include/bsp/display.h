@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -40,24 +40,10 @@
 /* LCD display definition 1024x600 */
 #define BSP_LCD_H_RES              (1024)
 #define BSP_LCD_V_RES              (600)
-
-#define BSP_LCD_MIPI_DSI_LCD_HSYNC    (1344)
-#define BSP_LCD_MIPI_DSI_LCD_HBP      (160)
-#define BSP_LCD_MIPI_DSI_LCD_HFP      (160)
-#define BSP_LCD_MIPI_DSI_LCD_VSYNC    (635)
-#define BSP_LCD_MIPI_DSI_LCD_VBP      (23)
-#define BSP_LCD_MIPI_DSI_LCD_VFP      (12)
 #else
 /* LCD display definition 1280x800 */
 #define BSP_LCD_H_RES              (800)
 #define BSP_LCD_V_RES              (1280)
-
-#define BSP_LCD_MIPI_DSI_LCD_HSYNC    (40)
-#define BSP_LCD_MIPI_DSI_LCD_HBP      (140)
-#define BSP_LCD_MIPI_DSI_LCD_HFP      (40)
-#define BSP_LCD_MIPI_DSI_LCD_VSYNC    (4)
-#define BSP_LCD_MIPI_DSI_LCD_VBP      (16)
-#define BSP_LCD_MIPI_DSI_LCD_VFP      (16)
 #endif
 
 #define BSP_LCD_MIPI_DSI_LANE_NUM          (2)    // 2 data lanes
@@ -71,11 +57,28 @@ extern "C" {
 #endif
 
 /**
+ * @brief BSP HDMI resolution types
+ *
+ */
+typedef enum {
+    BSP_HDMI_RES_NONE = 0,
+    BSP_HDMI_RES_800x600,   /*!< 800x600@60HZ   */
+    BSP_HDMI_RES_1024x768,  /*!< 1024x768@60HZ  */
+    BSP_HDMI_RES_1280x720,  /*!< 1280x720@60HZ  */
+    BSP_HDMI_RES_1280x800,  /*!< 1280x800@60HZ  */
+    BSP_HDMI_RES_1920x1080  /*!< 1920x1080@30HZ */
+} bsp_hdmi_resolution_t;
+
+/**
  * @brief BSP display configuration structure
  *
  */
 typedef struct {
-    int dummy;
+    bsp_hdmi_resolution_t hdmi_resolution;    /*!< HDMI resolution selection */
+    struct {
+        mipi_dsi_phy_clock_source_t phy_clk_src;  /*!< DSI bus config - clock source */
+        uint32_t lane_bit_rate_mbps;              /*!< DSI bus config - lane bit rate */
+    } dsi_bus;
 } bsp_display_config_t;
 
 /**
@@ -85,6 +88,10 @@ typedef struct {
 typedef struct {
     esp_lcd_dsi_bus_handle_t    mipi_dsi_bus;  /*!< MIPI DSI bus handle */
     esp_lcd_panel_io_handle_t   io;            /*!< ESP LCD IO handle */
+#if CONFIG_BSP_LCD_TYPE_HDMI
+    esp_lcd_panel_io_handle_t   io_cec;        /*!< ESP LCD IO (HDMI CEC) handle */
+    esp_lcd_panel_io_handle_t   io_avi;        /*!< ESP LCD IO (HDMI AVI) handle */
+#endif
     esp_lcd_panel_handle_t      panel;         /*!< ESP LCD panel (color) handle */
     esp_lcd_panel_handle_t      control;       /*!< ESP LCD panel (control) handle */
 } bsp_lcd_handles_t;
@@ -122,13 +129,10 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
  * The display's backlight is not turned on either. You can use bsp_display_backlight_on/off(),
  * bsp_display_brightness_set() (on supported boards) or implement your own backlight control.
  *
- * If you want to free resources allocated by this function, you can use esp_lcd API, ie.:
+ * If you want to free resources allocated by this function, you can use API:
  *
  * \code{.c}
- * esp_lcd_panel_del(panel);
- * esp_lcd_panel_del(control);
- * esp_lcd_panel_io_del(io);
- * esp_lcd_del_dsi_bus(mipi_dsi_bus);
+ * bsp_display_delete();
  * \endcode
  *
  * @param[in]  config    display configuration
@@ -140,6 +144,11 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
 esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_lcd_handles_t *ret_handles);
 
 /**
+ * @brief Delete display panel
+ */
+void bsp_display_delete(void);
+
+/**
  * @brief Initialize display's brightness
  *
  * Brightness is controlled with PWM signal to a pin controlling backlight.
@@ -149,6 +158,11 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
  *      - ESP_ERR_INVALID_ARG   Parameter error
  */
 esp_err_t bsp_display_brightness_init(void);
+
+/**
+ * @brief Deinitialize display's brightness
+ */
+esp_err_t bsp_display_brightness_deinit(void);
 
 /**
  * @brief Set display's brightness

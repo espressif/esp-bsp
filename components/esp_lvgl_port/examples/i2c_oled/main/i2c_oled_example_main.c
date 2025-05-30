@@ -10,7 +10,7 @@
 #include "esp_timer.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "lvgl.h"
@@ -52,24 +52,25 @@ extern void example_lvgl_demo_ui(lv_disp_t *disp);
 void app_main(void)
 {
     ESP_LOGI(TAG, "Initialize I2C bus");
-    i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    i2c_master_bus_handle_t i2c_bus = NULL;
+    i2c_master_bus_config_t bus_config = {
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .glitch_ignore_cnt = 7,
+        .i2c_port = I2C_HOST,
         .sda_io_num = EXAMPLE_PIN_NUM_SDA,
         .scl_io_num = EXAMPLE_PIN_NUM_SCL,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = EXAMPLE_LCD_PIXEL_CLOCK_HZ,
+        .flags.enable_internal_pullup = true,
     };
-    ESP_ERROR_CHECK(i2c_param_config(I2C_HOST, &i2c_conf));
-    ESP_ERROR_CHECK(i2c_driver_install(I2C_HOST, I2C_MODE_MASTER, 0, 0, 0));
+    ESP_ERROR_CHECK(i2c_new_master_bus(&bus_config, &i2c_bus));
 
     ESP_LOGI(TAG, "Install panel IO");
     esp_lcd_panel_io_handle_t io_handle = NULL;
     esp_lcd_panel_io_i2c_config_t io_config = {
         .dev_addr = EXAMPLE_I2C_HW_ADDR,
+        .scl_speed_hz = EXAMPLE_LCD_PIXEL_CLOCK_HZ,
         .control_phase_bytes = 1,               // According to SSD1306 datasheet
         .lcd_cmd_bits = EXAMPLE_LCD_CMD_BITS,   // According to SSD1306 datasheet
-        .lcd_param_bits = EXAMPLE_LCD_CMD_BITS, // According to SSD1306 datasheet
+        .lcd_param_bits = EXAMPLE_LCD_PARAM_BITS, // According to SSD1306 datasheet
 #if CONFIG_EXAMPLE_LCD_CONTROLLER_SSD1306
         .dc_bit_offset = 6,                     // According to SSD1306 datasheet
 #elif CONFIG_EXAMPLE_LCD_CONTROLLER_SH1107
@@ -80,9 +81,8 @@ void app_main(void)
         }
 #endif
     };
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(I2C_HOST, &io_config, &io_handle));
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_bus, &io_config, &io_handle));
 
-    ESP_LOGI(TAG, "Install SSD1306 panel driver");
     esp_lcd_panel_handle_t panel_handle = NULL;
     esp_lcd_panel_dev_config_t panel_config = {
         .bits_per_pixel = 1,
@@ -98,8 +98,10 @@ void app_main(void)
     };
     panel_config.vendor_config = &ssd1306_config;
 #endif
+    ESP_LOGI(TAG, "Install SSD1306 panel driver");
     ESP_ERROR_CHECK(esp_lcd_new_panel_ssd1306(io_handle, &panel_config, &panel_handle));
 #elif CONFIG_EXAMPLE_LCD_CONTROLLER_SH1107
+    ESP_LOGI(TAG, "Install SH1107 panel driver");
     ESP_ERROR_CHECK(esp_lcd_new_panel_sh1107(io_handle, &panel_config, &panel_handle));
 #endif
 
@@ -123,20 +125,29 @@ void app_main(void)
         .hres = EXAMPLE_LCD_H_RES,
         .vres = EXAMPLE_LCD_V_RES,
         .monochrome = true,
+#if LVGL_VERSION_MAJOR >= 9
+        .color_format = LV_COLOR_FORMAT_RGB565,
+#endif
         .rotation = {
             .swap_xy = false,
             .mirror_x = false,
             .mirror_y = false,
+        },
+        .flags = {
+#if LVGL_VERSION_MAJOR >= 9
+            .swap_bytes = false,
+#endif
+            .sw_rotate = false,
         }
     };
     lv_disp_t *disp = lvgl_port_add_disp(&disp_cfg);
 
-    /* Rotation of the screen */
-    lv_disp_set_rotation(disp, LV_DISP_ROT_NONE);
-
     ESP_LOGI(TAG, "Display LVGL Scroll Text");
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (lvgl_port_lock(0)) {
+        /* Rotation of the screen */
+        lv_disp_set_rotation(disp, LV_DISPLAY_ROTATION_0);
+
         example_lvgl_demo_ui(disp);
         // Release the mutex
         lvgl_port_unlock();

@@ -1,5 +1,5 @@
 description: BSP Display rotation example
 dependencies:
-  esp-box:
+  esp-box-3:
     version: "*"
-    override_path: "../../../bsp/esp-box"
+    override_path: "../../../bsp/esp-box-3"

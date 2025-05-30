@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -12,6 +12,7 @@
 #pragma once
 
 #include "esp_err.h"
+#include "esp_heap_caps.h"
 #include "lvgl.h"
 #include "esp_lvgl_port_disp.h"
 #include "esp_lvgl_port_touch.h"
@@ -31,9 +32,9 @@ extern "C" {
  * @brief LVGL Port task event type
  */
 typedef enum {
-    LVGL_PORT_EVENT_DISPLAY = 1,
-    LVGL_PORT_EVENT_TOUCH   = 2,
-    LVGL_PORT_EVENT_USER    = 99,
+    LVGL_PORT_EVENT_DISPLAY = 0x01,
+    LVGL_PORT_EVENT_TOUCH   = 0x02,
+    LVGL_PORT_EVENT_USER    = 0x80,
 } lvgl_port_event_type_t;
 
 /**
@@ -48,24 +49,26 @@ typedef struct {
  * @brief Init configuration structure
  */
 typedef struct {
-    int task_priority;      /*!< LVGL task priority */
-    int task_stack;         /*!< LVGL task stack size */
-    int task_affinity;      /*!< LVGL task pinned to core (-1 is no affinity) */
-    int task_max_sleep_ms;  /*!< Maximum sleep in LVGL task */
-    int timer_period_ms;    /*!< LVGL timer tick period in ms */
+    int task_priority;        /*!< LVGL task priority */
+    int task_stack;           /*!< LVGL task stack size */
+    int task_affinity;        /*!< LVGL task pinned to core (-1 is no affinity) */
+    int task_max_sleep_ms;    /*!< Maximum sleep in LVGL task */
+    unsigned task_stack_caps; /*!< LVGL task stack memory capabilities (see esp_heap_caps.h) */
+    int timer_period_ms;      /*!< LVGL timer tick period in ms */
 } lvgl_port_cfg_t;
 
 /**
  * @brief LVGL port configuration structure
  *
  */
-#define ESP_LVGL_PORT_INIT_CONFIG() \
-    {                               \
-        .task_priority = 4,       \
-        .task_stack = 6144,       \
-        .task_affinity = -1,      \
-        .task_max_sleep_ms = 500, \
-        .timer_period_ms = 5,     \
+#define ESP_LVGL_PORT_INIT_CONFIG()                \
+    {                                              \
+        .task_priority = 4,                        \
+        .task_stack = 7168,                        \
+        .task_affinity = -1,                       \
+        .task_max_sleep_ms = 500,                  \
+        .task_stack_caps = MALLOC_CAP_DEFAULT,     \
+        .timer_period_ms = 5,                      \
     }
 
 /**
@@ -144,7 +147,7 @@ esp_err_t lvgl_port_resume(void);
  * @note It is called from LVGL events and touch interrupts
  *
  * @param event     event type
- * @param param     user param
+ * @param param     parameter is not used, keep for backwards compatibility
  * @return
  *      - ESP_OK on success
  *      - ESP_ERR_NOT_SUPPORTED if it is not implemented

@@ -53,8 +53,8 @@
 #define BSP_I2S_CLK           (GPIO_NUM_NC)
 
 /* USB */
-#define BSP_USB_POS           USBPHY_DP_NUM
-#define BSP_USB_NEG           USBPHY_DM_NUM
+#define BSP_USB_POS           (GPIO_NUM_20)
+#define BSP_USB_NEG           (GPIO_NUM_19)
 
 /* Buttons */
 typedef enum {

@@ -43,6 +43,21 @@ typedef struct {
 esp_err_t ds18b20_new_device(onewire_device_t *device, const ds18b20_config_t *config, ds18b20_device_handle_t *ret_ds18b20);
 
 /**
+ * @brief Create a new singe device bus DS18B20 device based on a 1-Wire bus (not enumerated)
+ *        this function assumes that the device is a DS18B20 device and there is only one device on the bus
+ *
+ * @param[in] bus 1-Wire bus handle
+ * @param[in] config DS18B20 configuration
+ * @param[out] ret_ds18b20 Returned DS18B20 device handle
+ * @return esp_err_t
+ *      - ESP_OK: Create DS18B20 device successfully
+ *      - ESP_ERR_INVALID_ARG: Create DS18B20 device failed due to invalid argument
+ *      - ESP_ERR_NO_MEM: Create DS18B20 device failed due to out of memory
+ *      - ESP_FAIL: Create DS18B20 device failed due to other reasons
+ */
+esp_err_t ds18b20_new_single_device(onewire_bus_handle_t bus, const ds18b20_config_t *config, ds18b20_device_handle_t *ret_ds18b20);
+
+/**
  * @brief Delete DS18B20 device
  *
  * @param ds18b20 DS18B20 device handle returned by `ds18b20_new_device`
@@ -91,6 +106,17 @@ esp_err_t ds18b20_trigger_temperature_conversion(ds18b20_device_handle_t ds18b20
  *      - ESP_FAIL: Get temperature failed due to other reasons
  */
 esp_err_t ds18b20_get_temperature(ds18b20_device_handle_t ds18b20, float *temperature);
+
+/**
+ * @brief Get the address of the DS18B20 device
+ *
+ * @param[in] ds18b20 DS18B20 device handle returned by `ds18b20_new_device`
+ * @param[out] ret_address Pointer to store the device address
+ * @return
+ *      - ESP_OK: Get device address successfully
+ *      - ESP_ERR_INVALID_ARG: Get device address failed due to invalid argument
+ */
+esp_err_t ds18b20_get_device_address(ds18b20_device_handle_t ds18b20, onewire_device_address_t *ret_address);
 
 #ifdef __cplusplus
 }

@@ -1,11 +1,11 @@
 /*
- * SPDX-FileCopyrightText: 2021-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2021-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "driver/spi_master.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_check.h"
@@ -19,13 +19,21 @@
 #include "esp_lvgl_port.h"
 #include "esp_codec_dev_defaults.h"
 #include "bsp_err_check.h"
+#include "button_adc.h"
 
 static const char *TAG = "Kaluga";
 
+/**
+ * @brief I2C handle for BSP usage
+ *
+ * In IDF v5.4 you can call i2c_master_get_bus_handle(BSP_I2C_NUM, i2c_master_bus_handle_t *ret_handle)
+ * from #include "esp_private/i2c_platform.h" to get this handle
+ *
+ * For IDF 5.2 and 5.3 you must call bsp_i2c_get_handle()
+ */
+static i2c_master_bus_handle_t i2c_handle = NULL;
 static bool i2c_initialized = false;
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 static adc_oneshot_unit_handle_t bsp_adc_handle = NULL;
-#endif
 
 static const touch_pad_t bsp_touch_button[TOUCH_BUTTON_NUM] = {
     TOUCH_BUTTON_PHOTO,      /*!< 'PHOTO' button */
@@ -37,92 +45,69 @@ static const touch_pad_t bsp_touch_button[TOUCH_BUTTON_NUM] = {
     TOUCH_BUTTON_GUARD,      /*!< Guard ring for waterproof design. If this pad is touched, other pads no response.*/
 };
 
-static const button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
+static const button_adc_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
-        .type = BUTTON_TYPE_ADC,
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-#endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
-        .adc_button_config.button_index = BSP_BUTTON_REC,
-        .adc_button_config.min = 2310, // middle is 2410mV
-        .adc_button_config.max = 2510
+        .adc_handle = &bsp_adc_handle,
+        .adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .button_index = BSP_BUTTON_REC,
+        .min = 2310, // middle is 2410mV
+        .max = 2510
     },
     {
-        .type = BUTTON_TYPE_ADC,
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-#endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
-        .adc_button_config.button_index = BSP_BUTTON_MODE,
-        .adc_button_config.min = 1880, // middle is 1980mV
-        .adc_button_config.max = 2080
+        .adc_handle = &bsp_adc_handle,
+        .adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .button_index = BSP_BUTTON_MODE,
+        .min = 1880, // middle is 1980mV
+        .max = 2080
     },
     {
-        .type = BUTTON_TYPE_ADC,
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-#endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
-        .adc_button_config.button_index = BSP_BUTTON_PLAY,
-        .adc_button_config.min = 1550, // middle is 1650mV
-        .adc_button_config.max = 1750
+        .adc_handle = &bsp_adc_handle,
+        .adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .button_index = BSP_BUTTON_PLAY,
+        .min = 1550, // middle is 1650mV
+        .max = 1750
     },
     {
-        .type = BUTTON_TYPE_ADC,
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-#endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
-        .adc_button_config.button_index = BSP_BUTTON_SET,
-        .adc_button_config.min = 1010, // middle is 1110mV
-        .adc_button_config.max = 1210
+        .adc_handle = &bsp_adc_handle,
+        .adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .button_index = BSP_BUTTON_SET,
+        .min = 1010, // middle is 1110mV
+        .max = 1210
     },
     {
-        .type = BUTTON_TYPE_ADC,
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-#endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
-        .adc_button_config.button_index = BSP_BUTTON_VOLDOWN,
-        .adc_button_config.min = 720, // middle is 820mV
-        .adc_button_config.max = 920
+        .adc_handle = &bsp_adc_handle,
+        .adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .button_index = BSP_BUTTON_VOLDOWN,
+        .min = 720, // middle is 820mV
+        .max = 920
     },
     {
-        .type = BUTTON_TYPE_ADC,
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        .adc_button_config.adc_handle = &bsp_adc_handle,
-#endif
-        .adc_button_config.adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
-        .adc_button_config.button_index = BSP_BUTTON_VOLUP,
-        .adc_button_config.min = 280, // middle is 380mV
-        .adc_button_config.max = 480
+        .adc_handle = &bsp_adc_handle,
+        .adc_channel = ADC_CHANNEL_5, // ADC1 channel 5 is GPIO6
+        .button_index = BSP_BUTTON_VOLUP,
+        .min = 280, // middle is 380mV
+        .max = 480
     }
 };
 
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
+    const button_config_t btn_config = {0};
     if ((btn_array_size < BSP_BUTTON_NUM) ||
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
     }
 
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
     /* Initialize ADC and get ADC handle */
     BSP_ERROR_CHECK_RETURN_NULL(bsp_adc_initialize());
     bsp_adc_handle = bsp_adc_get_handle();
-#endif
 
     if (btn_cnt) {
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
-        }
+        ret |= iot_button_new_adc_device(&btn_config, &bsp_button_config[i], &btn_array[i]);
         if (btn_cnt) {
             (*btn_cnt)++;
         }
@@ -137,27 +122,29 @@ esp_err_t bsp_i2c_init(void)
         return ESP_OK;
     }
 
-    const i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    const i2c_master_bus_config_t i2c_config = {
+        .i2c_port = BSP_I2C_NUM,
         .sda_io_num = BSP_I2C_SDA,
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_io_num = BSP_I2C_SCL,
-        .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
+        .clk_source = I2C_CLK_SRC_DEFAULT,
     };
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
     i2c_initialized = true;
-
     return ESP_OK;
 }
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
     i2c_initialized = false;
     return ESP_OK;
+}
+
+i2c_master_bus_handle_t bsp_i2c_get_handle(void)
+{
+    bsp_i2c_init();
+    return i2c_handle;
 }
 
 /**
@@ -187,6 +174,7 @@ static esp_codec_dev_handle_t bsp_audio_codec_init(void)
     audio_codec_i2c_cfg_t i2c_cfg = {
         .port = BSP_I2C_NUM,
         .addr = ES8311_CODEC_DEFAULT_ADDR,
+        .bus_handle = i2c_handle,
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);

@@ -140,9 +140,10 @@ static void app_lvgl_display(void)
 #if BSP_CAPS_IMU
 static void app_imu_init(void)
 {
-    imu = icm42670_create(BSP_I2C_NUM, ICM42670_I2C_ADDRESS);
+    i2c_master_bus_handle_t i2c_handle = bsp_i2c_get_handle();
+    ESP_ERROR_CHECK(icm42670_create(i2c_handle, ICM42670_I2C_ADDRESS, &imu));
     if (imu) {
-        /* Configuration of the acceleremeter and gyroscope */
+        /* Configuration of the accelerometer and gyroscope */
         const icm42670_cfg_t imu_cfg = {
             .acce_fs = ACCE_FS_2G,
             .acce_odr = ACCE_ODR_400HZ,
@@ -175,7 +176,7 @@ static void app_imu_read(void)
     icm42670_complimentory_filter(imu, &acce_val, &gyro_val, &angle);
     ESP_LOGI(TAG, "Angle roll: %.2f pitch: %.2f ", angle.roll, angle.pitch);
 
-    if (acce_val.x > 5) {
+    if (acce_val.y < -0.6) {
         if (rotation != LV_DISPLAY_ROTATION_0) {
             rotation = LV_DISPLAY_ROTATION_0;
             bsp_display_lock(0);
@@ -183,7 +184,7 @@ static void app_imu_read(void)
             lv_label_set_text_fmt(lbl_rotation, "Rotation %d°", app_lvgl_get_rotation_degrees(rotation));
             bsp_display_unlock();
         }
-    } else if (acce_val.x < -5) {
+    } else if (acce_val.y > 0.6) {
         if (rotation != LV_DISPLAY_ROTATION_180) {
             rotation = LV_DISPLAY_ROTATION_180;
             bsp_display_lock(0);
@@ -191,7 +192,7 @@ static void app_imu_read(void)
             lv_label_set_text_fmt(lbl_rotation, "Rotation %d°", app_lvgl_get_rotation_degrees(rotation));
             bsp_display_unlock();
         }
-    } else if (acce_val.y > 5) {
+    } else if (acce_val.x > 0.6) {
         if (rotation != LV_DISPLAY_ROTATION_270) {
             rotation = LV_DISPLAY_ROTATION_270;
             bsp_display_lock(0);
@@ -199,7 +200,7 @@ static void app_imu_read(void)
             lv_label_set_text_fmt(lbl_rotation, "Rotation %d°", app_lvgl_get_rotation_degrees(rotation));
             bsp_display_unlock();
         }
-    } else if (acce_val.y < -5) {
+    } else if (acce_val.x < -0.6) {
         if (rotation != LV_DISPLAY_ROTATION_90) {
             rotation = LV_DISPLAY_ROTATION_90;
             bsp_display_lock(0);

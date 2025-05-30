@@ -1,9 +1,9 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "esp_check.h"
 #include "esp_psram.h"
 
@@ -44,33 +44,26 @@ bsp_sub_board_type_t bsp_probe_sub_board_type(void)
     }
 
     BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+    i2c_master_bus_handle_t i2c_handle = bsp_i2c_get_handle();
 
     uint8_t tp_address[] = {
         ESP_LCD_TOUCH_IO_I2C_FT5x06_ADDRESS,
         ESP_LCD_TOUCH_IO_I2C_GT1151_ADDRESS,
     };
-    uint8_t i = 0;
-    i2c_cmd_handle_t cmd;
     bsp_sub_board_type_t detect_type = SUB_BOARD_TYPE_UNKNOW;
-    while (i < sizeof(tp_address)) {
-        cmd = i2c_cmd_link_create();
-        i2c_master_start(cmd);
-        i2c_master_write_byte(cmd, (tp_address[i] << 1) | I2C_MASTER_WRITE, true);
-        i2c_master_stop(cmd);
-        if (i2c_master_cmd_begin(BSP_I2C_NUM, cmd, pdMS_TO_TICKS(20)) == ESP_OK) {
+
+    for (int i = 0; i < sizeof(tp_address); i++) {
+        if (i2c_master_probe(i2c_handle, tp_address[i], 100) == ESP_OK) {
             if (tp_address[i] == ESP_LCD_TOUCH_IO_I2C_FT5x06_ADDRESS) {
                 ESP_LOGI(TAG, "Detect sub_board2 with 480x480 LCD (GC9503), Touch (FT5x06)");
                 detect_type = SUB_BOARD_TYPE_2_480_480;
+                break;
             } else if (tp_address[i] == ESP_LCD_TOUCH_IO_I2C_GT1151_ADDRESS) {
                 ESP_LOGI(TAG, "Detect sub_board3 with 800x480 LCD (ST7262), Touch (GT1151)");
                 detect_type = SUB_BOARD_TYPE_3_800_480;
+                break;
             }
         }
-        i2c_cmd_link_delete(cmd);
-        if (detect_type != SUB_BOARD_TYPE_UNKNOW) {
-            break;
-        }
-        i++;
     }
 
     ESP_RETURN_ON_FALSE(detect_type != SUB_BOARD_TYPE_UNKNOW, ESP_ERR_INVALID_STATE, TAG,

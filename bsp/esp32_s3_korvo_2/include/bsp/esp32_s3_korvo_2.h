@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -8,9 +8,12 @@
 
 #include "sdkconfig.h"
 #include "driver/gpio.h"
-#include "driver/i2c.h"
+#include "driver/i2s_std.h"
 #include "driver/sdmmc_host.h"
-#include "soc/usb_pins.h"
+#include "driver/sdspi_host.h"
+#include "esp_vfs_fat.h"
+#include "driver/i2c_master.h"
+#include "esp_adc/adc_oneshot.h"
 #include "iot_button.h"
 #include "esp_io_expander.h"
 #include "esp_codec_dev.h"
@@ -18,11 +21,6 @@
 #include "esp_lvgl_port.h"
 #include "bsp/display.h"
 
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-#include "driver/i2s.h"
-#else
-#include "driver/i2s_std.h"
-#endif
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
@@ -79,7 +77,7 @@
 #define BSP_CAMERA_D6        (GPIO_NUM_41)
 #define BSP_CAMERA_D7        (GPIO_NUM_39)
 
-/* uSD card */
+/* uSD card MMC */
 #define BSP_SD_D0             (GPIO_NUM_4)
 #define BSP_SD_CMD            (GPIO_NUM_7)
 #define BSP_SD_CLK            (GPIO_NUM_15)
@@ -202,7 +200,6 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
  * @brief Init audio
  *
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
- * @warning The type of i2s_config param is depending on IDF version.
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
  * @param[out] tx_channel I2S TX channel
  * @param[out] rx_channel I2S RX channel
@@ -214,11 +211,7 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
  *      - ESP_ERR_NO_MEM        No memory for storing the channel information
  *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
  */
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-esp_err_t bsp_audio_init(const i2s_config_t *i2s_config);
-#else
 esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
-#endif
 
 /**
  * @brief Get codec I2S interface (initialized in bsp_audio_init)
@@ -252,8 +245,6 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
  *  - LCD Touch controller
  *  - IO Expander TCA9554
  *  - Camera
- *
- * After initialization of I2C, use BSP_I2C_NUM macro when creating I2C device drivers
  **************************************************************************************************/
 #define BSP_I2C_NUM     CONFIG_BSP_I2C_NUM
 
@@ -278,6 +269,13 @@ esp_err_t bsp_i2c_init(void);
  */
 esp_err_t bsp_i2c_deinit(void);
 
+/**
+ * @brief Get I2C driver handle
+ *
+ * @return
+ *      - I2C handle
+ */
+i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
 /**************************************************************************************************
  *
@@ -406,7 +404,16 @@ esp_io_expander_handle_t bsp_io_expander_init(void);
  * \endcode
  **************************************************************************************************/
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
-extern sdmmc_card_t *bsp_sdcard;
+#define BSP_SDSPI_HOST          (SPI3_HOST)
+
+typedef struct {
+    const esp_vfs_fat_sdmmc_mount_config_t *mount;
+    sdmmc_host_t *host;
+    union {
+        const sdmmc_slot_config_t   *sdmmc;
+        const sdspi_device_config_t *sdspi;
+    } slot;
+} bsp_sdcard_cfg_t;
 
 /**
  * @brief Mount microSD card to virtual file system
@@ -432,6 +439,73 @@ esp_err_t bsp_sdcard_mount(void);
  *      - other error codes from wear levelling library, SPI flash driver, or FATFS drivers
  */
 esp_err_t bsp_sdcard_unmount(void);
+
+/**
+ * @brief Get SD card handle
+ *
+ * @return SD card handle
+ */
+sdmmc_card_t *bsp_sdcard_get_handle(void);
+
+/**
+ * @brief Get SD card MMC host config
+ *
+ * @param slot SD card slot
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_get_sdmmc_host(const int slot, sdmmc_host_t *config);
+
+/**
+ * @brief Get SD card SPI host config
+ *
+ * @param slot SD card slot
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_get_sdspi_host(const int slot, sdmmc_host_t *config);
+
+/**
+ * @brief Get SD card MMC slot config
+ *
+ * @param slot SD card slot
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config);
+
+/**
+ * @brief Get SD card SPI slot config
+ *
+ * @param spi_host SPI host ID
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_config_t *config);
+
+/**
+ * @brief Mount microSD card to virtual file system (MMC mode)
+ *
+ * @param cfg SD card configuration
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_fat_sdmmc_mount was already called
+ *      - ESP_ERR_NO_MEM if memory cannot be allocated
+ *      - ESP_FAIL if partition cannot be mounted
+ *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+ */
+esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg);
+
+/**
+ * @brief Mount microSD card to virtual file system (SPI mode)
+ *
+ * @param cfg SD card configuration
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_fat_sdmmc_mount was already called
+ *      - ESP_ERR_NO_MEM if memory cannot be allocated
+ *      - ESP_FAIL if partition cannot be mounted
+ *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+ */
+esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
 
 /**************************************************************************************************
  *
@@ -558,8 +632,6 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
  */
 esp_err_t bsp_adc_initialize(void);
 
-
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 /**
  * @brief Get ADC handle
  *
@@ -568,7 +640,6 @@ esp_err_t bsp_adc_initialize(void);
  * @return ADC handle
  */
 adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
-#endif
 
 /**************************************************************************************************
  *

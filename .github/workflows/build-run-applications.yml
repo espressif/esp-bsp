@@ -1,0 +1,286 @@
+name: Build ESP-BSP apps
+
+# This job builds all examples and test_applications in this repo
+# Applications are selected for build based on changes files and dependencies defined in .build-test-rules.yml
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled]
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      WFType:
+        description: 'Workflow type'
+        required: true
+        default: 'Build + Tests'
+        type: choice
+        options:
+        - Build + Tests
+        - Build + Tests + Benchmark
+
+# Cancel previous CI, if running and changed label or pushed PR (Prevent to wait for runners)
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - idf_ver: "latest"
+            parallel_count: 5
+            parallel_index: 1
+          - idf_ver: "latest"
+            parallel_count: 5
+            parallel_index: 2
+          - idf_ver: "latest"
+            parallel_count: 5
+            parallel_index: 3
+          - idf_ver: "latest"
+            parallel_count: 5
+            parallel_index: 4
+          - idf_ver: "latest"
+            parallel_count: 5
+            parallel_index: 5
+          - idf_ver: "release-v5.1"
+            parallel_count: 2
+            parallel_index: 1
+          - idf_ver: "release-v5.1"
+            parallel_count: 2
+            parallel_index: 2
+          - idf_ver: "release-v5.2"
+            parallel_count: 2
+            parallel_index: 1
+          - idf_ver: "release-v5.2"
+            parallel_count: 2
+            parallel_index: 2
+          - idf_ver: "release-v5.3"
+            parallel_count: 2
+            parallel_index: 1
+          - idf_ver: "release-v5.3"
+            parallel_count: 2
+            parallel_index: 2
+          - idf_ver: "release-v5.4"
+            parallel_count: 2
+            parallel_index: 1
+          - idf_ver: "release-v5.4"
+            parallel_count: 2
+            parallel_index: 2
+    runs-on: ubuntu-latest
+    container: espressif/idf:${{ matrix.idf_ver }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get changed files
+        if: github.event_name == 'pull_request' # This action is working only in pull-request (it fails in push to master)
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          separator: ';' # idf-build-apps expects files seprated with semicolon
+
+      - name: Build ESP-BSP applications
+        if: always()
+        shell: bash
+        env:
+          IDF_EXTRA_ACTIONS_PATH: "${{ github.workspace }}/examples"
+          # When event not a pull-request, the action before must be skipped and the steps.changed-files.outputs.all_modified_files variable is not exists and must be removed
+          ALL_CHANGED_FILES: ${{ (github.event_name != 'pull_request') && format(' ') || format('--modified-files=') }}${{ (github.event_name != 'pull_request') && format(' ') || steps.changed-files.outputs.all_modified_files }}
+        run: |
+          . ${IDF_PATH}/export.sh
+          pip install idf-component-manager==1.* ruamel.yaml idf-build-apps==2.4.3 --upgrade
+
+          echo "Files changed: "${{env.ALL_CHANGED_FILES}}
+          idf-build-apps find ${{env.ALL_CHANGED_FILES}}
+          idf-build-apps build --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }} ${{env.ALL_CHANGED_FILES}} --collect-app-info build_info_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}.json
+
+      - uses: actions/upload-artifact@v4
+        if: github.repository_owner == 'espressif' && needs.prepare.outputs.build_only == '0'
+        with:
+          name: app_binaries_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}
+          path: |
+            examples/*/build_*/bootloader/bootloader.bin
+            examples/*/build_*/partition_table/partition-table.bin
+            examples/*/build_*/*.bin
+            examples/*/build_*/flasher_args.json
+            examples/*/build_*/config/sdkconfig.json
+            build_info*.json
+
+  run-target:
+    name: Run apps
+    if: github.repository_owner == 'espressif' && !contains(github.event.pull_request.labels.*.name, 'Build only')
+    needs: build
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        idf_ver:
+          - "latest"
+        runner:
+          - runs-on: "esp-box-3"
+            marker: "esp_box_3"
+            target: "esp32s3"
+          - runs-on: "esp32_c3_lcdkit"
+            marker: "esp32_c3_lcdkit"
+            target: "esp32c3"
+          - runs-on: "esp32_p4_box"
+            marker: "esp32_p4_box"
+            target: "esp32p4"
+          - runs-on: "esp32_p4_function_ev_board"
+            marker: "esp32_p4_function_ev_board"
+            target: "esp32p4"
+          - runs-on: "esp32_s3_eye"
+            marker: "esp32_s3_eye"
+            target: "esp32s3"
+          - runs-on: "esp32_s3_lcd_ev_board"
+            marker: "esp32_s3_lcd_ev_board"
+            target: "esp32s3"
+          - runs-on: "esp32_s3_lcd_ev_board"
+            marker: "esp32_s3_lcd_ev_board_2"
+            target: "esp32s3"
+          - runs-on: "esp32_s3_usb_otg"
+            marker: "esp32_s3_usb_otg"
+            target: "esp32s3"
+          - runs-on: "esp_wrover_kit"
+            marker: "esp_wrover_kit"
+            target: "esp32"
+          - runs-on: "m5dial"
+            marker: "m5dial"
+            target: "esp32s3"
+          - runs-on: "m5stack_core"
+            marker: "m5stack_core"
+            target: "esp32"
+          - runs-on: "m5stack_core_2"
+            marker: "m5stack_core_2"
+            target: "esp32"
+          - runs-on: "m5stack_core_s3"
+            marker: "m5stack_core_s3"
+            target: "esp32s3"
+          - runs-on: "m5stack_core_s3"
+            marker: "m5stack_core_s3_se"
+            target: "esp32s3"
+          - runs-on: "esp32_azure_iot_kit"
+            marker: "esp32_azure_iot_kit"
+            target: "esp32"
+          - runs-on: "esp_bsp_devkit"
+            marker: "esp_bsp_devkit"
+            target: "esp32s3"
+          - runs-on: "esp_bsp_generic"
+            marker: "esp_bsp_generic"
+            target: "esp32s3"
+          - runs-on: "esp32_s3_korvo_2"
+            marker: "esp32_s3_korvo_2"
+            target: "esp32s3"
+          - runs-on: "m5_atom_s3"
+            marker: "m5_atom_s3"
+            target: "esp32s3"
+    env:
+      TEST_RESULT_NAME: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
+      BENCHMARK_RESULT_NAME: benchmark_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}
+      TEST_RESULT_FILE: test_results_${{ matrix.runner.target }}_${{ matrix.runner.marker }}_${{ matrix.idf_ver }}.xml
+      PYTEST_BENCHMARK_IGNORE: ${{ (contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master') && format(' ') || format('--ignore=examples/display_lvgl_benchmark') }}
+    runs-on: [self-hosted, Linux, bspwall]
+    container:
+      image: python:3.11-bookworm
+      options: --privileged -v /dev/boards:/dev/boards/ # Privileged mode has access to serial ports
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: app_binaries_${{ matrix.idf_ver }}_*
+          merge-multiple: true
+      - name: Install Python packages
+        env:
+          PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
+        run: |
+          pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code
+      - name: Download latest results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: benchmark_*
+          path: benchmark/
+      - name: Run apps
+        run: |
+          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} --target=${{ matrix.runner.target }} -m ${{ matrix.runner.marker }} --build-dir=build_${{ matrix.runner.runs-on }} ${{ env.PYTEST_BENCHMARK_IGNORE }}
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ env.TEST_RESULT_NAME }}
+          path: |
+            ${{ env.TEST_RESULT_FILE }}
+            benchmark_*.md
+            benchmark_*.json
+            benchmark.json
+      - name: Check if benchmark files exist
+        id: check_files
+        run: |
+          if ls benchmark_*.json benchmark_*.md 2>/dev/null; then
+            echo "benchmark_files_exist=true" >> $GITHUB_ENV
+          else
+            echo "benchmark_files_exist=false" >> $GITHUB_ENV
+          fi
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: github.ref_name == 'master' && env.benchmark_files_exist == 'true'
+        with:
+          name: ${{ env.BENCHMARK_RESULT_NAME }}
+          path: |
+            benchmark_*.md
+            benchmark_*.json
+      - name: Update benchmark release
+        uses: pyTooling/Actions/releaser@r0
+        if: github.ref_name == 'master' && env.benchmark_files_exist == 'true'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            benchmark_*.json
+            benchmark_*.md
+          tag: benchmark-latest
+
+  publish-results:
+    name: Publish Test results
+    needs:
+      - run-target
+    if: github.repository_owner == 'espressif' && always() && github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'Build only')
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download Test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test_results_*
+          path: test_results
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: test_results/**/*.xml
+      - name: Find benchmark result files
+        if: (contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master')
+        id: find_files
+        run: |
+          OUTPUT_FILE="combined_benchmarks.md"
+          echo "" > $OUTPUT_FILE
+          python <<EOF
+          import glob
+
+          files = sorted(glob.glob("test_results/**/benchmark_*.md"))
+          print(files)
+          output_file = "combined_benchmarks.md"
+
+          with open(output_file, "w", encoding="utf-8") as outfile:
+              for file in files:
+                  with open(file, "r", encoding="utf-8") as infile:
+                      outfile.write(infile.read() + "\n\n")
+
+          print(f"Merged {len(files)} files into {output_file}")
+          EOF
+
+          echo "output_file=$OUTPUT_FILE" >> "$GITHUB_ENV"
+      - name: Comment PR
+        if: (contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master')
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          comment-tag: benchmark_results
+          file-path: ${{ env.output_file }}

@@ -1,9 +1,54 @@
 # Changelog
 
+## [Unreleased]
+### Features
+- Added option to place LVGL task stack to external RAM
+
+## 2.6.0
+
+### Features
+- Scaling feature in touch
+- Added support for PPA rotation in LVGL9 (available for ESP32-P4)
+
+## 2.5.0
+
+### Features (Functional change for button v4 users)
+- Updated LVGL port for using IoT button component v4 (LVGL port not anymore creating button, need to be created in app and included handle to LVGL port)
+
+### Fixes
+- Fixed buffer size by selected color format
+- Fixed memory leak in LVGL8 in display removing https://github.com/espressif/esp-bsp/issues/462
+- Fixed draw buffer alignment
+
+## 2.4.4
+
+### Features
+- Changed queue to event group in main LVGL task for speed up https://github.com/espressif/esp-bsp/issues/492
+- Reworked handling encoder (knob) https://github.com/espressif/esp-bsp/pull/450
+
+### Fixes
+- Fixed a crash when esp_lvgl_port was initialized from high priority task https://github.com/espressif/esp-bsp/issues/455
+- Allow to swap bytes when used SW rotation https://github.com/espressif/esp-bsp/issues/497
+
+## 2.4.3
+
+### Fixes
+- Fixed a display context pointer bug
+- Fixed I2C example for using with LVGL9
+
+### Features
+- Support for LV_COLOR_FORMAT_I1 for monochromatic screen
+
+## 2.4.2
+
+### Fixes
+- Fixed SW rotation in LVGL9.2
+- Fixed freeing right buffers when error
+
 ## 2.4.1
 
 ### Fixes
-Fix the issue of the DPI callback function not being initialized.
+- Fixed the issue of the DPI callback function not being initialized.
 
 ## 2.4.0
 

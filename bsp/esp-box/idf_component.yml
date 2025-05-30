@@ -29,7 +29,3 @@ dependencies:
   icm42670:
     version: "^1"
     public: true
-
-examples:
-  - path: ../../examples/display_audio_photo
-  - path: ../../examples/display_rotation

@@ -8,7 +8,7 @@ This example demonstrates capabilities of Audio board of ESP32-S3-Korvo-2.
 
 ## Functionality description
 ### Button REC
-Starts recording from microphone ~3.7 seconds.
+Starts recording from microphone ~5.12 seconds.
 Recording check box on display will be checked for the recording time.
 
 ### Button SET

@@ -1,11 +1,11 @@
 {
     "name":"M5Dial",
-    "version":"1.0.0",
+    "version":"1.0.1",
     "mcu":"ESP32S3",
 
     "screen_width":"240",
     "screen_height":"240",
-    "screen_color_swap":true,
+    "screen_color_swap":false,
 
     "supported_lvgl_version":"9.1.*",
 

@@ -50,7 +50,7 @@ typedef struct {
 
     bool        monochrome;     /*!< True, if display is monochrome and using 1bit for 1px */
 
-    lvgl_port_rotation_cfg_t rotation;      /*!< Default values of the screen rotation */
+    lvgl_port_rotation_cfg_t rotation;      /*!< Default values of the screen rotation (Only HW state. Not supported for default SW rotation!) */
 #if LVGL_VERSION_MAJOR >= 9
     lv_color_format_t        color_format;  /*!< The color format of the display */
 #endif
@@ -59,7 +59,7 @@ typedef struct {
         unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
         unsigned int sw_rotate: 1;   /*!< Use software rotation (slower) or PPA if available */
 #if LVGL_VERSION_MAJOR >= 9
-        unsigned int swap_bytes: 1;  /*!< Swap bytes in RGB656 (16-bit) color format before send to LCD driver */
+        unsigned int swap_bytes: 1;  /*!< Swap bytes in RGB565 (16-bit) color format before send to LCD driver */
 #endif
         unsigned int full_refresh: 1;/*!< 1: Always make the whole screen redrawn */
         unsigned int direct_mode: 1; /*!< 1: Use screen-sized buffers and draw to absolute coordinates */

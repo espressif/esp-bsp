@@ -55,9 +55,9 @@ void app_main(void)
     while (1) {
         pic = esp_camera_fb_get();
         if (pic) {
-            esp_camera_fb_return(pic);
             bsp_display_lock(0);
             memcpy(cam_buff, pic->buf, cam_buff_size);
+            esp_camera_fb_return(pic);
             if (BSP_LCD_BIGENDIAN) {
                 /* Swap bytes in RGB565 */
                 lv_draw_sw_rgb565_swap(cam_buff, cam_buff_size);

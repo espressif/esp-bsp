@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -177,6 +177,11 @@ esp_err_t lvgl_port_remove_disp(lv_disp_t *disp)
     lv_disp_remove(disp);
 
     if (disp_drv) {
+        if (disp_drv->draw_ctx) {
+            disp_drv->draw_ctx_deinit(disp_drv, disp_drv->draw_ctx);
+            lv_mem_free(disp_drv->draw_ctx);
+            disp_drv->draw_ctx = NULL;
+        }
         if (disp_drv->draw_buf && disp_drv->draw_buf->buf1) {
             free(disp_drv->draw_buf->buf1);
             disp_drv->draw_buf->buf1 = NULL;

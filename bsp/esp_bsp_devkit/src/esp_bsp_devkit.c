@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,28 +13,57 @@
 
 #include "bsp/esp_bsp_devkit.h"
 #include "bsp_err_check.h"
+#include "button_gpio.h"
+#include "button_adc.h"
 
 static const char *TAG = "BSP-devkit";
 
-sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
+
+/**
+ * @brief I2C handle for BSP usage
+ *
+ * In IDF v5.4 you can call i2c_master_get_bus_handle(BSP_I2C_NUM, i2c_master_bus_handle_t *ret_handle)
+ * from #include "esp_private/i2c_platform.h" to get this handle
+ *
+ * For IDF 5.2 and 5.3 you must call bsp_i2c_get_handle()
+ */
+static i2c_master_bus_handle_t i2c_handle = NULL;
 static bool i2c_initialized = false;
+sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 extern blink_step_t const *bsp_led_blink_defaults_lists[];
 
-static const button_config_t bsp_button_config[] = {
+typedef enum {
+    BSP_BUTTON_TYPE_GPIO,
+    BSP_BUTTON_TYPE_ADC
+} bsp_button_type_t;
+
+typedef struct {
+    bsp_button_type_t type;
+    union {
+        button_gpio_config_t gpio;
+        button_adc_config_t  adc;
+    } cfg;
+} bsp_button_config_t;
+
+static const bsp_button_config_t bsp_button_config[] = {
 #if CONFIG_BSP_BUTTONS_NUM > 0
 #if CONFIG_BSP_BUTTON_1_TYPE_GPIO
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_1_IO,
-        .gpio_button_config.active_level = CONFIG_BSP_BUTTON_1_LEVEL,
+        .type = BSP_BUTTON_TYPE_GPIO,
+        .cfg.gpio = {
+            .gpio_num = BSP_BUTTON_1_IO,
+            .active_level = CONFIG_BSP_BUTTON_1_LEVEL,
+        }
     },
 #elif CONFIG_BSP_BUTTON_1_TYPE_ADC
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = CONFIG_BSP_BUTTON_1_ADC_CHANNEL,
-        .adc_button_config.button_index = BSP_BUTTON_1,
-        .adc_button_config.min = (CONFIG_BSP_BUTTON_1_ADC_VALUE - 100),
-        .adc_button_config.max = (CONFIG_BSP_BUTTON_1_ADC_VALUE + 100)
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_channel = CONFIG_BSP_BUTTON_1_ADC_CHANNEL,
+            .button_index = BSP_BUTTON_1,
+            .min = (CONFIG_BSP_BUTTON_1_ADC_VALUE - 100),
+            .max = (CONFIG_BSP_BUTTON_1_ADC_VALUE + 100)
+        }
     },
 #endif // CONFIG_BSP_BUTTON_1_TYPE_x
 #endif // CONFIG_BSP_BUTTONS_NUM >= 0
@@ -42,18 +71,21 @@ static const button_config_t bsp_button_config[] = {
 #if CONFIG_BSP_BUTTONS_NUM > 1
 #if CONFIG_BSP_BUTTON_2_TYPE_GPIO
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_2_IO,
-        .gpio_button_config.active_level = CONFIG_BSP_BUTTON_2_LEVEL,
+        .type = BSP_BUTTON_TYPE_GPIO,
+        .cfg.gpio = {
+            .gpio_num = BSP_BUTTON_2_IO,
+            .active_level = CONFIG_BSP_BUTTON_2_LEVEL,
+        }
     },
-
 #elif CONFIG_BSP_BUTTON_2_TYPE_ADC
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = CONFIG_BSP_BUTTON_2_ADC_CHANNEL,
-        .adc_button_config.button_index = BSP_BUTTON_2,
-        .adc_button_config.min = (CONFIG_BSP_BUTTON_2_ADC_VALUE - 100),
-        .adc_button_config.max = (CONFIG_BSP_BUTTON_2_ADC_VALUE + 100)
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_channel = CONFIG_BSP_BUTTON_2_ADC_CHANNEL,
+            .button_index = BSP_BUTTON_2,
+            .min = (CONFIG_BSP_BUTTON_2_ADC_VALUE - 100),
+            .max = (CONFIG_BSP_BUTTON_2_ADC_VALUE + 100)
+        }
     },
 #endif // CONFIG_BSP_BUTTON_2_TYPE_x
 #endif // CONFIG_BSP_BUTTONS_NUM >= 1
@@ -61,18 +93,21 @@ static const button_config_t bsp_button_config[] = {
 #if CONFIG_BSP_BUTTONS_NUM > 2
 #if CONFIG_BSP_BUTTON_3_TYPE_GPIO
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_3_IO,
-        .gpio_button_config.active_level = CONFIG_BSP_BUTTON_3_LEVEL,
+        .type = BSP_BUTTON_TYPE_GPIO,
+        .cfg.gpio = {
+            .gpio_num = BSP_BUTTON_3_IO,
+            .active_level = CONFIG_BSP_BUTTON_3_LEVEL,
+        }
     },
-
 #elif CONFIG_BSP_BUTTON_3_TYPE_ADC
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = CONFIG_BSP_BUTTON_3_ADC_CHANNEL,
-        .adc_button_config.button_index = BSP_BUTTON_3,
-        .adc_button_config.min = (CONFIG_BSP_BUTTON_3_ADC_VALUE - 100),
-        .adc_button_config.max = (CONFIG_BSP_BUTTON_3_ADC_VALUE + 100)
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_channel = CONFIG_BSP_BUTTON_3_ADC_CHANNEL,
+            .button_index = BSP_BUTTON_3,
+            .min = (CONFIG_BSP_BUTTON_3_ADC_VALUE - 100),
+            .max = (CONFIG_BSP_BUTTON_3_ADC_VALUE + 100)
+        }
     },
 #endif // CONFIG_BSP_BUTTON_3_TYPE_x
 #endif // CONFIG_BSP_BUTTONS_NUM >= 2
@@ -80,18 +115,21 @@ static const button_config_t bsp_button_config[] = {
 #if CONFIG_BSP_BUTTONS_NUM > 3
 #if CONFIG_BSP_BUTTON_4_TYPE_GPIO
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_4_IO,
-        .gpio_button_config.active_level = CONFIG_BSP_BUTTON_4_LEVEL,
+        .type = BSP_BUTTON_TYPE_GPIO,
+        .cfg.gpio = {
+            .gpio_num = BSP_BUTTON_4_IO,
+            .active_level = CONFIG_BSP_BUTTON_4_LEVEL,
+        }
     },
-
 #elif CONFIG_BSP_BUTTON_4_TYPE_ADC
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = CONFIG_BSP_BUTTON_4_ADC_CHANNEL,
-        .adc_button_config.button_index = BSP_BUTTON_4,
-        .adc_button_config.min = (CONFIG_BSP_BUTTON_4_ADC_VALUE - 100),
-        .adc_button_config.max = (CONFIG_BSP_BUTTON_4_ADC_VALUE + 100)
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_channel = CONFIG_BSP_BUTTON_4_ADC_CHANNEL,
+            .button_index = BSP_BUTTON_4,
+            .min = (CONFIG_BSP_BUTTON_4_ADC_VALUE - 100),
+            .max = (CONFIG_BSP_BUTTON_4_ADC_VALUE + 100)
+        }
     },
 #endif // CONFIG_BSP_BUTTON_4_TYPE_x
 #endif // CONFIG_BSP_BUTTONS_NUM >= 3
@@ -99,18 +137,21 @@ static const button_config_t bsp_button_config[] = {
 #if CONFIG_BSP_BUTTONS_NUM > 4
 #if CONFIG_BSP_BUTTON_5_TYPE_GPIO
     {
-        .type = BUTTON_TYPE_GPIO,
-        .gpio_button_config.gpio_num = BSP_BUTTON_5_IO,
-        .gpio_button_config.active_level = CONFIG_BSP_BUTTON_5_LEVEL,
+        .type = BSP_BUTTON_TYPE_GPIO,
+        .cfg.gpio = {
+            .gpio_num = BSP_BUTTON_5_IO,
+            .active_level = CONFIG_BSP_BUTTON_5_LEVEL,
+        }
     },
-
 #elif CONFIG_BSP_BUTTON_5_TYPE_ADC
     {
-        .type = BUTTON_TYPE_ADC,
-        .adc_button_config.adc_channel = CONFIG_BSP_BUTTON_5_ADC_CHANNEL,
-        .adc_button_config.button_index = BSP_BUTTON_5,
-        .adc_button_config.min = (CONFIG_BSP_BUTTON_5_ADC_VALUE - 100),
-        .adc_button_config.max = (CONFIG_BSP_BUTTON_5_ADC_VALUE + 100)
+        .type = BSP_BUTTON_TYPE_ADC,
+        .cfg.adc = {
+            .adc_channel = CONFIG_BSP_BUTTON_5_ADC_CHANNEL,
+            .button_index = BSP_BUTTON_5,
+            .min = (CONFIG_BSP_BUTTON_5_ADC_VALUE - 100),
+            .max = (CONFIG_BSP_BUTTON_5_ADC_VALUE + 100)
+        }
     }
 #endif // CONFIG_BSP_BUTTON_5_TYPE_x
 #endif // CONFIG_BSP_BUTTONS_NUM >= 4
@@ -155,7 +196,6 @@ static led_indicator_gpio_config_t bsp_leds_gpio_config[] = {
 static const led_strip_config_t bsp_leds_rgb_strip_config = {
     .strip_gpio_num = CONFIG_BSP_LED_RGB_GPIO,   // The GPIO that connected to the LED strip's data line
     .max_leds = BSP_LED_NUM,                  // The number of LEDs in the strip,
-    .led_pixel_format = LED_PIXEL_FORMAT_GRB, // Pixel format of your LED strip
     .led_model = LED_MODEL_WS2812,            // LED strip model
     .flags.invert_out = false,                // whether to invert the output signal
 };
@@ -272,16 +312,13 @@ esp_err_t bsp_i2c_init(void)
         return ESP_OK;
     }
 
-    const i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    const i2c_master_bus_config_t i2c_config = {
+        .i2c_port = BSP_I2C_NUM,
         .sda_io_num = BSP_I2C_SDA,
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_io_num = BSP_I2C_SCL,
-        .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
+        .clk_source = I2C_CLK_SRC_DEFAULT,
     };
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
     i2c_initialized = true;
 
@@ -290,9 +327,15 @@ esp_err_t bsp_i2c_init(void)
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
     i2c_initialized = false;
     return ESP_OK;
+}
+
+i2c_master_bus_handle_t bsp_i2c_get_handle(void)
+{
+    bsp_i2c_init();
+    return i2c_handle;
 }
 
 esp_err_t bsp_spiffs_mount(void)
@@ -379,6 +422,7 @@ esp_err_t bsp_sdcard_unmount(void)
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size)
 {
     esp_err_t ret = ESP_OK;
+    const button_config_t btn_config = {0};
     if ((btn_array_size < BSP_BUTTON_NUM) ||
             (btn_array == NULL)) {
         return ESP_ERR_INVALID_ARG;
@@ -388,11 +432,14 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         *btn_cnt = 0;
     }
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-        btn_array[i] = iot_button_create(&bsp_button_config[i]);
-        if (btn_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
+        if (bsp_button_config[i].type == BSP_BUTTON_TYPE_GPIO) {
+            ret |= iot_button_new_gpio_device(&btn_config, &bsp_button_config[i].cfg.gpio, &btn_array[i]);
+        } else if (bsp_button_config[i].type == BSP_BUTTON_TYPE_ADC) {
+            ret |= iot_button_new_adc_device(&btn_config, &bsp_button_config[i].cfg.adc, &btn_array[i]);
+        } else {
+            ESP_LOGW(TAG, "Unsupported button type!");
         }
+
         if (btn_cnt) {
             (*btn_cnt)++;
         }

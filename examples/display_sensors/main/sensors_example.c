@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -15,6 +15,9 @@
 #include "esp_timer.h"
 #include "sdmmc_cmd.h" // for sdmmc_card_print_info
 #include "esp_idf_version.h" // for backward compatibility of esp-timer
+
+// Enable SD card test
+#define EXAMPLE_TEST_SD_CARD 0
 
 static const char *TAG = "example";
 
@@ -227,15 +230,18 @@ void app_main(void)
     bsp_leds_init();
     bsp_buzzer_init();
 
+#if EXAMPLE_TEST_SD_CARD
     // Mount uSD card, light up WiFi LED on success
     if (ESP_OK == bsp_sdcard_mount()) {
         bsp_led_set(BSP_LED_WIFI, true); // Signal successful SD card access
-        sdmmc_card_print_info(stdout, bsp_sdcard);
+        sdmmc_card_t *sdcard = bsp_sdcard_get_handle();
+        sdmmc_card_print_info(stdout, sdcard);
         FILE *f = fopen(BSP_SD_MOUNT_POINT "/hello.txt", "w");
-        fprintf(f, "Hello %s!\n", bsp_sdcard->cid.name);
+        fprintf(f, "Hello %s!\n", sdcard->cid.name);
         fclose(f);
         bsp_sdcard_unmount();
     }
+#endif
 
     main_screen = lv_disp_get_scr_act(NULL);
 
@@ -281,6 +287,10 @@ void app_main(void)
     button_handle_t btns[BSP_BUTTON_NUM];
     ESP_ERROR_CHECK(bsp_iot_button_create(btns, NULL, BSP_BUTTON_NUM));
     for (int i = 0; i < BSP_BUTTON_NUM; i++) {
+#if BUTTON_VER_MAJOR >= 4
+        ESP_ERROR_CHECK(iot_button_register_cb(btns[i], BUTTON_PRESS_DOWN, NULL, btn_handler, (void *) i));
+#else
         ESP_ERROR_CHECK(iot_button_register_cb(btns[i], BUTTON_PRESS_DOWN, btn_handler, (void *) i));
+#endif
     }
 }
