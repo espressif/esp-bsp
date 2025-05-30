@@ -19,9 +19,9 @@ license: Apache-2.0
 
 #url: https://github.com/espressif/esp-iot-solution/tree/master/components/sensors/humiture/aht20
 
-#examples:
-#  - path: ../../../examples/sensors/aht20_demo
-#  - path: ../../../examples/sensors/aht20_Sensor_Hub
+examples:
+  - path: ../../examples/Sensors/mpu60xx_motion_detect
+  - path: ../../examples/Sensors/mpu60xx_zero_motion_detect
 
 targets:
 - esp32

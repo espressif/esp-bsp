@@ -6,7 +6,7 @@ dependencies:
   # # Put list of dependencies here
   mpu60xx:
     version: "*"
-    override_path: "../../../"
+    override_path: "../../../../../components/mpu60xx"
   # # For components maintained by Espressif:
   # component: "~1.0.0"
   # # For 3rd party components:
