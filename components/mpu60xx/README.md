@@ -3,7 +3,7 @@ I2C driver for MPU60xx family IMU.
 
 ## Features  
   - Read Accelerometer, Gyrometer and Temperature sensor as raw or floating values.
-  - Use in-buit Motion Detection feature using either interrupt or polling.
+  - Use in-buit Free-Fall Detection, Motion Detection,and Zero motion feature using either interrupt or polling.
 
 ## Limitations
   - Does NOT support esp-idf Legacy I2C driver (documentation indicates it'll be removed in future releases).
@@ -11,12 +11,15 @@ I2C driver for MPU60xx family IMU.
   - Supports only I2C protocol ( Only MPU6000 has SPI capability.)
 
 ## Important Note
-  - Use deferred processing to handle interrupts from MPU60xx, I2C driver require interrupt to read/write (see example).
+  - Use deferred processing to handle interrupts from MPU60xx (see example), as I2C driver require interrupt to read/write.
   - INT pin of MPU60xx is required to be connected to esp32 gpio for interrupt. 
 
 ## Feature for next release (planned)
-  MPU60xx has many more features which haven't been implemented in this library currently, but are planned to be added in further releases. The next intended feature is
- - Zero motion detection.
+  MPU60xx has many more features which haven't been implemented in this library currently, but are planned to be added in further releases. The next intended features are
+ - FIFO based operations
+ - DMP features.
+ - SPI support
+ 
  
  
  
