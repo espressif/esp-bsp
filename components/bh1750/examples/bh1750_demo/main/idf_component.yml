@@ -1,0 +1,4 @@
+dependencies:
+  bh1750:
+    version: "*"
+    override_path: "../../../"

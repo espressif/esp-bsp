@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -15,7 +15,26 @@
 extern "C" {
 #endif
 
-#include "driver/i2c.h"
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <sys/types.h>
+
+#include "esp_bit_defs.h"
+#include "esp_log.h"
+#include "esp_err.h"
+#include "esp_check.h"
+
+#include "freertos/FreeRTOS.h"
+
+#include "driver/i2c_master.h"
+
+
+#define BH1750_I2C_ADDRESS_DEFAULT   (0x23)
+
 
 typedef enum {
     BH1750_CONTINUE_1LX_RES       = 0x10,   /*!< Command to set measure mode as Continuously H-Resolution mode*/
@@ -26,8 +45,18 @@ typedef enum {
     BH1750_ONETIME_4LX_RES        = 0x23,   /*!< Command to set measure mode as One Time L-Resolution mode*/
 } bh1750_measure_mode_t;
 
-#define BH1750_I2C_ADDRESS_DEFAULT   (0x23)
-typedef void *bh1750_handle_t;
+
+/**
+ * @brief  Configurations for BH1750 operations
+ */
+typedef struct {
+    i2c_master_dev_handle_t bh1750_i2c_handle;  /*!< BH1750 i2c operation handlers*/
+} bh1750_dev_t;
+
+/**
+ * @brief  handle for BH1750 operations
+ */
+typedef bh1750_dev_t *bh1750_handle_t;
 
 /**
  * @brief Set bh1750 as power down mode (low current)
@@ -107,25 +136,25 @@ esp_err_t bh1750_set_measure_time(bh1750_handle_t sensor, const uint8_t measure_
 /**
  * @brief Create and init sensor object and return a sensor handle
  *
- * @param     port     I2C port number
- * @param[in] dev_addr I2C device address of sensor
+ * @param[in] bus_handle     I2C master bus handle
+ * @param[in] bh1750_addr    address used for BH1750
  *
  * @return
  *     - NULL Fail
  *     - Others Success
  */
-bh1750_handle_t bh1750_create(i2c_port_t port, const uint16_t dev_addr);
+bh1750_handle_t bh1750_create(i2c_master_bus_handle_t bus_handle, const uint8_t bh1750_addr);
 
 /**
  * @brief Delete and release a sensor object
  *
- * @param sensor object handle of bh1750
+ * @param pointer to sensor object handle of bh1750
  *
  * @return
  *     - ESP_OK Success
  *     - ESP_FAIL Fail
  */
-esp_err_t bh1750_delete(bh1750_handle_t sensor);
+esp_err_t bh1750_delete(bh1750_handle_t *sensor);
 
 #ifdef __cplusplus
 }
