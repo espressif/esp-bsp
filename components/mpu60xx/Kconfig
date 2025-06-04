@@ -1,0 +1,12 @@
+menu "MPU60xx : CONFIGURATION"
+
+    config MPU60xx_I2C_CLK_SPEED
+        int "I2C clock speed"
+		default 300000
+	range 1 400000
+        help
+            Clock speed used for i2c communication by MPU60xx device.
+	    Limited to maximum of 400KHZ.
+		    
+endmenu
+

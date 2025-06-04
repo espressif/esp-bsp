@@ -1,2 +1,2 @@
-idf_component_register(SRCS "mpu60xx_motion_detect.c"
+idf_component_register(SRCS "mpu_motion_detect.c"
                     INCLUDE_DIRS ".")
