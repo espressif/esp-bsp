@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: CC0-1.0
 
+import os
 import datetime
 import json
 from pathlib import Path
@@ -35,6 +36,8 @@ def find_test_results(json_obj, test):
 
 
 def get_test_diff(test1, test2, name, positive):
+    if os.getenv("GITHUB_REF_NAME") == "master":
+        return ""
     if not test1 or not test2 or not test1[name] or not test2[name]:
         return ""
     test1[name] = test1[name].replace("%", "")
@@ -78,7 +81,10 @@ def test_example(dut: Dut, request) -> None:
     }
 
     # Write board into file
-    write_to_file(board, ".md", f"# Benchmark for BOARD " + board + "\n\n")
+    if os.getenv("GITHUB_REF_NAME") == "master":
+        write_to_file(board, ".md", f"## LVGL Benchmark\n\n")
+    else:
+        write_to_file(board, ".md", f"# Benchmark for BOARD " + board + "\n\n")
     write_to_file(board, ".md", f"**DATE:** " + date.strftime('%d.%m.%Y %H:%M') + "\n\n")
     # Get LVGL version write it into file
     outdata = dut.expect(r'Benchmark Summary \((.*) \)', timeout=200)
@@ -114,8 +120,10 @@ def test_example(dut: Dut, request) -> None:
                       test_entry["Flush time"] + " " + get_test_diff(test_entry, last_test_result, "Flush time", False) + " |\n")
 
     write_to_file(board, ".md", "\n")
-    write_to_file(board, ".md", "***")
-    write_to_file(board, ".md", "\n\n")
+
+    if os.getenv("GITHUB_REF_NAME") != "master":
+        write_to_file(board, ".md", "***")
+        write_to_file(board, ".md", "\n\n")
 
     # Save JSON to file
     json_output = json.dumps(output, indent=4)
