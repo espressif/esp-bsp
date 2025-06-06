@@ -6,7 +6,7 @@
 
 /**
  * @file
- * @brief ESP BSP: S3-USB-OTG kit
+ * @brief ESP BSP: ESP32-S3-USB-OTG
  */
 
 #pragma once
@@ -21,6 +21,12 @@
 #include "esp_lvgl_port.h"
 #include "bsp/display.h"
 #include "esp_adc/adc_oneshot.h"
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_ESP32_S3_USB_OTG
 
 /**************************************************************************************************
  *  BSP Capabilities
@@ -134,6 +140,9 @@ typedef struct {
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SPI2_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;
@@ -525,8 +534,6 @@ esp_err_t bsp_usb_host_stop(void);
  * @brief Initialize ADC
  *
  * The ADC can be initialized inside BSP, when needed.
- *
- * @param[out] adc_handle Returned ADC handle
  */
 esp_err_t bsp_adc_initialize(void);
 

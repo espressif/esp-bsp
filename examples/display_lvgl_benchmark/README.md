@@ -1,4 +1,4 @@
-# Display LVGL Benchmark
+# BSP: Display LVGL Benchmark
 
 This example runs the LVGL benchmark demo to measure graphical performance on Espressif and M5Stack boards. It is used in CI for selected pull requests (based on labels) and after merging changes into the master branch.
 

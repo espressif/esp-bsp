@@ -1,0 +1,51 @@
+# API Reference
+
+<div align="center">
+
+{% set icon_map = {
+    'boardname'     : '',
+    'capabilities'  : ':1234:',
+    'g0_pmod'       : '',
+    'g1_adc'        : '',
+    'g1_i2c'        : '',
+    'g1_spi'        : '',
+    'g2_storage'    : ':floppy_disk:',
+    'g3_audio'      : ':musical_note:',
+    'g4_display'    : ':pager:',
+    'g5_buttons'    : ':radio_button:',
+    'g6_led'        : ':bulb:',
+    'g7_usb'        : ':electric_plug:',
+    'g8_camera'     : ':camera:',
+    'g9_battery'    : ':battery:',
+    'g10_sensors'   : ':video_game:',
+} %}
+
+{# Generate menu #}
+| {% for group in groups %}{% if icon_map.get(group.name, '') %}{{ icon_map.get(group.name, '') }} [{{ group.title|upper }}](#{{ icon_map.get(group.name, '') | replace(':', '')  | urlencode }}-{{ group.title | lower | replace(' ', '-') }}) | {% endif %}{%- endfor %}
+| {% for group in groups %}{% if icon_map.get(group.name, '') %}:-------------------------: | {% endif %}{% endfor %}
+
+</div>
+
+{# Inlcude overview #}
+{% include "how_to_use/overview.md" ignore missing %}
+
+{% for group in groups %}
+
+{# Inlcude markdown file for each feature #}
+{% include "how_to_use/" ~ group.name ~ ".md" ignore missing %}
+
+### {{ group.title }} API Reference
+
+{% set macros = group.query(kinds=['define']) -%}
+{%- set structures_types = group.query(kinds=['struct', 'typedef', 'enum', 'union']) -%}
+{%- set functions = group.query(kinds=['function']) -%}
+
+{{ table_template.render(title='Structures and Types', nodes=structures_types) }}
+{{ table_template.render(title='Functions', nodes=functions) }}
+{{ table_template.render(title='Macros', nodes=macros) }}
+
+{{ detail_template.render(title='Structures and Types Documentation', nodes=structures_types) }}
+{{ detail_template.render(title='Functions Documentation', nodes=functions) }}
+{# {{ detail_template.render(title='Macros Documentation', nodes=macros) }} #}
+
+{% endfor %}

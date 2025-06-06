@@ -1,12 +1,12 @@
 /*
- * SPDX-FileCopyrightText: 2021-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2021-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
  * @file
- * @brief ESP BSP: Kaluga kit
+ * @brief ESP BSP: ESP32-S2-Kaluga Kit
  */
 
 #pragma once
@@ -21,6 +21,12 @@
 #include "esp_codec_dev.h"
 #include "bsp/display.h"
 #include "esp_adc/adc_oneshot.h"
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+#define BSP_BOARD_ESP32_S2_KALUGA_KIT
 
 /**************************************************************************************************
  *  BSP Capabilities
@@ -132,8 +138,6 @@ typedef struct {
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
  * @warning The type of i2s_config param is depending on IDF version.
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
- * @param[out] tx_channel I2S TX channel
- * @param[out] rx_channel I2S RX channel
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
@@ -389,8 +393,6 @@ void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
  * @brief Initialize ADC
  *
  * The ADC can be initialized inside BSP, when needed.
- *
- * @param[out] adc_handle Returned ADC handle
  */
 esp_err_t bsp_adc_initialize(void);
 
