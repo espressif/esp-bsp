@@ -17,9 +17,10 @@
 #include "lv_draw_sw_blend_to_rgb565.h"
 #include "lv_draw_sw_blend_to_rgb888.h"
 
-#define WIDTH 128
-#define HEIGHT 128
-#define STRIDE WIDTH
+#define COMMON_DIM 128      // Common matrix dimension 128x128 pixels
+#define WIDTH COMMON_DIM
+#define HEIGHT COMMON_DIM
+#define STRIDE COMMON_DIM
 #define UNALIGN_BYTES 1
 #define BENCHMARK_CYCLES 1000
 
@@ -79,7 +80,7 @@ TEST_CASE("LV Fill benchmark ARGB8888", "[fill][benchmark][ARGB8888]")
         .height = HEIGHT,
         .width = WIDTH,
         .stride = STRIDE * sizeof(uint32_t),
-        .cc_height = HEIGHT - 1,
+        .cc_height = HEIGHT,
         .cc_width = WIDTH - 1,
         .benchmark_cycles = BENCHMARK_CYCLES,
         .array_align16 = (void *)dest_array_align16,
@@ -87,7 +88,7 @@ TEST_CASE("LV Fill benchmark ARGB8888", "[fill][benchmark][ARGB8888]")
         .blend_api_func = &lv_draw_sw_blend_color_to_argb8888,
     };
 
-    ESP_LOGI(TAG_LV_FILL_BENCH, "running test for ARGB8888 color format");
+    ESP_LOGI(TAG_LV_FILL_BENCH, "running memset for ARGB8888 to ARGB8888 color format");
     lv_fill_benchmark_init(&test_params);
     free(dest_array_align16);
 }
@@ -104,7 +105,7 @@ TEST_CASE("LV Fill benchmark RGB565", "[fill][benchmark][RGB565]")
         .height = HEIGHT,
         .width = WIDTH,
         .stride = STRIDE * sizeof(uint16_t),
-        .cc_height = HEIGHT - 1,
+        .cc_height = HEIGHT,
         .cc_width = WIDTH - 1,
         .benchmark_cycles = BENCHMARK_CYCLES,
         .array_align16 = (void *)dest_array_align16,
@@ -112,7 +113,7 @@ TEST_CASE("LV Fill benchmark RGB565", "[fill][benchmark][RGB565]")
         .blend_api_func = &lv_draw_sw_blend_color_to_rgb565,
     };
 
-    ESP_LOGI(TAG_LV_FILL_BENCH, "running test for RGB565 color format");
+    ESP_LOGI(TAG_LV_FILL_BENCH, "running memset for RGB565 to RGB565 color format");
     lv_fill_benchmark_init(&test_params);
     free(dest_array_align16);
 }
@@ -129,7 +130,7 @@ TEST_CASE("LV Fill benchmark RGB888", "[fill][benchmark][RGB888]")
         .height = HEIGHT,
         .width = WIDTH,
         .stride = STRIDE * 3,
-        .cc_height = HEIGHT - 1,
+        .cc_height = HEIGHT,
         .cc_width = WIDTH - 1,
         .benchmark_cycles = BENCHMARK_CYCLES,
         .array_align16 = (void *)dest_array_align16,
@@ -137,7 +138,7 @@ TEST_CASE("LV Fill benchmark RGB888", "[fill][benchmark][RGB888]")
         .blend_api_px_func = &lv_draw_sw_blend_color_to_rgb888,
     };
 
-    ESP_LOGI(TAG_LV_FILL_BENCH, "running test for RGB888 color format");
+    ESP_LOGI(TAG_LV_FILL_BENCH, "running memset for RGB888 to RGB888 color format");
     lv_fill_benchmark_init(&test_params);
     free(dest_array_align16);
 }
