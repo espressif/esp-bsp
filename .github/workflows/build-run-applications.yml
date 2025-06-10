@@ -92,7 +92,7 @@ jobs:
           ALL_CHANGED_FILES: ${{ (github.event_name != 'pull_request') && format(' ') || format('--modified-files=') }}${{ (github.event_name != 'pull_request') && format(' ') || steps.changed-files.outputs.all_modified_files }}
         run: |
           . ${IDF_PATH}/export.sh
-          pip install idf-component-manager==1.* ruamel.yaml idf-build-apps==2.4.3 --upgrade
+          pip install idf-component-manager==2.2.* ruamel.yaml idf-build-apps==2.4.3 --upgrade
 
           echo "Files changed: "${{env.ALL_CHANGED_FILES}}
           idf-build-apps find ${{env.ALL_CHANGED_FILES}}
