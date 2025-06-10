@@ -199,6 +199,7 @@ jobs:
         run: |
           pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code opencv-python numpy
           apt-get update && apt-get install -y libgl1
+          apt-get update && apt-get install -y v4l-utils
       - name: Download latest results
         uses: actions/download-artifact@v4
         with:

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import pytest
 import cv2
+import subprocess
 from pathlib import Path
 
 
@@ -43,6 +44,12 @@ def pytest_collection_modifyitems(config, items):
 
 
 def bsp_capture_image(image_path, board):
+    # Enable auto-focus
+    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=focus_auto=1"])
+    # Manual exposition
+    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=exposure_auto=1"])
+    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=exposure_absolute=100"])
+
     # Return video from the first webcam on your computer.
     cap = cv2.VideoCapture(0)
     # Set FullHD resolution (1920x1080)
@@ -55,6 +62,8 @@ def bsp_capture_image(image_path, board):
     # ret checks return at each frame
     ret, frame = cap.read()
     if ret:
+        # Image rotation
+        frame = cv2.rotate(frame, cv2.ROTATE_180)
         # TODO: Camera calibration / Perspective transform
         # TODO: Change size image
         # TODO: Crop image for {board}
