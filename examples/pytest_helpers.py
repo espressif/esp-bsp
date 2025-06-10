@@ -6,15 +6,19 @@ import cv2
 def bsp_capture_image(image_path):
     # Return video from the first webcam on your computer.
     cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_PROP_AUTOFOCUS, 1)
+    cap.set(cv2.CAP_PROP_EXPOSURE, 7.0)
     # reads frames from a camera
     # ret checks return at each frame
     ret, frame = cap.read()
     if ret:
+        # Image rotation
+        frame_rotated = cv2.rotate(frame, cv2.ROTATE_180)
         # TODO: Change size image
         # TODO: Crop image
 
         # Save image
-        cv2.imwrite(image_path, frame)
+        cv2.imwrite(image_path, frame_rotated)
         print(f"Image saved {image_path}")
     else:
         print("Cannot save image.")
