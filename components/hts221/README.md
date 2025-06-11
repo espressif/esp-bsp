@@ -1,6 +1,9 @@
 # Component: HTS221
 
 [![Component Registry](https://components.espressif.com/components/espressif/hts221/badge.svg)](https://components.espressif.com/components/espressif/hts221)
+![maintenance-status](https://img.shields.io/badge/maintenance-deprecated-red.svg)
+
+:warning: **HTS221 component is deprecated. Users can use HTS221 from new [Sensor HUB](https://components.espressif.com/components/espressif/sensor_hub) component.**
 
 I2C driver and definition of HTS221 humidity and temperature sensor.
 

@@ -1,6 +1,7 @@
 # MPU6050 Driver Component
 
 [![Component Registry](https://components.espressif.com/components/espressif/mpu6050/badge.svg)](https://components.espressif.com/components/espressif/mpu6050)
+![maintenance-status](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen.svg)
 
 C driver for Invensense MPU6050 6-axis gyroscope and accelerometer based on I2C communication.
 
