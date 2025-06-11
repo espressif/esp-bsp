@@ -3,6 +3,7 @@
 import pytest
 import cv2
 import subprocess
+import numpy as np
 from pathlib import Path
 
 
@@ -43,18 +44,42 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.skip(reason="Not for selected params"))
 
 
+def bsp_image_correction(image):
+    pts_src = np.float32([
+        [160, 80],    # top-left
+        [1044, 87],   # top-right
+        [279, 720],    # bottom-left
+        [913, 718]   # bottom-right
+    ])
+
+    width, height = 1000, 884
+    pts_dst = np.float32([
+        [0, 0],
+        [width, 0],
+        [0, height],
+        [width, height]
+    ])
+
+    matrix = cv2.getPerspectiveTransform(pts_src, pts_dst)
+    warped = cv2.warpPerspective(image, matrix, (width, height))
+    return warped
+
+
 def bsp_capture_image(image_path, board):
     # Enable auto-focus
-    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=focus_auto=1"])
+    # subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=focus_auto=1"])
+    # Manual focus
+    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=focus_auto=0"])
+    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=focus_absolute=20"])
     # Manual exposition
     subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=exposure_auto=1"])
-    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=exposure_absolute=100"])
+    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=exposure_absolute=1"])
 
     # Return video from the first webcam on your computer.
     cap = cv2.VideoCapture(0)
     # Set FullHD resolution (1920x1080)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
     # TODO: Camera calibration
 
@@ -67,6 +92,9 @@ def bsp_capture_image(image_path, board):
         # TODO: Camera calibration / Perspective transform
         # TODO: Change size image
         # TODO: Crop image for {board}
+
+        # correction image perspective and crop
+        frame = bsp_image_correction(frame)
 
         # Save image
         cv2.imwrite(image_path, frame)
