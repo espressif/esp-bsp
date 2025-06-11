@@ -9,7 +9,6 @@ set(EXTRA_COMPONENT_DIRS "../../components/lcd_touch")
 # Explicitly add components that do not have an test_app
 # Must be kept in sync with list in .build-test-rules.yml
 list(APPEND EXTRA_COMPONENT_DIRS
-    "../../components/lcd/esp_lcd_sh1107"
     "../../components/lcd/esp_lcd_ra8875"
     "../../components/bh1750"
     "../../components/fbm320"

@@ -3,14 +3,13 @@ test_apps/noglib:
   disable:
     - if: ENV_BUILD_NOGLIB == 0
 
-# Common components test_app: Build for changes in components which do not have their own test_app or example
+# Legacy common components test_app: Build for changes in components which do not have their own test_app or example
 test_apps/components:
   depends_filepatterns:
     - "components/bh1750/**"
     - "components/fbm320/**"
     - "components/hts221/**"
     - "components/lcd/esp_lcd_ra8875/**"
-    - "components/lcd/esp_lcd_sh1107/**"
     - "components/lcd_touch/**"
     - "components/mag3110/**"
     - "components/mpu6050/**"
