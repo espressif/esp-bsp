@@ -8,6 +8,8 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
+    - name: Install doxygen
+      run: sudo apt-get install -y doxygen
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5.2.0
     - uses: pre-commit/action@v3.0.1

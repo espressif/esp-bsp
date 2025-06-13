@@ -4,10 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-
 /**
  * @file
- * @brief ESP BSP: ESP32-S3-Korvo-1
+ * @brief ESP BSP: ESP32-S3-KORVO-1
  */
 
 #pragma once
@@ -26,10 +25,26 @@
 #include "driver/i2s_tdm.h"
 #include "esp_adc/adc_oneshot.h"
 #endif
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_ESP32_S3_KORVO_1
+/** @} */ // end of boardname
+
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY        0
 #define BSP_CAPS_TOUCH          0
 #define BSP_CAPS_BUTTONS        1
@@ -39,15 +54,24 @@
 #define BSP_CAPS_SDCARD         1
 #define BSP_CAPS_IMU            0
 #define BSP_CAPS_LED            1
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  *  ESP32-S3-Korvo-1 pinout
  **************************************************************************************************/
-/* I2C */
+
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_SCL           (GPIO_NUM_2)
 #define BSP_I2C_SDA           (GPIO_NUM_1)
+/** @} */ // end of i2c
 
-/* Audio */
+/** @defgroup g03_audio Audio
+ *  @brief Audio BSP API
+ *  @{
+ */
 #define BSP_I2S0_SCLK         (GPIO_NUM_40)
 #define BSP_I2S0_MCLK         (GPIO_NUM_42)
 #define BSP_I2S0_LCLK         (GPIO_NUM_41)
@@ -61,14 +85,27 @@
 #define BSP_I2S1_DSIN         (GPIO_NUM_11)
 
 #define BSP_POWER_AMP_IO      (GPIO_NUM_38)
+/** @} */ // end of audio
 
-/* Leds */
+/** @defgroup g06_led Leds
+ *  @brief Leds BSP API
+ *  @{
+ */
 #define BSP_LED_RGB_GPIO      (GPIO_NUM_19)
 #define BSP_LED_NUM           (12)
+/** @} */ // end of leds
 
-/* Buttons */
+/** @defgroup g05_buttons Buttons
+ *  @brief Buttons BSP API
+ *  @{
+ */
 #define BSP_BUTTONS_IO        (GPIO_NUM_8) // All 6 buttons mapped to this GPIO
+/** @} */ // end of buttons
 
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
 /* uSD card MMC */
 #define BSP_SD_D0             (GPIO_NUM_16)
 #define BSP_SD_D3             (GPIO_NUM_15)
@@ -80,13 +117,17 @@
 #define BSP_SD_SPI_CS         (GPIO_NUM_15)
 #define BSP_SD_SPI_MOSI       (GPIO_NUM_17)
 #define BSP_SD_SPI_CLK        (GPIO_NUM_18)
+/** @} */ // end of storage
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/** \addtogroup g06_led
+ *  @{
+ */
 /* Default LED effects */
-enum {
+typedef enum {
     BSP_LED_ON,
     BSP_LED_OFF,
     BSP_LED_BLINK_FAST,
@@ -94,7 +135,12 @@ enum {
     BSP_LED_BREATHE_FAST,
     BSP_LED_BREATHE_SLOW,
     BSP_LED_MAX,
-};
+} bsp_led_effect_t;
+/** @} */ // end of leds
+
+/** \addtogroup g05_buttons
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -116,6 +162,12 @@ typedef enum {
     BSP_BUTTON_VOLUP,
     BSP_BUTTON_NUM,
 } bsp_button_t;
+
+/** @} */ // end of buttons
+
+/** \addtogroup g03_audio
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -143,8 +195,6 @@ typedef enum {
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
  * @warning The type of i2s_config param is depending on IDF version.
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
- * @param[out] tx_channel I2S TX channel
- * @param[out] rx_channel I2S RX channel
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
@@ -189,6 +239,12 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
  */
 esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
 
+/** @} */ // end of audio
+
+/** \addtogroup g01_i2c
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * I2C interface
@@ -222,6 +278,13 @@ esp_err_t bsp_i2c_init(void);
  */
 esp_err_t bsp_i2c_deinit(void);
 
+/** @} */ // end of i2c
+
+/** @defgroup g01_adc ADC
+ *  @brief ADC BSP API
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * ADC interface
@@ -238,8 +301,6 @@ esp_err_t bsp_i2c_deinit(void);
  * @brief Initialize ADC
  *
  * The ADC can be initialized inside BSP, when needed.
- *
- * @param[out] adc_handle Returned ADC handle
  */
 esp_err_t bsp_adc_initialize(void);
 
@@ -254,6 +315,12 @@ esp_err_t bsp_adc_initialize(void);
  */
 adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
 #endif
+
+/** @} */ // end of adc
+
+/** \addtogroup g05_buttons
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -276,6 +343,12 @@ adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 
+/** @} */ // end of buttons
+
+/** \addtogroup g06_led
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * LEDs
@@ -285,7 +358,7 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
 /**
  * @brief Initialize all LEDs
  *
- * @note `led_cnt` and `led_array_size` unused, only one config needed to control the leds
+ * @note led_cnt and led_array_size unused, only one config needed to control the leds
  *
  * @param[out] led_array      Output LED array
  * @param[out] led_cnt        Number of LED handlers saved to led_array, can be NULL
@@ -295,6 +368,12 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
 esp_err_t bsp_led_indicator_create(led_indicator_handle_t led_array[], int *led_cnt, int led_array_size);
+
+/** @} */ // end of leds
+
+/** \addtogroup g02_storage
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -336,11 +415,11 @@ esp_err_t bsp_spiffs_unmount(void);
 
 /**************************************************************************************************
  *
- * uSD card
+ * SD card
  *
- * After mounting the uSD card, it can be accessed with stdio functions ie.:
+ * After mounting the SD card, it can be accessed with stdio functions ie.:
  * \code{.c}
- * FILE* f = fopen(BSP_MOUNT_POINT"/hello.txt", "w");
+ * FILE* f = fopen(BSP_SD_MOUNT_POINT"/hello.txt", "w");
  * fprintf(f, "Hello %s!\n", bsp_sdcard->cid.name);
  * fclose(f);
  * \endcode
@@ -348,6 +427,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SDSPI_DEFAULT_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;
@@ -448,6 +530,8 @@ esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg);
  *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
  */
 esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
+
+/** @} */ // end of storage
 
 #ifdef __cplusplus
 }

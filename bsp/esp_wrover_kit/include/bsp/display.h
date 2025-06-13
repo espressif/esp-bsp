@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -17,6 +17,10 @@
 #pragma once
 #include "esp_lcd_types.h"
 #include "sdkconfig.h"
+
+/** \addtogroup g04_display
+ *  @{
+ */
 
 /* LCD color formats */
 #define ESP_LCD_COLOR_FORMAT_RGB565    (1)
@@ -126,3 +130,5 @@ esp_err_t bsp_display_backlight_off(void);
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */ // end of display

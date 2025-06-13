@@ -1,12 +1,12 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
  * @file
- * @brief ESP BSP: Generic
+ * @brief ESP BSP: DevKit BSP
  */
 
 #pragma once
@@ -19,28 +19,53 @@
 #include "led_indicator.h"
 
 /**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_DEVKIT
+/** @} */ // end of boardname
+
+/**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #if CONFIG_BSP_BUTTONS_NUM > 0
 #define BSP_CAPS_BUTTONS    1
 #endif
 #if CONFIG_BSP_LEDS_NUM > 0
-#define BSP_CAPS_LEDS       1
+#define BSP_CAPS_LED       1
 #endif
 #define BSP_CAPS_AUDIO          0
 #define BSP_CAPS_AUDIO_SPEAKER  0
 #define BSP_CAPS_AUDIO_MIC      0
 #define BSP_CAPS_SDCARD         0
 #define BSP_CAPS_IMU            0
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  *  Pinout
  **************************************************************************************************/
-/* I2C */
+
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_SCL         (CONFIG_BSP_I2C_GPIO_SCL)
 #define BSP_I2C_SDA         (CONFIG_BSP_I2C_GPIO_SDA)
+/** @} */ // end of audio
 
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
 /* SD card */
 #define BSP_SD_CMD          (CONFIG_BSP_SD_CMD)
 #define BSP_SD_CLK          (CONFIG_BSP_SD_CLK)
@@ -48,22 +73,34 @@
 #define BSP_SD_D1           (CONFIG_BSP_SD_D1)
 #define BSP_SD_D2           (CONFIG_BSP_SD_D2)
 #define BSP_SD_D3           (CONFIG_BSP_SD_D3)
+/** @} */ // end of storage
 
-/* Buttons */
+/** @defgroup g05_buttons Buttons
+ *  @brief Buttons BSP API
+ *  @{
+ */
 #define BSP_BUTTON_1_IO     (CONFIG_BSP_BUTTON_1_GPIO)
 #define BSP_BUTTON_2_IO     (CONFIG_BSP_BUTTON_2_GPIO)
 #define BSP_BUTTON_3_IO     (CONFIG_BSP_BUTTON_3_GPIO)
 #define BSP_BUTTON_4_IO     (CONFIG_BSP_BUTTON_4_GPIO)
 #define BSP_BUTTON_5_IO     (CONFIG_BSP_BUTTON_5_GPIO)
+/** @} */ // end of buttons
 
-/* Leds */
+/** @defgroup g06_led Leds
+ *  @brief Leds BSP API
+ *  @{
+ */
 #define BSP_LED_1_IO        (CONFIG_BSP_LED_1_GPIO)
 #define BSP_LED_2_IO        (CONFIG_BSP_LED_2_GPIO)
 #define BSP_LED_3_IO        (CONFIG_BSP_LED_3_GPIO)
 #define BSP_LED_4_IO        (CONFIG_BSP_LED_4_GPIO)
 #define BSP_LED_5_IO        (CONFIG_BSP_LED_5_GPIO)
+/** @} */ // end of leds
 
-/* Buttons */
+/** \addtogroup g05_buttons
+ *  @brief BSP Buttons
+ *  @{
+ */
 typedef enum {
 #if CONFIG_BSP_BUTTONS_NUM > 0
     BSP_BUTTON_1,
@@ -82,8 +119,12 @@ typedef enum {
 #endif
     BSP_BUTTON_NUM
 } bsp_button_t;
+/** @} */ // end of buttons
 
-/* Leds */
+/** \addtogroup 6_led
+ *  @brief BSP Leds
+ *  @{
+ */
 typedef enum {
 #if CONFIG_BSP_LEDS_NUM > 0
     BSP_LED_1,
@@ -113,10 +154,15 @@ enum {
     BSP_LED_BREATHE_SLOW,
     BSP_LED_MAX,
 };
+/** @} */ // end of leds
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** \addtogroup g01_i2c
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -154,6 +200,11 @@ esp_err_t bsp_i2c_deinit(void);
  */
 i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
+/** @} */ // end of i2c
+
+/** \addtogroup g02_storage
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -235,6 +286,12 @@ esp_err_t bsp_sdcard_mount(void);
  */
 esp_err_t bsp_sdcard_unmount(void);
 
+/** @} */ // end of storage
+
+/** \addtogroup g05_buttons
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * Button
@@ -255,6 +312,12 @@ esp_err_t bsp_sdcard_unmount(void);
  *     - ESP_FAIL             Underlaying iot_button_create failed
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
+
+/** @} */ // end of buttons
+
+/** \addtogroup g06_led
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -295,6 +358,8 @@ esp_err_t bsp_led_set(led_indicator_handle_t handle, const bool on);
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
 esp_err_t bsp_led_set_temperature(led_indicator_handle_t handle, const uint16_t temperature);
+
+/** @} */ // end of leds
 
 #ifdef __cplusplus
 }

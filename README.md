@@ -1,61 +1,85 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
+
 # ESP-BSP: Espressif's Board Support Packages
-Board support packages for development boards using Espressif's SoCs, written in C.
 
-## Supported boards
-| Board name                                           | SoC      | Features                                                                                                          | Photo                                                               |
-| ---------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| [ESP-WROVER-KIT](bsp/esp_wrover_kit)                 | ESP32    | LCD display, uSD card slot                                                                                        | <img src="docu/pics/wrover.png" width="150">                        |
-| [ESP-BOX-3](bsp/esp-box-3)                           | ESP32-S3 | LCD display with touch, audio codec + power amplifier,<br>accelerometer and gyroscope                             | <img src="docu/pics/esp32_s3_box_3.png" width="150">                |
-| [ESP32-Azure IoT Kit](bsp/esp32_azure_iot_kit)       | ESP32    | OLED display, uSD card slot, accelerometer,<br>magnetometer, humidity, pressure, light<br>and temperature sensors | <img src="docu/pics/azure.png" width="150">                         |
-| [ESP32-S2-Kaluga Kit](bsp/esp32_s2_kaluga_kit)       | ESP32-S2 | LCD display, audio codec + power amplifier,<br>smart LED and camera                                               | <img src="docu/pics/kaluga.png" width="150">                        |
-| [ESP32-S3-USB-OTG](bsp/esp32_s3_usb_otg)             | ESP32-S3 | LCD display, uSD card slot, USB-OTG                                                                               | <img src="docu/pics/esp32_s3_otg.png" width="150">                  |
-| [ESP32-S3-EYE](bsp/esp32_s3_eye)                     | ESP32-S3 | LCD display, camera, uSD card slot, microphone and accelerometer                                                  | <img src="docu/pics/s3-eye.webp" width="150">                       |
-| [ESP32-S3-LCD-EV-Board](bsp/esp32_s3_lcd_ev_board)   | ESP32-S3 | LCD display with touch, audio codec + power amplifier                                                             | <img src="docu/pics/esp32-s3-lcd-ev-board_480x480.png" width="150"> |
-| [ESP32-S3-LCD-EV-Board-2](bsp/esp32_s3_lcd_ev_board) | ESP32-S3 | LCD display with touch, audio codec + power amplifier                                                             | <img src="docu/pics/esp32-s3-lcd-ev-board_800x480.png" width="150"> |
-| [ESP32-S3-Korvo-2](bsp/esp32_s3_korvo_2)             | ESP32-S3 | LCD display, camera, uSD card slot, microphone, audio codec + power amplifier                                     | <img src="docu/pics/korvo-2.png" width="150">                       |
-| [ESP32-LyraT](bsp/esp32_lyrat)                       | ESP32    | uSD card slot, microphone, audio codec + power amplifier                                                          | <img src="docu/pics/lyrat.png" width="150">                         |
-| [ESP32-C3-LCDKit](bsp/esp32_c3_lcdkit)               | ESP32-C3 | LCD display with encoder, IR, PDM audio                                                                           | <img src="docu/pics/esp32_c3_lcdkit.png" width="150">               |
-| [ESP32-S3-KORVO-1](bsp/esp32_s3_korvo_1)             | ESP32-S3 | uSD card slot, microphone, audio codec + power amplifier, RGB led strip                                           | <img src="docu/pics/esp32_s3_korvo_1.png" width="150">              |
-| [M5Stack CoreS3](bsp/m5stack_core_s3)                | ESP32-S3 | LCD display with touch, uSD card slot, microphone, audio codec                                                    | <img src="docu/pics/m5stack_cores3.webp" width="150">               |
-| [M5Stack Core2](bsp/m5stack_core_2)                  | ESP32    | LCD display with touch, uSD card slot                                                                             | <img src="docu/pics/m5stack_core2.webp" width="150">                |
-| [M5Dial](bsp/m5dial)                                 | ESP32-S3 | LCD display with touch and encoder                                                                                | <img src="docu/pics/m5dial.webp" width="150">                       |
-| [M5 Atom S3](bsp/m5_atom_s3)                                 | ESP32-S3 | LCD display with button                                                                                | <img src="docu/pics/m5atoms3.webp" width="150">                       |
+| [HOW TO USE](docu/how_to_use.md) | [BOARDS](#supported-boards) | [EXAMPLES](#examples) | [CONTRIBUTING](docu/CONTRIBUTING.md) | [LVGL port](components/esp_lvgl_port) | [LCD drivers](docu/LCD.md) |
+| :---------------------------------------: | :-------------------------: | :-------------------: | :--------------: | :-----------------------------------: | :------------------------: |
 
-### Deprecated boards
-| Board name                                           | SoC      | Features                                                                                                          | Photo                                                               |
-| ---------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| [ESP-BOX](bsp/esp-box)                               | ESP32-S3 | LCD display with touch, audio codec + power amplifier,<br>accelerometer and gyroscope                             | <img src="docu/pics/esp32_s3_box.png" width="150">                  |
-| [ESP-BOX-Lite](bsp/esp-box-lite)                     | ESP32-S3 | LCD display, audio codec + power amplifier                                                                        | <img src="docu/pics/esp32_s3_box_lite.png" width="150">             |
+This repository provides **Board Support Packages (BSPs)** for various Espressif and M5Stack development boards. Written in **C**, each BSP offers a **unified and consistent API** to simplify the initialization and use of common onboard peripherals such as **displays, touch panels, audio codecs, SD cards, and selected sensors.** The goal is to streamline development and reduce hardware-specific boilerplate, enabling faster prototyping and cleaner application code.
 
-## LCD displays and TOUCH
+## Main Purpose of BSP
 
-| [LVGL port](components/esp_lvgl_port) | [LCD drivers](LCD.md) |
-| :-----------------------------------: | :-------------------: |
+1. **Simplify development** on Espressif and M5Stack boards by providing ready-to-use peripheral initialization.
+2. **Enable quick project startup** on supported development boards, with an easy path to **migrate to custom hardware**.
+3. **Facilitate cross-board development** by offering a **common API**, making it easier to build and maintain projects for multiple boards.
 
-The BSP repository includes a lot of LCD and Touch driver components. The list of available and planned LCDs is [here](LCD.md).
+## Supported IDF versions
 
-We offer seamless integration of LVGL graphical library into esp-idf applications in [LVGL port](components/esp_lvgl_port) component.
+The following table shows the compatibility of this BSP with different ESP-IDF versions:
 
-Moreover, LVGL port includes recommendations and tips for [increasing graphical performance](components/esp_lvgl_port/docs/performance.md).
+| 4.x | 5.0 |         5.1        |         5.2        |         5.3        |         5.4        |         5.5        |
+| :-: | :-: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
+| :x: | :x: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
-## How to use
+## Supported Boards
+<!-- START_SUPPORTED_BOARDS -->
 
-### Examples
+| Board name | SoC | Supported Features | Photo |
+|:----------:|:---:|:-------------------|:-----:|
+| [ESP-BOX-3](bsp/esp-box-3) | esp32s3 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es7210)<br/>:speaker: Audio Speaker  (es8311)<br/>:radio_button: Button <br/>:pager: LCD Display  (st7789, ili9341)<br/>:video_game: IMU <br/>:floppy_disk: uSD Card <br/>:point_up: Display Touch  (tt21100, gt911)<br/> | <img src="bsp/esp-box-3/doc/esp-box-3.webp" width="150"> |
+| [ESP32-C3-LCDKit](bsp/esp32_c3_lcdkit) | esp32c3 | :musical_note: Audio <br/>:speaker: Audio Speaker <br/>:pager: LCD Display  (gc9a01)<br/>:white_circle: Knob <br/>:bulb: LED <br/> | <img src="bsp/esp32_c3_lcdkit/doc/esp32_c3_lcdkit.webp" width="150"> |
+| [ESP32-LyraT](bsp/esp32_lyrat) | esp32 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es8388)<br/>:speaker: Audio Speaker  (es8388)<br/>:radio_button: Button <br/>:bulb: LED <br/>:floppy_disk: uSD Card <br/> | <img src="bsp/esp32_lyrat/doc/esp32_lyrat.webp" width="150"> |
+| [ESP32-P4 Function EV Board](bsp/esp32_p4_function_ev_board) | esp32p4 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es8311)<br/>:speaker: Audio Speaker  (es8311)<br/>:pager: LCD Display  (ek79007, ili9881c, lt8912b)<br/>:floppy_disk: uSD Card <br/>:point_up: Display Touch  (gt911)<br/> | <img src="bsp/esp32_p4_function_ev_board/doc/esp32_p4_function_ev_board.webp" width="150"> |
+| [ESP32-S2-Kaluga Kit](bsp/esp32_s2_kaluga_kit) | esp32s2 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es8311)<br/>:speaker: Audio Speaker  (es8311)<br/>:radio_button: Button <br/>:camera: Camera <br/>:pager: LCD Display  (st7789)<br/>:bulb: LED <br/> | <img src="bsp/esp32_s2_kaluga_kit/doc/esp32_s2_kaluga_kit.webp" width="150"> |
+| [ESP32-S3-EYE](bsp/esp32_s3_eye) | esp32s3 | :musical_note: Audio <br/>:microphone: Audio Microphone <br/>:radio_button: Button <br/>:camera: Camera <br/>:pager: LCD Display  (st7789)<br/>:video_game: IMU <br/>:floppy_disk: uSD Card <br/> | <img src="bsp/esp32_s3_eye/doc/esp32_s3_eye.webp" width="150"> |
+| [ESP32-S3-KORVO-1](bsp/esp32_s3_korvo_1) | esp32s3 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es7210)<br/>:speaker: Audio Speaker  (es8311)<br/>:radio_button: Button <br/>:bulb: LED <br/>:floppy_disk: uSD Card <br/> | <img src="bsp/esp32_s3_korvo_1/doc/esp32_s3_korvo_1.webp" width="150"> |
+| [ESP32-S3-Korvo-2](bsp/esp32_s3_korvo_2) | esp32s3 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es7210)<br/>:speaker: Audio Speaker  (es8311)<br/>:radio_button: Button <br/>:camera: Camera <br/>:pager: LCD Display  (ili9341)<br/>:bulb: LED <br/>:floppy_disk: uSD Card <br/>:point_up: Display Touch  (tt21100)<br/> | <img src="bsp/esp32_s3_korvo_2/doc/esp32_s3_korvo_2.webp" width="150"> |
+| [ESP32-S3-LCD-EV-Board](bsp/esp32_s3_lcd_ev_board) | esp32s3 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es7210)<br/>:speaker: Audio Speaker  (es8311)<br/>:radio_button: Button <br/>:pager: LCD Display <br/>:point_up: Display Touch <br/> | <img src="bsp/esp32_s3_lcd_ev_board/doc/esp32_s3_lcd_ev_board.webp" width="150"> |
+| [ESP32-S3-USB-OTG](bsp/esp32_s3_usb_otg) | esp32s3 | :battery: Battery <br/>:radio_button: Button <br/>:pager: LCD Display  (st7789)<br/>:bulb: LED <br/>:floppy_disk: uSD Card <br/> | <img src="bsp/esp32_s3_usb_otg/doc/esp32_s3_usb_otg.webp" width="150"> |
+| [DevKit BSP](bsp/esp_bsp_devkit) | - | :radio_button: Button <br/>:bulb: LED <br/> | <img src="bsp/esp_bsp_devkit/doc/esp_bsp_devkit.webp" width="150"> |
+| [Generic BSP](bsp/esp_bsp_generic) | - | :radio_button: Button <br/>:pager: LCD Display  (st7789, ili9341, gc9a01)<br/>:bulb: LED <br/>:point_up: Display Touch  (tt21100, gt1151, gt911, cst816s, ft5x06)<br/> | <img src="bsp/esp_bsp_generic/doc/esp_bsp_generic.webp" width="150"> |
+| [ESP-WROVER-KIT](bsp/esp_wrover_kit) | esp32 | :radio_button: Button <br/>:pager: LCD Display  (st7789)<br/>:bulb: LED <br/>:floppy_disk: uSD Card <br/> | <img src="bsp/esp_wrover_kit/doc/esp_wrover_kit.webp" width="150"> |
+| [M5 Atom S3](bsp/m5_atom_s3) | esp32s3 | :radio_button: Button <br/>:pager: LCD Display  (gc9a01)<br/> | <img src="bsp/m5_atom_s3/doc/m5_atom_s3.webp" width="150"> |
+| [M5Dial](bsp/m5dial) | esp32s3 | :radio_button: Button <br/>:pager: LCD Display  (gc9a01)<br/>:white_circle: Knob <br/>:point_up: Display Touch  (ft5x06)<br/> | <img src="bsp/m5dial/doc/m5dial.webp" width="150"> |
+| [M5Stack Core](bsp/m5stack_core) | esp32 | :speaker: Audio Speaker <br/>:radio_button: Button <br/>:pager: LCD Display  (ili9341)<br/>:floppy_disk: uSD Card <br/> | <img src="bsp/m5stack_core/doc/m5stack_core.webp" width="150"> |
+| [M5Stack Core2](bsp/m5stack_core_2) | esp32 | :musical_note: Audio <br/>:speaker: Audio Speaker <br/>:pager: LCD Display  (ili9341)<br/>:floppy_disk: uSD Card <br/>:point_up: Display Touch  (ft5x06)<br/> | <img src="bsp/m5stack_core_2/doc/m5stack_core_2.webp" width="150"> |
+| [M5Stack CoreS3](bsp/m5stack_core_s3) | esp32s3 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es7210)<br/>:speaker: Audio Speaker  (aw88298)<br/>:camera: Camera <br/>:pager: LCD Display  (ili9341)<br/>:floppy_disk: uSD Card <br/>:point_up: Display Touch  (ft5x06)<br/> | <img src="bsp/m5stack_core_s3/doc/m5stack_core_s3.webp" width="150"> |
 
-Best way to start with ESP-BSP is trying one of the [examples](examples) on your board. Every example contains `README.md` with a list of supported boards. Here is the summary of the available examples:
+### Deprecated Boards
 
-| Example                                             | Supported boards      | Try with ESP Launchpad                                                                                                                                         |
-| --------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [audio](examples/audio)                             | ESP32-S3-Korvo-2      | [Flash audio](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=audio)                             |
-| [display](examples/display)                         | WROVER-KIT            | [Flash display](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display)                         |
-| [display_camera](examples/display_camera)           | Kaluga-kit            | [Flash display_camera](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera)           |
-| [display_audio_photo](examples/display_audio_photo) | ESP-BOX               | [Flash display_audio_photo](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo) |
-| [display_rotation](examples/display_rotation)       | ESP-BOX               | [Flash display_rotation](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation)       |
-| [display_lvgl_demos](examples/display_lvgl_demos)   | ESP32-S3-LCD-EV-Board | [Flash display_lvgl_demos](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos)   |
-| [display_sensors](examples/display_sensors)         | Azure-IoT-kit         | [Flash display_sensors](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sensors)         |
-| [mqtt_example](examples/mqtt_example)               | Azure-IoT-kit         | -                                                                                                                                                              |
+| Board name | SoC | Supported Features | Photo |
+|:----------:|:---:|:-------------------|:-----:|
+| [ESP-BOX](bsp/esp-box) | esp32s3 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es7210)<br/>:speaker: Audio Speaker  (es8311)<br/>:radio_button: Button <br/>:pager: LCD Display  (st7789)<br/>:video_game: IMU <br/>:point_up: Display Touch  (tt21100)<br/> | <img src="bsp/esp-box/doc/esp-box.webp" width="150"> |
+| [ESP-BOX-Lite](bsp/esp-box-lite) | esp32s3 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es7243e)<br/>:speaker: Audio Speaker  (es8156)<br/>:radio_button: Button <br/>:pager: LCD Display  (st7789)<br/> | <img src="bsp/esp-box-lite/doc/esp-box-lite.webp" width="150"> |
+| [ESP32-Azure IoT Kit](bsp/esp32_azure_iot_kit) | esp32 | :radio_button: Button <br/>:pager: LCD Display  (ssd1306)<br/>:video_game: IMU <br/>:bulb: LED <br/>:floppy_disk: uSD Card <br/>:black_circle: SENSOR_HUMIDITY <br/>:black_circle: SENSOR_LIGHT <br/>:black_circle: SENSOR_MAG <br/>:black_circle: SENSOR_PRESSURE <br/>:black_circle: SENSOR_TEMPERATURE <br/> | <img src="bsp/esp32_azure_iot_kit/doc/esp32_azure_iot_kit.webp" width="150"> |
+
+<!-- END_SUPPORTED_BOARDS -->
+
+## Examples
+
+The best way to start with **ESP-BSP** is by trying one of the available [examples](examples) on your board.
+Each example includes a `README.md` file listing supported boards and usage instructions.
+
+Here is a summary of the available examples:
+
+<!-- EXAMPLES_TABLE_START -->
+
+| Example | Description | Supported Boards | Try with ESP Launchpad |
+| ------- | ----------- | ---------------- | ---------------------- |
+| [Audio Example](examples/audio) | Play and record WAV file | <details><summary>4 boards</summary>[esp32_lyrat](bsp/esp32_lyrat)<br/>[esp32_s2_kaluga_kit](bsp/esp32_s2_kaluga_kit)<br/>[esp32_s3_korvo_1](bsp/esp32_s3_korvo_1)<br/>[esp32_s3_korvo_2](bsp/esp32_s3_korvo_2)</details> | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=audio) |
+| [Display Example](examples/display) | Show an image on the screen with a simple startup animation (LVGL) | <details><summary>16 boards</summary>[esp-box](bsp/esp-box)<br/>[esp-box-3](bsp/esp-box-3)<br/>[esp-box-lite](bsp/esp-box-lite)<br/>[esp32_c3_lcdkit](bsp/esp32_c3_lcdkit)<br/>[esp32_p4_function_ev_board](bsp/esp32_p4_function_ev_board)<br/>[esp32_s2_kaluga_kit](bsp/esp32_s2_kaluga_kit)<br/>[esp32_s3_eye](bsp/esp32_s3_eye)<br/>[esp32_s3_korvo_2](bsp/esp32_s3_korvo_2)<br/>[esp32_s3_lcd_ev_board](bsp/esp32_s3_lcd_ev_board)<br/>[esp32_s3_usb_otg](bsp/esp32_s3_usb_otg)<br/>[esp_wrover_kit](bsp/esp_wrover_kit)<br/>[m5_atom_s3](bsp/m5_atom_s3)<br/>[m5dial](bsp/m5dial)<br/>[m5stack_core](bsp/m5stack_core)<br/>[m5stack_core_2](bsp/m5stack_core_2)<br/>[m5stack_core_s3](bsp/m5stack_core_s3)</details> | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
+| [Display, Audio and Photo Example](examples/display_audio_photo) | Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL) | <details><summary>7 boards</summary>[esp-box](bsp/esp-box)<br/>[esp-box-3](bsp/esp-box-3)<br/>[esp-box-lite](bsp/esp-box-lite)<br/>[esp32_s3_korvo_2](bsp/esp32_s3_korvo_2)<br/>[esp32_s3_lcd_ev_board](bsp/esp32_s3_lcd_ev_board)<br/>[m5stack_core_2](bsp/m5stack_core_2)<br/>[m5stack_core_s3](bsp/m5stack_core_s3)</details> | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo) |
+| [Camera Example](examples/display_camera) | Stream camera output to display (LVGL) | <details><summary>4 boards</summary>[esp32_s2_kaluga_kit](bsp/esp32_s2_kaluga_kit)<br/>[esp32_s3_eye](bsp/esp32_s3_eye)<br/>[esp32_s3_korvo_2](bsp/esp32_s3_korvo_2)<br/>[m5stack_core_s3](bsp/m5stack_core_s3)</details> | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera) |
+| [LVGL Benchmark Example](examples/display_lvgl_benchmark) | Run LVGL benchmark tests | <details><summary>10 boards</summary>[esp-box](bsp/esp-box)<br/>[esp-box-3](bsp/esp-box-3)<br/>[esp-box-lite](bsp/esp-box-lite)<br/>[esp32_p4_function_ev_board](bsp/esp32_p4_function_ev_board)<br/>[esp32_s2_kaluga_kit](bsp/esp32_s2_kaluga_kit)<br/>[esp32_s3_eye](bsp/esp32_s3_eye)<br/>[esp32_s3_korvo_2](bsp/esp32_s3_korvo_2)<br/>[esp32_s3_lcd_ev_board](bsp/esp32_s3_lcd_ev_board)<br/>[m5dial](bsp/m5dial)<br/>[m5stack_core_s3](bsp/m5stack_core_s3)</details> | - |
+| [LVGL Demos Example](examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | <details><summary>10 boards</summary>[esp-box](bsp/esp-box)<br/>[esp-box-3](bsp/esp-box-3)<br/>[esp-box-lite](bsp/esp-box-lite)<br/>[esp32_p4_function_ev_board](bsp/esp32_p4_function_ev_board)<br/>[esp32_s2_kaluga_kit](bsp/esp32_s2_kaluga_kit)<br/>[esp32_s3_eye](bsp/esp32_s3_eye)<br/>[esp32_s3_korvo_2](bsp/esp32_s3_korvo_2)<br/>[esp32_s3_lcd_ev_board](bsp/esp32_s3_lcd_ev_board)<br/>[m5dial](bsp/m5dial)<br/>[m5stack_core_s3](bsp/m5stack_core_s3)</details> | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demo) |
+| [Display Rotation Example](examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | <details><summary>9 boards</summary>[esp-box](bsp/esp-box)<br/>[esp-box-3](bsp/esp-box-3)<br/>[esp-box-lite](bsp/esp-box-lite)<br/>[esp32_p4_function_ev_board](bsp/esp32_p4_function_ev_board)<br/>[esp32_s3_korvo_2](bsp/esp32_s3_korvo_2)<br/>[esp32_s3_lcd_ev_board](bsp/esp32_s3_lcd_ev_board)<br/>[m5dial](bsp/m5dial)<br/>[m5stack_core](bsp/m5stack_core)<br/>[m5stack_core_s3](bsp/m5stack_core_s3)</details> | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation) |
+| [Sensors Example](examples/display_sensors) | Display sensor data on a monochrome screen (LVGL) | <details><summary>1 board</summary>[esp32_azure_iot_kit](bsp/esp32_azure_iot_kit)</details> | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sensors) |
+| [USB HID Example](examples/display_usb_hid) | USB HID demo (keyboard, mouse, or gamepad visualization using LVGL) | <details><summary>2 boards</summary>[esp32_p4_function_ev_board](bsp/esp32_p4_function_ev_board)<br/>[esp32_s3_usb_otg](bsp/esp32_s3_usb_otg)</details> | - |
+| [Generic Button and LED Example](examples/generic_button_led) | Minimal example using the Generic BSP: button and LED control | <details><summary>2 boards</summary>[esp_bsp_devkit](bsp/esp_bsp_devkit)<br/>[esp_bsp_generic](bsp/esp_bsp_generic)</details> | - |
+| [MQTT Example](examples/mqtt_example) | Collect sensor data and publish to an MQTT server | <details><summary>1 board</summary>[esp32_azure_iot_kit](bsp/esp32_azure_iot_kit)</details> | - |
+
+<!-- EXAMPLES_TABLE_END -->
 
 ### BSP headers and options
 * `bsp/name-of-the-bsp.h`: Main include file of the BSP with public API
@@ -76,15 +100,6 @@ You can add them to your project via `idf.py add-dependency`, e.g.
 
 When you want to use a BSP in a real project, it is highly recommended to disable configuration option `CONFIG_BSP_ERROR_CHECK` in menuconfig. You should check all returned error codes from all BSP functions you call. Otherwise, if the option `CONFIG_BSP_ERROR_CHECK` is enabled, any error encountered in a BSP will abort the program.
 
-## Migration to ESP-IDF v5.0
-ESP-IDF v5.0 brings a lot of new features, but, as the bump in major version suggests, also a lot of breaking changes.
-
-ESP-BSP is kept up-to-date with the latest ESP-IDF version, but some breaking changes in ESP-BSP API are inevitable.
-Usually, BSPs compatible with IDF v5.0 are version 2. If you want to use BSP with IDF v4.4 you can still use version 1 of the particular BSP.
-If you are interested in BSP examples for IDF v4.4, you can git checkout tag `examples_v4.4`.
-
-More information about ESP-IDF breaking changes can be found in the [official migration guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/migration-guides/release-5.x/index.html).
-
 ### Compiling project for multiple BSPs
 
 > :warning: **Experimental feature**: This feature is under development!
@@ -101,18 +116,6 @@ In order to achieve this, you can extend the above command like this:
 idf.py -B build/wrover_kit -D SDKCONFIG_DEFAULTS=sdkconfig.bsp.esp_wrover_kit build
 ```
 > Note: This feature is not yet integrated to idf.py by default. If you want to use it, you must set your environmental variable `IDF_EXTRA_ACTIONS_PATH` to path to `esp-bsp/examples/bsp_ext.py`.
-
-## Contributing to ESP-BSP
-
-Please check [CONTRIBUTING.md](CONTRIBUTING.md) if you'd like to contribute to ESP-BSP.
-
-Also check [BSP Development Guide](BSP_development_guide.md) to find out more about BSP API and architecture.
-
-### Additional information
-More information about idf-component-manager can be found in [Espressif API guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html)
-or [PyPi registry](https://pypi.org/project/idf-component-manager/).
-
-You can find more information about idf.py extensions [here](https://github.com/espressif/esp-idf/blob/master/tools/idf_py_actions/README.md).
 
 ## Copyrights and License
 

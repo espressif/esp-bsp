@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.0.0~1"
 description: Board Support Package (BSP) for M5 AtomS3
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5_atom_s3
 

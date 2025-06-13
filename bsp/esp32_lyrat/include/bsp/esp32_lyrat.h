@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file
+ * @brief ESP BSP: ESP32-LyraT
+ */
+
 #pragma once
 
 #include "sdkconfig.h"
@@ -22,10 +27,26 @@
 #else
 #include "driver/i2s_std.h"
 #endif
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_ESP32_LYRAT
+/** @} */ // end of boardname
+
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY        0
 #define BSP_CAPS_TOUCH          0
 #define BSP_CAPS_BUTTONS        1
@@ -35,22 +56,36 @@
 #define BSP_CAPS_LED            1
 #define BSP_CAPS_SDCARD         1
 #define BSP_CAPS_IMU            0
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  *  Board pinout
  **************************************************************************************************/
-/* I2C */
+
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_SCL           (GPIO_NUM_23)
 #define BSP_I2C_SDA           (GPIO_NUM_18)
+/** @} */ // end of i2c
 
-/* Audio */
+/** @defgroup g03_audio Audio
+ *  @brief Audio BSP API
+ *  @{
+ */
 #define BSP_I2S_SCLK          (GPIO_NUM_5)
 #define BSP_I2S_MCLK          (GPIO_NUM_0)
 #define BSP_I2S_LCLK          (GPIO_NUM_25)
 #define BSP_I2S_DOUT          (GPIO_NUM_26)
 #define BSP_I2S_DSIN          (GPIO_NUM_35)  // From ADC ES8388
 #define BSP_POWER_AMP_IO      (GPIO_NUM_21)
+/** @} */ // end of audio
 
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
 /* uSD card MMC */
 #define BSP_SD_D0             (GPIO_NUM_2)
 #define BSP_SD_CMD            (GPIO_NUM_15)
@@ -61,23 +96,36 @@
 #define BSP_SD_SPI_CS         (GPIO_NUM_13)
 #define BSP_SD_SPI_MOSI       (GPIO_NUM_15)
 #define BSP_SD_SPI_CLK        (GPIO_NUM_14)
+/** @} */ // end of storage
 
-/* Buttons */
+/** @defgroup g05_buttons Buttons
+ *  @brief Buttons BSP API
+ *  @{
+ */
 #define BSP_BUTTON_REC_IO        (GPIO_NUM_36)
 #define BSP_BUTTON_MODE_IO       (GPIO_NUM_39)
 #define BSP_BUTTON_PLAY_TOUCH    (TOUCH_PAD_NUM8) // GPIO33
 #define BSP_BUTTON_SET_TOUCH     (TOUCH_PAD_NUM9) // GPIO32
 #define BSP_BUTTON_VOLUP_TOUCH   (TOUCH_PAD_NUM7) // GPIO27
 #define BSP_BUTTON_VOLDOWN_TOUCH (TOUCH_PAD_NUM4) // GPIO13
+/** @} */ // end of buttons
 
-/* Leds */
+/** @defgroup g06_led Leds
+ *  @brief Leds BSP API
+ *  @{
+ */
 typedef enum bsp_led_t {
     BSP_LED_GREEN = GPIO_NUM_22,
 } bsp_led_t;
+/** @} */ // end of leds
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** \addtogroup g05_buttons
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -117,6 +165,12 @@ typedef enum {
  *     - ESP_FAIL             Underlaying iot_button_create failed
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
+
+/** @} */ // end of buttons
+
+/** \addtogroup g03_audio
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -179,6 +233,12 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
  */
 esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
 
+/** @} */ // end of audio
+
+/** \addtogroup g01_i2c
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * I2C interface
@@ -211,6 +271,12 @@ esp_err_t bsp_i2c_init(void);
  *
  */
 esp_err_t bsp_i2c_deinit(void);
+
+/** @} */ // end of i2c
+
+/** \addtogroup g02_storage
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -264,6 +330,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SDSPI_DEFAULT_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;
@@ -365,6 +434,12 @@ esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg);
  */
 esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
 
+/** @} */ // end of storage
+
+/** \addtogroup g06_led
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * LEDs
@@ -392,6 +467,7 @@ esp_err_t bsp_leds_init(void);
  */
 esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
 
+/** @} */ // end of leds
 
 #ifdef __cplusplus
 }

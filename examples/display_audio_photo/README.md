@@ -1,21 +1,27 @@
-# ESP-BOX Display Audio Photo Example
+# BSP: Display Audio Photo Example
 
-This example demonstrates usage of ESP-BOX Board Support Package. This is a single purpose example, which is focused on display + touch applications: you can see list of files saved on SPIFFS. You can open certain file types like JPG images, WAV music files and TXT text files. 
+## Overview
+
+<table>
+<tr><td valign="top">
+
+This example demonstrates usage of ESP-BOX Board Support Package. This is a single purpose example, which is focused on display + touch applications: you can see list of files saved on SPIFFS. You can open certain file types like JPG images, WAV music files and TXT text files.
 
 Example files are downloaded into ESP-BOX from [spiffs_content](/spiffs_content) folder.
 
-## How to use the example
+</td><td width="200" valign="top">
+  <img src="doc/pic.webp">
+</td></tr>
+</table>
 
-### Hardware Required
+## Build and Flash
 
-* ESP-BOX
-* USB-C Cable
-
-### Compile and flash
+To build and flash the example for a specific `{board}` and `{port}`, use the following command:
 
 ```
-idf.py -p COMx flash monitor
+idf.py -D SDKCONFIG_DEFAULTS=sdkconfig.bsp.{board} -p {port} flash monitor
 ```
+Make sure the correct board name is set in the `main/idf_component.yml` file under the `dependencies` section.
 
 ### Example outputs
 

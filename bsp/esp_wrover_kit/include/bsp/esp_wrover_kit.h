@@ -6,7 +6,7 @@
 
 /**
  * @file
- * @brief ESP BSP: Wrover-kit
+ * @brief ESP BSP: ESP-WROVER-KIT
  */
 
 #pragma once
@@ -26,9 +26,24 @@
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_ESP_WROVER_KIT
+/** @} */ // end of boardname
+
+/**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          0
 #define BSP_CAPS_BUTTONS        1
@@ -39,6 +54,7 @@
 #define BSP_CAPS_SDCARD         1
 #define BSP_CAPS_IMU            0
 #define BSP_CAPS_CAMERA         0
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  * ESP-WROVER-KIT pinout
@@ -47,17 +63,28 @@
  * @attention IO2 is routed to uSD card DATA0 signal and green LED
  **************************************************************************************************/
 
-/* Buttons */
+/** @defgroup g05_buttons Buttons
+ *  @brief Buttons BSP API
+ *  @{
+ */
 #define BSP_BUTTON_BOOT_IO    (GPIO_NUM_0)
+/** @} */ // end of buttons
 
-/* RGB LED */
+/** @defgroup g06_led Leds
+ *  @brief Leds BSP API
+ *  @{
+ */
 typedef enum bsp_led_t {
     BSP_LED_RED = GPIO_NUM_0,
     BSP_LED_GREEN = GPIO_NUM_2,
     BSP_LED_BLUE = GPIO_NUM_4
 } bsp_led_t;
+/** @} */ // end of leds
 
-/* Display */
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
 #define BSP_LCD_SPI_MOSI      (GPIO_NUM_23)
 #define BSP_LCD_SPI_MISO      (GPIO_NUM_25)
 #define BSP_LCD_SPI_CLK       (GPIO_NUM_19)
@@ -65,7 +92,12 @@ typedef enum bsp_led_t {
 #define BSP_LCD_DC            (GPIO_NUM_21)
 #define BSP_LCD_RST           (GPIO_NUM_18)
 #define BSP_LCD_BACKLIGHT     (GPIO_NUM_5)
+/** @} */ // end of display
 
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
 /* uSD card MMC */
 #define BSP_SD_D0             (GPIO_NUM_2)
 #define BSP_SD_D1             (GPIO_NUM_4)
@@ -80,16 +112,26 @@ typedef enum bsp_led_t {
 #define BSP_SD_SPI_CS         (GPIO_NUM_13)
 #define BSP_SD_SPI_MOSI       (GPIO_NUM_15)
 #define BSP_SD_SPI_CLK        (GPIO_NUM_14)
+/** @} */ // end of storage
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/** \addtogroup g05_buttons
+ *  @brief BSP Buttons
+ *  @{
+ */
 /* Button */
 typedef enum {
     BSP_BUTTON_BOOT,
     BSP_BUTTON_NUM
 } bsp_button_t;
+/** @} */ // end of buttons
+
+/** \addtogroup g02_storage
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -145,6 +187,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SPI3_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;
@@ -246,6 +291,12 @@ esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg);
  */
 esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
 
+/** @} */ // end of storage
+
+/** \addtogroup g06_led
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * LEDs
@@ -271,6 +322,12 @@ esp_err_t bsp_leds_init(void);
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
 esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
+
+/** @} */ // end of leds
+
+/** \addtogroup g05_buttons
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -316,6 +373,12 @@ __attribute__((deprecated("use espressif/button API instead")));
  *     - ESP_FAIL             Underlaying iot_button_create failed
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
+
+/** @} */ // end of buttons
+
+/** \addtogroup g04_display
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -404,6 +467,8 @@ void bsp_display_unlock(void);
  * @param[in] rotation Angle of the display rotation
  */
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
+/** @} */ // end of display
+
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 #ifdef __cplusplus

@@ -6,7 +6,7 @@
 
 /**
  * @file
- * @brief ESP BSP: S3-EYE
+ * @brief ESP BSP: ESP32-S3-EYE
  */
 
 #pragma once
@@ -30,9 +30,24 @@
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_ESP32_S3_EYE
+/** @} */ // end of boardname
+
+/**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          0
 #define BSP_CAPS_BUTTONS        1
@@ -42,29 +57,45 @@
 #define BSP_CAPS_SDCARD         1
 #define BSP_CAPS_IMU            1
 #define BSP_CAPS_CAMERA         1
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  * ESP32-S3-EYE pinout
  **************************************************************************************************/
 
-/* I2C */
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_SCL           (GPIO_NUM_5)
 #define BSP_I2C_SDA           (GPIO_NUM_4)
+/** @} */ // end of i2c
 
-/* Audio */
+/** @defgroup g03_audio Audio
+ *  @brief Audio BSP API
+ *  @{
+ */
 #define BSP_I2S_SCLK          (GPIO_NUM_41)
 #define BSP_I2S_LCLK          (GPIO_NUM_42)
 #define BSP_I2S_DIN           (GPIO_NUM_2)
+/** @} */ // end of audio
 
-/* Display */
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
 #define BSP_LCD_SPI_MOSI      (GPIO_NUM_47)
 #define BSP_LCD_SPI_CLK       (GPIO_NUM_21)
 #define BSP_LCD_SPI_CS        (GPIO_NUM_44)
 #define BSP_LCD_DC            (GPIO_NUM_43)
 #define BSP_LCD_RST           (GPIO_NUM_NC)
 #define BSP_LCD_BACKLIGHT     (GPIO_NUM_48)
+/** @} */ // end of display
 
-/* Camera */
+/** @defgroup g08_camera Camera
+ *  @brief Camera BSP API
+ *  @{
+ */
 #define BSP_CAMERA_XCLK      (GPIO_NUM_15)
 #define BSP_CAMERA_PCLK      (GPIO_NUM_13)
 #define BSP_CAMERA_VSYNC     (GPIO_NUM_6)
@@ -77,22 +108,42 @@
 #define BSP_CAMERA_D5        (GPIO_NUM_18)
 #define BSP_CAMERA_D6        (GPIO_NUM_17)
 #define BSP_CAMERA_D7        (GPIO_NUM_16)
+/** @} */ // end of camera
 
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
 /* uSD card MMC */
 #define BSP_SD_D0            (GPIO_NUM_40)
 #define BSP_SD_CMD           (GPIO_NUM_38)
 #define BSP_SD_CLK           (GPIO_NUM_39)
+/** @} */ // end of storage
 
-/* Buttons */
+/** @defgroup g05_buttons Buttons
+ *  @brief Buttons BSP API
+ *  @{
+ */
 #define BSP_BUTTON_BOOT_IO   (GPIO_NUM_0)
 #define BSP_BUTTONS_IO       (GPIO_NUM_1) // All 4 buttons mapped to this GPIO
+/** @} */ // end of buttons
+
+/** @defgroup g06_led Leds
+ *  @brief Leds BSP API
+ *  @{
+ */
 typedef enum bsp_led_t {
     BSP_LED_GREEN = GPIO_NUM_3,
 } bsp_led_t;
+/** @} */ // end of leds
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** \addtogroup g05_buttons
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -132,6 +183,12 @@ typedef enum {
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 
+/** @} */ // end of buttons
+
+/** \addtogroup g01_i2c
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * I2C interface
@@ -170,6 +227,12 @@ esp_err_t bsp_i2c_deinit(void);
  *      - I2C handle
  */
 i2c_master_bus_handle_t bsp_i2c_get_handle(void);
+
+/** @} */ // end of i2c
+
+/** \addtogroup g08_camera
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -226,6 +289,12 @@ i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 #define BSP_CAMERA_VFLIP        1
 #define BSP_CAMERA_HMIRROR      0
 
+/** @} */ // end of camera
+
+/** \addtogroup g02_storage
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * SPIFFS
@@ -274,6 +343,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SPI3_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;
@@ -375,6 +447,12 @@ esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg);
  */
 esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
 
+/** @} */ // end of storage
+
+/** \addtogroup g04_display
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * LCD interface
@@ -464,6 +542,12 @@ void bsp_display_unlock(void);
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
+/** @} */ // end of display
+
+/** \addtogroup g06_led
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * LEDs
@@ -490,6 +574,12 @@ esp_err_t bsp_leds_init(void);
  */
 esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
 
+/** @} */ // end of leds
+
+/** \addtogroup g03_audio
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * I2S audio interface
@@ -514,8 +604,6 @@ esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
  * @warning The type of i2s_config param is depending on IDF version.
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
- * @param[out] tx_channel I2S TX channel
- * @param[out] rx_channel I2S RX channel
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
@@ -541,6 +629,13 @@ const audio_codec_data_if_t *bsp_audio_get_codec_itf(void);
  */
 esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
 
+/** @} */ // end of audio
+
+/** @defgroup g01_adc ADC
+ *  @brief ADC BSP API
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * ADC interface
@@ -557,8 +652,6 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
  * @brief Initialize ADC
  *
  * The ADC can be initialized inside BSP, when needed.
- *
- * @param[out] adc_handle Returned ADC handle
  */
 esp_err_t bsp_adc_initialize(void);
 
@@ -568,6 +661,8 @@ esp_err_t bsp_adc_initialize(void);
  * @return ADC handle
  */
 adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
+
+/** @} */ // end of adc
 
 #ifdef __cplusplus
 }

@@ -27,9 +27,24 @@
 #include "iot_button.h"
 
 /**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_M5STACK_CORE
+/** @} */ // end of boardname
+
+/**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          0
 #define BSP_CAPS_BUTTONS        1
@@ -38,18 +53,32 @@
 #define BSP_CAPS_AUDIO_MIC      0
 #define BSP_CAPS_SDCARD         1
 #define BSP_CAPS_IMU            0
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  *  M5Stack-Core pinout
  **************************************************************************************************/
-/* I2C */
+
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_SCL           (GPIO_NUM_22)
 #define BSP_I2C_SDA           (GPIO_NUM_21)
+/** @} */ // end of i2c
 
-/* Audio */
+
+/** @defgroup g03_audio Audio
+ *  @brief Audio BSP API
+ *  @{
+ */
 #define BSP_SPEAKER_IO        (GPIO_NUM_25)
+/** @} */ // end of audio
 
-/* Display */
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
 #define BSP_LCD_MOSI          (GPIO_NUM_23)
 #define BSP_LCD_MISO          (GPIO_NUM_19)
 #define BSP_LCD_PCLK          (GPIO_NUM_18)
@@ -57,21 +86,35 @@
 #define BSP_LCD_DC            (GPIO_NUM_27)
 #define BSP_LCD_RST           (GPIO_NUM_33)
 #define BSP_LCD_BACKLIGHT     (GPIO_NUM_32)
+/** @} */ // end of display
 
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
 /* SD card SPI */
 #define BSP_SD_SPI_MOSI           (GPIO_NUM_23)
 #define BSP_SD_SPI_MISO           (GPIO_NUM_19)
 #define BSP_SD_SPI_SCK            (GPIO_NUM_18)
 #define BSP_SD_SPI_CS             (GPIO_NUM_4)
+/** @} */ // end of storage
 
-/* BUTTON */
+/** @defgroup g05_buttons Buttons
+ *  @brief Buttons BSP API
+ *  @{
+ */
 #define BSP_BUTTON_LEFT       (GPIO_NUM_39)
 #define BSP_BUTTON_MIDDLE     (GPIO_NUM_38)
 #define BSP_BUTTON_RIGHT      (GPIO_NUM_37)
+/** @} */ // end of buttons
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** \addtogroup g03_audio
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -88,6 +131,12 @@ extern "C" {
  *      - ESP_ERR_INVALID_ARG   GPIO parameter error
  */
 esp_err_t bsp_speaker_init(void);
+
+/** @} */ // end of audio
+
+/** \addtogroup g01_i2c
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -118,6 +167,12 @@ esp_err_t bsp_i2c_init(void);
  *
  */
 esp_err_t bsp_i2c_deinit(void);
+
+/** @} */ // end of i2c
+
+/** \addtogroup g02_storage
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -173,6 +228,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SPI2_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;
@@ -274,6 +332,12 @@ esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg);
  */
 esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
 
+/** @} */ // end of storage
+
+/** \addtogroup g04_display
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * LCD interface
@@ -363,6 +427,13 @@ void bsp_display_unlock(void);
 void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation);
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
+/** @} */ // end of display
+
+/** @defgroup g99_others Others
+ *  @brief Other BSP API
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * BSP Features
@@ -390,6 +461,13 @@ typedef enum {
 
 esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable);
 
+/** @} */ // end of others
+
+
+/** \addtogroup g05_buttons
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * Button interface
@@ -413,6 +491,8 @@ esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable);
  *      - ESP_FAIL Create button failed
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
+
+/** @} */ // end of buttons
 
 #ifdef __cplusplus
 }
