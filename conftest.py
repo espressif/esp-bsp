@@ -44,7 +44,7 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.skip(reason="Not for selected params"))
 
 
-def bsp_image_correction(image):
+def bsp_image_correction(image, width, height):
     pts_src = np.float32([
         [160, 80],    # top-left
         [1044, 87],   # top-right
@@ -52,7 +52,6 @@ def bsp_image_correction(image):
         [913, 718]   # bottom-right
     ])
 
-    width, height = 1000, 884
     pts_dst = np.float32([
         [0, 0],
         [width, 0],
@@ -63,6 +62,21 @@ def bsp_image_correction(image):
     matrix = cv2.getPerspectiveTransform(pts_src, pts_dst)
     warped = cv2.warpPerspective(image, matrix, (width, height))
     return warped
+
+
+def bsp_fisheye_correction(image, width, height):
+    K = np.array([
+        [width, 0, width / 2],    # Focal length x
+        [0, width, height / 2],    # Focal length y
+        [0, 0, 1]])       # Principal point
+    # [k1, k2, p1, p2, k3] - main is k1 a k2
+    dist_coeffs = np.array([-0.3, 0.1, 0, 0, 0])
+
+    new_K, _ = cv2.getOptimalNewCameraMatrix(K, dist_coeffs, (width, height), 1, (width, height))
+    map1, map2 = cv2.initUndistortRectifyMap(K, dist_coeffs, None, new_K, (width, height), 5)
+    undistorted = cv2.remap(image, map1, map2, interpolation=cv2.INTER_LINEAR)
+
+    return undistorted
 
 
 def bsp_capture_image(image_path, board):
@@ -94,7 +108,11 @@ def bsp_capture_image(image_path, board):
         # TODO: Crop image for {board}
 
         # correction image perspective and crop
-        frame = bsp_image_correction(frame)
+        frame = bsp_image_correction(frame, 1000, 884)
+        # correction of fisheye
+        frame = bsp_fisheye_correction(frame, 1000, 884)
+        # crop
+        frame = frame[30:848, 38:980]
 
         # Save image
         cv2.imwrite(image_path, frame)
