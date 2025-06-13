@@ -84,7 +84,7 @@ def bsp_capture_image(image_path, board):
     # subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=focus_auto=1"])
     # Manual focus
     subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=focus_auto=0"])
-    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=focus_absolute=20"])
+    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=focus_absolute=50"])
     # Manual exposition
     subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=exposure_auto=1"])
     subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=exposure_absolute=1"])
@@ -129,7 +129,7 @@ def bsp_test_image(board, example, expectation):
     bsp_capture_image(image_file, board)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def bsp_test(request):
     board = request.node.callspec.id
     path = Path(str(request.node.fspath))
