@@ -1,6 +1,11 @@
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import pytest
+import cv2
+import subprocess
+import numpy as np
+import time
+from pathlib import Path
 
 
 def pytest_generate_tests(metafunc):
@@ -38,3 +43,99 @@ def pytest_collection_modifyitems(config, items):
         marker_option = "[" + config.getoption("-m") + "]"
         if marker_option not in item.nodeid:
             item.add_marker(pytest.mark.skip(reason="Not for selected params"))
+
+
+def bsp_image_correction(image, width, height):
+    pts_src = np.float32([
+        [160, 80],    # top-left
+        [1044, 87],   # top-right
+        [279, 720],    # bottom-left
+        [913, 718]   # bottom-right
+    ])
+
+    pts_dst = np.float32([
+        [0, 0],
+        [width, 0],
+        [0, height],
+        [width, height]
+    ])
+
+    matrix = cv2.getPerspectiveTransform(pts_src, pts_dst)
+    warped = cv2.warpPerspective(image, matrix, (width, height))
+    return warped
+
+
+def bsp_fisheye_correction(image, width, height):
+    K = np.array([
+        [width, 0, width / 2],    # Focal length x
+        [0, width, height / 2],    # Focal length y
+        [0, 0, 1]])       # Principal point
+    # [k1, k2, p1, p2, k3] - main is k1 a k2
+    dist_coeffs = np.array([-0.3, 0.1, 0, 0, 0])
+
+    new_K, _ = cv2.getOptimalNewCameraMatrix(K, dist_coeffs, (width, height), 1, (width, height))
+    map1, map2 = cv2.initUndistortRectifyMap(K, dist_coeffs, None, new_K, (width, height), 5)
+    undistorted = cv2.remap(image, map1, map2, interpolation=cv2.INTER_LINEAR)
+
+    return undistorted
+
+
+def bsp_capture_image(image_path, board):
+    # Enable auto-focus
+    # subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=focus_auto=1"])
+    # Manual focus
+    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=focus_auto=0"])
+    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=focus_absolute=50"])
+    # Manual exposition
+    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=exposure_auto=1"])
+    subprocess.run(["v4l2-ctl", "-d", "/dev/video0", "--set-ctrl=exposure_absolute=1"])
+
+    # Return video from the first webcam on your computer.
+    cap = cv2.VideoCapture(0)
+    # Set FullHD resolution (1920x1080)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
+    # TODO: Camera calibration
+
+    # reads frames from a camera
+    # ret checks return at each frame
+    ret, frame = cap.read()
+    if ret:
+        # Image rotation
+        frame = cv2.rotate(frame, cv2.ROTATE_180)
+        # TODO: Camera calibration / Perspective transform
+        # TODO: Change size image
+        # TODO: Crop image for {board}
+
+        # correction image perspective and crop
+        frame = bsp_image_correction(frame, 1000, 884)
+        # correction of fisheye
+        frame = bsp_fisheye_correction(frame, 1000, 884)
+        # crop
+        frame = frame[30:848, 38:980]
+
+        # Save image
+        cv2.imwrite(image_path, frame)
+        print(f"Image saved {image_path}")
+    else:
+        print("Cannot save image.")
+
+    # Close the window / Release webcam
+    cap.release()
+
+
+def bsp_test_image(board, example, expectation):
+    image_file = f"snapshot_{board}_{example}.jpg"
+    bsp_capture_image(image_file, board)
+
+
+@pytest.fixture()
+def bsp_test_capture_image(request):
+    board = request.node.callspec.id
+    path = Path(str(request.node.fspath))
+    test_name = path.parent.name
+    yield
+    time.sleep(5)  # wait 5 seconds
+    print(f"Capturing image for: {board}")
+    bsp_test_image(board, test_name, "")
