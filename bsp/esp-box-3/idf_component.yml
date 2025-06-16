@@ -1,5 +1,5 @@
 
-version: "3.0.0"
+version: "3.0.0~1"
 description: Board Support Package (BSP) for ESP32-S3-BOX-3
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box-3
 

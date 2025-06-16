@@ -29,9 +29,24 @@
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_ESP32_P4_FUNCTION_EV_BOARD
+/** @} */ // end of boardname
+
+/**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          1
 #define BSP_CAPS_BUTTONS        0
@@ -40,23 +55,36 @@
 #define BSP_CAPS_AUDIO_MIC      1
 #define BSP_CAPS_SDCARD         1
 #define BSP_CAPS_IMU            0
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  *  ESP-BOX pinout
  **************************************************************************************************/
-/* I2C */
+
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_SCL           (GPIO_NUM_8)
 #define BSP_I2C_SDA           (GPIO_NUM_7)
+/** @} */ // end of i2c
 
-/* Audio */
+/** @defgroup g03_audio Audio
+ *  @brief Audio BSP API
+ *  @{
+ */
 #define BSP_I2S_SCLK          (GPIO_NUM_12)
 #define BSP_I2S_MCLK          (GPIO_NUM_13)
 #define BSP_I2S_LCLK          (GPIO_NUM_10)
 #define BSP_I2S_DOUT          (GPIO_NUM_9)
 #define BSP_I2S_DSIN          (GPIO_NUM_11)
 #define BSP_POWER_AMP_IO      (GPIO_NUM_53)
+/** @} */ // end of audio
 
-/* Display */
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
 #if CONFIG_BSP_LCD_TYPE_1024_600
 #define BSP_LCD_BACKLIGHT     (GPIO_NUM_26)
 #define BSP_LCD_RST           (GPIO_NUM_27)
@@ -68,7 +96,12 @@
 #define BSP_LCD_TOUCH_RST     (GPIO_NUM_NC)
 #define BSP_LCD_TOUCH_INT     (GPIO_NUM_NC)
 #endif
+/** @} */ // end of display
 
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
 /* uSD card MMC */
 #define BSP_SD_D0             (GPIO_NUM_39)
 #define BSP_SD_D1             (GPIO_NUM_40)
@@ -82,10 +115,23 @@
 #define BSP_SD_SPI_CS         (GPIO_NUM_42)
 #define BSP_SD_SPI_MOSI       (GPIO_NUM_44)
 #define BSP_SD_SPI_CLK        (GPIO_NUM_43)
+/** @} */ // end of storage
+
+/** @defgroup g07_usb USB
+ *  @brief USB BSP API
+ *  @{
+ */
+#define BSP_USB_POS           (GPIO_NUM_20)
+#define BSP_USB_NEG           (GPIO_NUM_19)
+/** @} */ // end of usb
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** \addtogroup g01_i2c
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -126,6 +172,12 @@ esp_err_t bsp_i2c_deinit(void);
  *
  */
 i2c_master_bus_handle_t bsp_i2c_get_handle(void);
+
+/** @} */ // end of i2c
+
+/** \addtogroup g03_audio
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -175,6 +227,12 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
  * @return Pointer to codec device handle or NULL when error occurred
  */
 esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
+
+/** @} */ // end of audio
+
+/** \addtogroup g02_storage
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -228,6 +286,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SDSPI_DEFAULT_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;
@@ -329,6 +390,12 @@ esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg);
  */
 esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
 
+/** @} */ // end of storage
+
+/** \addtogroup g04_display
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * LCD interface
@@ -392,7 +459,7 @@ lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
  *
  * This function deinitializes MIPI-DSI, display controller and stops LVGL.
  *
- * @param @param[in] disp Pointer to LVGL display
+ * @param display Pointer to LVGL display
  */
 void bsp_display_stop(lv_display_t *display);
 
@@ -431,12 +498,17 @@ void bsp_display_unlock(void);
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
+/** @} */ // end of display
+
+/** \addtogroup g07_usb
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * USB
  *
  **************************************************************************************************/
-
 
 /**
  * @brief Power modes of USB Host connector
@@ -470,6 +542,8 @@ esp_err_t bsp_usb_host_start(bsp_usb_host_power_mode_t mode, bool limit_500mA);
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
 esp_err_t bsp_usb_host_stop(void);
+
+/** @} */ // end of usb
 
 #ifdef __cplusplus
 }

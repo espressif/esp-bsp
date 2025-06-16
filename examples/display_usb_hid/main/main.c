@@ -4,6 +4,12 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+/**
+ * @file
+ * @brief BSP USB HID Example
+ * @details USB HID demo (keyboard, mouse, or gamepad visualization using LVGL)
+ */
+
 #include "esp_log.h"
 #include "bsp/esp-bsp.h"
 #include "lvgl.h"

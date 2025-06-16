@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -23,9 +23,24 @@
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_M5DIAL
+/** @} */ // end of boardname
+
+/**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          1
 #define BSP_CAPS_BUTTONS        1
@@ -35,19 +50,28 @@
 #define BSP_CAPS_AUDIO_MIC      0
 #define BSP_CAPS_SDCARD         0
 #define BSP_CAPS_IMU            0
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  *  M5Dial pinout
  **************************************************************************************************/
-/* I2C */
+
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_SCL           (GPIO_NUM_12)
 #define BSP_I2C_SDA           (GPIO_NUM_11)
+/** @} */ // end of i2c
 
 /* Encoder */
 #define BSP_ENCODER_A         (GPIO_NUM_41)
 #define BSP_ENCODER_B         (GPIO_NUM_40)
 
-/* Display */
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
 #define BSP_LCD_MOSI          (GPIO_NUM_5)
 #define BSP_LCD_MISO          (GPIO_NUM_NC)
 #define BSP_LCD_PCLK          (GPIO_NUM_6)
@@ -56,15 +80,24 @@
 #define BSP_LCD_RST           (GPIO_NUM_8)
 #define BSP_LCD_BACKLIGHT     (GPIO_NUM_9)
 #define BSP_LCD_TOUCH_INT     (GPIO_NUM_14)
+/** @} */ // end of display
 
-/* Buttons */
+/** @defgroup g05_buttons Buttons
+ *  @brief Buttons BSP API
+ *  @{
+ */
 typedef enum {
     BSP_BTN_PRESS = GPIO_NUM_42,
 } bsp_button_t;
+/** @} */ // end of buttons
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** \addtogroup g01_i2c
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -95,6 +128,13 @@ esp_err_t bsp_i2c_init(void);
  *
  */
 esp_err_t bsp_i2c_deinit(void);
+
+/** @} */ // end of i2c
+
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -133,6 +173,12 @@ esp_err_t bsp_spiffs_mount(void);
  *      - other error codes
  */
 esp_err_t bsp_spiffs_unmount(void);
+
+/** @} */ // end of storage
+
+/** \addtogroup g04_display
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -223,6 +269,8 @@ void bsp_display_unlock(void);
  */
 void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation);
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
+
+/** @} */ // end of display
 
 #ifdef __cplusplus
 }

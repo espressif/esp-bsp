@@ -19,6 +19,11 @@
 #include "esp_lcd_mipi_dsi.h"
 #include "sdkconfig.h"
 
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
+
 /* LCD color formats */
 #define ESP_LCD_COLOR_FORMAT_RGB565    (1)
 #define ESP_LCD_COLOR_FORMAT_RGB888    (2)
@@ -204,3 +209,5 @@ esp_err_t bsp_display_backlight_off(void);
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */ // end of display

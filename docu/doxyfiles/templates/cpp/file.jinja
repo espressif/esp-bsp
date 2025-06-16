@@ -1,0 +1,22 @@
+## File {{ file.location }}
+
+{{ file.brief }}
+
+{{ file.details }}
+
+{% set namespaces = file.query(kinds=['namespace']) -%}
+{%- set classes = file.query(kinds=['struct', 'class', 'interface']) -%}
+{%- set macros = file.query(kinds=['define']) -%}
+{%- set types = file.query(kinds=['typedef', 'enum', 'union']) -%}
+{%- set functions = file.query(kinds=['function']) -%}
+
+{{ table_template.render(title='Namespaces', nodes=namespaces) }}
+{{ table_template.render(title='Classes', nodes=classes) }}
+{{ table_template.render(title='Macros', nodes=macros) }}
+{{ table_template.render(title='Types', nodes=types) }}
+{{ table_template.render(title='Functions', nodes=functions) }}
+{{ detail_template.render(title='Namespaces Documentation', nodes=namespaces) }}
+{{ detail_template.render(title='Classes Documentation', nodes=classes) }}
+{{ detail_template.render(title='Macros Documentation', nodes=macros) }}
+{{ detail_template.render(title='Types Documentation', nodes=types) }}
+{{ detail_template.render(title='Functions Documentation', nodes=functions) }}

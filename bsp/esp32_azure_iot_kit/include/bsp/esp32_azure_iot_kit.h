@@ -6,7 +6,8 @@
 
 /**
  * @file
- * @brief ESP BSP: Azure IoT kit
+ * @brief ESP BSP: ESP32-Azure IoT Kit
+ * @deprecated This board is deprecated and no longer maintained
  */
 
 #pragma once
@@ -22,9 +23,24 @@
 #include "bsp/display.h"
 
 /**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_ESP32_AZURE_IOT_KIT
+/** @} */ // end of boardname
+
+/**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY            1
 #define BSP_CAPS_TOUCH              0
 #define BSP_CAPS_BUTTONS            1
@@ -39,21 +55,38 @@
 #define BSP_CAPS_SENSOR_PRESSURE    1
 #define BSP_CAPS_SENSOR_LIGHT       1
 #define BSP_CAPS_SENSOR_MAG         1
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  *  Pinout
  **************************************************************************************************/
 
-/* I2C */
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_SCL_IO        (GPIO_NUM_26)
 #define BSP_I2C_SDA_IO        (GPIO_NUM_25)
+/** @} */ // end of i2c
 
-/* Buzzer */
+/** @defgroup g11_buzzer Buzzer
+ *  @brief Buzzer BSP API
+ *  @{
+ */
 #define BSP_BUZZER_IO         (GPIO_NUM_27)
+/** @} */ // end of buzzer
 
-/* Buttons */
+/** @defgroup g05_buttons Buttons
+ *  @brief Buttons BSP API
+ *  @{
+ */
 #define BSP_BUTTON_MAIN_IO    (GPIO_NUM_0)
+/** @} */ // end of buttons
 
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
 /* uSD card MMC */
 #define BSP_SD_D0             (GPIO_NUM_2)
 #define BSP_SD_CMD            (GPIO_NUM_15)
@@ -65,30 +98,25 @@
 #define BSP_SD_SPI_CS         (GPIO_NUM_13)
 #define BSP_SD_SPI_MOSI       (GPIO_NUM_15)
 #define BSP_SD_SPI_CLK        (GPIO_NUM_14)
+/** @} */ // end of storage
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Buttons */
+/** \addtogroup g05_buttons
+ *  @brief BSP Buttons
+ *  @{
+ */
 typedef enum {
     BSP_BUTTON_MAIN,
     BSP_BUTTON_NUM
 } bsp_button_t;
+/** @} */ // end of buttons
 
-/**
- * @brief BSP display configuration structure
- *
+/** \addtogroup g01_i2c
+ *  @{
  */
-typedef struct {
-    lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
-    uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
-    bool            double_buffer;  /*!< True, if should be allocated two buffers */
-    struct {
-        unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
-        unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
-    } flags;
-} bsp_display_cfg_t;
 
 /**************************************************************************************************
  *
@@ -135,6 +163,12 @@ esp_err_t bsp_i2c_deinit(void);
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
 esp_err_t bsp_i2c_set_clk_speed(bsp_i2c_clk_speed_t i2c_clk);
+
+/** @} */ // end of i2c
+
+/** \addtogroup g02_storage
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -188,6 +222,9 @@ esp_err_t bsp_spiffs_unmount(void);
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
 #define BSP_SDSPI_HOST          (SDSPI_DEFAULT_HOST)
 
+/**
+ * @brief BSP SD card configuration structure
+ */
 typedef struct {
     const esp_vfs_fat_sdmmc_mount_config_t *mount;
     sdmmc_host_t *host;
@@ -289,6 +326,12 @@ esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg);
  */
 esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
 
+/** @} */ // end of storage
+
+/** \addtogroup g04_display
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * LCD interface
@@ -306,6 +349,20 @@ esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
 
 #define BSP_LCD_DRAW_BUFF_SIZE     (BSP_LCD_H_RES * BSP_LCD_V_RES)
 #define BSP_LCD_DRAW_BUFF_DOUBLE   (0)
+
+/**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
+    uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
+    bool            double_buffer;  /*!< True, if should be allocated two buffers */
+    struct {
+        unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
+        unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
+    } flags;
+} bsp_display_cfg_t;
 
 /**
  * @brief Initialize display
@@ -363,6 +420,13 @@ void bsp_display_unlock(void);
  */
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 
+/** @} */ // end of display
+
+/** @defgroup g06_led Leds
+ *  @brief Leds BSP API
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * LEDs
@@ -393,6 +457,12 @@ esp_err_t bsp_leds_init(void);
  */
 esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
 
+/** @} */ // end of leds
+
+/** \addtogroup g11_buzzer
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * Buzzer
@@ -417,6 +487,12 @@ esp_err_t bsp_buzzer_init(void);
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
 esp_err_t bsp_buzzer_set(const bool on);
+
+/** @} */ // end of buzzer
+
+/** \addtogroup g05_buttons
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -460,6 +536,8 @@ __attribute__((deprecated("use espressif/button API instead")));
  *     - ESP_FAIL             Underlaying iot_button_create failed
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
+
+/** @} */ // end of buttons
 
 #ifdef __cplusplus
 }

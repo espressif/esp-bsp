@@ -16,7 +16,7 @@ jobs:
       - name: Upload noglib version of BSPs
         # TODO: Extend this part to all BSPs
         env:
-          BSPs: "bsp/esp_wrover_kit bsp/esp32_s3_eye bsp/esp32_p4_function_ev_board bsp/m5stack_core_s3 bsp/m5stack_core_2 bsp/m5dial bsp/m5_atom_s3 bsp/esp-box-3"
+          BSPs: "bsp/esp_wrover_kit bsp/esp32_s3_eye bsp/esp32_p4_function_ev_board bsp/m5stack_core_s3 bsp/m5stack_core_2 bsp/m5stack_core bsp/m5dial bsp/m5_atom_s3 bsp/esp-box-3"
         run: |
           pip install idf-component-manager==1.* py-markdown-table --upgrade
           python .github/ci/bsp_noglib.py ${BSPs}
@@ -26,6 +26,8 @@ jobs:
             bsp/esp32_s3_eye_noglib;
             bsp/esp32_p4_function_ev_board_noglib;
             bsp/m5stack_core_s3_noglib;
+            bsp/m5stack_core_2_noglib;
+            bsp/m5stack_core_noglib;
             bsp/m5dial_noglib;
             bsp/esp_wrover_kit_noglib;
             bsp/m5_atom_s3_noglib;

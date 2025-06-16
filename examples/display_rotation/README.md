@@ -1,19 +1,25 @@
 # BSP: Display Rotation Example
 
+## Overview
+
+<table>
+<tr><td valign="top">
+
 This example demonstrates usage of ESP-BOX Board Support Package. This is a single purpose example, which is focused on rotating LCD display: user can rotating display by buttons.
 
-## How to use the example
+</td><td width="200" valign="top">
+  <img src="doc/pic.webp">
+</td></tr>
+</table>
 
-### Hardware Required
+## Build and Flash
 
-* ESP-BOX
-* USB-C Cable
-
-### Compile and flash
+To build and flash the example for a specific `{board}` and `{port}`, use the following command:
 
 ```
-idf.py -p COMx flash monitor
+idf.py -D SDKCONFIG_DEFAULTS=sdkconfig.bsp.{board} -p {port} flash monitor
 ```
+Make sure the correct board name is set in the `main/idf_component.yml` file under the `dependencies` section.
 
 ### Example outputs
 
@@ -36,6 +42,10 @@ I (455) ESP-BOX: Setting LCD backlight: 100%
 I (455) ESP-BOX: Starting LVGL task
 I (495) ESP-BOX: Example initialization done.
 ```
+
+## Launch Example
+
+You can also try this example using ESP Launchpad:
 
 <a href="https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation">
     <img alt="Try it with ESP Launchpad" src="https://espressif.github.io/esp-launchpad/assets/try_with_launchpad.png" width="250" height="70">
