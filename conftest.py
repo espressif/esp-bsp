@@ -4,6 +4,7 @@ import pytest
 import cv2
 import subprocess
 import numpy as np
+import time
 from pathlib import Path
 
 
@@ -130,10 +131,11 @@ def bsp_test_image(board, example, expectation):
 
 
 @pytest.fixture()
-def bsp_test(request):
+def bsp_test_capture_image(request):
     board = request.node.callspec.id
     path = Path(str(request.node.fspath))
     test_name = path.parent.name
     yield
+    time.sleep(5)  # wait 5 seconds
     print(f"Capturing image for: {board}")
     bsp_test_image(board, test_name, "")
