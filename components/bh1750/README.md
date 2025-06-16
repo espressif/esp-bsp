@@ -1,6 +1,9 @@
 # Component: BH1750
 
 [![Component Registry](https://components.espressif.com/components/espressif/bh1750/badge.svg)](https://components.espressif.com/components/espressif/bh1750)
+![maintenance-status](https://img.shields.io/badge/maintenance-deprecated-red.svg)
+
+:warning: **BH1750 component is deprecated. Users can use BH1750 from new [Sensor HUB](https://components.espressif.com/components/espressif/sensor_hub) component.**
 
 * This component will show you how to use I2C module read external i2c sensor data, here we use BH1750 light sensor(GY-30 module).
 * BH1750 measurement mode:
