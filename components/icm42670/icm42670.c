@@ -11,6 +11,7 @@
 #include <sys/time.h>
 #include "esp_system.h"
 #include "esp_check.h"
+#include "esp_rom_sys.h"
 #include "icm42670.h"
 
 #define I2C_CLK_SPEED 400000
@@ -411,6 +412,69 @@ esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670
 
     complimentary_angle->roll = (ALPHA * (complimentary_angle->roll + gyro_angle[0])) + ((1 - ALPHA) * acce_angle[0]);
     complimentary_angle->pitch = (ALPHA * (complimentary_angle->pitch + gyro_angle[1])) + ((1 - ALPHA) * acce_angle[1]);
+
+    return ESP_OK;
+}
+
+esp_err_t icm42670_read_register(icm42670_handle_t sensor, uint8_t reg, uint8_t *val)
+{
+    return icm42670_read(sensor, reg, val, 1);
+}
+
+esp_err_t icm42670_write_register(icm42670_handle_t sensor, uint8_t reg, uint8_t val)
+{
+    return icm42670_write(sensor, reg, &val, 1);
+}
+
+esp_err_t icm42670_read_mreg_register(icm42670_handle_t sensor, uint8_t mreg, uint8_t reg,
+                                      uint8_t *val)
+{
+    uint8_t blk_sel_r = 0;
+    if (mreg == 1) {
+        blk_sel_r = 0;
+    } else if (mreg == 2) {
+        blk_sel_r = 0x28;
+    } else if (mreg == 3) {
+        blk_sel_r = 0x50;
+    } else {
+        ESP_LOGE(TAG, "Invalid MREG value %d", mreg);
+        return ESP_ERR_INVALID_ARG;
+    }
+    ESP_RETURN_ON_ERROR(icm42670_write(sensor, ICM42670_BLK_SEL_R, &blk_sel_r, 1), TAG,
+                        "Failed to set BLK_SEL_R");
+    ESP_RETURN_ON_ERROR(icm42670_write(sensor, ICM42670_MADDR_R, &reg, 1), TAG,
+                        "Failed to set MADDR_R");
+
+    esp_rom_delay_us(10);
+
+    ESP_RETURN_ON_ERROR(icm42670_read(sensor, ICM42670_M_R, val, 1), TAG, "Failed to read M_R");
+
+    esp_rom_delay_us(10);
+
+    return ESP_OK;
+}
+
+esp_err_t icm42670_write_mreg_register(icm42670_handle_t sensor, uint8_t mreg, uint8_t reg,
+                                       uint8_t val)
+{
+    uint8_t blk_sel_w = 0;
+    if (mreg == 1) {
+        blk_sel_w = 0;
+    } else if (mreg == 2) {
+        blk_sel_w = 0x28;
+    } else if (mreg == 3) {
+        blk_sel_w = 0x50;
+    } else {
+        ESP_LOGE(TAG, "Invalid MREG value %d", mreg);
+        return ESP_ERR_INVALID_ARG;
+    }
+    ESP_RETURN_ON_ERROR(icm42670_write(sensor, ICM42670_BLK_SEL_W, &blk_sel_w, 1), TAG,
+                        "Failed to set BLK_SEL_W");
+    ESP_RETURN_ON_ERROR(icm42670_write(sensor, ICM42670_MADDR_W, &reg, 1), TAG,
+                        "Failed to set MADDR_W");
+    ESP_RETURN_ON_ERROR(icm42670_write(sensor, ICM42670_M_W, &val, 1), TAG, "Failed to set M_W");
+
+    esp_rom_delay_us(10);
 
     return ESP_OK;
 }
