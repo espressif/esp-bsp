@@ -446,13 +446,13 @@ esp_err_t icm42670_read_mreg_register(icm42670_handle_t sensor, uint8_t mreg, ui
                         "Failed to set MADDR_R");
 
     int64_t start = esp_timer_get_time();
-    while (esp_timer_get_time() - start < 10000) {
+    while (esp_timer_get_time() - start < 10) {
     }
 
     ESP_RETURN_ON_ERROR(icm42670_read(sensor, ICM42670_M_R, val, 1), TAG, "Failed to read M_R");
 
     start = esp_timer_get_time();
-    while (esp_timer_get_time() - start < 10000) {
+    while (esp_timer_get_time() - start < 10) {
     }
 
     return ESP_OK;
@@ -479,7 +479,7 @@ esp_err_t icm42670_write_mreg_register(icm42670_handle_t sensor, uint8_t mreg, u
     ESP_RETURN_ON_ERROR(icm42670_write(sensor, ICM42670_M_W, &val, 1), TAG, "Failed to set M_W");
 
     int64_t start = esp_timer_get_time();
-    while (esp_timer_get_time() - start < 10000) {
+    while (esp_timer_get_time() - start < 10) {
     }
     return ESP_OK;
 }
