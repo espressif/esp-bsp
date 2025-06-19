@@ -19,6 +19,7 @@
 #include "esp_lvgl_port.h"
 #include "esp_lvgl_port_priv.h"
 #include "lvgl.h"
+#include "bsp_ppa.h"
 
 static const char *TAG = "LVGL";
 
@@ -300,6 +301,10 @@ static void lvgl_port_task_deinit(void)
 #if LV_ENABLE_GC || !LV_MEM_CUSTOM
     /* Deinitialize LVGL */
     lv_deinit();
+#endif
+
+#if CONFIG_IDF_TARGET_ESP32P4
+    esp_ppa_mem_release();
 #endif
 }
 
