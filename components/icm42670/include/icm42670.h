@@ -15,6 +15,34 @@ extern "C" {
 #define ICM42670_I2C_ADDRESS         0x68 /*!< I2C address with AD0 pin low */
 #define ICM42670_I2C_ADDRESS_1       0x69 /*!< I2C address with AD0 pin high */
 
+#define ICM42670_SIGNAL_PATH_RESET   0x02 /*!< Signal path reset */
+#define ICM42670_INT_CONFIG          0x06 /*!< Interrupt configuration */
+#define ICM42670_PWR_MGMT0           0x1F /*!< Power management 0 */
+#define ICM42670_APEX_CONFIG0        0x25 /*!< APEX configuration 0 */
+#define ICM42670_APEX_CONFIG1        0x26 /*!< APEX configuration 1 */
+#define ICM42670_WOM_CONFIG          0x27 /*!< Wake on Motion configuration */
+#define ICM42670_INT_SOURCE0         0x2B /*!< Interrupt source 0 */
+#define ICM42670_INT_SOURCE1         0x2C /*!< Interrupt source 1 */
+#define ICM42670_INTF_CONFIG0        0x35 /*!< Interface configuration 0 */
+#define ICM42670_INTF_CONFIG1        0x36 /*!< Interface configuration 1 */
+#define ICM42670_INT_STATUS          0x3A /*!< Interrupt status */
+#define ICM42670_INT_STATUS2         0x3B /*!< Interrupt status 2 */
+#define ICM42670_INT_STATUS3         0x3C /*!< Interrupt status 3 */
+#define ICM42670_BLK_SEL_W           0x79 /*! Select MREG1, MREG2, or MREG3 bank for writing */
+#define ICM42670_MADDR_W             0x7A /*! Set MREG* register address for writing */
+#define ICM42670_M_W                 0x7B /*! Write MREG* register value */
+#define ICM42670_BLK_SEL_R           0x7C /*! Select MREG1, MREG2, or MREG3 bank for reading */
+#define ICM42670_MADDR_R             0x7D /*! Set MREG* register address for reading */
+#define ICM42670_M_R                 0x7E /*! Read MREG* register value */
+
+// MREG1 Registers
+#define ICM42670_MREG1_INT_CONFIG0      0x04 /*!< Interrupt configuration 0 */
+#define ICM42670_MREG1_INT_CONFIG1      0x05 /*!< Interrupt configuration 1 */
+#define ICM42670_MREG1_ACCEL_WOM_X_THR  0x4B /*!< WOM X threshold */
+#define ICM42670_MREG1_ACCEL_WOM_Y_THR  0x4C /*!< WOM Y threshold */
+#define ICM42670_MREG1_ACCEL_WOM_Z_THR  0x4D /*!< WOM Z threshold */
+
+
 typedef enum {
     ACCE_FS_16G = 0,     /*!< Accelerometer full scale range is +/- 16g */
     ACCE_FS_8G  = 1,     /*!< Accelerometer full scale range is +/- 8g */
@@ -272,6 +300,64 @@ esp_err_t icm42670_get_temp_value(icm42670_handle_t sensor, float *value);
  */
 esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670_value_t *acce_value,
                                         const icm42670_value_t *gyro_value, complimentary_angle_t *complimentary_angle);
+
+/**
+ * @brief Read a register
+ *
+ * @param sensor object handle of icm42670
+ * @param reg register address
+ * @param val value of the register
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_FAIL Fail
+ */
+esp_err_t icm42670_read_register(icm42670_handle_t sensor, uint8_t reg, uint8_t *val);
+
+/**
+ * @brief Write to a register
+ *
+ * @param sensor object handle of icm42670
+ * @param reg register address
+ * @param val value to write
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_FAIL Fail
+ */
+esp_err_t icm42670_write_register(icm42670_handle_t sensor, uint8_t reg, uint8_t val);
+
+/**
+ * @brief Read from a MREG register
+ *
+ * @param sensor object handle of icm42670
+ * @param mreg which MREG bank to write (1-3)
+ * @param reg register address
+ * @param data data read
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_INVALID_ARG Invalid MREG
+ *     - ESP_FAIL Fail
+ */
+esp_err_t icm42670_read_mreg_register(icm42670_handle_t sensor, uint8_t mreg, uint8_t reg,
+                                      uint8_t *val);
+
+/**
+ * @brief Write to a MREG register
+ *
+ * @param sensor object handle of icm42670
+ * @param mreg which MREG bank to write (1-3)
+ * @param reg register address
+ * @param data data to write
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_INVALID_ARG Invalid MREG
+ *     - ESP_FAIL Fail
+ */
+esp_err_t icm42670_write_mreg_register(icm42670_handle_t sensor, uint8_t mreg, uint8_t reg,
+                                       uint8_t val);
 
 #ifdef __cplusplus
 }
