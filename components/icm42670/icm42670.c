@@ -427,7 +427,7 @@ esp_err_t icm42670_write_register(icm42670_handle_t sensor, uint8_t reg, uint8_t
 }
 
 esp_err_t icm42670_read_mreg_register(icm42670_handle_t sensor, uint8_t mreg, uint8_t reg,
-                                       uint8_t *val)
+                                      uint8_t *val)
 {
     uint8_t blk_sel_r = 0;
     if (mreg == 1) {
