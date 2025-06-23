@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: CC0-1.0
 
 import pytest
@@ -20,6 +20,6 @@ from pytest_embedded import Dut
 @pytest.mark.m5stack_core_s3
 @pytest.mark.m5stack_core_s3_se
 @pytest.mark.m5_atom_s3
-def test_display_example(dut: Dut) -> None:
+def test_display_example(dut: Dut, bsp_test_capture_image) -> None:
     dut.expect_exact('example: Display LVGL animation')
     dut.expect_exact('main_task: Returned from app_main()')
