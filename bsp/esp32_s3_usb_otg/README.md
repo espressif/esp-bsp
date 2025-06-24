@@ -33,17 +33,17 @@ ESP32-S3-USB-OTG is a development board that focuses on USB-OTG function verific
 
 |     Available    |       Capability       |Controller/Codec|                                           Component                                          |Version|
 |------------------|------------------------|----------------|----------------------------------------------------------------------------------------------|-------|
-|:heavy_check_mark:|     :pager: DISPLAY    |     st7789     |                                              idf                                             | >=4.4 |
+|:heavy_check_mark:|     :pager: DISPLAY    |     st7789     |                                              idf                                             |>=5.1.3|
 |:heavy_check_mark:|:black_circle: LVGL_PORT|                |[espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)|   ^2  |
 |        :x:       |    :point_up: TOUCH    |                |                                                                                              |       |
 |:heavy_check_mark:| :radio_button: BUTTONS |                |       [espressif/button](https://components.espressif.com/components/espressif/button)       |   ^4  |
 |        :x:       |  :musical_note: AUDIO  |                |                                                                                              |       |
 |        :x:       | :speaker: AUDIO_SPEAKER|                |                                                                                              |       |
 |        :x:       | :microphone: AUDIO_MIC |                |                                                                                              |       |
-|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                              idf                                             | >=4.4 |
+|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                              idf                                             |>=5.1.3|
 |        :x:       |    :video_game: IMU    |                |                                                                                              |       |
-|:heavy_check_mark:|       :bulb: LED       |                |                                              idf                                             | >=4.4 |
-|:heavy_check_mark:|      :battery: BAT     |                |                                              idf                                             | >=4.4 |
+|:heavy_check_mark:|       :bulb: LED       |                |                                              idf                                             |>=5.1.3|
+|:heavy_check_mark:|      :battery: BAT     |                |                                              idf                                             |>=5.1.3|
 
 <!-- END_DEPENDENCIES -->
 </div>

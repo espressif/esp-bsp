@@ -1,4 +1,4 @@
-version: "2.0.0~1"
+version: "2.0.1"
 description: Board Support Package (BSP) for ESP32-S3-USB-OTG
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_usb_otg
 
@@ -9,7 +9,7 @@ tags:
   - bsp
 
 dependencies:
-  idf: ">=4.4"
+  idf: ">=5.1.3"
 
   button:
     version: "^4"
