@@ -62,7 +62,7 @@ def get_test_diff(test1, test2, name, positive):
 @pytest.mark.m5dial
 @pytest.mark.m5stack_core_s3
 @pytest.mark.m5stack_core_s3_se
-def test_example(dut: Dut, request) -> None:
+def test_example_lvgl_benchmark(dut: Dut, request) -> None:
     date = datetime.datetime.now()
     board = request.node.callspec.id
 
