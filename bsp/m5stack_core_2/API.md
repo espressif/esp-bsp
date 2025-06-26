@@ -644,7 +644,7 @@ esp_codec_dev_close(mic_codec_dev);
 | ---: | :--- |
 |  esp\_codec\_dev\_handle\_t | [**bsp\_audio\_codec\_speaker\_init**](#function-bsp_audio_codec_speaker_init) (void) <br>_Initialize speaker codec device._ |
 |  const audio\_codec\_data\_if\_t \* | [**bsp\_audio\_get\_codec\_itf**](#function-bsp_audio_get_codec_itf) (void) <br>_Get codec I2S interface (initialized in bsp\_audio\_init)_ |
-|  esp\_err\_t | [**bsp\_audio\_init**](#function-bsp_audio_init) (const i2s\_std\_config\_t \*i2s\_config) <br>_Init audio._ |
+|  esp\_err\_t | [**bsp\_audio\_init**](#function-bsp_audio_init) (const i2s\_config\_t \*i2s\_config) <br>_Init audio._ |
 
 ## Macros
 
@@ -695,7 +695,7 @@ const audio_codec_data_if_t * bsp_audio_get_codec_itf (
 _Init audio._
 ```c
 esp_err_t bsp_audio_init (
-    const i2s_std_config_t *i2s_config
+    const i2s_config_t *i2s_config
 ) 
 ```
 
@@ -703,12 +703,6 @@ esp_err_t bsp_audio_init (
 **Note:**
 
 There is no deinit audio function. Users can free audio resources by calling i2s\_del\_channel() 
-
-
-
-**Warning:**
-
-The type of i2s\_config param is depending on IDF version. 
 
 
 

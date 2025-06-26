@@ -591,12 +591,6 @@ There is no deinit audio function. Users can free audio resources by calling i2s
 
 
 
-**Warning:**
-
-The type of i2s\_config param is depending on IDF version. 
-
-
-
 **Parameters:**
 
 

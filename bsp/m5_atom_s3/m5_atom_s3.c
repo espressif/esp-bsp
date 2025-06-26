@@ -32,7 +32,7 @@ static lv_display_t *disp;
  * @brief I2C handle for BSP usage
  *
  * In IDF v5.4 you can call i2c_master_get_bus_handle(BSP_I2C_NUM, i2c_master_bus_handle_t *ret_handle)
- * from #include "esp_private/i2c_platform.h" to get this handle
+ * from include "esp_private/i2c_platform.h" to get this handle
  *
  * For IDF 5.2 and 5.3 you must call bsp_i2c_get_handle()
  */

@@ -51,7 +51,7 @@ static sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
  * @brief I2C handle for BSP usage
  *
  * You can call i2c_master_get_bus_handle(BSP_I2C_NUM, i2c_master_bus_handle_t *ret_handle)
- * from #include "esp_private/i2c_platform.h"
+ * from include "esp_private/i2c_platform.h"
  */
 static i2c_master_bus_handle_t i2c_handle = NULL;
 static bool i2c_initialized = false;
