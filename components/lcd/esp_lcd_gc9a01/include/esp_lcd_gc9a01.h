@@ -88,8 +88,8 @@ esp_err_t esp_lcd_new_panel_gc9a01(const esp_lcd_panel_io_handle_t io, const esp
  *
  * @param[in] cs SPI chip select pin number
  * @param[in] dc SPI data/command pin number
- * @param[in] cb Callback function when SPI transfer is done
- * @param[in] cb_ctx Callback function context
+ * @param[in] callback Callback function when SPI transfer is done
+ * @param[in] callback_ctx Callback function context
  *
  */
 #define GC9A01_PANEL_IO_SPI_CONFIG(cs, dc, callback, callback_ctx)  \

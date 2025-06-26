@@ -266,7 +266,7 @@ esp_err_t mpu6050_disable_interrupts(mpu6050_handle_t sensor, uint8_t interrupt_
  * @brief Get the interrupt status of mpu6050
  *
  * @param sensor object handle of mpu6050
- * @param out_intr_status[out] bit mask that is assigned a value representing the interrupts triggered by the mpu6050
+ * @param out_intr_status bit mask that is assigned a value representing the interrupts triggered by the mpu6050
  *
  * This function can be used by the mpu6050 ISR to determine the source of
  * the mpu6050 interrupt that it is handling.

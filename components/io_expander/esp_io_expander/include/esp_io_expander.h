@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -99,8 +99,8 @@ struct esp_io_expander_s {
      * @note The value represents the input level from IO
      * @note If there are multiple input registers in the device, their values should be spliced together in order to form the `value`.
      *
-     * @param handle: IO Expander handle
-     * @param value: Register's value
+     * @param handle IO Expander handle
+     * @param value Register's value
      *
      * @return
      *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
@@ -113,8 +113,8 @@ struct esp_io_expander_s {
      * @note The value represents the output level to IO
      * @note If there are multiple input registers in the device, their values should be spliced together in order to form the `value`.
      *
-     * @param handle: IO Expander handle
-     * @param value: Register's value
+     * @param handle IO Expander handle
+     * @param value Register's value
      *
      * @return
      *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
@@ -128,8 +128,8 @@ struct esp_io_expander_s {
      * @note This function can be implemented by reading the physical output register, or simply by reading a variable that record the output value (more faster)
      * @note If there are multiple input registers in the device, their values should be spliced together in order to form the `value`.
      *
-     * @param handle: IO Expander handle
-     * @param value: Register's value
+     * @param handle IO Expander handle
+     * @param value Register's value
      *
      * @return
      *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
@@ -142,8 +142,8 @@ struct esp_io_expander_s {
      * @note The value represents the diection of IO
      * @note If there are multiple input registers in the device, their values should be spliced together in order to form the `value`.
      *
-     * @param handle: IO Expander handle
-     * @param value: Register's value
+     * @param handle IO Expander handle
+     * @param value Register's value
      *
      * @return
      *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
@@ -157,8 +157,8 @@ struct esp_io_expander_s {
      * @note This function can be implemented by reading the physical direction register, or simply by reading a variable that record the direction value (more faster)
      * @note If there are multiple input registers in the device, their values should be spliced together in order to form the `value`.
      *
-     * @param handle: IO Expander handle
-     * @param value: Register's value
+     * @param handle IO Expander handle
+     * @param value Register's value
      *
      * @return
      *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
@@ -170,7 +170,7 @@ struct esp_io_expander_s {
      *
      * @note This function will reset all device's registers
      *
-     * @param handle: IO Expander handle
+     * @param handle IO Expander handle
      *
      * @return
      *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
@@ -180,7 +180,7 @@ struct esp_io_expander_s {
     /**
      * @brief Delete device (mandatory)
      *
-     * @param handle: IO Expander handle
+     * @param handle IO Expander handle
      *
      * @return
      *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
@@ -210,9 +210,9 @@ esp_err_t esp_io_expander_set_dir(esp_io_expander_handle_t handle, uint32_t pin_
  *
  * @note All target IOs must be in output mode first, otherwise this function will return the error `ESP_ERR_INVALID_STATE`
  *
- * @param handle: IO Exapnder handle
- * @param pin_num_mask: Bitwise OR of allowed pin num with type of `esp_io_expander_pin_num_t`
- * @param level: 0 - Low level, 1 - High level
+ * @param handle IO Exapnder handle
+ * @param pin_num_mask Bitwise OR of allowed pin num with type of `esp_io_expander_pin_num_t`
+ * @param level 0 - Low level, 1 - High level
  *
  * @return
  *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
@@ -224,9 +224,9 @@ esp_err_t esp_io_expander_set_level(esp_io_expander_handle_t handle, uint32_t pi
  *
  * @note This function can be called whenever target IOs are in input mode or output mode
  *
- * @param handle: IO Exapnder handle
- * @param pin_num_mask: Bitwise OR of allowed pin num with type of `esp_io_expander_pin_num_t`
- * @param level_mask: Bitwise OR of levels. For each bit, 0 - Low level, 1 - High level
+ * @param handle IO Exapnder handle
+ * @param pin_num_mask Bitwise OR of allowed pin num with type of `esp_io_expander_pin_num_t`
+ * @param level_mask Bitwise OR of levels. For each bit, 0 - Low level, 1 - High level
  *
  * @return
  *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
@@ -236,7 +236,7 @@ esp_err_t esp_io_expander_get_level(esp_io_expander_handle_t handle, uint32_t pi
 /**
  * @brief Print the current status of each IO of the device, including direction, input level and output level
  *
- * @param handle: IO Exapnder handle
+ * @param handle IO Exapnder handle
  *
  * @return
  *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
@@ -248,7 +248,7 @@ esp_err_t esp_io_expander_print_state(esp_io_expander_handle_t handle);
  *
  * @note This function will reset all device's registers
  *
- * @param handle: IO Expander handle
+ * @param handle IO Expander handle
  *
  * @return
  *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
@@ -258,7 +258,7 @@ esp_err_t esp_io_expander_reset(esp_io_expander_handle_t handle);
 /**
  * @brief Delete device
  *
- * @param handle: IO Expander handle
+ * @param handle IO Expander handle
  *
  * @return
  *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx

@@ -134,7 +134,6 @@ extern "C" {
  * @brief Init audio
  *
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
- * @warning The type of i2s_config param is depending on IDF version.
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
  * @return
  *      - ESP_OK                On success
@@ -144,11 +143,7 @@ extern "C" {
  *      - ESP_ERR_NO_MEM        No memory for storing the channel information
  *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
  */
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
 esp_err_t bsp_audio_init(const i2s_config_t *i2s_config);
-#else
-esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
-#endif
 
 /**
  * @brief Get codec I2S interface (initialized in bsp_audio_init)

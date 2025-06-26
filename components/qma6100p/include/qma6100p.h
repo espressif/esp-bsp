@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -184,6 +184,7 @@ esp_err_t qma6100p_get_acce_sensitivity(qma6100p_handle_t sensor, float *const a
  * @warning Not tested, implemented according to datasheet.
  *
  * @param sensor object handle of qma6100p
+ * @param int_num interrupt number
  * @param interrupt_configuration qma6100p INT pin configuration parameters
  *
  * @return
@@ -235,7 +236,7 @@ esp_err_t qma6100p_disable_interrupts(qma6100p_handle_t sensor, uint8_t interrup
  * @brief Get the interrupt status of qma6100p
  *
  * @param sensor object handle of qma6100p
- * @param out_intr_status[out] bit mask that is assigned a value representing the interrupts triggered by the qma6100p
+ * @param out_intr_status bit mask that is assigned a value representing the interrupts triggered by the qma6100p
  *
  * This function can be used by the qma6100p ISR to determine the source of
  * the qma6100p interrupt that it is handling.
@@ -328,7 +329,7 @@ esp_err_t qma6100p_get_fifo_frame_counter(qma6100p_handle_t sensor, uint8_t *cou
  * @brief Get fifo data pointer
  *
  * @param sensor object handle of qma6100p
- * @param counter frame counter
+ * @param data data pointer
  *
  * @return
  *      - ESP_OK Success

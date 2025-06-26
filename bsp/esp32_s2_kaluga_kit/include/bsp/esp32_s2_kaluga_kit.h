@@ -163,7 +163,6 @@ extern "C" {
  * @brief Init audio
  *
  * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
- * @warning The type of i2s_config param is depending on IDF version.
  * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
  * @return
  *      - ESP_OK                On success
