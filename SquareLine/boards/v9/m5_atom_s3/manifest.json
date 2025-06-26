@@ -1,13 +1,13 @@
 {
     "name":"M5 AtomS3",
-    "version":"1.0.0",
+    "version":"1.0.1",
     "mcu":"ESP32S3",
 
     "screen_width":"128",
     "screen_height":"128",
     "screen_color_swap":false,
 
-    "supported_lvgl_version":"9.1.*",
+    "supported_lvgl_version":"9.1.*, 9.2.*",
 
     "short_description":"AtomS3 is a highly integrated programmable controller that harnesses the power of the ESP32-S3 chip. This compact controller boasts a range of features, including integrated WiFi functionality and 8MB of on-chip FLASH memory. With the ESP32-S3 chip, AtomS3 delivers exceptional performance and versatility for a variety of applications.",
     "long_description":"AtomS3 is a highly integrated programmable controller that harnesses the power of the ESP32-S3 chip. This compact controller boasts a range of features, including integrated WiFi functionality and 8MB of on-chip FLASH memory. With the ESP32-S3 chip, AtomS3 delivers exceptional performance and versatility for a variety of applications.",
