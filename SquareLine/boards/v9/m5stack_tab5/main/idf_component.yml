@@ -1,0 +1,6 @@
+description: ESP-BSP SquareLine LVGL Example
+targets:
+    - esp32p4
+dependencies:
+  idf: ">=5.4"
+  m5stack_tab5: ">=1.0.0"

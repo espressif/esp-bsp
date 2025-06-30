@@ -1,0 +1,20 @@
+{
+    "name":"M5Stack Tab5",
+    "version":"1.0.0",
+    "mcu":"ESP32P4",
+
+    "screen_width":"720",
+    "screen_height":"1280",
+    "screen_color_swap":true,
+
+    "supported_lvgl_version":"9.1.*, 9.2.*",
+
+    "short_description":"Tab5 is a highly extensible, portable smart IoT terminal development device designed for developers, integrating a dual-chip architecture and abundant hardware resources. ",
+    "long_description":"Tab5 main controller adopts the RISC-V-based ESP32-P4 SoC, equipped with 16 MB Flash and 32 MB PSRAM; the wireless module uses the ESP32-C6-MINI-1U, supporting Wi-Fi 6. Its antenna system can freely switch between the built-in 3D antenna and the external MMCX antenna interface, flexibly adapting to different deployment environments to ensure data throughput and low-latency control.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/esp-bsp.h",
+        "__ESP_BOARD_I2C_INIT__": "/* Initialize I2C (for touch and audio) */\n    bsp_i2c_init();"
+    }
+}
