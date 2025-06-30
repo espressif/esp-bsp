@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "sdkconfig.h"
 #include "driver/i2s_std.h"
 #include "driver/i2c_master.h"
 #include "driver/gpio.h"
@@ -21,11 +22,13 @@
 #include "esp_io_expander.h"
 #include "esp_lcd_gc9503.h"
 #include "iot_button.h"
-#include "lvgl.h"
+#include "bsp/config.h"
 #include "bsp/display.h"
-#include "esp_lvgl_port.h"
 
-#include "sdkconfig.h"
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+#include "lvgl.h"
+#include "esp_lvgl_port.h"
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
  *  BSP Board Name
@@ -386,8 +389,7 @@ esp_err_t bsp_audio_poweramp_enable(bool enable);
         .flags.pclk_active_neg = true,              \
     }
 
-#define BSP_LCD_H_RES   bsp_display_get_h_res()
-#define BSP_LCD_V_RES   bsp_display_get_v_res()
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 /* LVGL related parameters */
 #define LVGL_BUFFER_HEIGHT          (CONFIG_BSP_DISPLAY_LVGL_BUF_HEIGHT)
@@ -465,23 +467,7 @@ void bsp_display_unlock(void);
  */
 void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation);
 
-/**
- * @brief Get display horizontal resolution
- *
- * @note  This function should be called after calling `bsp_display_new()` or `bsp_display_start()`
- *
- * @return Horizontal resolution. Return 0 if error occurred.
- */
-uint16_t bsp_display_get_h_res(void);
-
-/**
- * @brief Get display vertical resolution
- *
- * @note  This function should be called after calling `bsp_display_new()` or `bsp_display_start()`
- *
- * @return Vertical resolution. Return 0 if error occurred.
- */
-uint16_t bsp_display_get_v_res(void);
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /** @} */ // end of display
 

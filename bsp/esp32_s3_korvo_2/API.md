@@ -937,8 +937,8 @@ Below are some of the most relevant predefined constants:
 
 | Type | Name |
 | ---: | :--- |
-|  esp\_err\_t | [**bsp\_display\_backlight\_off**](#function-bsp_display_backlight_off) (void) <br> |
-|  esp\_err\_t | [**bsp\_display\_backlight\_on**](#function-bsp_display_backlight_on) (void) <br> |
+|  esp\_err\_t | [**bsp\_display\_backlight\_off**](#function-bsp_display_backlight_off) (void) <br>_Turn off display backlight._ |
+|  esp\_err\_t | [**bsp\_display\_backlight\_on**](#function-bsp_display_backlight_on) (void) <br>_Turn on display backlight._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_init**](#function-bsp_display_brightness_init) (void) <br> |
 |  esp\_err\_t | [**bsp\_display\_brightness\_set**](#function-bsp_display_brightness_set) (int brightness\_percent) <br> |
 |  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)_ |
@@ -1019,20 +1019,44 @@ Variables:
 
 ### function `bsp_display_backlight_off`
 
+_Turn off display backlight._
 ```c
 esp_err_t bsp_display_backlight_off (
     void
 ) 
 ```
 
+
+Backlight is controlled with IO expander TCA9554.
+
+
+
+**Returns:**
+
+
+
+* ESP\_OK On success
+* Else Failure to initialize IO expander or set backlight level
 ### function `bsp_display_backlight_on`
 
+_Turn on display backlight._
 ```c
 esp_err_t bsp_display_backlight_on (
     void
 ) 
 ```
 
+
+Backlight is controlled with IO expander TCA9554.
+
+
+
+**Returns:**
+
+
+
+* ESP\_OK On success
+* Else Failure to initialize IO expander or set backlight level
 ### function `bsp_display_brightness_init`
 
 ```c
