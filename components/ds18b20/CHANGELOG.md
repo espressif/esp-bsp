@@ -1,3 +1,7 @@
+## 0.1.3
+
+- Support for efficient multi-sensor temperature reading
+
 ## 0.1.2
 
 - Add single device function (ds18b20_new_single_device) to create a new DS18B20 device instance without enumerating all devices on the bus.
