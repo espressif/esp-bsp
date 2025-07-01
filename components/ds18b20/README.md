@@ -58,6 +58,28 @@ for (int i = 0; i < ds18b20_device_num; i ++) {
 }
 ```
 
+## Efficient multi-sensor temperature reading
+
+When working with multiple DS18B20 sensors, you can use the new API functions to improve efficiency by triggering all sensors at once and then waiting only once for all conversions to complete:
+
+```c
+// Efficient way: trigger all sensors, wait once, then read all
+
+// Step 1: Trigger conversion on all sensors without waiting
+// Trigger conversion on all sensors connected to the same bus
+ESP_ERROR_CHECK(ds18b20_trigger_all_sensors_temperature_conversion(ds18b20s[0]));
+
+// Step 2: Wait once for all conversions to complete
+// Use the highest resolution among all your sensors
+ESP_ERROR_CHECK(ds18b20_wait_for_conversion(DS18B20_RESOLUTION_12B));
+
+// Step 3: Read temperatures from all sensors
+for (int i = 0; i < ds18b20_device_num; i++) {
+    ESP_ERROR_CHECK(ds18b20_get_temperature(ds18b20s[i], &temperature));
+    ESP_LOGI(TAG, "temperature read from DS18B20[%d]: %.2fC", i, temperature);
+}
+```
+
 ## Reference
 
 * See [DS18B20 datasheet](https://www.analog.com/media/en/technical-documentation/data-sheets/ds18b20.pdf)
