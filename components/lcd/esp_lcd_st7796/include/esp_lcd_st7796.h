@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -81,7 +81,22 @@ esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp
  * @param[in] data_width Data bus width
  * @param[in] dc I80 data/command pin number
  * @param[in] wr I80 write clock pin number
- * @param[in] d[0:15] I80 data pin number 0 ~ 15. Set to -1 if not used.
+ * @param[in] d0 I80 data pin 0. Set to -1 if not used.
+ * @param[in] d1 I80 data pin 1. Set to -1 if not used.
+ * @param[in] d2 I80 data pin 2. Set to -1 if not used.
+ * @param[in] d3 I80 data pin 3. Set to -1 if not used.
+ * @param[in] d4 I80 data pin 4. Set to -1 if not used.
+ * @param[in] d5 I80 data pin 5. Set to -1 if not used.
+ * @param[in] d6 I80 data pin 6. Set to -1 if not used.
+ * @param[in] d7 I80 data pin 7. Set to -1 if not used.
+ * @param[in] d8 I80 data pin 8. Set to -1 if not used.
+ * @param[in] d9 I80 data pin 9. Set to -1 if not used.
+ * @param[in] d10 I80 data pin 10. Set to -1 if not used.
+ * @param[in] d11 I80 data pin 11. Set to -1 if not used.
+ * @param[in] d12 I80 data pin 12. Set to -1 if not used.
+ * @param[in] d13 I80 data pin 13. Set to -1 if not used.
+ * @param[in] d14 I80 data pin 14. Set to -1 if not used.
+ * @param[in] d15 I80 data pin 15. Set to -1 if not used.
  *
  */
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(4, 4, 1)

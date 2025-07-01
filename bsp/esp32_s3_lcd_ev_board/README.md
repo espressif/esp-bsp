@@ -96,29 +96,29 @@ Based on the above configurations, there are three different anti-tearing modes 
 
 ## LVGL Benchmark
 
-**DATE:** 11.06.2025 02:31
+**DATE:** 22.06.2025 02:34
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
 | Empty screen | 98%  | 18  | 51  | 30  | 21  |
-| Moving wallpaper | 100%  | 8  | 109  | 84  | 25  |
-| Single rectangle | 99%  | 35  | 24  | 1  | 23  |
+| Moving wallpaper | 100%  | 8  | 110  | 85  | 25  |
+| Single rectangle | 99%  | 35  | 25  | 2  | 23  |
 | Multiple rectangles | 99%  | 32  | 27  | 18  | 9  |
-| Multiple RGB images | 99%  | 27  | 30  | 23  | 7  |
-| Multiple ARGB images | 99%  | 16  | 51  | 36  | 15  |
-| Rotated ARGB images | 99%  | 14  | 62  | 53  | 9  |
-| Multiple labels | 100%  | 18  | 49  | 36  | 13  |
-| Screen sized text | 100%  | 8  | 108  | 92  | 16  |
-| Multiple arcs | 99%  | 35  | 23  | 7  | 16  |
-| Containers | 99%  | 15  | 55  | 42  | 13  |
-| Containers with overlay | 99%  | 9  | 87  | 75  | 12  |
-| Containers with opa | 99%  | 12  | 71  | 57  | 14  |
-| Containers with opa_layer | 99%  | 6  | 147  | 134  | 13  |
-| Containers with scrolling | 99%  | 11  | 81  | 62  | 19  |
-| Widgets demo | 99%  | 7  | 99  | 86  | 13  |
-| All scenes avg. | 99%  | 16  | 66  | 52  | 14  |
+| Multiple RGB images | 99%  | 26  | 33  | 24  | 9  |
+| Multiple ARGB images | 100%  | 16  | 51  | 36  | 15  |
+| Rotated ARGB images | 99%  | 14  | 62  | 52  | 10  |
+| Multiple labels | 100%  | 17  | 47  | 36  | 11  |
+| Screen sized text | 100%  | 8  | 109  | 92  | 17  |
+| Multiple arcs | 99%  | 35  | 23  | 8  | 15  |
+| Containers | 99%  | 15  | 56  | 45  | 11  |
+| Containers with overlay | 100%  | 9  | 90  | 76  | 14  |
+| Containers with opa | 100%  | 11  | 73  | 58  | 15  |
+| Containers with opa_layer | 100%  | 5  | 149  | 135  | 14  |
+| Containers with scrolling | 99%  | 11  | 81  | 63  | 18  |
+| Widgets demo | 99%  | 7  | 100  | 87  | 13  |
+| All scenes avg. | 99%  | 16  | 67  | 52  | 15  |
 
 
 
