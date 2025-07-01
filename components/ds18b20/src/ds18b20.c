@@ -138,6 +138,31 @@ esp_err_t ds18b20_trigger_temperature_conversion(ds18b20_device_handle_t ds18b20
     return ESP_OK;
 }
 
+esp_err_t ds18b20_wait_for_conversion(ds18b20_resolution_t resolution)
+{
+    ESP_RETURN_ON_FALSE(resolution <= DS18B20_RESOLUTION_12B, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
+
+    // delay proper time for temperature conversion
+    const uint32_t delays_ms[] = {100, 200, 400, 800};
+    vTaskDelay(pdMS_TO_TICKS(delays_ms[resolution]));
+
+    return ESP_OK;
+}
+
+esp_err_t ds18b20_trigger_all_sensors_temperature_conversion(ds18b20_device_handle_t ds18b20)
+{
+    ESP_RETURN_ON_FALSE(ds18b20, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
+
+    // reset bus and check if devices are present
+    ESP_RETURN_ON_ERROR(onewire_bus_reset(ds18b20->bus), TAG, "reset bus error");
+
+    // use Skip ROM command to trigger conversion on all sensors simultaneously
+    uint8_t tx_buffer[2] = {ONEWIRE_CMD_SKIP_ROM, DS18B20_CMD_CONVERT_TEMP};
+    ESP_RETURN_ON_ERROR(onewire_bus_write_bytes(ds18b20->bus, tx_buffer, sizeof(tx_buffer)), TAG, "send convert command to all sensors failed");
+
+    return ESP_OK;
+}
+
 esp_err_t ds18b20_get_temperature(ds18b20_device_handle_t ds18b20, float *ret_temperature)
 {
     ESP_RETURN_ON_FALSE(ds18b20 && ret_temperature, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
