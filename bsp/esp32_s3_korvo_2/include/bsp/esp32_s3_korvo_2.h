@@ -22,9 +22,13 @@
 #include "iot_button.h"
 #include "esp_io_expander.h"
 #include "esp_codec_dev.h"
+#include "bsp/config.h"
+#include "bsp/display.h"
+
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
-#include "bsp/display.h"
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
  *  BSP Board Name
@@ -608,6 +612,8 @@ esp_io_expander_handle_t bsp_io_expander_init(void);
 #define BSP_LCD_DRAW_BUFF_SIZE     (BSP_LCD_H_RES * 50)
 #define BSP_LCD_DRAW_BUFF_DOUBLE   (1)
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+
 /**
  * @brief BSP display configuration structure
  *
@@ -677,6 +683,8 @@ void bsp_display_unlock(void);
  * @param[in] rotation Angle of the display rotation
  */
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
+
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /** @} */ // end of display
 
