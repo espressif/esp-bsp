@@ -20,7 +20,6 @@
 #include "bsp/config.h"
 #include "bsp/display.h"
 #include "esp_codec_dev.h"
-#include "sdkconfig.h"
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 #include "lvgl.h"
@@ -312,7 +311,7 @@ typedef struct {
         unsigned int
             sw_rotate : 1; /*!< Use software rotation (slower), The feature is unavailable under avoid-tear mode */
     } flags;
-} bsp_display_cfg_t;
+} bsp_display_lcd_config_t;
 
 /**
  * @brief Initialize display
@@ -334,7 +333,7 @@ lv_display_t *bsp_display_start(void);
  *
  * @return Pointer to LVGL display or NULL when error occured
  */
-lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
+lv_display_t *bsp_display_start_with_config(const bsp_display_lcd_config_t *cfg);
 
 /**
  * @brief Get pointer to input device (touch, buttons, ...)

@@ -217,7 +217,7 @@ esp_err_t bsp_i2c_scan()
 }
 
 //==================================================================================
-// I/O Exapnder PI4IOE5V6416
+// I/O Expander PI4IOE5V6416
 //==================================================================================
 #define I2C_DEV_ADDR_PI4IOE1  0x43  // addr pin low
 #define I2C_DEV_ADDR_PI4IOE2  0x44  // addr pin high
@@ -238,8 +238,8 @@ static i2c_master_dev_handle_t i2c_dev_handle_pi4ioe2 = NULL;
 #define PI4IO_REG_INT_MASK   0x11
 #define PI4IO_REG_IRQ_STA    0x13
 
-#define setbit(x, y) x |= (0x01 << y)
-#define clrbit(x, y) x &= ~(0x01 << y)
+#define setbit(x, y) ((x) |= (0x01 << (y)))
+#define clrbit(x, y) ((x) &= ~(0x01 << (y)))
 
 void bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
 {
@@ -522,6 +522,9 @@ void bsp_reset_tp()
     clrbit(write_buf[1], 5);
     i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
     vTaskDelay(100 / portTICK_PERIOD_MS);
+
+    write_buf[0] = PI4IO_REG_OUT_SET;
+    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe1, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
 
     write_buf[0] = PI4IO_REG_OUT_SET;
     write_buf[1] = read_buf[0];
@@ -1238,7 +1241,7 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t* config, esp_lcd_touch_handle_t
 }
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
-static lv_display_t* bsp_display_lcd_init(const bsp_display_cfg_t* cfg)
+static lv_display_t* bsp_display_lcd_init(const bsp_display_lcd_config_t* cfg)
 {
     assert(cfg != NULL);
     bsp_lcd_handles_t lcd_panels;
@@ -1354,7 +1357,7 @@ lv_display_t* bsp_display_start(void)
         bsp_io_expander_pi4ioe_init(i2c_bus_handle);
     }
 
-    bsp_display_cfg_t cfg = {.lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
+    bsp_display_lcd_config_t cfg = {.lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
                              .buffer_size   = BSP_LCD_DRAW_BUFF_SIZE,
                              .double_buffer = BSP_LCD_DRAW_BUFF_DOUBLE,
                              .flags         = {
@@ -1369,7 +1372,7 @@ lv_display_t* bsp_display_start(void)
     return bsp_display_start_with_config(&cfg);
 }
 
-lv_display_t* bsp_display_start_with_config(const bsp_display_cfg_t* cfg)
+lv_display_t* bsp_display_start_with_config(const bsp_display_lcd_config_t* cfg)
 {
     lv_display_t* disp;
 
