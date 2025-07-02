@@ -785,6 +785,7 @@ Below are some of the most relevant predefined constants:
 
 | Type | Name |
 | ---: | :--- |
+| define  | [**BSP\_LCD\_BITS\_PER\_PIXEL**](#define-bsp_lcd_bits_per_pixel)  (16)<br> |
 | define  | [**BSP\_LCD\_H\_RES**](#define-bsp_lcd_h_res)  [**bsp\_display\_get\_h\_res**](#function-bsp_display_get_h_res)()<br> |
 | define  | [**BSP\_LCD\_SUB\_BOARD\_2\_3\_DATA0**](#define-bsp_lcd_sub_board_2_3_data0)  (GPIO\_NUM\_10)<br> |
 | define  | [**BSP\_LCD\_SUB\_BOARD\_2\_3\_DATA1**](#define-bsp_lcd_sub_board_2_3_data1)  (GPIO\_NUM\_11)<br> |

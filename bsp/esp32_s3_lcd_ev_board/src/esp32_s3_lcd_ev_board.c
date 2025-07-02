@@ -18,15 +18,18 @@
 #include "esp_spiffs.h"
 #include "iot_button.h"
 #include "button_gpio.h"
-#include "lvgl.h"
 
-#include "bsp/display.h"
 #include "bsp/esp32_s3_lcd_ev_board.h"
 #include "bsp/touch.h"
 #include "bsp_err_check.h"
 #include "bsp_probe.h"
+#include "bsp/config.h"
+#include "bsp/display.h"
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+#include "lvgl.h"
 #include "esp_lvgl_port.h"
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 #define BSP_ES7210_CODEC_ADDR   (0x82)
 
@@ -71,9 +74,11 @@ static i2s_chan_handle_t i2s_rx_chan = NULL;
 static esp_io_expander_handle_t io_expander = NULL; // IO expander tca9554 handle
 static adc_oneshot_unit_handle_t bsp_adc_handle = NULL;
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *disp;
 static lv_indev_t *disp_indev = NULL;
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 static const button_gpio_config_t bsp_button_config[BSP_BUTTON_NUM] = {
     {
@@ -330,6 +335,7 @@ esp_err_t bsp_audio_poweramp_enable(bool enable)
     return ESP_OK;
 }
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *bsp_display_lcd_init()
 {
     esp_lcd_panel_io_handle_t io_handle = NULL;
@@ -443,6 +449,7 @@ lv_indev_t *bsp_display_get_input_dev(void)
 {
     return disp_indev;
 }
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 esp_err_t bsp_display_brightness_init(void)
 {
@@ -466,6 +473,7 @@ esp_err_t bsp_display_backlight_on(void)
     return bsp_display_brightness_set(100);
 }
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);
@@ -480,10 +488,11 @@ void bsp_display_unlock(void)
 {
     lvgl_port_unlock();
 }
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 /**************************************************************************************************
  *
- * Button Funciton
+ * Button Function
  *
  **************************************************************************************************/
 esp_err_t bsp_button_init(const bsp_button_t btn)

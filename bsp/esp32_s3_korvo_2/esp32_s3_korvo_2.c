@@ -23,12 +23,16 @@
 #include "esp_lcd_ili9341.h"
 #include "esp_io_expander_tca9554.h"
 #include "esp_lcd_touch_tt21100.h"
-#include "esp_lvgl_port.h"
 #include "esp_vfs_fat.h"
 #include "esp_codec_dev_defaults.h"
 #include "bsp_err_check.h"
 #include "iot_button.h"
 #include "button_adc.h"
+
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+#include "lvgl.h"
+#include "esp_lvgl_port.h"
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 static const char *TAG = "S3-KORVO-2";
 
@@ -45,7 +49,9 @@ static bool i2c_initialized = false;
 static esp_io_expander_handle_t io_expander = NULL; // IO expander tca9554 handle
 static sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_indev_t *disp_indev = NULL;
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static adc_oneshot_unit_handle_t bsp_adc_handle = NULL;
 
 // This is just a wrapper to get function signature for espressif/button API callback
@@ -451,6 +457,7 @@ err:
     return ret;
 }
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
@@ -490,6 +497,7 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 
     return lvgl_port_add_disp(&disp_cfg);
 }
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t *ret_touch)
 {
@@ -519,6 +527,7 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     return esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, ret_touch);
 }
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 {
     if (tp == NULL) {
@@ -534,6 +543,7 @@ static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 
     return lvgl_port_add_touch(&touch_cfg);
 }
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 esp_err_t bsp_display_brightness_init(void)
 {
@@ -559,6 +569,7 @@ esp_err_t bsp_display_backlight_on(void)
     return esp_io_expander_set_level(io_expander, BSP_LCD_IO_BACKLIGHT, 1);
 }
 
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 lv_display_t *bsp_display_start(void)
 {
     bsp_display_cfg_t cfg = {
@@ -605,6 +616,7 @@ void bsp_display_unlock(void)
 {
     lvgl_port_unlock();
 }
+#endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 esp_err_t bsp_leds_init(void)
 {
