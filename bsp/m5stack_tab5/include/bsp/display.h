@@ -26,14 +26,8 @@ extern "C" {
 
 /* LCD color formats */
 #define ESP_LCD_COLOR_FORMAT_RGB565 (1)
-#define ESP_LCD_COLOR_FORMAT_RGB888 (2)
-
 /* LCD display color format */
-// #if CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
-// #define BSP_LCD_COLOR_FORMAT        (ESP_LCD_COLOR_FORMAT_RGB888)
-// #else
 #define BSP_LCD_COLOR_FORMAT (ESP_LCD_COLOR_FORMAT_RGB565)
-//#endif
 /* LCD display color bytes endianess */
 #define BSP_LCD_BIGENDIAN (0)
 /* LCD display color bits */

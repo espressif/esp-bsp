@@ -108,18 +108,6 @@ menu "Board Support Package (ESP32-P4)"
         help
             LEDC channel is used to generate PWM signal that controls display brightness.
             Set LEDC index that should be used.
-
-        choice BSP_LCD_COLOR_FORMAT
-            prompt "Select LCD color format"
-            default BSP_LCD_COLOR_FORMAT_RGB565
-            help
-                Select the LCD color format RGB565/RGB888.
-
-            config BSP_LCD_COLOR_FORMAT_RGB565
-                bool "RGB565"
-            config BSP_LCD_COLOR_FORMAT_RGB888
-                bool "RGB888"
-        endchoice           
         
     endmenu
     

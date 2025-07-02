@@ -19,7 +19,6 @@
 #include "sd_pwr_ctrl_by_on_chip_ldo.h"
 #include "freertos/task.h"
 #include "sdmmc_cmd.h"
-#include "esp_lcd_st7703.h"
 #include "esp_lcd_ili9881c.h"
 #include "bsp/m5stack_tab5.h"
 #include "bsp/display.h"
@@ -27,15 +26,16 @@
 #include "esp_lcd_touch_gt911.h"
 #include "bsp_err_check.h"
 #include "esp_codec_dev_defaults.h"
+#include "ili9881_init_data.h"
 
-static const char* TAG = "M5STACK_TAB5";
+static const char *TAG = "M5STACK_TAB5";
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
-static lv_indev_t* disp_indev = NULL;
+static lv_indev_t *disp_indev = NULL;
 #endif  // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 // Global uSD card handler
-sdmmc_card_t* bsp_sdcard = NULL;
+sdmmc_card_t *bsp_sdcard = NULL;
 
 // USB Host Library task
 static TaskHandle_t usb_host_task;
@@ -52,47 +52,9 @@ static i2c_master_bus_handle_t grove_i2c_bus_handle = NULL;
 // i2s
 static i2s_chan_handle_t i2s_tx_chan            = NULL;
 static i2s_chan_handle_t i2s_rx_chan            = NULL;
-static const audio_codec_data_if_t* i2s_data_if = NULL; /* Codec data interface */
+static const audio_codec_data_if_t *i2s_data_if = NULL; /* Codec data interface */
 static bool codec_initialized = false;
 
-//==================================================================================
-// camera 设置输出时钟
-//==================================================================================
-
-esp_err_t bsp_cam_osc_init(void)
-{
-    ledc_timer_config_t timer_conf;
-    timer_conf.duty_resolution = LEDC_TIMER_1_BIT;
-    timer_conf.freq_hz         = 24000000;  // <<<< change this to the frequency you want
-    timer_conf.speed_mode      = LEDC_LOW_SPEED_MODE;
-    timer_conf.deconfigure     = false;
-    timer_conf.clk_cfg         = LEDC_AUTO_CLK;
-    timer_conf.timer_num       = LEDC_TIMER_0;
-    esp_err_t err              = ledc_timer_config(&timer_conf);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "ledc_timer_config failed for freq %d, rc=%x", 24000000, err);
-    }
-
-    ledc_channel_config_t ch_conf;
-    ch_conf.gpio_num   = 36;  // 摄像头时钟输入
-    ch_conf.speed_mode = LEDC_LOW_SPEED_MODE;
-    ch_conf.channel    = LEDC_CHANNEL_0;
-    ch_conf.intr_type  = LEDC_INTR_DISABLE;
-    ch_conf.timer_sel  = LEDC_TIMER_0;
-    ch_conf.duty       = 1;
-    ch_conf.hpoint     = 0;
-    ch_conf.sleep_mode = LEDC_SLEEP_MODE_KEEP_ALIVE;
-    err                = ledc_channel_config(&ch_conf);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "ledc_channel_config failed, rc=%x", err);
-    }
-
-    return ESP_OK;
-}
-
-//==================================================================================
-// i2c
-//==================================================================================
 esp_err_t bsp_i2c_init(void)
 {
     /* I2C was initialized before */
@@ -126,96 +88,6 @@ i2c_master_bus_handle_t bsp_i2c_get_handle(void)
     return i2c_handle;
 }
 
-esp_err_t bsp_ext_i2c_init(void)
-{
-    if (ext_i2c_initialized) {
-        return ESP_OK;
-    }
-
-    i2c_master_bus_config_t i2c_mst_config = {
-        .clk_source                   = I2C_CLK_SRC_DEFAULT,
-        .i2c_port                     = BSP_EXT_I2C_NUM,
-        .scl_io_num                   = BSP_EXT_I2C_SCL,
-        .sda_io_num                   = BSP_EXT_I2C_SDA,
-        .flags.enable_internal_pullup = true,
-    };
-    i2c_new_master_bus(&i2c_mst_config, &ext_i2c_bus_handle);
-
-    ext_i2c_initialized = true;
-
-    return ESP_OK;
-}
-
-esp_err_t bsp_ext_i2c_deinit(void)
-{
-    ext_i2c_initialized = false;
-    return i2c_del_master_bus(ext_i2c_bus_handle);
-}
-
-i2c_master_bus_handle_t bsp_ext_i2c_get_handle(void)
-{
-    return ext_i2c_bus_handle;
-}
-
-esp_err_t bsp_grove_i2c_init(void)
-{
-    if (grove_i2c_initialized) {
-        return ESP_OK;
-    }
-
-    i2c_master_bus_config_t i2c_mst_config = {
-        .clk_source                   = I2C_CLK_SRC_DEFAULT,
-        .i2c_port                     = BSP_EXT_I2C_NUM,
-        .scl_io_num                   = 54,  // BSP_EXT_I2C_SCL,
-        .sda_io_num                   = 53,  // BSP_EXT_I2C_SDA,
-        .flags.enable_internal_pullup = true,
-    };
-    i2c_new_master_bus(&i2c_mst_config, &grove_i2c_bus_handle);
-
-    grove_i2c_initialized = true;
-
-    return ESP_OK;
-}
-
-esp_err_t bsp_grove_i2c_deinit(void)
-{
-    grove_i2c_initialized = false;
-    return i2c_del_master_bus(grove_i2c_bus_handle);
-}
-
-i2c_master_bus_handle_t bsp_grove_i2c_get_handle(void)
-{
-    return grove_i2c_bus_handle;
-}
-
-esp_err_t bsp_i2c_scan()
-{
-    esp_err_t ret;
-    uint8_t address;
-
-    printf("scan i2c device\n");
-    printf("\n     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\r\n");
-    for (int i = 0; i < 128; i += 16) {
-        printf("%02x: ", i);
-        for (int j = 0; j < 16; j++) {
-            fflush(stdout);
-            address = i + j;
-            ret     = i2c_master_probe(i2c_handle, address, 50);
-            if (ret == ESP_OK) {
-                printf("%02x ", address);
-            } else if (ret == ESP_ERR_TIMEOUT) {
-                printf("UU ");
-            } else {
-                printf("-- ");
-            }
-        }
-        printf("\r\n");
-    }
-    printf("\nscan i2c device finished\n");
-
-    return ESP_OK;
-}
-
 //==================================================================================
 // I/O Expander PI4IOE5V6416
 //==================================================================================
@@ -241,7 +113,7 @@ static i2c_master_dev_handle_t i2c_dev_handle_pi4ioe2 = NULL;
 #define setbit(x, y) ((x) |= (0x01 << (y)))
 #define clrbit(x, y) ((x) &= ~(0x01 << (y)))
 
-void bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
+static void bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
 {
     if (i2c_dev_handle_pi4ioe1) {
         return;
@@ -269,7 +141,7 @@ void bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
     write_buf[0] = PI4IO_REG_OUT_H_IM;
     write_buf[1] = 0b00000000;
     i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2,
-                        I2C_MASTER_TIMEOUT_MS);  // 使用到的引脚关闭 High-Impedance
+                        I2C_MASTER_TIMEOUT_MS);
     write_buf[0] = PI4IO_REG_PULL_SEL;
     write_buf[1] = 0b01111111;
     i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2,
@@ -278,8 +150,8 @@ void bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
     write_buf[1] = 0b01111111;
 
     i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2,
-                        I2C_MASTER_TIMEOUT_MS);  // P7 中断使能 0 enable, 1 disable
-    /* Output Port Register P1(SPK_EN), P2(EXT5V_EN), P4(LCD_RST), P5(TP_RST), P6(CAM)RST 输出高电平 */
+                        I2C_MASTER_TIMEOUT_MS);
+    /* Output Port Register P1(SPK_EN), P2(EXT5V_EN), P4(LCD_RST), P5(TP_RST), P6(CAM)RST */
     write_buf[0] = PI4IO_REG_OUT_SET;
     write_buf[1] = 0b01110110;
     i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
@@ -303,7 +175,7 @@ void bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
     write_buf[0] = PI4IO_REG_OUT_H_IM;
     write_buf[1] = 0b00000110;
     i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2,
-                        I2C_MASTER_TIMEOUT_MS);  // 使用到的引脚关闭 High-Impedance
+                        I2C_MASTER_TIMEOUT_MS);
     write_buf[0] = PI4IO_REG_PULL_SEL;
     write_buf[1] = 0b10111001;
     i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2,
@@ -314,224 +186,16 @@ void bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
                         I2C_MASTER_TIMEOUT_MS);  // pull up/down enable, 0 disable, 1 enable
     write_buf[0] = PI4IO_REG_IN_DEF_STA;
     write_buf[1] = 0b01000000;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);  // P6 默认高电平
+    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
     write_buf[0] = PI4IO_REG_INT_MASK;
     write_buf[1] = 0b10111111;
     i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2,
-                        I2C_MASTER_TIMEOUT_MS);  // P6 中断使能 0 enable, 1 disable
-    /* Output Port Register P0(WLAN_PWR_EN), P3(USB5V_EN), P7(CHG_EN) 输出高电平 */
+                        I2C_MASTER_TIMEOUT_MS);
+    /* Output Port Register P0(WLAN_PWR_EN), P3(USB5V_EN), P7(CHG_EN) */
     write_buf[0] = PI4IO_REG_OUT_SET;
     // write_buf[1] = 0b10001001;
     write_buf[1] = 0b00001001;
     i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-}
-
-void bsp_set_charge_qc_en(bool en)
-{
-    uint8_t write_buf[2] = {0};
-    uint8_t read_buf[1]  = {0};
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe2, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    write_buf[1] = read_buf[0];
-    if (en) {
-        clrbit(write_buf[1], 5);
-    } else {
-        setbit(write_buf[1], 5);
-    }
-
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-}
-
-void bsp_set_charge_en(bool en)
-{
-    uint8_t write_buf[2] = {0};
-    uint8_t read_buf[1]  = {0};
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe2, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    write_buf[1] = read_buf[0];
-    if (en) {
-        setbit(write_buf[1], 7);
-    } else {
-        clrbit(write_buf[1], 7);
-    }
-
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-}
-
-void bsp_set_usb_5v_en(bool en)
-{
-    uint8_t write_buf[2] = {0};
-    uint8_t read_buf[1]  = {0};
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe2, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    write_buf[1] = read_buf[0];
-    if (en) {
-        setbit(write_buf[1], 3);
-    } else {
-        clrbit(write_buf[1], 3);
-    }
-
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-}
-
-void bsp_set_ext_5v_en(bool en)
-{
-    uint8_t write_buf[2] = {0};
-    uint8_t read_buf[1]  = {0};
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe1, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    write_buf[1] = read_buf[0];
-    if (en) {
-        setbit(write_buf[1], 2);
-    } else {
-        clrbit(write_buf[1], 2);
-    }
-
-    i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-}
-
-void bsp_generate_poweroff_signal()
-{
-    ESP_LOGW(TAG, "Generate poweroff signal!");
-    uint8_t write_buf[2] = {0};
-    uint8_t read_buf[1]  = {0};
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe2, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-
-    write_buf[1] = read_buf[0];
-
-    // Try to generate poweroff signal 3 times to make sure it works :)
-    for (int i = 0; i < 3; i++) {
-        setbit(write_buf[1], 4);
-        i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-
-        clrbit(write_buf[1], 4);
-        i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-    }
-}
-
-bool bsp_headphone_detect()
-{
-    uint8_t write_buf[2] = {0};
-    uint8_t read_buf[1]  = {0};
-
-    write_buf[0] = PI4IO_REG_IN_STA;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe1, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-
-    // Get bit 8
-    bool ret = false;
-    if (read_buf[0] & 0b10000000) {
-        ret = true;
-    }
-
-    return ret;
-}
-
-bool bsp_usb_c_detect()
-{
-    uint8_t write_buf[2] = {0};
-    uint8_t read_buf[1]  = {0};
-
-    write_buf[0] = PI4IO_REG_IN_STA;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe2, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-
-    // Get bit 6
-    bool ret = false;
-    if (read_buf[0] & 0b01000000) {
-        ret = true;
-    }
-
-    return ret;
-}
-
-void bsp_set_ext_antenna_enable(bool en)
-{
-    uint8_t write_buf[2] = {0};
-    uint8_t read_buf[1]  = {0};
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe1, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    write_buf[1] = read_buf[0];
-    if (en) {
-        setbit(write_buf[1], 0);
-    } else {
-        clrbit(write_buf[1], 0);
-    }
-
-    i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-}
-
-void bsp_set_wifi_power_enable(bool en)
-{
-    uint8_t write_buf[2] = {0};
-    uint8_t read_buf[1]  = {0};
-
-    ESP_LOGI(TAG, "set_wifi_power_enable: %d", en);
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe2, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    write_buf[1] = read_buf[0];
-    if (en) {
-        setbit(write_buf[1], 0);
-    } else {
-        clrbit(write_buf[1], 0);
-    }
-
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe2, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-    printf("0x%02X: %02x\n", PI4IO_REG_OUT_SET, read_buf[0]);
-}
-
-void bsp_reset_tp()
-{
-    ESP_LOGI(TAG, "reset tp");
-
-    ESP_LOGI(TAG, "reset gpio %d", GPIO_NUM_23);
-    gpio_reset_pin(GPIO_NUM_23);
-
-    uint8_t write_buf[2] = {0};
-    uint8_t read_buf[1]  = {0};
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe1, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    write_buf[1] = read_buf[0];
-    clrbit(write_buf[1], 4);
-    clrbit(write_buf[1], 5);
-    i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe1, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    write_buf[1] = read_buf[0];
-    setbit(write_buf[1], 4);
-    setbit(write_buf[1], 5);
-    i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-    vTaskDelay(100 / portTICK_PERIOD_MS);
 }
 
 //==================================================================================
@@ -539,20 +203,18 @@ void bsp_reset_tp()
 //==================================================================================
 #define BSP_LDO_PROBE_SD_CHAN       4
 #define BSP_LDO_PROBE_SD_VOLTAGE_MV 3300
+#define SDMMC_BUS_WIDTH (4)
+#define GPIO_SDMMC_DET  (GPIO_NUM_NC)
+#define GPIO_SDMMC_CLK (GPIO_NUM_43)
+#define GPIO_SDMMC_CMD (GPIO_NUM_44)
+#define GPIO_SDMMC_D0  (GPIO_NUM_39)
+#define GPIO_SDMMC_D1  (GPIO_NUM_40)
+#define GPIO_SDMMC_D2  (GPIO_NUM_41)
+#define GPIO_SDMMC_D3  (GPIO_NUM_42)
 
-#define SDMMC_BUS_WIDTH (4)            // SDIO 4 线模式
-#define GPIO_SDMMC_DET  (GPIO_NUM_NC)  // SDIO 卡检测
-// M5Stack-Tab5-P4
-#define GPIO_SDMMC_CLK (GPIO_NUM_43)  // SDIO 时钟
-#define GPIO_SDMMC_CMD (GPIO_NUM_44)  // SDIO 命令
-#define GPIO_SDMMC_D0  (GPIO_NUM_39)  // SDIO 数据 0
-#define GPIO_SDMMC_D1  (GPIO_NUM_40)  // SDIO 数据 1
-#define GPIO_SDMMC_D2  (GPIO_NUM_41)  // SDIO 数据 2
-#define GPIO_SDMMC_D3  (GPIO_NUM_42)  // SDIO 数据 3
+static sdmmc_card_t *card;
 
-static sdmmc_card_t* card;
-
-esp_err_t bsp_sdcard_init(char* mount_point, size_t max_files)
+esp_err_t bsp_sdcard_init(char *mount_point, size_t max_files)
 {
     esp_err_t ret_val = ESP_OK;
 
@@ -605,7 +267,8 @@ esp_err_t bsp_sdcard_init(char* mount_point, size_t max_files)
      *   formatted in case when mounting fails.
      */
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-        .format_if_mount_failed = false, .max_files = max_files, .allocation_unit_size = 16 * 1024};
+        .format_if_mount_failed = false, .max_files = max_files, .allocation_unit_size = 16 * 1024
+    };
 
     ret_val = esp_vfs_fat_sdmmc_mount(mount_point, &host, &slot_config, &mount_config, &card);
 
@@ -630,7 +293,7 @@ esp_err_t bsp_sdcard_init(char* mount_point, size_t max_files)
     return ret_val;
 }
 
-esp_err_t bsp_sdcard_deinit(char* mount_point)
+esp_err_t bsp_sdcard_deinit(char *mount_point)
 {
     if (mount_point == NULL) {
         return ESP_ERR_INVALID_STATE;
@@ -708,7 +371,7 @@ static int volume;
         .gpio_cfg = BSP_I2S_GPIO_CFG,                                                                 \
     }
 
-esp_err_t bsp_audio_init(const i2s_std_config_t* i2s_config)
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config)
 {
     if (i2s_tx_chan && i2s_rx_chan) {
         /* Audio was initialized before */
@@ -723,7 +386,7 @@ esp_err_t bsp_audio_init(const i2s_std_config_t* i2s_config)
     /* Setup I2S channels */
     // const i2s_std_config_t std_cfg_default = BSP_I2S_DUPLEX_MONO_CFG(16000);
     const i2s_std_config_t std_cfg_default = BSP_I2S_DUPLEX_MONO_CFG(48000);
-    const i2s_std_config_t* p_i2s_cfg      = &std_cfg_default;
+    const i2s_std_config_t *p_i2s_cfg      = &std_cfg_default;
     if (i2s_config != NULL) {
         p_i2s_cfg = i2s_config;
     }
@@ -735,25 +398,27 @@ esp_err_t bsp_audio_init(const i2s_std_config_t* i2s_config)
 
     i2s_tdm_config_t tdm_cfg = {
         .clk_cfg =
-            {
-                .sample_rate_hz  = (uint32_t)48000,
-                .clk_src         = I2S_CLK_SRC_DEFAULT,
-                .ext_clk_freq_hz = 0,
-                .mclk_multiple   = I2S_MCLK_MULTIPLE_256,
-                .bclk_div        = 8,
-            },
-        .slot_cfg = {.data_bit_width = I2S_DATA_BIT_WIDTH_16BIT,
-                     .slot_bit_width = I2S_SLOT_BIT_WIDTH_AUTO,
-                     .slot_mode      = I2S_SLOT_MODE_STEREO,
-                     .slot_mask      = (I2S_TDM_SLOT0 | I2S_TDM_SLOT1 | I2S_TDM_SLOT2 | I2S_TDM_SLOT3),
-                     .ws_width       = I2S_TDM_AUTO_WS_WIDTH,
-                     .ws_pol         = false,
-                     .bit_shift      = true,
-                     .left_align     = false,
-                     .big_endian     = false,
-                     .bit_order_lsb  = false,
-                     .skip_mask      = false,
-                     .total_slot     = I2S_TDM_AUTO_SLOT_NUM},
+        {
+            .sample_rate_hz  = (uint32_t)48000,
+            .clk_src         = I2S_CLK_SRC_DEFAULT,
+            .ext_clk_freq_hz = 0,
+            .mclk_multiple   = I2S_MCLK_MULTIPLE_256,
+            .bclk_div        = 8,
+        },
+        .slot_cfg = {
+            .data_bit_width = I2S_DATA_BIT_WIDTH_16BIT,
+            .slot_bit_width = I2S_SLOT_BIT_WIDTH_AUTO,
+            .slot_mode      = I2S_SLOT_MODE_STEREO,
+            .slot_mask      = (I2S_TDM_SLOT0 | I2S_TDM_SLOT1 | I2S_TDM_SLOT2 | I2S_TDM_SLOT3),
+            .ws_width       = I2S_TDM_AUTO_WS_WIDTH,
+            .ws_pol         = false,
+            .bit_shift      = true,
+            .left_align     = false,
+            .big_endian     = false,
+            .bit_order_lsb  = false,
+            .skip_mask      = false,
+            .total_slot     = I2S_TDM_AUTO_SLOT_NUM
+        },
         .gpio_cfg = BSP_I2S_GPIO_CFG,
     };
 
@@ -787,7 +452,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     }
     assert(i2s_data_if);
 
-    const audio_codec_gpio_if_t* gpio_if = audio_codec_new_gpio();
+    const audio_codec_gpio_if_t *gpio_if = audio_codec_new_gpio();
 
     i2c_master_bus_handle_t i2c_bus_handle = bsp_i2c_get_handle();
     audio_codec_i2c_cfg_t i2c_cfg          = {
@@ -795,7 +460,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
         .addr       = ES8388_CODEC_DEFAULT_ADDR,
         .bus_handle = i2c_bus_handle,
     };
-    const audio_codec_ctrl_if_t* i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
+    const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);
 
     esp_codec_dev_hw_gain_t gain = {
@@ -809,7 +474,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
         .ctrl_if     = i2c_ctrl_if,
         .pa_pin      = -1,  // PI4IOE1 P1 控制
     };
-    const audio_codec_if_t* es8388_dev = es8388_codec_new(&es8388_cfg);
+    const audio_codec_if_t *es8388_dev = es8388_codec_new(&es8388_cfg);
     BSP_NULL_CHECK(es8388_dev, NULL);
 
     esp_codec_dev_cfg_t codec_dev_cfg = {
@@ -840,19 +505,19 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
         .addr       = ES7210_CODEC_DEFAULT_ADDR,
         .bus_handle = i2c_bus_handle,
     };
-    const audio_codec_ctrl_if_t* i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
+    const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);
 
     es7210_codec_cfg_t es7210_cfg = {
         .ctrl_if = i2c_ctrl_if,  // Codec Control interface
     };
     es7210_cfg.mic_selected            = ES7120_SEL_MIC1 | ES7120_SEL_MIC2 | ES7120_SEL_MIC3 | ES7120_SEL_MIC4;
-    const audio_codec_if_t* es7210_dev = es7210_codec_new(&es7210_cfg);
+    const audio_codec_if_t *es7210_dev = es7210_codec_new(&es7210_cfg);
     BSP_NULL_CHECK(es7210_dev, NULL);
 
     esp_codec_dev_cfg_t codec_es7210_dev_cfg = {
         .dev_type =
-            ESP_CODEC_DEV_TYPE_IN,  // Codec device type: Codec input device like ADC (capture data from microphone)
+        ESP_CODEC_DEV_TYPE_IN,  // Codec device type: Codec input device like ADC (capture data from microphone)
         .codec_if = es7210_dev,     // Codec interface
         .data_if  = i2s_data_if,    // Codec data interface
     };
@@ -860,7 +525,7 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
     return esp_codec_dev_new(&codec_es7210_dev_cfg);
 }
 
-static esp_err_t bsp_i2s_read(void* audio_buffer, size_t len, size_t* bytes_read, uint32_t timeout_ms)
+static esp_err_t bsp_i2s_read(void *audio_buffer, size_t len, size_t *bytes_read, uint32_t timeout_ms)
 {
     esp_err_t ret = ESP_OK;
     ret           = esp_codec_dev_read(record_dev_handle, audio_buffer, len);
@@ -868,7 +533,7 @@ static esp_err_t bsp_i2s_read(void* audio_buffer, size_t len, size_t* bytes_read
     return ret;
 }
 
-static esp_err_t bsp_i2s_write(void* audio_buffer, size_t len, size_t* bytes_written, uint32_t timeout_ms)
+static esp_err_t bsp_i2s_write(void *audio_buffer, size_t len, size_t *bytes_written, uint32_t timeout_ms)
 {
     esp_err_t ret  = ESP_OK;
     ret            = esp_codec_dev_write(play_dev_handle, audio_buffer, len);
@@ -909,7 +574,7 @@ static int bsp_codec_get_volume(void)
     return volume;
 }
 
-bsp_codec_config_t* bsp_get_codec_handle(void)
+bsp_codec_config_t *bsp_get_codec_handle(void)
 {
     return &g_codec_handle;
 }
@@ -961,14 +626,13 @@ void bsp_codec_init(void)
     bsp_codec_es7210_set(48000, 16, 4);
     bsp_codec_es8388_set(48000, 16, 2);
 
-    /* 初始化 codec handle */
-    bsp_codec_config_t* codec_cfg  = bsp_get_codec_handle();  // 获取 codec handle
-    codec_cfg->i2s_read            = bsp_i2s_read;            // I2S 读数据
-    codec_cfg->i2s_write           = bsp_i2s_write;           // I2S 写数据
-    codec_cfg->set_mute            = bsp_codec_set_mute;      // 静音设置
-    codec_cfg->set_volume          = bsp_codec_set_volume;    // 音量设置
+    bsp_codec_config_t *codec_cfg  = bsp_get_codec_handle();
+    codec_cfg->i2s_read            = bsp_i2s_read;
+    codec_cfg->i2s_write           = bsp_i2s_write;
+    codec_cfg->set_mute            = bsp_codec_set_mute;
+    codec_cfg->set_volume          = bsp_codec_set_volume;
     codec_cfg->get_volume          = bsp_codec_get_volume;
-    codec_cfg->set_in_gain         = bsp_codec_set_in_gain;  // 麦克风输入增益设置
+    codec_cfg->set_in_gain         = bsp_codec_set_in_gain;
     codec_cfg->codec_reconfig_fn   = bsp_codec_es7210_set;
     codec_cfg->i2s_reconfig_clk_fn = bsp_codec_es8388_set;
 
@@ -980,21 +644,17 @@ uint8_t bsp_codec_feed_channel(void)
     return 3;  // 2*mic_num + ref_num
 }
 
-//==================================================================================
-// lcd st7703 1280x720  gt911
-//==================================================================================
 // Bit number used to represent command and parameter
 #define LCD_LEDC_CH LEDC_CHANNEL_1  // CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH
 esp_err_t bsp_display_brightness_init(void)
 {
     // Setup LEDC peripheral for PWM backlight control
     const ledc_timer_config_t lcd_backlight_timer = {.speed_mode = LEDC_LOW_SPEED_MODE,
-                                                     //  .duty_resolution = LEDC_TIMER_10_BIT,
                                                      .duty_resolution = LEDC_TIMER_12_BIT,
                                                      .timer_num       = LEDC_TIMER_0,
                                                      .freq_hz         = 5000,
-                                                     // .freq_hz = 20000,
-                                                     .clk_cfg = LEDC_AUTO_CLK};
+                                                     .clk_cfg = LEDC_AUTO_CLK
+                                                    };
     ESP_ERROR_CHECK(ledc_timer_config(&lcd_backlight_timer));
 
     const ledc_channel_config_t lcd_backlight_channel = {.gpio_num   = BSP_LCD_BACKLIGHT,
@@ -1003,7 +663,8 @@ esp_err_t bsp_display_brightness_init(void)
                                                          .intr_type  = LEDC_INTR_DISABLE,
                                                          .timer_sel  = LEDC_TIMER_0,
                                                          .duty       = 0,
-                                                         .hpoint     = 0};
+                                                         .hpoint     = 0
+                                                        };
 
     ESP_ERROR_CHECK(ledc_channel_config(&lcd_backlight_channel));
 
@@ -1052,8 +713,8 @@ static esp_err_t bsp_enable_dsi_phy_power(void)
     return ESP_OK;
 }
 
-esp_err_t bsp_display_new(const bsp_display_config_t* config, esp_lcd_panel_handle_t* ret_panel,
-                          esp_lcd_panel_io_handle_t* ret_io)
+esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
+                          esp_lcd_panel_io_handle_t *ret_io)
 {
     esp_err_t ret = ESP_OK;
     bsp_lcd_handles_t handles;
@@ -1065,13 +726,7 @@ esp_err_t bsp_display_new(const bsp_display_config_t* config, esp_lcd_panel_hand
     return ret;
 }
 
-#define LCD_MIPI_DSI_USE_ILI9881C
-
-#if defined(LCD_MIPI_DSI_USE_ILI9881C) && !defined(LCD_MIPI_DSI_USE_ST7703)
-#include "ili9881_init_data.c"
-#endif
-
-esp_err_t bsp_display_new_with_handles(const bsp_display_config_t* config, bsp_lcd_handles_t* ret_handles)
+esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_lcd_handles_t *ret_handles)
 {
     esp_err_t ret                     = ESP_OK;
     esp_lcd_panel_io_handle_t io      = NULL;
@@ -1099,7 +754,6 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t* config, bsp_l
     };
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_dbi(mipi_dsi_bus, &dbi_config, &io), err, TAG, "New panel IO failed");
 
-#if defined(LCD_MIPI_DSI_USE_ILI9881C) && !defined(LCD_MIPI_DSI_USE_ST7703)
     ESP_LOGI(TAG, "Install LCD driver of ili9881c");
     esp_lcd_dpi_panel_config_t dpi_config = {
         .virtual_channel    = 0,
@@ -1108,29 +762,29 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t* config, bsp_l
         .pixel_format       = LCD_COLOR_PIXEL_FORMAT_RGB565,
         .num_fbs            = 1,
         .video_timing =
-            {
-                .h_size            = BSP_LCD_H_RES,
-                .v_size            = BSP_LCD_V_RES,
-                .hsync_back_porch  = 140,
-                .hsync_pulse_width = 40,
-                .hsync_front_porch = 40,
-                .vsync_back_porch  = 20,
-                .vsync_pulse_width = 4,
-                .vsync_front_porch = 20,
-            },
+        {
+            .h_size            = BSP_LCD_H_RES,
+            .v_size            = BSP_LCD_V_RES,
+            .hsync_back_porch  = 140,
+            .hsync_pulse_width = 40,
+            .hsync_front_porch = 40,
+            .vsync_back_porch  = 20,
+            .vsync_pulse_width = 4,
+            .vsync_front_porch = 20,
+        },
         .flags.use_dma2d = true,
     };
 
     ili9881c_vendor_config_t vendor_config = {
         .init_cmds      = tab5_lcd_ili9881c_specific_init_code_default,
         .init_cmds_size = sizeof(tab5_lcd_ili9881c_specific_init_code_default) /
-                          sizeof(tab5_lcd_ili9881c_specific_init_code_default[0]),
+        sizeof(tab5_lcd_ili9881c_specific_init_code_default[0]),
         .mipi_config =
-            {
-                .dsi_bus    = mipi_dsi_bus,
-                .dpi_config = &dpi_config,
-                .lane_num   = 2,
-            },
+        {
+            .dsi_bus    = mipi_dsi_bus,
+            .dpi_config = &dpi_config,
+            .lane_num   = 2,
+        },
     };
 
     const esp_lcd_panel_dev_config_t lcd_dev_config = {
@@ -1142,49 +796,7 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t* config, bsp_l
     ESP_ERROR_CHECK(esp_lcd_new_panel_ili9881c(io, &lcd_dev_config, &disp_panel));
     ESP_ERROR_CHECK(esp_lcd_panel_reset(disp_panel));
     ESP_ERROR_CHECK(esp_lcd_panel_init(disp_panel));
-    //  ESP_ERROR_CHECK(esp_lcd_panel_mirror(disp_panel, false, true));
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(disp_panel, true));
-
-#elif defined(LCD_MIPI_DSI_USE_ST7703) && !defined(LCD_MIPI_DSI_USE_ILI9881C)
-    ESP_LOGI(TAG, "Install LCD driver of ST7703");
-    esp_lcd_dpi_panel_config_t dpi_config = {
-        .virtual_channel = 0,
-        .dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT,
-        .dpi_clock_freq_mhz = 60,                       // LCD_MIPI_DSI_DPI_CLK_MHZ_ST7703,
-        .pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB565,  // LCD_COLOR_PIXEL_FORMAT_RGB888,
-        .num_fbs = 1,
-        .video_timing =
-            {
-                .h_size = BSP_LCD_H_RES,  // lcd_param.width,
-                .v_size = BSP_LCD_V_RES,  // lcd_param.height,
-                .hsync_back_porch = 40,
-                .hsync_pulse_width = 10,
-                .hsync_front_porch = 40,
-                .vsync_back_porch = 16,
-                .vsync_pulse_width = 4,
-                .vsync_front_porch = 16,
-            },
-        //.flags.use_dma2d = true, // ??? 开启后需要等待 previous draw 完成
-    };
-
-    st7703_vendor_config_t vendor_config = {
-        .flags.use_mipi_interface = 1,
-        .mipi_config =
-            {
-                .dsi_bus = mipi_dsi_bus,
-                .dpi_config = &dpi_config,
-            },
-    };
-    esp_lcd_panel_dev_config_t lcd_dev_config = {
-        .bits_per_pixel = 16,  // 24,
-        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,
-        .reset_gpio_num = -1,
-        .vendor_config = &vendor_config,
-    };
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7703(io, &lcd_dev_config, &disp_panel), err, TAG,
-                      "New LCD panel EK79007 failed");
-    ESP_GOTO_ON_ERROR(esp_lcd_panel_init(disp_panel), err, TAG, "LCD panel init failed");
-#endif
 
     /* Return all handles */
     ret_handles->io           = io;
@@ -1209,7 +821,7 @@ err:
     return ret;
 }
 
-esp_err_t bsp_touch_new(const bsp_touch_config_t* config, esp_lcd_touch_handle_t* ret_touch)
+esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t *ret_touch)
 {
     /* Initilize I2C */
     BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
@@ -1221,27 +833,27 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t* config, esp_lcd_touch_handle_t
         .rst_gpio_num = -1,  // BSP_LCD_TOUCH_RST, // NC
         .int_gpio_num = 23,  // BSP_LCD_TOUCH_INT,
         .levels =
-            {
-                .reset     = 0,
-                .interrupt = 0,
-            },
+        {
+            .reset     = 0,
+            .interrupt = 0,
+        },
         .flags =
-            {
-                .swap_xy  = 0,
-                .mirror_x = 0,
-                .mirror_y = 0,
-            },
+        {
+            .swap_xy  = 0,
+            .mirror_x = 0,
+            .mirror_y = 0,
+        },
     };
     esp_lcd_panel_io_handle_t tp_io_handle     = NULL;
     esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
-    tp_io_config.dev_addr                      = ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS_BACKUP;  // 更改 GT911 地址
+    tp_io_config.dev_addr                      = ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS_BACKUP;
     tp_io_config.scl_speed_hz                  = CONFIG_BSP_I2C_CLK_SPEED_HZ;
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
     return esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, ret_touch);
 }
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
-static lv_display_t* bsp_display_lcd_init(const bsp_display_lcd_config_t* cfg)
+static lv_display_t *bsp_display_lcd_init(const bsp_display_lcd_config_t *cfg)
 {
     assert(cfg != NULL);
     bsp_lcd_handles_t lcd_panels;
@@ -1249,54 +861,52 @@ static lv_display_t* bsp_display_lcd_init(const bsp_display_lcd_config_t* cfg)
 
     /* Add LCD screen */
     ESP_LOGD(TAG, "Add LCD screen");
-    const lvgl_port_display_cfg_t disp_cfg =
-    {.io_handle      = lcd_panels.io,
-     .panel_handle   = lcd_panels.panel,
-     .control_handle = lcd_panels.control,
-     .buffer_size    = cfg->buffer_size,
-     .double_buffer  = cfg->double_buffer,
-     .hres           = BSP_LCD_H_RES,
-     .vres           = BSP_LCD_V_RES,
-     .monochrome     = false,
-     /* Rotation values must be same as used in esp_lcd for initial settings of the screen */
-     .rotation =
-         {
-             .swap_xy  = false,
-             .mirror_x = false,
-             .mirror_y = false,
-         },
+    const lvgl_port_display_cfg_t disp_cfg = {
+        .io_handle      = lcd_panels.io,
+        .panel_handle   = lcd_panels.panel,
+        .control_handle = lcd_panels.control,
+        .buffer_size    = cfg->buffer_size,
+        .double_buffer  = cfg->double_buffer,
+        .hres           = BSP_LCD_H_RES,
+        .vres           = BSP_LCD_V_RES,
+        .monochrome     = false,
+        /* Rotation values must be same as used in esp_lcd for initial settings of the screen */
+        .rotation =
+        {
+            .swap_xy  = false,
+            .mirror_x = false,
+            .mirror_y = false,
+        },
 #if LVGL_VERSION_MAJOR >= 9
-#if CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
-     .color_format = LV_COLOR_FORMAT_RGB888,
-#else
-     .color_format = LV_COLOR_FORMAT_RGB565,
+        .color_format = LV_COLOR_FORMAT_RGB565,
 #endif
-#endif
-     .flags = {
-         .buff_dma    = cfg->flags.buff_dma,
-         .buff_spiram = cfg->flags.buff_spiram,
+        .flags = {
+            .buff_dma    = cfg->flags.buff_dma,
+            .buff_spiram = cfg->flags.buff_spiram,
 #if LVGL_VERSION_MAJOR >= 9
-         .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
+            .swap_bytes = (BSP_LCD_BIGENDIAN ? true : false),
 #endif
 #if CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR
-         .sw_rotate = false, /* Avoid tearing is not supported for SW rotation */
+            .sw_rotate = false, /* Avoid tearing is not supported for SW rotation */
 #else
-         .sw_rotate   = cfg->flags.sw_rotate, /* Only SW rotation is supported for 90° and 270° */
+            .sw_rotate   = cfg->flags.sw_rotate, /* Only SW rotation is supported for 90° and 270° */
 #endif
 #if CONFIG_BSP_DISPLAY_LVGL_FULL_REFRESH
-         .full_refresh = true,
+            .full_refresh = true,
 #elif CONFIG_BSP_DISPLAY_LVGL_DIRECT_MODE
-         .direct_mode = true,
+            .direct_mode = true,
 #endif
-     } };
+        }
+    };
 
     const lvgl_port_display_dsi_cfg_t dpi_cfg = {.flags = {
 #if CONFIG_BSP_DISPLAY_LVGL_AVOID_TEAR
-                                                     .avoid_tearing = true,
+            .avoid_tearing = true,
 #else
-                                                     .avoid_tearing = false,
+            .avoid_tearing = false,
 #endif
-                                                 }};
+        }
+    };
 
     return lvgl_port_add_disp_dsi(&disp_cfg, &dpi_cfg);
 }
@@ -1308,7 +918,7 @@ esp_lcd_touch_handle_t bsp_display_get_touch_handle(void)
     return _touch_handle;
 }
 
-static void lvgl_read_cb(lv_indev_t* indev, lv_indev_data_t* data)
+static void lvgl_read_cb(lv_indev_t *indev, lv_indev_data_t *data)
 {
     if (_touch_handle == NULL) {
         data->state = LV_INDEV_STATE_REL;
@@ -1333,7 +943,7 @@ static void lvgl_read_cb(lv_indev_t* indev, lv_indev_data_t* data)
     }
 }
 
-static lv_indev_t* bsp_display_indev_init(lv_display_t* disp)
+static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 {
     esp_lcd_touch_handle_t tp;
     BSP_ERROR_CHECK_RETURN_NULL(bsp_touch_new(NULL, &tp));
@@ -1349,7 +959,7 @@ static lv_indev_t* bsp_display_indev_init(lv_display_t* disp)
     return disp_indev;
 }
 
-lv_display_t* bsp_display_start(void)
+lv_display_t *bsp_display_start(void)
 {
     if (!i2c_dev_handle_pi4ioe1) {
         bsp_i2c_init();
@@ -1358,23 +968,20 @@ lv_display_t* bsp_display_start(void)
     }
 
     bsp_display_lcd_config_t cfg = {.lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
-                             .buffer_size   = BSP_LCD_DRAW_BUFF_SIZE,
-                             .double_buffer = BSP_LCD_DRAW_BUFF_DOUBLE,
-                             .flags         = {
-#if CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
-                                 .buff_dma = false,
-#else
-                                 .buff_dma = true,
-#endif
-                                 .buff_spiram = false,
-                                 .sw_rotate   = true,
-                             }};
+                                    .buffer_size   = BSP_LCD_DRAW_BUFF_SIZE,
+                                    .double_buffer = BSP_LCD_DRAW_BUFF_DOUBLE,
+    .flags         = {
+        .buff_dma = true,
+        .buff_spiram = false,
+        .sw_rotate   = true,
+    }
+                                   };
     return bsp_display_start_with_config(&cfg);
 }
 
-lv_display_t* bsp_display_start_with_config(const bsp_display_lcd_config_t* cfg)
+lv_display_t *bsp_display_start_with_config(const bsp_display_lcd_config_t *cfg)
 {
-    lv_display_t* disp;
+    lv_display_t *disp;
 
     assert(cfg != NULL);
     BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
@@ -1386,12 +993,12 @@ lv_display_t* bsp_display_start_with_config(const bsp_display_lcd_config_t* cfg)
     return disp;
 }
 
-lv_indev_t* bsp_display_get_input_dev(void)
+lv_indev_t *bsp_display_get_input_dev(void)
 {
     return disp_indev;
 }
 
-void bsp_display_rotate(lv_display_t* disp, lv_disp_rotation_t rotation)
+void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);
 }
@@ -1410,7 +1017,7 @@ void bsp_display_unlock(void)
 //==================================================================================
 // usb
 //==================================================================================
-static void usb_lib_task(void* arg)
+static void usb_lib_task(void *arg)
 {
     while (1) {
         // Start handling system events

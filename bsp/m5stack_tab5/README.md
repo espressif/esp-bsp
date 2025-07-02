@@ -14,7 +14,7 @@ In terms of vision and interaction, Tab5 features a 5″ 1280×720 IPS **TFT**
 For peripheral interfaces, Tab5 offers **USB‑A** (Host) and **USB‑C** (USB 2.0 OTG) ports for connecting traditional peripherals like a mouse or keyboard; industrial scenarios can use **RS‑485** (SIT3088 + DIP switch–selectable 120 Ω termination) bus communication. Grove, M5BUS, GPIO_EXT header, and **Micro SD** card slot, as well as reserved STAMP pads (supporting Cat.M, NB‑IoT, LoRaWAN, etc.), allow flexible expansion with various sensors and communication modules. It also includes Reset/Boot buttons for quick reset and entering firmware download mode.
 
 </td><td width="200" valign="top">
-  <img src="doc/C145_04.webp">
+  <img src="doc/m5stack_tab5.webp">
 </td></tr>
 <tr><td colspan="2">
 
@@ -34,18 +34,17 @@ Tab5 is suitable for smart home control, remote monitoring, industrial automatio
 <div align="center">
 <!-- START_DEPENDENCIES -->
 
-| Available          | Capability               | Controller/Codec | Component                                                    | Version  |
-| ------------------ | ------------------------ | ---------------- | ------------------------------------------------------------ | -------- |
-| :heavy_check_mark: | :pager: DISPLAY          | ili9881          | [espressif/esp_lcd_ili9881c](https://components.espressif.com/components/espressif/esp_lcd_ili9881c)<br/>idf | ^1.0.1   |
-| :heavy_check_mark: | :black_circle: LVGL_PORT |                  | [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port) | ^2       |
-| :heavy_check_mark: | :point_up: TOUCH         | gt911            | [espressif/esp_lcd_touch_gt911](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911) | ^1.1.1~2 |
-| :x:                | :radio_button: BUTTONS   |                  |                                                              |          |
-| :heavy_check_mark: | :musical_note: AUDIO     |                  | [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev) | ^1.3.0   |
-| :heavy_check_mark: | :speaker: AUDIO_SPEAKER  | es8388           |                                                              |          |
-| :heavy_check_mark: | :microphone: AUDIO_MIC   | es7210           |                                                              |          |
-| :heavy_check_mark: | :floppy_disk: SDCARD     |                  | idf                                                          | >=5.4    |
-| :x:                | :video_game: IMU         |                  |                                                              |          |
-| :x:                | :camera: CAMERA          |                  |                                                              |          |
+|     Available    |       Capability       |Controller/Codec|                                                  Component                                                 |     Version    |
+|------------------|------------------------|----------------|------------------------------------------------------------------------------------------------------------|----------------|
+|:heavy_check_mark:|     :pager: DISPLAY    |    ili9881c    |[espressif/esp_lcd_ili9881c](https://components.espressif.com/components/espressif/esp_lcd_ili9881c)<br/>idf|^1.0.1<br/>>=5.4|
+|:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |       ^2       |
+|:heavy_check_mark:|    :point_up: TOUCH    |      gt911     | [espressif/esp_lcd_touch_gt911](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911) |    ^1.1.1~2    |
+|        :x:       | :radio_button: BUTTONS |                |                                                                                                            |                |
+|:heavy_check_mark:|  :musical_note: AUDIO  |                |       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |     ^1.3.0     |
+|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     es8388     |                                                                                                            |                |
+|:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                            |                |
+|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                     idf                                                    |      >=5.4     |
+|        :x:       |    :video_game: IMU    |                |                                                                                                            |                |
 
 <!-- END_DEPENDENCIES -->
 </div>
@@ -59,43 +58,10 @@ Tab5 is suitable for smart home control, remote monitoring, industrial automatio
 | ------- | ----------- | ---------------------- |
 | [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
 | [Display, Audio and Photo Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_audio_photo) | Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo) |
-| [Camera Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_camera) | Stream camera output to display (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera) |
 | [LVGL Benchmark Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_benchmark) | Run LVGL benchmark tests | - |
 | [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demo) |
 | [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation) |
-| [USB HID Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_usb_hid) | USB HID demo (keyboard, mouse, or gamepad visualization using LVGL) | \- |
+| [USB HID Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_usb_hid) | USB HID demo (keyboard, mouse, or gamepad visualization using LVGL) | - |
 
 <!-- END_EXAMPLES -->
 </div>
-
-<!-- START_BENCHMARK -->
-
-## LVGL Benchmark
-
-**DATE:** 30.06.2025 17:22
-
-**LVGL version:** 9.3.0
-
-| Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
-| ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 95% | 79 | 10 | 7 | 5 |
-| Moving wallpaper | 96% | 48 | 18 | 14 | 4 |
-| Single rectangle | 14% | 93 | 0  | 0  | 0  |
-| Multiple rectangles | 55% | 97 | 6 | 5 | 1 |
-| Multiple RGB images | 97% | 43 | 19 | 15 | 4 |
-| Multiple ARGB images | 99% | 22 | 39 | 35 | 4 |
-| Rotated ARGB images | 99% | 19 | 46 | 45 | 1 |
-| Multiple labels | 97% | 26 | 33 | 29 | 4 |
-| Screen sized text | 99% | 6 | 141 | 136 | 5 |
-| Multiple arcs | 98% | 29 | 29 | 25 | 4 |
-| Containers | 68% | 87 | 6 | 6 | 0 |
-| Containers with overlay | 95% | 141 | 61 | 57 | 4 |
-| Containers with opa | 92% | 51 | 17 | 17 | 0 |
-| Containers with opa_layer | 99% | 8 | 116 | 113 | 3 |
-| Containers with scrolling | 98% | 24 | 38 | 33 | 5 |
-| Widgets demo | 17% | 88 | 4 | 4 | 0 |
-| All scenes avg. | 82% | 43 | 35 | 33 | 2 |
-
-
-
-<!-- END_BENCHMARK -->

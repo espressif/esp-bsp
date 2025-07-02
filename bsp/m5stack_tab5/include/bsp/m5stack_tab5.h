@@ -3,12 +3,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-/**
- * @file
- * @brief ESP BSP: ESP32-P4 Function EV Board
- */
-
 #pragma once
 
 #include "sdkconfig.h"
@@ -51,22 +45,19 @@
 #define BSP_EXT_I2C_SCL (GPIO_NUM_54)
 #define BSP_EXT_I2C_SDA (GPIO_NUM_53)
 
-// /* Ext Keyboard */
-// #define TAB5_TCA8418_INT_PIN 50 // 中断输入
-
 /* Audio */
-#define BSP_I2S_SCLK     (GPIO_NUM_27)  // 位时钟         BSP_I2S_BCLK  <--> ES7210/ESP311 I2S_BCLK
-#define BSP_I2S_MCLK     (GPIO_NUM_30)  // 主时钟         BSP_I2S_MCLK  <--> ES7210/ESP311 I2S_MCLK
-#define BSP_I2S_LCLK     (GPIO_NUM_29)  // 字(声道)选择   BSP_I2S_WR    <--> ES7210/ESP311 I2S_WR
-#define BSP_I2S_DOUT     (GPIO_NUM_26)  // 数据输出       BSP_I2S_DOUT  ---> ES8388        I2S_DSIN
-#define BSP_I2S_DSIN     (GPIO_NUM_28)  // 数据输入       BSP_I2S_DIN   <--- ES7210        I2S_DOUT
-#define BSP_POWER_AMP_IO (GPIO_NUM_NC)  // (GPIO_NUM_53)
+#define BSP_I2S_SCLK     (GPIO_NUM_27)
+#define BSP_I2S_MCLK     (GPIO_NUM_30)
+#define BSP_I2S_LCLK     (GPIO_NUM_29)
+#define BSP_I2S_DOUT     (GPIO_NUM_26)
+#define BSP_I2S_DSIN     (GPIO_NUM_28)
+#define BSP_POWER_AMP_IO (GPIO_NUM_NC)
 
 /* Display */
 #define BSP_LCD_BACKLIGHT (GPIO_NUM_22)
-#define BSP_LCD_RST       (GPIO_NUM_NC)  //
-#define BSP_LCD_TOUCH_RST (GPIO_NUM_NC)  // IO Exanpder 控制
-#define BSP_LCD_TOUCH_INT (GPIO_NUM_NC)  // 23
+#define BSP_LCD_RST       (GPIO_NUM_NC)
+#define BSP_LCD_TOUCH_RST (GPIO_NUM_NC)
+#define BSP_LCD_TOUCH_INT (GPIO_NUM_NC)
 
 /* uSD card */
 #define BSP_SD_D0  (GPIO_NUM_39)
@@ -79,8 +70,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-esp_err_t bsp_cam_osc_init(void);
 
 /**************************************************************************************************
  *
@@ -120,16 +109,6 @@ esp_err_t bsp_i2c_deinit(void);
  *
  */
 i2c_master_bus_handle_t bsp_i2c_get_handle(void);
-
-esp_err_t bsp_i2c_scan();
-
-esp_err_t bsp_ext_i2c_init(void);
-esp_err_t bsp_ext_i2c_deinit(void);
-i2c_master_bus_handle_t bsp_ext_i2c_get_handle(void);
-
-esp_err_t bsp_grove_i2c_init(void);
-esp_err_t bsp_grove_i2c_deinit(void);
-i2c_master_bus_handle_t bsp_grove_i2c_get_handle(void);
 
 /**************************************************************************************************
  *
@@ -309,7 +288,7 @@ typedef struct {
         unsigned int buff_dma : 1;    /*!< Allocated LVGL buffer will be DMA capable */
         unsigned int buff_spiram : 1; /*!< Allocated LVGL buffer will be in PSRAM */
         unsigned int
-            sw_rotate : 1; /*!< Use software rotation (slower), The feature is unavailable under avoid-tear mode */
+        sw_rotate : 1; /*!< Use software rotation (slower), The feature is unavailable under avoid-tear mode */
     } flags;
 } bsp_display_lcd_config_t;
 
@@ -369,30 +348,6 @@ void bsp_display_unlock(void);
  */
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 #endif  // BSP_CONFIG_NO_GRAPHIC_LIB == 0
-
-void bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle);
-
-void bsp_set_charge_qc_en(bool en);
-
-void bsp_set_charge_en(bool en);
-
-void bsp_set_usb_5v_en(bool en);
-
-void bsp_set_ext_5v_en(bool en);
-
-void bsp_generate_poweroff_signal();
-
-bool bsp_headphone_detect();
-
-void bsp_set_ext_antenna_enable(bool en);
-
-void bsp_set_wifi_power_enable(bool en);
-
-void bsp_reset_tp();
-
-bool bsp_usb_c_detect();
-
-bool bsp_usb_a_detect();
 
 /**************************************************************************************************
  *
