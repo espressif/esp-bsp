@@ -15,6 +15,7 @@
 #include "esp_lcd_mipi_dsi.h"
 #include "esp_ldo_regulator.h"
 #include "esp_vfs_fat.h"
+
 #include "usb/usb_host.h"
 #include "sd_pwr_ctrl_by_on_chip_ldo.h"
 #include "freertos/task.h"
@@ -27,6 +28,7 @@
 #include "bsp_err_check.h"
 #include "esp_codec_dev_defaults.h"
 #include "ili9881_init_data.h"
+#include "string.h"
 
 static const char *TAG = "M5STACK_TAB5";
 
@@ -34,8 +36,8 @@ static const char *TAG = "M5STACK_TAB5";
 static lv_indev_t *disp_indev = NULL;
 #endif  // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
-// Global uSD card handler
-sdmmc_card_t *bsp_sdcard = NULL;
+// Global SD card handler
+static sdmmc_card_t *bsp_sdcard = NULL;
 
 // USB Host Library task
 static TaskHandle_t usb_host_task;
@@ -204,6 +206,7 @@ static void bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
 #define BSP_LDO_PROBE_SD_CHAN       4
 #define BSP_LDO_PROBE_SD_VOLTAGE_MV 3300
 #define SDMMC_BUS_WIDTH (4)
+#define SDCARD_SDMMC_HOST_SLOT (SDMMC_HOST_SLOT_0)
 #define GPIO_SDMMC_DET  (GPIO_NUM_NC)
 #define GPIO_SDMMC_CLK (GPIO_NUM_43)
 #define GPIO_SDMMC_CMD (GPIO_NUM_44)
@@ -212,13 +215,87 @@ static void bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
 #define GPIO_SDMMC_D2  (GPIO_NUM_41)
 #define GPIO_SDMMC_D3  (GPIO_NUM_42)
 
-static sdmmc_card_t *card;
+esp_err_t bsp_sdcard_mount(void)
+{
+    bsp_sdcard_cfg_t cfg = {0};
+    return bsp_sdcard_sdmmc_mount(&cfg);
+}
 
-esp_err_t bsp_sdcard_init(char *mount_point, size_t max_files)
+esp_err_t bsp_sdcard_unmount(void)
+{
+    esp_err_t ret = ESP_OK;
+
+    ret |= esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    bsp_sdcard = NULL;
+
+    return ret;
+}
+
+sdmmc_card_t *bsp_sdcard_get_handle(void)
+{
+    return bsp_sdcard;
+}
+
+void bsp_sdcard_get_sdmmc_host(const int slot, sdmmc_host_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdmmc_host_t));
+
+    esp_err_t ret_val = ESP_OK;
+
+    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    host.slot         = slot;
+    host.max_freq_khz                   = SDMMC_FREQ_HIGHSPEED;
+    sd_pwr_ctrl_ldo_config_t ldo_config = {
+        .ldo_chan_id = BSP_LDO_PROBE_SD_CHAN,  // `LDO_VO4` is used as the SDMMC IO power
+    };
+    static sd_pwr_ctrl_handle_t pwr_ctrl_handle = NULL;
+
+    if (pwr_ctrl_handle == NULL) {
+        ret_val = sd_pwr_ctrl_new_on_chip_ldo(&ldo_config, &pwr_ctrl_handle);
+        if (ret_val != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to new an on-chip ldo power control driver");
+            return;
+        }
+    }
+    host.pwr_ctrl_handle = pwr_ctrl_handle;
+
+    memcpy(config, &host, sizeof(sdmmc_host_t));
+}
+
+void bsp_sdcard_get_sdspi_host(const int slot, sdmmc_host_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdmmc_host_t));
+    ESP_LOGE(TAG, "SD card SPI mode is not supported yet");
+}
+
+void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdmmc_slot_config_t));
+
+    config->width = SDMMC_BUS_WIDTH;
+    config->clk   = GPIO_SDMMC_CLK;
+    config->cmd   = GPIO_SDMMC_CMD;
+    config->d0    = GPIO_SDMMC_D0;
+    config->d1    = GPIO_SDMMC_D1;
+    config->d2    = GPIO_SDMMC_D2;
+    config->d3    = GPIO_SDMMC_D3;
+}
+
+void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_config_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdspi_device_config_t));
+    ESP_LOGE(TAG, "SD card SPI mode is not supported yet");
+}
+
+esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
 {
     esp_err_t ret_val = ESP_OK;
 
-    if (NULL != card) {
+    if (NULL != bsp_sdcard) {
         return ESP_ERR_INVALID_STATE;
     }
 
@@ -230,22 +307,7 @@ esp_err_t bsp_sdcard_init(char *mount_point, size_t max_files)
      *
      */
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-    host.slot         = SDMMC_HOST_SLOT_0;  //
-    // host.slot = SDMMC_HOST_SLOT_1; //
-    host.max_freq_khz                   = SDMMC_FREQ_HIGHSPEED;
-    sd_pwr_ctrl_ldo_config_t ldo_config = {
-        .ldo_chan_id = BSP_LDO_PROBE_SD_CHAN,  // `LDO_VO4` is used as the SDMMC IO power
-    };
-    static sd_pwr_ctrl_handle_t pwr_ctrl_handle = NULL;
-
-    if (pwr_ctrl_handle == NULL) {
-        ret_val = sd_pwr_ctrl_new_on_chip_ldo(&ldo_config, &pwr_ctrl_handle);
-        if (ret_val != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to new an on-chip ldo power control driver");
-            return ret_val;
-        }
-    }
-    host.pwr_ctrl_handle = pwr_ctrl_handle;
+    bsp_sdcard_get_sdmmc_host(SDCARD_SDMMC_HOST_SLOT, &host);
 
     /**
      * @brief This initializes the slot without card detect (CD) and write protect (WP) signals.
@@ -253,13 +315,7 @@ esp_err_t bsp_sdcard_init(char *mount_point, size_t max_files)
      *
      */
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
-    slot_config.width               = SDMMC_BUS_WIDTH;
-    slot_config.clk                 = GPIO_SDMMC_CLK;
-    slot_config.cmd                 = GPIO_SDMMC_CMD;
-    slot_config.d0                  = GPIO_SDMMC_D0;
-    slot_config.d1                  = GPIO_SDMMC_D1;
-    slot_config.d2                  = GPIO_SDMMC_D2;
-    slot_config.d3                  = GPIO_SDMMC_D3;
+    bsp_sdcard_sdmmc_get_slot(SDCARD_SDMMC_HOST_SLOT, &slot_config);
 
     /**
      * @brief Options for mounting the filesystem.
@@ -267,10 +323,16 @@ esp_err_t bsp_sdcard_init(char *mount_point, size_t max_files)
      *   formatted in case when mounting fails.
      */
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-        .format_if_mount_failed = false, .max_files = max_files, .allocation_unit_size = 16 * 1024
+#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
+        .format_if_mount_failed = true,
+#else
+        .format_if_mount_failed = false,
+#endif
+        .max_files = 25,
+        .allocation_unit_size = 16 * 1024
     };
 
-    ret_val = esp_vfs_fat_sdmmc_mount(mount_point, &host, &slot_config, &mount_config, &card);
+    ret_val = esp_vfs_fat_sdmmc_mount(CONFIG_BSP_SD_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
 
     /* Check for SDMMC mount result. */
     if (ret_val != ESP_OK) {
@@ -288,24 +350,15 @@ esp_err_t bsp_sdcard_init(char *mount_point, size_t max_files)
     }
 
     /* Card has been initialized, print its properties. */
-    sdmmc_card_print_info(stdout, card);
+    sdmmc_card_print_info(stdout, bsp_sdcard);
 
     return ret_val;
 }
 
-esp_err_t bsp_sdcard_deinit(char *mount_point)
+esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg)
 {
-    if (mount_point == NULL) {
-        return ESP_ERR_INVALID_STATE;
-    }
-
-    /* Unmount an SD card from the FAT filesystem and release resources acquired */
-    esp_err_t ret_val = esp_vfs_fat_sdcard_unmount(mount_point, card);
-
-    /* Make SD/MMC card information structure pointer NULL */
-    card = NULL;
-
-    return ret_val;
+    ESP_LOGE(TAG, "SD card SPIFFS mode is not supported yet");
+    return ESP_ERR_NOT_SUPPORTED;
 }
 
 //==================================================================================

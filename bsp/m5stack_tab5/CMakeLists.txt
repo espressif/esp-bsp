@@ -9,6 +9,8 @@ idf_component_register(
         esp_lcd
         esp_codec_dev
         esp_lvgl_port
+        spiffs
+        fatfs
 	esp_lcd_ili9881c
-    PRIV_REQUIRES usb spiffs fatfs
+    PRIV_REQUIRES usb
 )

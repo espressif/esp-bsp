@@ -15,6 +15,8 @@
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
 #include "driver/sdmmc_host.h"
+#include "driver/sdspi_host.h"
+#include "esp_vfs_fat.h"
 #include "driver/i2s_std.h"
 #include "driver/i2s_tdm.h"
 #include "bsp/config.h"
@@ -249,38 +251,121 @@ esp_err_t bsp_spiffs_unmount(void);
 
 /**************************************************************************************************
  *
- * uSD card
+ * SD card
  *
- * After mounting the uSD card, it can be accessed with stdio functions ie.:
+ * After mounting the SD card, it can be accessed with stdio functions ie.:
  * \code{.c}
- * FILE* f = fopen(BSP_MOUNT_POINT"/hello.txt", "w");
+ * FILE* f = fopen(BSP_SD_MOUNT_POINT"/hello.txt", "w");
  * fprintf(f, "Hello %s!\n", bsp_sdcard->cid.name);
  * fclose(f);
  * \endcode
  **************************************************************************************************/
-/**
- * @brief Init SD crad
- *
- * @param mount_point Path where partition should be registered (e.g. "/sdcard")
- * @param max_files Maximum number of files which can be open at the same time
- * @return
- *    - ESP_OK                  Success
- *    - ESP_ERR_INVALID_STATE   If esp_vfs_fat_register was already called
- *    - ESP_ERR_NOT_SUPPORTED   If dev board not has SDMMC/SDSPI
- *    - ESP_ERR_NO_MEM          If not enough memory or too many VFSes already registered
- *    - Others                  Fail
- */
-esp_err_t bsp_sdcard_init(char *mount_point, size_t max_files);
+#define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
+#define BSP_SDSPI_HOST          (SPI3_HOST)
 
 /**
- * @brief Deinit SD card
- *
- * @param mount_point Path where partition was registered (e.g. "/sdcard")
- * @return
- *    - ESP_OK: Success
- *    - Others: Fail
+ * @brief BSP SD card configuration structure
  */
-esp_err_t bsp_sdcard_deinit(char *mount_point);
+typedef struct {
+    const esp_vfs_fat_sdmmc_mount_config_t *mount;
+    sdmmc_host_t *host;
+    union {
+        const sdmmc_slot_config_t   *sdmmc;
+        const sdspi_device_config_t *sdspi;
+    } slot;
+} bsp_sdcard_cfg_t;
+
+/**
+ * @brief Mount microSD card to virtual file system
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_fat_sdmmc_mount was already called
+ *      - ESP_ERR_NO_MEM if memory can not be allocated
+ *      - ESP_FAIL if partition can not be mounted
+ *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+ */
+esp_err_t bsp_sdcard_mount(void);
+
+/**
+ * @brief Unmount microSD card from virtual file system
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_NOT_FOUND if the partition table does not contain FATFS partition with given label
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_fat_spiflash_mount was already called
+ *      - ESP_ERR_NO_MEM if memory can not be allocated
+ *      - ESP_FAIL if partition can not be mounted
+ *      - other error codes from wear levelling library, SPI flash driver, or FATFS drivers
+ */
+esp_err_t bsp_sdcard_unmount(void);
+
+/**
+ * @brief Get SD card handle
+ *
+ * @return SD card handle
+ */
+sdmmc_card_t *bsp_sdcard_get_handle(void);
+
+/**
+ * @brief Get SD card MMC host config
+ *
+ * @param slot SD card slot
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_get_sdmmc_host(const int slot, sdmmc_host_t *config);
+
+/**
+ * @brief Get SD card SPI host config
+ *
+ * @param slot SD card slot
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_get_sdspi_host(const int slot, sdmmc_host_t *config);
+
+/**
+ * @brief Get SD card MMC slot config
+ *
+ * @param slot SD card slot
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config);
+
+/**
+ * @brief Get SD card SPI slot config
+ *
+ * @param spi_host SPI host ID
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_config_t *config);
+
+/**
+ * @brief Mount microSD card to virtual file system (MMC mode)
+ *
+ * @param cfg SD card configuration
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_fat_sdmmc_mount was already called
+ *      - ESP_ERR_NO_MEM if memory cannot be allocated
+ *      - ESP_FAIL if partition cannot be mounted
+ *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+ */
+esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg);
+
+/**
+ * @brief Mount microSD card to virtual file system (SPI mode)
+ *
+ * @param cfg SD card configuration
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_fat_sdmmc_mount was already called
+ *      - ESP_ERR_NO_MEM if memory cannot be allocated
+ *      - ESP_FAIL if partition cannot be mounted
+ *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+ */
+esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
 
 /** @} */ // end of storage
 

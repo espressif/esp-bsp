@@ -35,18 +35,18 @@ menu "Board Support Package (ESP32-P4)"
                 ESP32P4 has three I2S peripherals, pick the one you want to use.
     endmenu
 
-    menu "uSD card - Virtual File System"
+    menu "SD card - Virtual File System"
         config BSP_SD_FORMAT_ON_MOUNT_FAIL
-            bool "Format uSD card if mounting fails"
+            bool "Format SD card if mounting fails"
             default n
             help
-                The SDMMC host will format (FAT) the uSD card if it fails to mount the filesystem.
+                The SDMMC host will format (FAT) the SD card if it fails to mount the filesystem.
 
         config BSP_SD_MOUNT_POINT
-            string "uSD card mount point"
+            string "SD card mount point"
             default "/sdcard"
             help
-                Mount point of the uSD card in the Virtual File System
+                Mount point of the SD card in the Virtual File System
 
     endmenu
 

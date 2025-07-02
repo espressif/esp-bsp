@@ -292,13 +292,25 @@ sdmmc_card_print_info(stdout, sdcard);
 
 ### SD Card and SPIFFS API Reference
 
+## Structures and Types
+
+| Type | Name |
+| ---: | :--- |
+| struct | [**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) <br>_BSP SD card configuration structure._ |
 
 ## Functions
 
 | Type | Name |
 | ---: | :--- |
-|  esp\_err\_t | [**bsp\_sdcard\_deinit**](#function-bsp_sdcard_deinit) (char \*mount\_point) <br>_Deinit SD card._ |
-|  esp\_err\_t | [**bsp\_sdcard\_init**](#function-bsp_sdcard_init) (char \*mount\_point, size\_t max\_files) <br>_Init SD crad._ |
+|  sdmmc\_card\_t \* | [**bsp\_sdcard\_get\_handle**](#function-bsp_sdcard_get_handle) (void) <br>_Get SD card handle._ |
+|  void | [**bsp\_sdcard\_get\_sdmmc\_host**](#function-bsp_sdcard_get_sdmmc_host) (const int slot, sdmmc\_host\_t \*config) <br>_Get SD card MMC host config._ |
+|  void | [**bsp\_sdcard\_get\_sdspi\_host**](#function-bsp_sdcard_get_sdspi_host) (const int slot, sdmmc\_host\_t \*config) <br>_Get SD card SPI host config._ |
+|  esp\_err\_t | [**bsp\_sdcard\_mount**](#function-bsp_sdcard_mount) (void) <br>_Mount microSD card to virtual file system._ |
+|  void | [**bsp\_sdcard\_sdmmc\_get\_slot**](#function-bsp_sdcard_sdmmc_get_slot) (const int slot, sdmmc\_slot\_config\_t \*config) <br>_Get SD card MMC slot config._ |
+|  esp\_err\_t | [**bsp\_sdcard\_sdmmc\_mount**](#function-bsp_sdcard_sdmmc_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (MMC mode)_ |
+|  void | [**bsp\_sdcard\_sdspi\_get\_slot**](#function-bsp_sdcard_sdspi_get_slot) (const spi\_host\_device\_t spi\_host, sdspi\_device\_config\_t \*config) <br>_Get SD card SPI slot config._ |
+|  esp\_err\_t | [**bsp\_sdcard\_sdspi\_mount**](#function-bsp_sdcard_sdspi_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (SPI mode)_ |
+|  esp\_err\_t | [**bsp\_sdcard\_unmount**](#function-bsp_sdcard_unmount) (void) <br>_Unmount microSD card from virtual file system._ |
 |  esp\_err\_t | [**bsp\_spiffs\_mount**](#function-bsp_spiffs_mount) (void) <br>_Mount SPIFFS to virtual file system._ |
 |  esp\_err\_t | [**bsp\_spiffs\_unmount**](#function-bsp_spiffs_unmount) (void) <br>_Unmount SPIFFS from virtual file system._ |
 
@@ -306,24 +318,58 @@ sdmmc_card_print_info(stdout, sdcard);
 
 | Type | Name |
 | ---: | :--- |
+| define  | [**BSP\_SDSPI\_HOST**](#define-bsp_sdspi_host)  (SPI3\_HOST)<br> |
 | define  | [**BSP\_SD\_CLK**](#define-bsp_sd_clk)  (GPIO\_NUM\_43)<br> |
 | define  | [**BSP\_SD\_CMD**](#define-bsp_sd_cmd)  (GPIO\_NUM\_44)<br> |
 | define  | [**BSP\_SD\_D0**](#define-bsp_sd_d0)  (GPIO\_NUM\_39)<br> |
 | define  | [**BSP\_SD\_D1**](#define-bsp_sd_d1)  (GPIO\_NUM\_40)<br> |
 | define  | [**BSP\_SD\_D2**](#define-bsp_sd_d2)  (GPIO\_NUM\_41)<br> |
 | define  | [**BSP\_SD\_D3**](#define-bsp_sd_d3)  (GPIO\_NUM\_42)<br> |
+| define  | [**BSP\_SD\_MOUNT\_POINT**](#define-bsp_sd_mount_point)  CONFIG\_BSP\_SD\_MOUNT\_POINT<br> |
 | define  | [**BSP\_SPIFFS\_MOUNT\_POINT**](#define-bsp_spiffs_mount_point)  CONFIG\_BSP\_SPIFFS\_MOUNT\_POINT<br> |
 
+
+## Structures and Types Documentation
+
+### struct `bsp_sdcard_cfg_t`
+
+_BSP SD card configuration structure._
+
+Variables:
+
+-  sdmmc\_host\_t \* host  
+
+-  const esp\_vfs\_fat\_sdmmc\_mount\_config\_t \* mount  
+
+-  const sdmmc\_slot\_config\_t \* sdmmc  
+
+-  const sdspi\_device\_config\_t \* sdspi  
+
+-  union [**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) slot  
 
 
 ## Functions Documentation
 
-### function `bsp_sdcard_deinit`
+### function `bsp_sdcard_get_handle`
 
-_Deinit SD card._
+_Get SD card handle._
 ```c
-esp_err_t bsp_sdcard_deinit (
-    char *mount_point
+sdmmc_card_t * bsp_sdcard_get_handle (
+    void
+) 
+```
+
+
+**Returns:**
+
+SD card handle
+### function `bsp_sdcard_get_sdmmc_host`
+
+_Get SD card MMC host config._
+```c
+void bsp_sdcard_get_sdmmc_host (
+    const int slot,
+    sdmmc_host_t *config
 ) 
 ```
 
@@ -331,22 +377,15 @@ esp_err_t bsp_sdcard_deinit (
 **Parameters:**
 
 
-* `mount_point` Path where partition was registered (e.g. "/sdcard") 
+* `slot` SD card slot 
+* `config` Structure which will be filled
+### function `bsp_sdcard_get_sdspi_host`
 
-
-**Returns:**
-
-
-
-* ESP\_OK: Success
-* Others: Fail
-### function `bsp_sdcard_init`
-
-_Init SD crad._
+_Get SD card SPI host config._
 ```c
-esp_err_t bsp_sdcard_init (
-    char *mount_point,
-    size_t max_files
+void bsp_sdcard_get_sdspi_host (
+    const int slot,
+    sdmmc_host_t *config
 ) 
 ```
 
@@ -354,19 +393,129 @@ esp_err_t bsp_sdcard_init (
 **Parameters:**
 
 
-* `mount_point` Path where partition should be registered (e.g. "/sdcard") 
-* `max_files` Maximum number of files which can be open at the same time 
+* `slot` SD card slot 
+* `config` Structure which will be filled
+### function `bsp_sdcard_mount`
+
+_Mount microSD card to virtual file system._
+```c
+esp_err_t bsp_sdcard_mount (
+    void
+) 
+```
 
 
 **Returns:**
 
 
 
-* ESP\_OK Success
-* ESP\_ERR\_INVALID\_STATE If esp\_vfs\_fat\_register was already called
-* ESP\_ERR\_NOT\_SUPPORTED If dev board not has SDMMC/SDSPI
-* ESP\_ERR\_NO\_MEM If not enough memory or too many VFSes already registered
-* Others Fail
+* ESP\_OK on success
+* ESP\_ERR\_INVALID\_STATE if esp\_vfs\_fat\_sdmmc\_mount was already called
+* ESP\_ERR\_NO\_MEM if memory can not be allocated
+* ESP\_FAIL if partition can not be mounted
+* other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+### function `bsp_sdcard_sdmmc_get_slot`
+
+_Get SD card MMC slot config._
+```c
+void bsp_sdcard_sdmmc_get_slot (
+    const int slot,
+    sdmmc_slot_config_t *config
+) 
+```
+
+
+**Parameters:**
+
+
+* `slot` SD card slot 
+* `config` Structure which will be filled
+### function `bsp_sdcard_sdmmc_mount`
+
+_Mount microSD card to virtual file system (MMC mode)_
+```c
+esp_err_t bsp_sdcard_sdmmc_mount (
+    bsp_sdcard_cfg_t *cfg
+) 
+```
+
+
+**Parameters:**
+
+
+* `cfg` SD card configuration
+
+
+**Returns:**
+
+
+
+* ESP\_OK on success
+* ESP\_ERR\_INVALID\_STATE if esp\_vfs\_fat\_sdmmc\_mount was already called
+* ESP\_ERR\_NO\_MEM if memory cannot be allocated
+* ESP\_FAIL if partition cannot be mounted
+* other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+### function `bsp_sdcard_sdspi_get_slot`
+
+_Get SD card SPI slot config._
+```c
+void bsp_sdcard_sdspi_get_slot (
+    const spi_host_device_t spi_host,
+    sdspi_device_config_t *config
+) 
+```
+
+
+**Parameters:**
+
+
+* `spi_host` SPI host ID 
+* `config` Structure which will be filled
+### function `bsp_sdcard_sdspi_mount`
+
+_Mount microSD card to virtual file system (SPI mode)_
+```c
+esp_err_t bsp_sdcard_sdspi_mount (
+    bsp_sdcard_cfg_t *cfg
+) 
+```
+
+
+**Parameters:**
+
+
+* `cfg` SD card configuration
+
+
+**Returns:**
+
+
+
+* ESP\_OK on success
+* ESP\_ERR\_INVALID\_STATE if esp\_vfs\_fat\_sdmmc\_mount was already called
+* ESP\_ERR\_NO\_MEM if memory cannot be allocated
+* ESP\_FAIL if partition cannot be mounted
+* other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+### function `bsp_sdcard_unmount`
+
+_Unmount microSD card from virtual file system._
+```c
+esp_err_t bsp_sdcard_unmount (
+    void
+) 
+```
+
+
+**Returns:**
+
+
+
+* ESP\_OK on success
+* ESP\_ERR\_NOT\_FOUND if the partition table does not contain FATFS partition with given label
+* ESP\_ERR\_INVALID\_STATE if esp\_vfs\_fat\_spiflash\_mount was already called
+* ESP\_ERR\_NO\_MEM if memory can not be allocated
+* ESP\_FAIL if partition can not be mounted
+* other error codes from wear levelling library, SPI flash driver, or FATFS drivers
 ### function `bsp_spiffs_mount`
 
 _Mount SPIFFS to virtual file system._
