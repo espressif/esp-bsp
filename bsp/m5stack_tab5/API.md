@@ -5,8 +5,8 @@
 
 
 
-| 
-| 
+| :1234: [CAPABILITIES](#1234-capabilities) | :floppy_disk: [SD CARD AND SPIFFS](#floppy_disk-sd-card-and-spiffs) | :musical_note: [AUDIO](#musical_note-audio) | :pager: [DISPLAY AND TOUCH](#pager-display-and-touch) | 
+| :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | 
 
 </div>
 
@@ -104,4 +104,848 @@ Supported feature flags (may vary depending on the board):
 
 > [!TIP]
 > Disabling unused features can help reduce power consumption, especially in battery-powered applications.
+
+
+
+
+## Identification
+
+Each BSP defines an identifier macro in the form of `BSP_BOARD_*`.
+
+### Board Name API Reference
+
+
+
+## Macros
+
+| Type | Name |
+| ---: | :--- |
+| define  | [**BSP\_BOARD\_M5STACK\_TAB5**](#define-bsp_board_m5stack_tab5)  <br> |
+
+
+
+
+
+
+
+
+
+## :1234: Capabilities
+
+Each BSP defines a set of capability macros that indicate which features are supported.
+The list may look like this.
+You can use these macros to conditionally compile code depending on feature availability.
+
+### Capabilities API Reference
+
+
+
+## Macros
+
+| Type | Name |
+| ---: | :--- |
+| define  | [**BSP\_CAPS\_AUDIO**](#define-bsp_caps_audio)  1<br> |
+| define  | [**BSP\_CAPS\_AUDIO\_MIC**](#define-bsp_caps_audio_mic)  1<br> |
+| define  | [**BSP\_CAPS\_AUDIO\_SPEAKER**](#define-bsp_caps_audio_speaker)  1<br> |
+| define  | [**BSP\_CAPS\_BUTTONS**](#define-bsp_caps_buttons)  0<br> |
+| define  | [**BSP\_CAPS\_DISPLAY**](#define-bsp_caps_display)  1<br> |
+| define  | [**BSP\_CAPS\_IMU**](#define-bsp_caps_imu)  0<br> |
+| define  | [**BSP\_CAPS\_SDCARD**](#define-bsp_caps_sdcard)  1<br> |
+| define  | [**BSP\_CAPS\_TOUCH**](#define-bsp_caps_touch)  1<br> |
+
+
+
+
+
+
+
+
+
+
+
+### I2C API Reference
+
+
+## Functions
+
+| Type | Name |
+| ---: | :--- |
+|  esp\_err\_t | [**bsp\_i2c\_deinit**](#function-bsp_i2c_deinit) (void) <br>_Deinit I2C driver and free its resources._ |
+|  esp\_err\_t | [**bsp\_i2c\_init**](#function-bsp_i2c_init) (void) <br>_Init I2C driver._ |
+
+## Macros
+
+| Type | Name |
+| ---: | :--- |
+| define  | [**BSP\_I2C\_NUM**](#define-bsp_i2c_num)  0<br> |
+| define  | [**BSP\_I2C\_SCL**](#define-bsp_i2c_scl)  (GPIO\_NUM\_32)<br> |
+| define  | [**BSP\_I2C\_SDA**](#define-bsp_i2c_sda)  (GPIO\_NUM\_31)<br> |
+
+
+
+## Functions Documentation
+
+### function `bsp_i2c_deinit`
+
+_Deinit I2C driver and free its resources._
+```c
+esp_err_t bsp_i2c_deinit (
+    void
+) 
+```
+
+
+**Returns:**
+
+
+
+* ESP\_OK On success
+* ESP\_ERR\_INVALID\_ARG I2C parameter error
+### function `bsp_i2c_init`
+
+_Init I2C driver._
+```c
+esp_err_t bsp_i2c_init (
+    void
+) 
+```
+
+
+**Returns:**
+
+
+
+* ESP\_OK On success
+* ESP\_ERR\_INVALID\_ARG I2C parameter error
+* ESP\_FAIL I2C driver installation error
+
+
+
+
+
+
+## :floppy_disk: SD Card and SPIFFS
+
+### SPIFFS Initialization / Deinitialization
+
+Each BSP provides a simple API for mounting and unmounting the SPI Flash File System (SPIFFS).
+
+```
+/* Mount SPIFFS to the virtual file system */
+bsp_spiffs_mount();
+
+/* ... perform file operations ... */
+
+/* Unmount SPIFFS from the virtual file system */
+bsp_spiffs_unmount();
+```
+
+### SD Card Initialization / Deinitialization
+
+The BSP offers a flexible API for working with SD cards. In addition to the default mount and unmount functions, you can also use a configuration structure or access preconfigured `host` and `slot` structures.
+
+Mount with Default Configuration
+
+```
+/* Mount microSD card to the virtual file system */
+bsp_sdcard_mount();
+
+/* ... perform file operations ... */
+
+/* Unmount microSD card */
+bsp_sdcard_unmount();
+```
+
+Mount with Custom Configuration
+
+Some BSPs allow selecting between SDMMC and SPI interfaces for the SD card. Use the appropriate API function based on your hardware:
+```
+bsp_sdcard_cfg_t cfg = {0};
+/* Mount SD card using SDMMC interface */
+bsp_sdcard_sdmmc_mount(&cfg);
+```
+
+or
+
+```
+bsp_sdcard_cfg_t cfg = {0};
+/* Mount SD card using SPI interface */
+bsp_sdcard_sdspi_mount(&cfg)
+```
+
+> [!NOTE]
+> Not all BSPs support both SDMMC and SPI modes. Check the board documentation to see which interfaces are available.
+> If an unsupported interface is used, the API will return `ESP_ERR_NOT_SUPPORTED` error.
+
+### After Mounting
+
+Once the SD card or SPIFFS is mounted, you can use standard file I/O functions (`fopen`, `fread`, `fwrite`, `fclose`, etc.) provided by ESP-IDF's VFS (Virtual File System).
+
+To print basic SD card information (after mounting), you can use:
+```
+sdmmc_card_t *sdcard = bsp_sdcard_get_handle();
+sdmmc_card_print_info(stdout, sdcard);
+```
+
+> [!TIP]
+> The bsp_sdcard_get_handle() function returns a pointer to the sdmmc_card_t structure, which contains detailed information about the connected SD card.
+
+### SD Card and SPIFFS API Reference
+
+
+## Functions
+
+| Type | Name |
+| ---: | :--- |
+|  esp\_err\_t | [**bsp\_sdcard\_deinit**](#function-bsp_sdcard_deinit) (char \*mount\_point) <br>_Deinit SD card._ |
+|  esp\_err\_t | [**bsp\_sdcard\_init**](#function-bsp_sdcard_init) (char \*mount\_point, size\_t max\_files) <br>_Init SD crad._ |
+|  esp\_err\_t | [**bsp\_spiffs\_mount**](#function-bsp_spiffs_mount) (void) <br>_Mount SPIFFS to virtual file system._ |
+|  esp\_err\_t | [**bsp\_spiffs\_unmount**](#function-bsp_spiffs_unmount) (void) <br>_Unmount SPIFFS from virtual file system._ |
+
+## Macros
+
+| Type | Name |
+| ---: | :--- |
+| define  | [**BSP\_SD\_CLK**](#define-bsp_sd_clk)  (GPIO\_NUM\_43)<br> |
+| define  | [**BSP\_SD\_CMD**](#define-bsp_sd_cmd)  (GPIO\_NUM\_44)<br> |
+| define  | [**BSP\_SD\_D0**](#define-bsp_sd_d0)  (GPIO\_NUM\_39)<br> |
+| define  | [**BSP\_SD\_D1**](#define-bsp_sd_d1)  (GPIO\_NUM\_40)<br> |
+| define  | [**BSP\_SD\_D2**](#define-bsp_sd_d2)  (GPIO\_NUM\_41)<br> |
+| define  | [**BSP\_SD\_D3**](#define-bsp_sd_d3)  (GPIO\_NUM\_42)<br> |
+| define  | [**BSP\_SPIFFS\_MOUNT\_POINT**](#define-bsp_spiffs_mount_point)  CONFIG\_BSP\_SPIFFS\_MOUNT\_POINT<br> |
+
+
+
+## Functions Documentation
+
+### function `bsp_sdcard_deinit`
+
+_Deinit SD card._
+```c
+esp_err_t bsp_sdcard_deinit (
+    char *mount_point
+) 
+```
+
+
+**Parameters:**
+
+
+* `mount_point` Path where partition was registered (e.g. "/sdcard") 
+
+
+**Returns:**
+
+
+
+* ESP\_OK: Success
+* Others: Fail
+### function `bsp_sdcard_init`
+
+_Init SD crad._
+```c
+esp_err_t bsp_sdcard_init (
+    char *mount_point,
+    size_t max_files
+) 
+```
+
+
+**Parameters:**
+
+
+* `mount_point` Path where partition should be registered (e.g. "/sdcard") 
+* `max_files` Maximum number of files which can be open at the same time 
+
+
+**Returns:**
+
+
+
+* ESP\_OK Success
+* ESP\_ERR\_INVALID\_STATE If esp\_vfs\_fat\_register was already called
+* ESP\_ERR\_NOT\_SUPPORTED If dev board not has SDMMC/SDSPI
+* ESP\_ERR\_NO\_MEM If not enough memory or too many VFSes already registered
+* Others Fail
+### function `bsp_spiffs_mount`
+
+_Mount SPIFFS to virtual file system._
+```c
+esp_err_t bsp_spiffs_mount (
+    void
+) 
+```
+
+
+**Returns:**
+
+
+
+* ESP\_OK on success
+* ESP\_ERR\_INVALID\_STATE if esp\_vfs\_spiffs\_register was already called
+* ESP\_ERR\_NO\_MEM if memory can not be allocated
+* ESP\_FAIL if partition can not be mounted
+* other error codes
+### function `bsp_spiffs_unmount`
+
+_Unmount SPIFFS from virtual file system._
+```c
+esp_err_t bsp_spiffs_unmount (
+    void
+) 
+```
+
+
+**Returns:**
+
+
+
+* ESP\_OK on success
+* ESP\_ERR\_NOT\_FOUND if the partition table does not contain SPIFFS partition with given label
+* ESP\_ERR\_INVALID\_STATE if esp\_vfs\_spiffs\_unregister was already called
+* ESP\_ERR\_NO\_MEM if memory can not be allocated
+* ESP\_FAIL if partition can not be mounted
+* other error codes
+
+
+
+
+
+
+## :musical_note: Audio
+
+### Initialization
+
+Before using speaker or microphone features, the audio codec must be initialized.
+
+```
+/* Initialize the speaker codec */
+esp_codec_dev_handle_t spk_codec_dev = bsp_audio_codec_speaker_init();
+
+/* Initialize the microphone codec */
+esp_codec_dev_handle_t mic_codec_dev = bsp_audio_codec_microphone_init();
+```
+
+After initialization, the [esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev) API can be used to control playback and recording.
+
+> [!NOTE]
+> Some BSPs may only support playback (speaker) or only input (microphone). Use the capability macros (`BSP_CAPS_AUDIO`, `BSP_CAPS_AUDIO_SPEAKER`, `BSP_CAPS_AUDIO_MIC`) to check supported features.
+
+### Example of audio usage
+
+#### Speaker
+
+Below is an example of audio playback using the speaker (source data not included):
+
+```
+/* Set volume to 50% */
+esp_codec_dev_set_out_vol(spk_codec_dev, 50);
+
+/* Define audio format */
+esp_codec_dev_sample_info_t fs = {
+    .sample_rate = wav_header.sample_rate,
+    .channel = wav_header.num_channels,
+    .bits_per_sample = wav_header.bits_per_sample,
+};
+/* Open speaker stream */
+esp_codec_dev_open(spk_codec_dev, &fs);
+
+...
+/* Play audio data */
+esp_codec_dev_write(spk_codec_dev, wav_bytes, wav_bytes_len);
+...
+
+/* Close stream when done */
+esp_codec_dev_close(spk_codec_dev);
+```
+
+> [!TIP]
+> Audio data must be in raw PCM format. Use a decoder if playing compressed formats (e.g., WAV, MP3).
+
+#### Microphone
+
+Below is an example of recording audio using the microphone (destination buffer not included):
+
+```
+/* Set input gain (optional) */
+esp_codec_dev_set_in_gain(mic_codec_dev, 42.0);
+
+/* Define audio format */
+esp_codec_dev_sample_info_t fs = {
+    .sample_rate = 16000,
+    .channel = 1,
+    .bits_per_sample = 16,
+};
+/* Open microphone stream */
+esp_codec_dev_open(mic_codec_dev, &fs);
+
+/* Read recorded data */
+esp_codec_dev_read(mic_codec_dev, recording_buffer, BUFFER_SIZE)
+
+...
+
+/* Close stream when done */
+esp_codec_dev_close(mic_codec_dev);
+```
+
+### Audio API Reference
+
+
+## Functions
+
+| Type | Name |
+| ---: | :--- |
+|  esp\_codec\_dev\_handle\_t | [**bsp\_audio\_codec\_microphone\_init**](#function-bsp_audio_codec_microphone_init) (void) <br>_Initialize microphone codec device._ |
+|  esp\_codec\_dev\_handle\_t | [**bsp\_audio\_codec\_speaker\_init**](#function-bsp_audio_codec_speaker_init) (void) <br>_Initialize speaker codec device._ |
+|  const audio\_codec\_data\_if\_t \* | [**bsp\_audio\_get\_codec\_itf**](#function-bsp_audio_get_codec_itf) (void) <br>_Get codec I2S interface (initialized in bsp\_audio\_init)_ |
+|  esp\_err\_t | [**bsp\_audio\_init**](#function-bsp_audio_init) (const i2s\_std\_config\_t \*i2s\_config) <br>_Init audio._ |
+
+## Macros
+
+| Type | Name |
+| ---: | :--- |
+| define  | [**BSP\_I2S\_DOUT**](#define-bsp_i2s_dout)  (GPIO\_NUM\_26)<br> |
+| define  | [**BSP\_I2S\_DSIN**](#define-bsp_i2s_dsin)  (GPIO\_NUM\_28)<br> |
+| define  | [**BSP\_I2S\_LCLK**](#define-bsp_i2s_lclk)  (GPIO\_NUM\_29)<br> |
+| define  | [**BSP\_I2S\_MCLK**](#define-bsp_i2s_mclk)  (GPIO\_NUM\_30)<br> |
+| define  | [**BSP\_I2S\_SCLK**](#define-bsp_i2s_sclk)  (GPIO\_NUM\_27)<br> |
+| define  | [**BSP\_POWER\_AMP\_IO**](#define-bsp_power_amp_io)  (GPIO\_NUM\_NC)<br> |
+
+
+
+## Functions Documentation
+
+### function `bsp_audio_codec_microphone_init`
+
+_Initialize microphone codec device._
+```c
+esp_codec_dev_handle_t bsp_audio_codec_microphone_init (
+    void
+) 
+```
+
+
+**Returns:**
+
+Pointer to codec device handle or NULL when error occurred
+### function `bsp_audio_codec_speaker_init`
+
+_Initialize speaker codec device._
+```c
+esp_codec_dev_handle_t bsp_audio_codec_speaker_init (
+    void
+) 
+```
+
+
+**Returns:**
+
+Pointer to codec device handle or NULL when error occurred
+### function `bsp_audio_get_codec_itf`
+
+_Get codec I2S interface (initialized in bsp\_audio\_init)_
+```c
+const audio_codec_data_if_t * bsp_audio_get_codec_itf (
+    void
+) 
+```
+
+
+**Returns:**
+
+
+
+* Pointer to codec I2S interface handle or NULL when error occured
+### function `bsp_audio_init`
+
+_Init audio._
+```c
+esp_err_t bsp_audio_init (
+    const i2s_std_config_t *i2s_config
+) 
+```
+
+
+**Note:**
+
+There is no deinit audio function. Users can free audio resources by calling i2s\_del\_channel() 
+
+
+
+**Warning:**
+
+The type of i2s\_config param is depending on IDF version. 
+
+
+
+**Parameters:**
+
+
+* `i2s_config` I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz) 
+
+
+**Returns:**
+
+
+
+* ESP\_OK On success
+* ESP\_ERR\_NOT\_SUPPORTED The communication mode is not supported on the current chip
+* ESP\_ERR\_INVALID\_ARG NULL pointer or invalid configuration
+* ESP\_ERR\_NOT\_FOUND No available I2S channel found
+* ESP\_ERR\_NO\_MEM No memory for storing the channel information
+* ESP\_ERR\_INVALID\_STATE This channel has not initialized or already started
+
+
+
+
+
+
+## :pager: Display and Touch
+
+### Initialization
+
+ESP-BSP provides two ways to initialize the **display**, **touch** and **LVGL**.
+
+Simple method:
+
+```
+/* Initialize display, touch, and LVGL */
+lv_display_t display = bsp_display_start();
+```
+
+Configurable method:
+
+```
+bsp_display_cfg_t cfg = {
+    .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),   /* See LVGL Port for more info */
+    .buffer_size = BSP_LCD_V_RES * BSP_LCD_H_RES,   /* Screen buffer size in pixels */
+    .double_buffer = true,                          /* Allocate two buffers if true */
+    .flags = {
+        .buff_dma = true,                           /* Use DMA-capable LVGL buffer */
+        .buff_spiram = false,                       /* Allocate buffer in PSRAM if true */
+    }
+};
+cfg.lvgl_port_cfg.task_stack = 10000;   /* Example: change LVGL task stack size */
+/* Initialize display, touch, and LVGL */
+lv_display_t display = bsp_display_start_with_config(&cfg);
+```
+
+After initialization, you can use the [LVGL](https://docs.lvgl.io/master/) API or [LVGL Port](../components/esp_lvgl_port/README.md) API.
+
+### Initialization without LVGL - NoGLIB BSP
+
+To initialize the LCD without LVGL, use:
+
+```
+esp_lcd_panel_handle_t panel_handle;
+esp_lcd_panel_io_handle_t io_handle;
+const bsp_display_config_t bsp_disp_cfg = {
+    .max_transfer_sz = (BSP_LCD_H_RES * 100) * sizeof(uint16_t),
+};
+BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&bsp_disp_cfg, &panel_handle, &io_handle));
+```
+
+To initialize the LCD touch without LVGL, use:
+
+```
+esp_lcd_touch_handle_t tp;
+bsp_touch_new(NULL, &tp);
+```
+
+After initialization, you can use the [ESP-LCD](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd/index.html) API and [ESP-LCD Touch](../components/lcd_touch/README.md) API.
+
+### Set Brightness
+
+```
+/* Set display brightness to 100% */
+bsp_display_backlight_on();
+
+/* Set display brightness to 0% */
+bsp_display_backlight_off();
+
+/* Set display brightness to 50% */
+bsp_display_brightness_set(50);
+```
+
+> [!NOTE]
+> Some boards do not support changing brightness. They return an `ESP_ERR_NOT_SUPPORTED` error.
+
+### LVGL API Usage (only when initialized with LVGL)
+
+All LVGL calls must be protected using lock/unlock:
+
+```
+/* Wait until other tasks finish screen operations */
+bsp_display_lock(0);
+...
+lv_obj_t * screen = lv_disp_get_scr_act(disp_handle);
+lv_obj_t * obj = lv_label_create(screen);
+...
+/* Unlock after screen operations are done */
+bsp_display_unlock();
+```
+
+### Screen rotation (only when initialized with LVGL)
+
+```
+bsp_display_lock(0);
+/* Rotate display to 90 */
+bsp_display_rotate(display, LV_DISPLAY_ROTATION_90);
+bsp_display_unlock();
+```
+
+> [!NOTE]
+> Some LCDs do not support hardware rotation and instead use software rotation, which consumes more memory.
+
+### Available constants
+
+Constants like screen resolution, pin configuration, and other options are defined in the BSP header files (`{bsp_name}.h`, `display.h`, `touch.h`).
+Below are some of the most relevant predefined constants:
+
+- `BSP_LCD_H_RES` - Horizontal resolution in pixels
+- `BSP_LCD_V_RES` - Vertical resolution in pixels
+- `BSP_LCD_SPI_NUM` - SPI bus used by the LCD (if applicable)
+
+
+### Display and Touch API Reference
+
+## Structures and Types
+
+| Type | Name |
+| ---: | :--- |
+| struct | [**bsp\_display\_lcd\_config\_t**](#struct-bsp_display_lcd_config_t) <br>_BSP display configuration structure._ |
+| enum  | [**bsp\_usb\_host\_power\_mode\_t**](#enum-bsp_usb_host_power_mode_t)  <br>_Power modes of USB Host connector._ |
+| typedef enum [**bsp\_usb\_host\_power\_mode\_t**](#enum-bsp_usb_host_power_mode_t) | [**bsp\_usb\_host\_power\_mode\_t**](#typedef-bsp_usb_host_power_mode_t)  <br>_Power modes of USB Host connector._ |
+
+## Functions
+
+| Type | Name |
+| ---: | :--- |
+|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)_ |
+|  bool | [**bsp\_display\_lock**](#function-bsp_display_lock) (uint32\_t timeout\_ms) <br>_Take LVGL mutex._ |
+|  void | [**bsp\_display\_rotate**](#function-bsp_display_rotate) (lv\_display\_t \*disp, lv\_disp\_rotation\_t rotation) <br>_Rotate screen._ |
+|  lv\_display\_t \* | [**bsp\_display\_start**](#function-bsp_display_start) (void) <br>_Initialize display._ |
+|  lv\_display\_t \* | [**bsp\_display\_start\_with\_config**](#function-bsp_display_start_with_config) (const [**bsp\_display\_lcd\_config\_t**](#struct-bsp_display_lcd_config_t) \*cfg) <br>_Initialize display._ |
+|  void | [**bsp\_display\_unlock**](#function-bsp_display_unlock) (void) <br>_Give LVGL mutex._ |
+|  esp\_err\_t | [**bsp\_usb\_host\_start**](#function-bsp_usb_host_start) ([**bsp\_usb\_host\_power\_mode\_t**](#enum-bsp_usb_host_power_mode_t) mode, bool limit\_500mA) <br>_Start USB host._ |
+|  esp\_err\_t | [**bsp\_usb\_host\_stop**](#function-bsp_usb_host_stop) (void) <br>_Stop USB host._ |
+
+## Macros
+
+| Type | Name |
+| ---: | :--- |
+| define  | [**BSP\_LCD\_BACKLIGHT**](#define-bsp_lcd_backlight)  (GPIO\_NUM\_22)<br> |
+| define  | [**BSP\_LCD\_DRAW\_BUFF\_DOUBLE**](#define-bsp_lcd_draw_buff_double)  (0)<br> |
+| define  | [**BSP\_LCD\_DRAW\_BUFF\_SIZE**](#define-bsp_lcd_draw_buff_size)  (BSP\_LCD\_H\_RES \* 50)<br> |
+| define  | [**BSP\_LCD\_PIXEL\_CLOCK\_MHZ**](#define-bsp_lcd_pixel_clock_mhz)  (80)<br> |
+| define  | [**BSP\_LCD\_RST**](#define-bsp_lcd_rst)  (GPIO\_NUM\_NC)<br> |
+| define  | [**BSP\_LCD\_TOUCH\_INT**](#define-bsp_lcd_touch_int)  (GPIO\_NUM\_NC)<br> |
+| define  | [**BSP\_LCD\_TOUCH\_RST**](#define-bsp_lcd_touch_rst)  (GPIO\_NUM\_NC)<br> |
+
+
+## Structures and Types Documentation
+
+### struct `bsp_display_lcd_config_t`
+
+_BSP display configuration structure._
+
+Variables:
+
+-  unsigned int buff_dma  <br>Allocated LVGL buffer will be DMA capable
+
+-  unsigned int buff_spiram  <br>Allocated LVGL buffer will be in PSRAM
+
+-  uint32\_t buffer_size  <br>Size of the buffer for the screen in pixels
+
+-  bool double_buffer  <br>True, if should be allocated two buffers
+
+-  struct [**bsp\_display\_lcd\_config\_t**](#struct-bsp_display_lcd_config_t) flags  
+
+-  lvgl\_port\_cfg\_t lvgl_port_cfg  <br>LVGL port configuration
+
+-  unsigned int sw_rotate  <br>Use software rotation (slower), The feature is unavailable under avoid-tear mode
+
+### enum `bsp_usb_host_power_mode_t`
+
+_Power modes of USB Host connector._
+```c
+enum bsp_usb_host_power_mode_t {
+    BSP_USB_HOST_POWER_MODE_USB_DEV
+};
+```
+
+### typedef `bsp_usb_host_power_mode_t`
+
+_Power modes of USB Host connector._
+```c
+typedef enum bsp_usb_host_power_mode_t bsp_usb_host_power_mode_t;
+```
+
+
+## Functions Documentation
+
+### function `bsp_display_get_input_dev`
+
+_Get pointer to input device (touch, buttons, ...)_
+```c
+lv_indev_t * bsp_display_get_input_dev (
+    void
+) 
+```
+
+
+**Note:**
+
+The LVGL input device is initialized in [**bsp\_display\_start()**](#function-bsp_display_start) function.
+
+
+
+**Returns:**
+
+Pointer to LVGL input device or NULL when not initialized
+### function `bsp_display_lock`
+
+_Take LVGL mutex._
+```c
+bool bsp_display_lock (
+    uint32_t timeout_ms
+) 
+```
+
+
+**Parameters:**
+
+
+* `timeout_ms` Timeout in [ms]. 0 will block indefinitely. 
+
+
+**Returns:**
+
+true Mutex was taken 
+
+
+
+**Returns:**
+
+false Mutex was NOT taken
+### function `bsp_display_rotate`
+
+_Rotate screen._
+```c
+void bsp_display_rotate (
+    lv_display_t *disp,
+    lv_disp_rotation_t rotation
+) 
+```
+
+
+Display must be already initialized by calling [**bsp\_display\_start()**](#function-bsp_display_start)
+
+
+
+**Parameters:**
+
+
+* `disp` Pointer to LVGL display 
+* `rotation` Angle of the display rotation
+### function `bsp_display_start`
+
+_Initialize display._
+```c
+lv_display_t * bsp_display_start (
+    void
+) 
+```
+
+
+This function initializes SPI, display controller and starts LVGL handling task. LCD backlight must be enabled separately by calling [**bsp\_display\_brightness\_set()**](#function-bsp_display_brightness_set)
+
+
+
+**Returns:**
+
+Pointer to LVGL display or NULL when error occured
+### function `bsp_display_start_with_config`
+
+_Initialize display._
+```c
+lv_display_t * bsp_display_start_with_config (
+    const bsp_display_lcd_config_t *cfg
+) 
+```
+
+
+This function initializes SPI, display controller and starts LVGL handling task. LCD backlight must be enabled separately by calling [**bsp\_display\_brightness\_set()**](#function-bsp_display_brightness_set)
+
+
+
+**Parameters:**
+
+
+* `cfg` display configuration
+
+
+**Returns:**
+
+Pointer to LVGL display or NULL when error occured
+### function `bsp_display_unlock`
+
+_Give LVGL mutex._
+```c
+void bsp_display_unlock (
+    void
+) 
+```
+
+### function `bsp_usb_host_start`
+
+_Start USB host._
+```c
+esp_err_t bsp_usb_host_start (
+    bsp_usb_host_power_mode_t mode,
+    bool limit_500mA
+) 
+```
+
+
+This is a one-stop-shop function that will configure the board for USB Host mode and start USB Host library
+
+
+
+**Parameters:**
+
+
+* `mode` USB Host connector power mode (Not used on this board) 
+* `limit_500mA` Limit output current to 500mA (Not used on this board) 
+
+
+**Returns:**
+
+
+
+* ESP\_OK On success
+* ESP\_ERR\_INVALID\_ARG Parameter error
+* ESP\_ERR\_NO\_MEM Memory cannot be allocated
+### function `bsp_usb_host_stop`
+
+_Stop USB host._
+```c
+esp_err_t bsp_usb_host_stop (
+    void
+) 
+```
+
+
+USB Host lib will be uninstalled and power from connector removed.
+
+
+
+**Returns:**
+
+
+
+* ESP\_OK On success
+* ESP\_ERR\_INVALID\_ARG Parameter error
+
+
 

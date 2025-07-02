@@ -1,8 +1,14 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
+/**
+ * @file
+ * @brief ESP BSP: M5Stack Tab5
+ */
+
 #pragma once
 
 #include "sdkconfig.h"
@@ -21,8 +27,24 @@
 #endif  // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_M5STACK_TAB5
+/** @} */ // end of boardname
+
+/**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
+
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY       1
 #define BSP_CAPS_TOUCH         1
 #define BSP_CAPS_BUTTONS       0
@@ -31,45 +53,62 @@
 #define BSP_CAPS_AUDIO_MIC     1
 #define BSP_CAPS_SDCARD        1
 #define BSP_CAPS_IMU           0
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
- *  ESP-BOX pinout
+ *  M5Stack-Tab5 pinout
  **************************************************************************************************/
-/* SYS I2C */
+
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_NUM 0
 #define BSP_I2C_SCL (GPIO_NUM_32)
 #define BSP_I2C_SDA (GPIO_NUM_31)
+/** @} */ // end of i2c
 
-/* EXT I2C */
-#define BSP_EXT_I2C_NUM 1
-#define BSP_EXT_I2C_SCL (GPIO_NUM_54)
-#define BSP_EXT_I2C_SDA (GPIO_NUM_53)
-
-/* Audio */
+/** @defgroup g03_audio Audio
+ *  @brief Audio BSP API
+ *  @{
+ */
 #define BSP_I2S_SCLK     (GPIO_NUM_27)
 #define BSP_I2S_MCLK     (GPIO_NUM_30)
 #define BSP_I2S_LCLK     (GPIO_NUM_29)
 #define BSP_I2S_DOUT     (GPIO_NUM_26)
 #define BSP_I2S_DSIN     (GPIO_NUM_28)
 #define BSP_POWER_AMP_IO (GPIO_NUM_NC)
+/** @} */ // end of audio
 
-/* Display */
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
 #define BSP_LCD_BACKLIGHT (GPIO_NUM_22)
 #define BSP_LCD_RST       (GPIO_NUM_NC)
 #define BSP_LCD_TOUCH_RST (GPIO_NUM_NC)
 #define BSP_LCD_TOUCH_INT (GPIO_NUM_NC)
+/** @} */ // end of display
 
-/* uSD card */
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
 #define BSP_SD_D0  (GPIO_NUM_39)
 #define BSP_SD_D1  (GPIO_NUM_40)
 #define BSP_SD_D2  (GPIO_NUM_41)
 #define BSP_SD_D3  (GPIO_NUM_42)
 #define BSP_SD_CMD (GPIO_NUM_44)
 #define BSP_SD_CLK (GPIO_NUM_43)
+/** @} */ // end of storage
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** \addtogroup g01_i2c
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -101,14 +140,11 @@ esp_err_t bsp_i2c_init(void);
  */
 esp_err_t bsp_i2c_deinit(void);
 
-/**
- * @brief Get I2C driver handle
- *
- * @return
- *      - I2C handle
- *
+/** @} */ // end of i2c
+
+/** \addtogroup g03_audio
+ *  @{
  */
-i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
 /**************************************************************************************************
  *
@@ -146,6 +182,14 @@ i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
 
 /**
+ * @brief Get codec I2S interface (initialized in bsp_audio_init)
+ *
+ * @return
+ *      - Pointer to codec I2S interface handle or NULL when error occured
+ */
+const audio_codec_data_if_t *bsp_audio_get_codec_itf(void);
+
+/**
  * @brief Initialize speaker codec device
  *
  * @return Pointer to codec device handle or NULL when error occurred
@@ -159,29 +203,11 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
  */
 esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
 
-typedef esp_err_t (*bsp_i2s_read_fn)(void *audio_buffer, size_t len, size_t *bytes_read, uint32_t timeout_ms);
-typedef esp_err_t (*bsp_i2s_write_fn)(void *audio_buffer, size_t len, size_t *bytes_written, uint32_t timeout_ms);
-typedef esp_err_t (*bsp_codec_set_in_gain_fn)(float gain);
-typedef esp_err_t (*bsp_codec_mute_fn)(bool enable);
-typedef int (*bsp_codec_volume_fn)(int volume);
-typedef esp_err_t (*bsp_codec_get_volume_fn)(void);
-typedef esp_err_t (*bsp_codec_reconfig_fn)(uint32_t rate, uint32_t bps, i2s_slot_mode_t ch);
-typedef esp_err_t (*bsp_i2s_reconfig_clk_fn)(uint32_t rate, uint32_t bits_cfg, i2s_slot_mode_t ch);
+/** @} */ // end of audio
 
-typedef struct {
-    bsp_i2s_read_fn i2s_read;
-    bsp_i2s_write_fn i2s_write;
-    bsp_codec_mute_fn set_mute;
-    bsp_codec_volume_fn set_volume;
-    bsp_codec_get_volume_fn get_volume;
-    bsp_codec_set_in_gain_fn set_in_gain;
-    bsp_codec_reconfig_fn codec_reconfig_fn;
-    bsp_i2s_reconfig_clk_fn i2s_reconfig_clk_fn;
-} bsp_codec_config_t;
-
-void bsp_codec_init(void);
-bsp_codec_config_t *bsp_get_codec_handle(void);
-uint8_t bsp_codec_feed_channel(void);
+/** \addtogroup g02_storage
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -255,6 +281,12 @@ esp_err_t bsp_sdcard_init(char *mount_point, size_t max_files);
  *    - Others: Fail
  */
 esp_err_t bsp_sdcard_deinit(char *mount_point);
+
+/** @} */ // end of storage
+
+/** \addtogroup g04_display
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -387,6 +419,8 @@ esp_err_t bsp_usb_host_start(bsp_usb_host_power_mode_t mode, bool limit_500mA);
  *     - ESP_ERR_INVALID_ARG Parameter error
  */
 esp_err_t bsp_usb_host_stop(void);
+
+/** @} */ // end of display
 
 #ifdef __cplusplus
 }

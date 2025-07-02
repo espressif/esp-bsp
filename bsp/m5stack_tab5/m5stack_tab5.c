@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -83,7 +83,7 @@ esp_err_t bsp_i2c_deinit(void)
     return ESP_OK;
 }
 
-i2c_master_bus_handle_t bsp_i2c_get_handle(void)
+static i2c_master_bus_handle_t bsp_i2c_get_handle(void)
 {
     return i2c_handle;
 }
@@ -347,6 +347,30 @@ esp_err_t bsp_spiffs_unmount(void)
 //==================================================================================
 // audio es7210 + es8388
 //==================================================================================
+typedef esp_err_t (*bsp_i2s_read_fn)(void *audio_buffer, size_t len, size_t *bytes_read, uint32_t timeout_ms);
+typedef esp_err_t (*bsp_i2s_write_fn)(void *audio_buffer, size_t len, size_t *bytes_written, uint32_t timeout_ms);
+typedef esp_err_t (*bsp_codec_set_in_gain_fn)(float gain);
+typedef esp_err_t (*bsp_codec_mute_fn)(bool enable);
+typedef int (*bsp_codec_volume_fn)(int volume);
+typedef esp_err_t (*bsp_codec_get_volume_fn)(void);
+typedef esp_err_t (*bsp_codec_reconfig_fn)(uint32_t rate, uint32_t bps, i2s_slot_mode_t ch);
+typedef esp_err_t (*bsp_i2s_reconfig_clk_fn)(uint32_t rate, uint32_t bits_cfg, i2s_slot_mode_t ch);
+
+typedef struct {
+    bsp_i2s_read_fn i2s_read;
+    bsp_i2s_write_fn i2s_write;
+    bsp_codec_mute_fn set_mute;
+    bsp_codec_volume_fn set_volume;
+    bsp_codec_get_volume_fn get_volume;
+    bsp_codec_set_in_gain_fn set_in_gain;
+    bsp_codec_reconfig_fn codec_reconfig_fn;
+    bsp_i2s_reconfig_clk_fn i2s_reconfig_clk_fn;
+} bsp_codec_config_t;
+
+static void bsp_codec_init(void);
+static bsp_codec_config_t *bsp_get_codec_handle(void);
+static uint8_t bsp_codec_feed_channel(void);
+
 static esp_codec_dev_handle_t play_dev_handle;
 static esp_codec_dev_handle_t record_dev_handle;
 static bsp_codec_config_t g_codec_handle;
@@ -574,7 +598,7 @@ static int bsp_codec_get_volume(void)
     return volume;
 }
 
-bsp_codec_config_t *bsp_get_codec_handle(void)
+static bsp_codec_config_t *bsp_get_codec_handle(void)
 {
     return &g_codec_handle;
 }
@@ -615,7 +639,7 @@ static esp_err_t bsp_codec_es7210_set(uint32_t rate, uint32_t bps, i2s_slot_mode
     return ret;
 }
 
-void bsp_codec_init(void)
+static void bsp_codec_init(void)
 {
     play_dev_handle = bsp_audio_codec_speaker_init();
     assert((play_dev_handle) && "play_dev_handle not initialized");
@@ -639,7 +663,7 @@ void bsp_codec_init(void)
     codec_cfg->set_volume(80);
 }
 
-uint8_t bsp_codec_feed_channel(void)
+static uint8_t bsp_codec_feed_channel(void)
 {
     return 3;  // 2*mic_num + ref_num
 }
@@ -669,6 +693,11 @@ esp_err_t bsp_display_brightness_init(void)
     ESP_ERROR_CHECK(ledc_channel_config(&lcd_backlight_channel));
 
     return ESP_OK;
+}
+
+const audio_codec_data_if_t *bsp_audio_get_codec_itf(void)
+{
+    return i2s_data_if;
 }
 
 esp_err_t bsp_display_brightness_set(int brightness_percent)

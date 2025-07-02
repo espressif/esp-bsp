@@ -45,7 +45,7 @@ The following table shows the compatibility of this BSP with different ESP-IDF v
 | [M5Stack Core](bsp/m5stack_core) | esp32 | :speaker: Audio Speaker <br/>:radio_button: Button <br/>:pager: LCD Display  (ili9341)<br/>:floppy_disk: uSD Card <br/> | <img src="bsp/m5stack_core/doc/m5stack_core.webp" width="150"> |
 | [M5Stack Core2](bsp/m5stack_core_2) | esp32 | :musical_note: Audio <br/>:speaker: Audio Speaker <br/>:pager: LCD Display  (ili9341)<br/>:floppy_disk: uSD Card <br/>:point_up: Display Touch  (ft5x06)<br/> | <img src="bsp/m5stack_core_2/doc/m5stack_core_2.webp" width="150"> |
 | [M5Stack CoreS3](bsp/m5stack_core_s3) | esp32s3 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es7210)<br/>:speaker: Audio Speaker  (aw88298)<br/>:camera: Camera <br/>:pager: LCD Display  (ili9341)<br/>:floppy_disk: uSD Card <br/>:point_up: Display Touch  (ft5x06)<br/> | <img src="bsp/m5stack_core_s3/doc/m5stack_core_s3.webp" width="150"> |
-| [](bsp/m5stack_tab5) | esp32p4 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es7210)<br/>:speaker: Audio Speaker  (es8388)<br/>:pager: LCD Display  (ili9881c)<br/>:floppy_disk: uSD Card <br/>:point_up: Display Touch  (gt911)<br/> | <img src="bsp/m5stack_tab5/doc/m5stack_tab5.webp" width="150"> |
+| [M5Stack Tab5](bsp/m5stack_tab5) | esp32p4 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es7210)<br/>:speaker: Audio Speaker  (es8388)<br/>:pager: LCD Display  (ili9881c)<br/>:floppy_disk: uSD Card <br/>:point_up: Display Touch  (gt911)<br/> | <img src="bsp/m5stack_tab5/doc/m5stack_tab5.webp" width="150"> |
 
 ### Deprecated Boards
 
