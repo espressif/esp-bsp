@@ -10,10 +10,49 @@ on:
 jobs:
   upload_components:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bsp: [
+          esp32_azure_iot_kit,
+          esp32_s2_kaluga_kit,
+          esp_wrover_kit,
+          esp-box,
+          esp-box-3,
+          esp-box-lite,
+          esp32_s3_usb_otg,
+          esp32_s3_eye,
+          esp32_s3_lcd_ev_board,
+          esp32_s3_korvo_1,
+          esp32_s3_korvo_2,
+          esp32_lyrat,
+          esp32_c3_lcdkit,
+          esp_bsp_generic,
+          esp_bsp_devkit,
+          esp32_p4_function_ev_board,
+          m5stack_core,
+          m5stack_core_2,
+          m5stack_core_s3,
+          m5_atom_s3,
+          m5dial,
+        ]
     steps:
       - uses: actions/checkout@master
 
-      - name: Upload components to component service
+      - name: Prepare BSP examples
+        run: |
+          pip install idf-component-manager==1.* pyyaml
+          python .github/ci/bsp_example_update.py --bsp=${{ matrix.bsp }}
+
+      - name: Upload BSP components
+        uses: espressif/upload-components-ci-action@v1
+        with:
+          directories: >
+            bsp/${{ matrix.bsp }}
+          namespace: "espressif"
+          api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
+          dry_run: ${{ github.ref_name != 'master' || github.repository_owner != 'espressif' }}
+
+      - name: Upload Other components
         uses: espressif/upload-components-ci-action@v1
         with:
           directories: >
@@ -21,7 +60,6 @@ jobs:
             components/lcd_touch/esp_lcd_touch;components/lcd_touch/esp_lcd_touch_ft5x06;components/lcd_touch/esp_lcd_touch_gt911;components/lcd_touch/esp_lcd_touch_tt21100;components/lcd_touch/esp_lcd_touch_gt1151;components/lcd_touch/esp_lcd_touch_cst816s;
             components/lcd/esp_lcd_gc9a01;components/lcd/esp_lcd_ili9341;components/lcd/esp_lcd_ra8875;components/lcd_touch/esp_lcd_touch_stmpe610;components/lcd/esp_lcd_sh1107;components/lcd/esp_lcd_st7796;components/lcd/esp_lcd_gc9503;components/lcd/esp_lcd_ssd1681;components/lcd/esp_lcd_ili9881c;components/lcd/esp_lcd_lt8912b;
             components/io_expander/esp_io_expander;components/io_expander/esp_io_expander_tca9554;components/io_expander/esp_io_expander_tca95xx_16bit;components/io_expander/esp_io_expander_ht8574;
-            bsp/esp32_azure_iot_kit;bsp/esp32_s2_kaluga_kit;bsp/esp_wrover_kit;bsp/esp-box;bsp/esp32_s3_usb_otg;bsp/esp32_s3_eye;bsp/esp32_s3_lcd_ev_board;bsp/esp32_s3_korvo_2;bsp/esp-box-lite;bsp/esp32_lyrat;bsp/esp32_c3_lcdkit;bsp/esp-box-3;bsp/esp_bsp_generic;bsp/esp32_s3_korvo_1;bsp/esp32_p4_function_ev_board;bsp/m5stack_core_s3;bsp/m5dial;bsp/m5stack_core_2;bsp/m5stack_core;bsp/esp_bsp_devkit;bsp/m5_atom_s3;
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
           dry_run: ${{ github.ref_name != 'master' || github.repository_owner != 'espressif' }}
