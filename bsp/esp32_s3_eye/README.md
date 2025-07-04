@@ -66,29 +66,29 @@ The ESP32-S3-EYE board consists of two parts: the main board (ESP32-S3-EYE-MB) t
 
 ## LVGL Benchmark
 
-**DATE:** 09.06.2025 02:19
+**DATE:** 04.07.2025 02:28
 
-**LVGL version:** 9.2.2
+**LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 91%  | 60  | 13  | 2  | 11  |
-| Moving wallpaper | 61%  | 77  | 9  | 4  | 5  |
-| Single rectangle | 16%  | 92  | 0  | 0  | 0  |
-| Multiple rectangles | 83%  | 74  | 10  | 4  | 6  |
-| Multiple RGB images | 18%  | 91  | 0  | 0  | 0  |
-| Multiple ARGB images | 18%  | 90  | 3  | 3  | 0  |
-| Rotated ARGB images | 75%  | 57  | 17  | 15  | 2  |
-| Multiple labels | 18%  | 92  | 0  | 0  | 0  |
-| Screen sized text | 92%  | 36  | 25  | 14  | 11  |
-| Multiple arcs | 11%  | 88  | 0  | 0  | 0  |
-| Containers | 13%  | 92  | 5  | 4  | 1  |
-| Containers with overlay | 90%  | 40  | 21  | 11  | 10  |
-| Containers with opa | 25%  | 92  | 6  | 5  | 1  |
-| Containers with opa_layer | 31%  | 81  | 12  | 11  | 1  |
-| Containers with scrolling | 94%  | 39  | 23  | 12  | 11  |
-| Widgets demo | 96%  | 44  | 8  | 8  | 0  |
-| All scenes avg. | 52%  | 71  | 8  | 5  | 3  |
+| Empty screen | 92%  | 59  | 14  | 3  | 11  |
+| Moving wallpaper | 59%  | 76  | 8  | 3  | 5  |
+| Single rectangle | 11%  | 92  | 0  | 0  | 0  |
+| Multiple rectangles | 83%  | 69  | 10  | 5  | 5  |
+| Multiple RGB images | 20%  | 89  | 1  | 1  | 0  |
+| Multiple ARGB images | 17%  | 91  | 3  | 3  | 0  |
+| Rotated ARGB images | 68%  | 64  | 14  | 13  | 1  |
+| Multiple labels | 38%  | 97  | 3  | 3  | 0  |
+| Screen sized text | 92%  | 34  | 26  | 16  | 10  |
+| Multiple arcs | 16%  | 96  | 0  | 0  | 0  |
+| Containers | 11%  | 91  | 5  | 4  | 1  |
+| Containers with overlay | 89%  | 40  | 23  | 12  | 11  |
+| Containers with opa | 29%  | 92  | 8  | 7  | 1  |
+| Containers with opa_layer | 31%  | 80  | 12  | 11  | 1  |
+| Containers with scrolling | 93%  | 40  | 22  | 11  | 11  |
+| Widgets demo | 96%  | 43  | 9  | 9  | 0  |
+| All scenes avg. | 52%  | 72  | 9  | 6  | 3  |
 
 
 

@@ -1,4 +1,4 @@
-version: "2.0.0~1"
+version: "2.0.0~2"
 description: Board Support Package (BSP) for ESP32-S3-KORVO-1
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_korvo_1
 
@@ -22,3 +22,6 @@ dependencies:
   esp_codec_dev:
     version: "~1.1.0"
     public: true
+
+examples:
+  - path: ../../examples/audio
