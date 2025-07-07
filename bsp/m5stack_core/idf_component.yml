@@ -1,4 +1,4 @@
-version: "2.0.0~1"
+version: "2.0.0~2"
 description: Board Support Package (BSP) for M5Stack Core
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5stack_core
 
@@ -20,3 +20,7 @@ dependencies:
     version: "^2"
     public: true
     override_path: "../../components/esp_lvgl_port"
+
+examples:
+  - path: ../../examples/display
+  - path: ../../examples/display_rotation

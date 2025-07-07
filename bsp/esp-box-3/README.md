@@ -61,27 +61,27 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 
 ## LVGL Benchmark
 
-**DATE:** 11.06.2025 02:27
+**DATE:** 04.07.2025 02:28
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 94%  | 26  | 34  | 3  | 31  |
-| Moving wallpaper | 97%  | 25  | 36  | 5  | 31  |
+| Empty screen | 93%  | 26  | 34  | 3  | 31  |
+| Moving wallpaper | 97%  | 25  | 35  | 5  | 30  |
 | Single rectangle | 10%  | 91  | 0  | 0  | 0  |
-| Multiple rectangles | 92%  | 51  | 16  | 3  | 13  |
-| Multiple RGB images | 8%  | 89  | 0  | 0  | 0  |
-| Multiple ARGB images | 21%  | 88  | 2  | 1  | 1  |
-| Rotated ARGB images | 82%  | 55  | 17  | 12  | 5  |
-| Multiple labels | 88%  | 79  | 10  | 2  | 8  |
-| Screen sized text | 98%  | 15  | 58  | 27  | 31  |
-| Multiple arcs | 18%  | 89  | 0  | 0  | 0  |
-| Containers | 34%  | 73  | 17  | 5  | 12  |
-| Containers with overlay | 88%  | 20  | 45  | 15  | 30  |
-| Containers with opa | 49%  | 70  | 19  | 7  | 12  |
-| Containers with opa_layer | 60%  | 53  | 27  | 15  | 12  |
-| Containers with scrolling | 96%  | 20  | 43  | 12  | 31  |
+| Multiple rectangles | 92%  | 50  | 16  | 2  | 14  |
+| Multiple RGB images | 16%  | 91  | 0  | 0  | 0  |
+| Multiple ARGB images | 20%  | 89  | 3  | 2  | 1  |
+| Rotated ARGB images | 75%  | 55  | 17  | 12  | 5  |
+| Multiple labels | 89%  | 79  | 8  | 2  | 6  |
+| Screen sized text | 98%  | 15  | 59  | 28  | 31  |
+| Multiple arcs | 17%  | 89  | 0  | 0  | 0  |
+| Containers | 33%  | 74  | 15  | 4  | 11  |
+| Containers with overlay | 95%  | 20  | 45  | 14  | 31  |
+| Containers with opa | 49%  | 69  | 18  | 7  | 11  |
+| Containers with opa_layer | 60%  | 52  | 29  | 17  | 12  |
+| Containers with scrolling | 95%  | 21  | 44  | 13  | 31  |
 | Widgets demo | 97%  | 25  | 25  | 11  | 14  |
 | All scenes avg. | 64%  | 54  | 21  | 7  | 14  |
 

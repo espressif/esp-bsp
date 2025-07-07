@@ -89,28 +89,28 @@ This BSP supports HDMI converter Lontium LT8912B. Follow these rules for using i
 
 ## LVGL Benchmark
 
-**DATE:** 11.06.2025 02:25
+**DATE:** 04.07.2025 02:28
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 56%  | 88  | 5  | 4  | 1  |
-| Moving wallpaper | 88%  | 71  | 10  | 8  | 2  |
+| Empty screen | 56%  | 88  | 6  | 5  | 1  |
+| Moving wallpaper | 89%  | 71  | 11  | 7  | 4  |
 | Single rectangle | 18%  | 88  | 1  | 1  | 0  |
 | Multiple rectangles | 42%  | 90  | 2  | 2  | 0  |
-| Multiple RGB images | 27%  | 96  | 1  | 1  | 0  |
-| Multiple ARGB images | 59%  | 91  | 6  | 6  | 0  |
-| Rotated ARGB images | 89%  | 60  | 14  | 14  | 0  |
-| Multiple labels | 93%  | 61  | 13  | 12  | 1  |
-| Screen sized text | 99%  | 13  | 71  | 69  | 2  |
-| Multiple arcs | 98%  | 46  | 18  | 16  | 2  |
-| Containers | 27%  | 88  | 3  | 3  | 0  |
-| Containers with overlay | 91%  | 28  | 31  | 29  | 2  |
-| Containers with opa | 32%  | 93  | 4  | 4  | 0  |
-| Containers with opa_layer | 62%  | 73  | 12  | 12  | 0  |
-| Containers with scrolling | 98%  | 28  | 32  | 30  | 2  |
-| Widgets demo | 99%  | 17  | 50  | 49  | 1  |
+| Multiple RGB images | 29%  | 97  | 1  | 1  | 0  |
+| Multiple ARGB images | 57%  | 91  | 6  | 6  | 0  |
+| Rotated ARGB images | 87%  | 59  | 14  | 14  | 0  |
+| Multiple labels | 92%  | 61  | 12  | 12  | 0  |
+| Screen sized text | 99%  | 13  | 70  | 67  | 3  |
+| Multiple arcs | 98%  | 47  | 17  | 16  | 1  |
+| Containers | 30%  | 88  | 2  | 2  | 0  |
+| Containers with overlay | 88%  | 28  | 31  | 29  | 2  |
+| Containers with opa | 36%  | 91  | 5  | 5  | 0  |
+| Containers with opa_layer | 60%  | 74  | 12  | 12  | 0  |
+| Containers with scrolling | 96%  | 28  | 31  | 29  | 2  |
+| Widgets demo | 99%  | 17  | 51  | 49  | 2  |
 | All scenes avg. | 67%  | 64  | 16  | 16  | 0  |
 
 

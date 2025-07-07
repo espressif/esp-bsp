@@ -1,4 +1,4 @@
-version: "3.0.0~1"
+version: "3.0.0~2"
 description: Board Support Package (BSP) for M5Stack CoreS3
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5stack_core_s3
 
@@ -25,3 +25,11 @@ dependencies:
   esp32-camera:
     version: "^2.0.11"
     public: true
+
+examples:
+  - path: ../../examples/display
+  - path: ../../examples/display_rotation
+  - path: ../../examples/display_audio_photo
+  - path: ../../examples/display_camera
+  - path: ../../examples/display_lvgl_demos
+  - path: ../../examples/display_lvgl_benchmark
