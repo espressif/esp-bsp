@@ -8,7 +8,7 @@ on:
     types: [opened, reopened, synchronize]
 
 jobs:
-  upload_components:
+  upload_bsp_components:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -40,7 +40,7 @@ jobs:
 
       - name: Prepare BSP examples
         run: |
-          pip install idf-component-manager==1.* pyyaml
+          pip install pyyaml
           python .github/ci/bsp_example_update.py --bsp=${{ matrix.bsp }}
 
       - name: Upload BSP components
@@ -52,8 +52,12 @@ jobs:
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
           dry_run: ${{ github.ref_name != 'master' || github.repository_owner != 'espressif' }}
 
+  upload_other_components:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
       - name: Upload Other components
-        uses: espressif/upload-components-ci-action@v1
+        uses: espressif/upload-components-ci-action@v2
         with:
           directories: >
             components/bh1750;components/ds18b20;components/es8311;components/es7210;components/fbm320;components/hts221;components/mag3110;components/mpu6050;components/esp_lvgl_port;components/icm42670;components/qma6100p;
