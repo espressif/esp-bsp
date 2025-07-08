@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 
 """
@@ -45,6 +45,12 @@ def remove_esp_lvgl_port(bsp_path):
     except KeyError:
         print("{}: no lvgl dependency found".format(str(bsp_path)))
     manager.manifest_tree["description"] = manager.manifest_tree["description"] + ' with no graphical library'
+
+    # Add 'noglib' tag
+    tags = manager.manifest_tree.get("tags", [])
+    tags.append("noglib")
+    manager.manifest_tree["tags"] = list(set(tags))  # make unique
+
     manager.dump()
     return 0
 

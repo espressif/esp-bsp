@@ -9,7 +9,7 @@ This is a minimal display example using the LVGL graphics library.
 With just a few function calls, it sets up the display and shows the Espressif logo along with a text label.
 
 </td><td width="200" valign="top">
-  <img src="doc/pic.webp">
+  <img src="/examples/display/doc/pic.webp">
 </td></tr>
 </table>
 

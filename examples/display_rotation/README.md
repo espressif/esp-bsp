@@ -8,7 +8,7 @@
 This example demonstrates usage of ESP-BOX Board Support Package. This is a single purpose example, which is focused on rotating LCD display: user can rotating display by buttons.
 
 </td><td width="200" valign="top">
-  <img src="doc/pic.webp">
+  <img src="/examples/display_rotation/doc/pic.webp">
 </td></tr>
 </table>
 

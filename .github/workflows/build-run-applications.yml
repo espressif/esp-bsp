@@ -169,6 +169,7 @@ jobs:
           name: ${{ env.TEST_RESULT_NAME }}
           path: |
             ${{ env.TEST_RESULT_FILE }}
+            *.log
             benchmark_*.md
             benchmark_*.json
             benchmark.json

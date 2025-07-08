@@ -8,7 +8,7 @@
 This example demonstrates usage of the USB HID (keyboard, mouse or GamePad) with Board Support Package.
 
 </td><td width="200" valign="top">
-  <img src="doc/pic.webp">
+  <img src="/examples/display_usb_hid/doc/pic.webp">
 </td></tr>
 </table>
 
