@@ -44,9 +44,9 @@ jobs:
           python .github/ci/bsp_example_update.py --bsp=${{ matrix.bsp }}
 
       - name: Upload BSP components
-        uses: espressif/upload-components-ci-action@v1
+        uses: espressif/upload-components-ci-action@v2
         with:
-          directories: >
+          components: |
             bsp/${{ matrix.bsp }}
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
@@ -59,11 +59,38 @@ jobs:
       - name: Upload Other components
         uses: espressif/upload-components-ci-action@v2
         with:
-          directories: >
-            components/bh1750;components/ds18b20;components/es8311;components/es7210;components/fbm320;components/hts221;components/mag3110;components/mpu6050;components/esp_lvgl_port;components/icm42670;components/qma6100p;
-            components/lcd_touch/esp_lcd_touch;components/lcd_touch/esp_lcd_touch_ft5x06;components/lcd_touch/esp_lcd_touch_gt911;components/lcd_touch/esp_lcd_touch_tt21100;components/lcd_touch/esp_lcd_touch_gt1151;components/lcd_touch/esp_lcd_touch_cst816s;
-            components/lcd/esp_lcd_gc9a01;components/lcd/esp_lcd_ili9341;components/lcd/esp_lcd_ra8875;components/lcd_touch/esp_lcd_touch_stmpe610;components/lcd/esp_lcd_sh1107;components/lcd/esp_lcd_st7796;components/lcd/esp_lcd_gc9503;components/lcd/esp_lcd_ssd1681;components/lcd/esp_lcd_ili9881c;components/lcd/esp_lcd_lt8912b;
-            components/io_expander/esp_io_expander;components/io_expander/esp_io_expander_tca9554;components/io_expander/esp_io_expander_tca95xx_16bit;components/io_expander/esp_io_expander_ht8574;
+          components: |
+            components/bh1750
+            components/ds18b20
+            components/es8311
+            components/es7210
+            components/fbm320
+            components/hts221
+            components/mag3110
+            components/mpu6050
+            components/esp_lvgl_port
+            components/icm42670
+            components/qma6100p
+            components/lcd_touch/esp_lcd_touch
+            components/lcd_touch/esp_lcd_touch_ft5x06
+            components/lcd_touch/esp_lcd_touch_gt911
+            components/lcd_touch/esp_lcd_touch_tt21100
+            components/lcd_touch/esp_lcd_touch_gt1151
+            components/lcd_touch/esp_lcd_touch_cst816s
+            components/lcd/esp_lcd_gc9a01
+            components/lcd/esp_lcd_ili9341
+            components/lcd/esp_lcd_ra8875
+            components/lcd_touch/esp_lcd_touch_stmpe610
+            components/lcd/esp_lcd_sh1107
+            components/lcd/esp_lcd_st7796
+            components/lcd/esp_lcd_gc9503
+            components/lcd/esp_lcd_ssd1681
+            components/lcd/esp_lcd_ili9881c
+            components/lcd/esp_lcd_lt8912b
+            components/io_expander/esp_io_expander
+            components/io_expander/esp_io_expander_tca9554
+            components/io_expander/esp_io_expander_tca95xx_16bit
+            components/io_expander/esp_io_expander_ht8574
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
           dry_run: ${{ github.ref_name != 'master' || github.repository_owner != 'espressif' }}
