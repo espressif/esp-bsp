@@ -4,6 +4,7 @@ idf_component_register(
     PRIV_INCLUDE_DIRS "priv_include"
     PRIV_REQUIRES
         "esp_lcd"
+        "esp_psram"
     REQUIRES
         "driver"
         "spiffs"

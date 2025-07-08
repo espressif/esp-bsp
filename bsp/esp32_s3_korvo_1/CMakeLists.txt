@@ -11,5 +11,6 @@ idf_component_register(
     SRCS "esp32_s3_korvo_1.c" ${SRC_VER} "led_blink_defaults.c"
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "priv_include"
+    PRIV_REQUIRES esp_psram
     REQUIRES ${REQ}
 )

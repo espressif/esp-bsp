@@ -1,0 +1,6 @@
+paths = "examples"
+recursive = true
+manifest_file = "examples/.build-test-rules.yml"
+check_warnings = true
+ignore_warning_file = ".ignore_build_warnings.txt"
+config = "sdkconfig.bsp.*"
