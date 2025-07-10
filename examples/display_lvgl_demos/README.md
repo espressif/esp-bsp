@@ -8,7 +8,7 @@
 This example shows LVGL internal demo - LVGL demo player (all LVGL examples are included).
 
 </td><td width="200" valign="top">
-  <img src="doc/pic.webp">
+  <img src="/examples/display_lvgl_demos/doc/pic.webp">
 </td></tr>
 </table>
 

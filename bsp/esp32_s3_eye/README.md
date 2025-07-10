@@ -66,7 +66,7 @@ The ESP32-S3-EYE board consists of two parts: the main board (ESP32-S3-EYE-MB) t
 
 ## LVGL Benchmark
 
-**DATE:** 04.07.2025 02:28
+**DATE:** 08.07.2025 10:31
 
 **LVGL version:** 9.3.0
 

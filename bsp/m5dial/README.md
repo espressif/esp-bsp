@@ -69,7 +69,7 @@ M5Dial provides versatile power supply options to cater to various needs. It acc
 
 ## LVGL Benchmark
 
-**DATE:** 04.07.2025 02:28
+**DATE:** 08.07.2025 10:31
 
 **LVGL version:** 9.3.0
 
@@ -79,19 +79,19 @@ M5Dial provides versatile power supply options to cater to various needs. It acc
 | Moving wallpaper | 94%  | 41  | 23  | 11  | 12  |
 | Single rectangle | 32%  | 98  | 2  | 0  | 2  |
 | Multiple rectangles | 87%  | 63  | 12  | 9  | 3  |
-| Multiple RGB images | 34%  | 92  | 1  | 1  | 0  |
+| Multiple RGB images | 34%  | 92  | 2  | 1  | 1  |
 | Multiple ARGB images | 37%  | 93  | 3  | 3  | 0  |
 | Rotated ARGB images | 79%  | 60  | 16  | 15  | 1  |
-| Multiple labels | 58%  | 97  | 5  | 5  | 0  |
-| Screen sized text | 96%  | 23  | 39  | 37  | 2  |
-| Multiple arcs | 20%  | 89  | 1  | 1  | 0  |
-| Containers | 37%  | 83  | 14  | 10  | 4  |
-| Containers with overlay | 98%  | 34  | 26  | 20  | 6  |
-| Containers with opa | 51%  | 79  | 16  | 11  | 5  |
-| Containers with opa_layer | 49%  | 72  | 18  | 16  | 2  |
-| Containers with scrolling | 95%  | 33  | 27  | 22  | 5  |
+| Multiple labels | 58%  | 98  | 5  | 5  | 0  |
+| Screen sized text | 97%  | 23  | 40  | 38  | 2  |
+| Multiple arcs | 20%  | 88  | 0  | 0  | 0  |
+| Containers | 38%  | 82  | 13  | 7  | 6  |
+| Containers with overlay | 90%  | 33  | 25  | 20  | 5  |
+| Containers with opa | 42%  | 78  | 15  | 11  | 4  |
+| Containers with opa_layer | 51%  | 73  | 18  | 16  | 2  |
+| Containers with scrolling | 96%  | 32  | 27  | 21  | 6  |
 | Widgets demo | 99%  | 27  | 19  | 18  | 1  |
-| All scenes avg. | 66%  | 63  | 14  | 11  | 3  |
+| All scenes avg. | 65%  | 63  | 15  | 11  | 4  |
 
 
 

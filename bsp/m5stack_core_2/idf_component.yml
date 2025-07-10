@@ -1,4 +1,4 @@
-version: "2.0.0~2"
+version: "2.0.0~3"
 description: Board Support Package (BSP) for M5Stack Core2
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5stack_core_2
 
@@ -7,6 +7,7 @@ targets:
 
 tags:
   - bsp
+  - M5Stack
 
 dependencies:
   idf: ">=5.0"

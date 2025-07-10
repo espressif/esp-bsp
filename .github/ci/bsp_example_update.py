@@ -26,6 +26,24 @@ def bsp_short_name(bsp):
     return bsp.split('/')[-1]
 
 
+def replace_api_link_in_readme(bsp_path):
+    readme_path = os.path.join(bsp_path, "README.md")
+    if not os.path.exists(readme_path):
+        print(f"No README.md in {bsp_path}, skipping.")
+        return
+    with open(readme_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    new_content = content.replace("API.md", "#api-reference")
+
+    if new_content != content:
+        with open(readme_path, "w", encoding="utf-8", newline="\n") as f:
+            f.write(new_content)
+        print(f"Updated links in {readme_path}")
+    else:
+        print(f"No API.md links to replace in {readme_path}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Update examples for specific BSP.")
     parser.add_argument("--bsp", required=True, help="Name of the BSP component (directory under bsp/)")
@@ -41,6 +59,9 @@ def main():
     if not os.path.exists(bsp_path):
         print(f"No such BSP directory: {bsp_path}")
         sys.exit(1)
+
+    # Replace API.md link in readme
+    replace_api_link_in_readme(bsp_path)
 
     bsp_yml_path = os.path.join(bsp_path, "idf_component.yml")
     if not os.path.exists(bsp_yml_path):

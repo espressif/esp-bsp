@@ -1,4 +1,4 @@
-version: "3.0.0~1"
+version: "3.0.0~2"
 description: Board Support Package (BSP) for ESP32-Azure-IoT-Kit
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_azure_iot_kit
 
