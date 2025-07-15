@@ -8,12 +8,11 @@ Implementation of the CST816S touch controller with esp_lcd_touch component.
 | :--------------: | :---------------------: | :-------------------: | :------------------------------------------------------------------------: |
 |     CST816S      |           I2C           | esp_lcd_touch_cst816s | [datasheet](https://www.buydisplay.com/download/ic/DS-CST816S_DS_V1.3.pdf) |
 
-**Note, there are two things about the driver are noteworthy (from [document](https://doc.riot-os.org/group__drivers__cst816s.html)):**
-
-* It only responds to I2C commands after an event, such as a touch detection. Do not expect it to respond on init. Instead after a touch event, it will assert the IRQ and respond to I2C reads for a short time.
-* While it should be able to detect multiple finger events, this version of the chip always returns only a single finger event and a gesture.
-
-Reading the display data multiple times during a single event will return the last sampled finger position.
+> [!NOTE]
+> * There are two things about the driver are noteworthy (from [document](https://doc.riot-os.org/group__drivers__cst816s.html)):
+>   * It only responds to I2C commands after an event, such as a touch detection. Do not expect it to respond on init. Instead after a touch event, it will assert the IRQ and respond to I2C reads for a short time.
+>   * While it should be able to detect multiple finger events, this version of the chip always returns only a single finger event and a gesture. Reading the display data multiple times during a single event will return the last sampled finger position.
+> * For some chips, reading ID may cause initialization failure. Disable reading ID by setting `CONFIG_ESP_LCD_TOUCH_CST816S_DISABLE_READ_ID` to `y` in `menuconfig`.
 
 ## Add to project
 

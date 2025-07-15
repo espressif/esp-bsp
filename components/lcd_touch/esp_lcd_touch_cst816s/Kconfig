@@ -1,0 +1,9 @@
+menu "ESP LCD TOUCH - CST816S"
+
+    config ESP_LCD_TOUCH_CST816S_DISABLE_READ_ID
+        bool "Disable reading ID during initialization"
+        default n
+        help
+            For some CST816 series chips, reading ID may cause initialization failure.
+
+endmenu

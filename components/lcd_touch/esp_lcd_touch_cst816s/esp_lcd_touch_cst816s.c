@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -80,7 +80,11 @@ esp_err_t esp_lcd_touch_new_i2c_cst816s(const esp_lcd_panel_io_handle_t io, cons
     /* Reset controller */
     ESP_GOTO_ON_ERROR(reset(cst816s), err, TAG, "Reset failed");
     /* Read product id */
-    ESP_GOTO_ON_ERROR(read_id(cst816s), err, TAG, "Read version failed");
+#ifdef CONFIG_ESP_LCD_TOUCH_CST816S_DISABLE_READ_ID
+    ESP_LOGI(TAG, "Read ID disabled");
+#else
+    ESP_GOTO_ON_ERROR(read_id(cst816s), err, TAG, "Read ID failed");
+#endif
     *tp = cst816s;
 
     return ESP_OK;
@@ -170,6 +174,7 @@ static esp_err_t reset(esp_lcd_touch_handle_t tp)
     return ESP_OK;
 }
 
+#ifndef CONFIG_ESP_LCD_TOUCH_CST816S_DISABLE_READ_ID
 static esp_err_t read_id(esp_lcd_touch_handle_t tp)
 {
     uint8_t id;
@@ -177,6 +182,7 @@ static esp_err_t read_id(esp_lcd_touch_handle_t tp)
     ESP_LOGI(TAG, "IC id: %d", id);
     return ESP_OK;
 }
+#endif
 
 static esp_err_t i2c_read_bytes(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint8_t len)
 {
