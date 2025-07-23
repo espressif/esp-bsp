@@ -10,6 +10,35 @@
 #include "esp_lcd_panel_interface.h"
 #include "esp_lcd_panel_io.h"
 
+// Select the Waveshare or GooDisplay epaper display that you have.
+// The display must use a SSD1680 or 1681 controller (see Waveshare documentation to be sure).
+#define WAVE_27 1   // 2.7 inch V2
+#define WAVE_154 0  // 1.54 inch square (this code originally only supported this model)
+
+/* NOTE: (GDN) in my limited experience the rectangular displays assume portrait orientation:
+ * the X coordinate is the small dimension, Y is long. When transferring bitmaps to the display,
+ * the controller increments X (index within a row) and increments Y (row selector) when X has reached the end of a row.
+ * There are command options to change the direction of X and/or Y, from increment to decrement. But the controller always
+ * writes a row and then incrments/decrements the Y index.
+ * If you orient the display in landscape, then you may want to increnent Y from 0 to HEIGHT and then increment X to select
+ * the next column. See SSD1681_CMD_DATA_ENTRY_MODE in esp_lcd_ssd1681_commands.h for more info.
+ */
+#define SSD1681_LUT_SIZE                   159
+#if defined(WAVE_154) && WAVE_154==1
+#define SSD1681_EPD_1IN54_V2_WIDTH         200
+#define SSD1681_EPD_1IN54_V2_HEIGHT        200
+#define DISPLAY_W 200
+#define DISPLAY_V 200
+#define SQUARE_PANEL    1
+#elif defined(WAVE_27) && WAVE_27==1
+// Waveshare 2.7 inch
+#define WAVE_27_V2_WIDTH         176
+#define WAVE_27_V2_HEIGHT        264
+#define DISPLAY_W 176
+#define DISPLAY_V 264
+#endif
+#define DISPLAY_H DISPLAY_V		// Vertical or Height, use either in the code
+
 #ifdef __cplusplus
 extern "C" {
 #endif
