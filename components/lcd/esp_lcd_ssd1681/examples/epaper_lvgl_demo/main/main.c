@@ -30,6 +30,7 @@ static const char *TAG = "example";
 //////////////////// Please update the following configuration according to your LCD spec //////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define EXAMPLE_LCD_PIXEL_CLOCK_HZ     (20 * 1000 * 1000)
+#if 0
 #define EXAMPLE_PIN_NUM_SCLK           6
 #define EXAMPLE_PIN_NUM_MOSI           7
 #define EXAMPLE_PIN_NUM_MISO           (-1)   // Unused
@@ -37,10 +38,27 @@ static const char *TAG = "example";
 #define EXAMPLE_PIN_NUM_EPD_RST        4
 #define EXAMPLE_PIN_NUM_EPD_CS         10
 #define EXAMPLE_PIN_NUM_EPD_BUSY       18
+#endif
+#if 1
+// e-Paper GPIO with Waveshare ESP32S3
+#define EXAMPLE_PIN_NUM_EPD_DC      8
+#define EXAMPLE_PIN_NUM_EPD_RST     10
+#define EXAMPLE_PIN_NUM_EPD_CS      5
+#define EXAMPLE_PIN_NUM_EPD_BUSY    11
+// e-Paper SPI
+#define EXAMPLE_PIN_NUM_MOSI        15
+#define EXAMPLE_PIN_NUM_SCLK        18
+#define EXAMPLE_PIN_NUM_MISO           (-1)   // Unused
+#endif
 
 // The pixel number in horizontal and vertical
+#if WAVE_154
 #define EXAMPLE_LCD_H_RES              200
 #define EXAMPLE_LCD_V_RES              200
+#elif WAVE_27
+#define EXAMPLE_LCD_H_RES              DISPLAY_W
+#define EXAMPLE_LCD_V_RES              DISPLAY_H
+#endif
 
 // Bit number used to represent command and parameter
 #define EXAMPLE_LCD_CMD_BITS           8
@@ -157,7 +175,7 @@ void app_main(void)
         .miso_io_num = EXAMPLE_PIN_NUM_MISO,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = EXAMPLE_LCD_H_RES * 200 / 8,
+        .max_transfer_sz = EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES / 8,   // was 200 instead of EXAMPLE_LCD_H_RES
     };
     ESP_ERROR_CHECK(spi_bus_initialize(LCD_HOST, &buscfg, SPI_DMA_CH_AUTO));
 
@@ -221,15 +239,15 @@ void app_main(void)
     lv_init();
     // alloc draw buffers used by LVGL
     // it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized
-    lv_color_t *buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * 200 * sizeof(lv_color_t), MALLOC_CAP_DMA);
+    lv_color_t *buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES * sizeof(lv_color_t), MALLOC_CAP_DMA);  // was 200 instead of EXAMPLE_LCD_V_RES
     assert(buf1);
-    lv_color_t *buf2 = heap_caps_malloc(EXAMPLE_LCD_H_RES * 200 * sizeof(lv_color_t), MALLOC_CAP_DMA);
+    lv_color_t *buf2 = heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES * sizeof(lv_color_t), MALLOC_CAP_DMA);  // was 200 instead of EXAMPLE_LCD_V_RES
     assert(buf2);
     // alloc bitmap buffer to draw
     converted_buffer_black = heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES / 8, MALLOC_CAP_DMA);
     converted_buffer_red = heap_caps_malloc(EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES / 8, MALLOC_CAP_DMA);
     // initialize LVGL draw buffers
-    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * 200);
+    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES);  // was 200 instead of EXAMPLE_LCD_V_RES
     // initialize LVGL display driver
     lv_disp_drv_init(&disp_drv);
     disp_drv.hor_res = EXAMPLE_LCD_H_RES;
