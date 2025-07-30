@@ -110,8 +110,10 @@ TEST_CASE("test st7796 to draw color bar with I80 interface", "[st7796][i80]")
         .reset_gpio_num = TEST_PIN_NUM_LCD_RST,
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
         .color_space = ESP_LCD_COLOR_SPACE_BGR,
-#else
+#elif ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
         .rgb_endian = LCD_RGB_ENDIAN_BGR,
+#else
+        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
 #endif
         .bits_per_pixel = TEST_LCD_BIT_PER_PIXEL,
     };
