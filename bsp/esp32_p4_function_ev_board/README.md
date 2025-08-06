@@ -89,29 +89,29 @@ This BSP supports HDMI converter Lontium LT8912B. Follow these rules for using i
 
 ## LVGL Benchmark
 
-**DATE:** 08.07.2025 10:31
+**DATE:** 06.08.2025 10:06
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 55%  | 88  | 6  | 5  | 1  |
-| Moving wallpaper | 89%  | 71  | 10  | 7  | 3  |
-| Single rectangle | 23%  | 88  | 1  | 1  | 0  |
-| Multiple rectangles | 39%  | 90  | 2  | 2  | 0  |
-| Multiple RGB images | 30%  | 98  | 1  | 1  | 0  |
-| Multiple ARGB images | 56%  | 91  | 6  | 6  | 0  |
-| Rotated ARGB images | 88%  | 58  | 14  | 14  | 0  |
-| Multiple labels | 92%  | 61  | 12  | 12  | 0  |
-| Screen sized text | 99%  | 13  | 69  | 67  | 2  |
-| Multiple arcs | 98%  | 47  | 17  | 15  | 2  |
-| Containers | 30%  | 89  | 3  | 3  | 0  |
-| Containers with overlay | 95%  | 28  | 31  | 29  | 2  |
-| Containers with opa | 31%  | 92  | 4  | 4  | 0  |
-| Containers with opa_layer | 65%  | 75  | 12  | 12  | 0  |
-| Containers with scrolling | 99%  | 28  | 32  | 30  | 2  |
-| Widgets demo | 99%  | 17  | 51  | 49  | 2  |
-| All scenes avg. | 68%  | 64  | 16  | 16  | 0  |
+| Empty screen | 56%  | 88  | 5  | 4  | 1  |
+| Moving wallpaper | 89%  | 71  | 11  | 7  | 4  |
+| Single rectangle | 18%  | 88  | 1  | 1  | 0  |
+| Multiple rectangles | 42%  | 90  | 2  | 2  | 0  |
+| Multiple RGB images | 28%  | 97  | 1  | 1  | 0  |
+| Multiple ARGB images | 56%  | 92  | 5  | 5  | 0  |
+| Rotated ARGB images | 86%  | 61  | 14  | 14  | 0  |
+| Multiple labels | 93%  | 61  | 13  | 12  | 1  |
+| Screen sized text | 99%  | 13  | 69  | 66  | 3  |
+| Multiple arcs | 98%  | 47  | 17  | 16  | 1  |
+| Containers | 26%  | 87  | 2  | 2  | 0  |
+| Containers with overlay | 93%  | 28  | 31  | 29  | 2  |
+| Containers with opa | 33%  | 92  | 4  | 4  | 0  |
+| Containers with opa_layer | 63%  | 73  | 13  | 13  | 0  |
+| Containers with scrolling | 96%  | 28  | 31  | 29  | 2  |
+| Widgets demo | 99%  | 17  | 50  | 48  | 2  |
+| All scenes avg. | 67%  | 64  | 16  | 15  | 1  |
 
 
 
