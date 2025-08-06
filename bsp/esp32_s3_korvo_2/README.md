@@ -15,6 +15,8 @@ The ESP32-S3-Korvo-2 is a multimedia development board based on the ESP32-S3 chi
 </td></tr>
 </table>
 
+> **_NOTE:_** Compatible with V3.0 a V3.1 boards.
+
 ![image](doc/pic.png)
 
 ## Capabilities and dependencies
