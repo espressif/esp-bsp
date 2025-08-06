@@ -623,14 +623,14 @@ esp_err_t bsp_leds_init(void)
     BSP_NULL_CHECK(bsp_io_expander_init(), ESP_ERR_INVALID_STATE);
     BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_dir(io_expander, BSP_LED_RED, IO_EXPANDER_OUTPUT));
     BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_dir(io_expander, BSP_LED_BLUE, IO_EXPANDER_OUTPUT));
-    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_level(io_expander, BSP_LED_RED, true));
-    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_level(io_expander, BSP_LED_BLUE, true));
+    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_level(io_expander, BSP_LED_RED, false));
+    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_level(io_expander, BSP_LED_BLUE, false));
     return ESP_OK;
 }
 
 esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_level(io_expander, led_io, !on));
+    BSP_ERROR_CHECK_RETURN_ERR(esp_io_expander_set_level(io_expander, led_io, on));
     return ESP_OK;
 }
 

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -42,7 +42,9 @@
 static const char *TAG = "DISP";
 
 static esp_codec_dev_handle_t spk_codec_dev = NULL;
+#if BSP_CAPS_AUDIO_MIC
 static esp_codec_dev_handle_t mic_codec_dev = NULL;
+#endif
 
 /*******************************************************************************
 * Types definitions
@@ -74,7 +76,6 @@ static void app_disp_lvgl_show_settings(lv_obj_t *screen, lv_group_t *group);
 static void app_disp_lvgl_show_record(lv_obj_t *screen, lv_group_t *group);
 static void app_disp_lvgl_show_filesystem(lv_obj_t *screen, lv_group_t *group);
 static void app_disp_lvgl_show_files(const char *path);
-static void scroll_begin_event(lv_event_t *e);
 static void tab_changed_event(lv_event_t *e);
 static void set_tab_group(void);
 
@@ -117,8 +118,6 @@ void app_disp_lvgl_show(void)
     lv_obj_set_size(tabview, BSP_LCD_H_RES, BSP_LCD_V_RES);
     lv_obj_align(tabview, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_set_style_text_font(tabview, &lv_font_montserrat_14, 0);
-    /* Change animation time of moving between tabs */
-    //lv_obj_add_event_cb(lv_tabview_get_content(tabview), scroll_begin_event, LV_EVENT_SCROLL_BEGIN, NULL);
     lv_obj_add_event_cb(tabview, tab_changed_event, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Tabview buttons style */
@@ -988,16 +987,5 @@ static void tab_changed_event(lv_event_t *e)
     /* Change scroll time animations. Triggered when a tab button is clicked */
     if (lv_event_get_code(e) == LV_EVENT_VALUE_CHANGED) {
         set_tab_group();
-    }
-}
-
-static void scroll_begin_event(lv_event_t *e)
-{
-    /* Change scroll time animations. Triggered when a tab button is clicked */
-    if (lv_event_get_code(e) == LV_EVENT_SCROLL_BEGIN) {
-        lv_anim_t *a = lv_event_get_param(e);
-        if (a) {
-            lv_anim_set_duration(a, 300);
-        }
     }
 }
