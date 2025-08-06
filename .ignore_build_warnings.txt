@@ -1,1 +1,3 @@
 DeprecationWarning: pkg_resources is deprecated as an API
+warning: unknown kconfig symbol 'TOUCH_SUPPRESS_DEPRECATE_WARN' assigned to*
+warning: ignoring attribute 'section .+' because it conflicts with previous 'section .+

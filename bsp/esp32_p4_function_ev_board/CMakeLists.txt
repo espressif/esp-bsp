@@ -4,5 +4,5 @@ idf_component_register(
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "priv_include"
     REQUIRES driver vfs fatfs
-    PRIV_REQUIRES esp_lcd usb spiffs
+    PRIV_REQUIRES esp_lcd usb spiffs esp_psram
 )
