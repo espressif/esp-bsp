@@ -69,29 +69,29 @@ M5Dial provides versatile power supply options to cater to various needs. It acc
 
 ## LVGL Benchmark
 
-**DATE:** 08.07.2025 10:31
+**DATE:** 06.08.2025 10:06
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 96%  | 38  | 23  | 4  | 19  |
-| Moving wallpaper | 94%  | 41  | 23  | 11  | 12  |
-| Single rectangle | 32%  | 98  | 2  | 0  | 2  |
-| Multiple rectangles | 87%  | 63  | 12  | 9  | 3  |
-| Multiple RGB images | 34%  | 92  | 2  | 1  | 1  |
-| Multiple ARGB images | 37%  | 93  | 3  | 3  | 0  |
-| Rotated ARGB images | 79%  | 60  | 16  | 15  | 1  |
-| Multiple labels | 58%  | 98  | 5  | 5  | 0  |
-| Screen sized text | 97%  | 23  | 40  | 38  | 2  |
-| Multiple arcs | 20%  | 88  | 0  | 0  | 0  |
-| Containers | 38%  | 82  | 13  | 7  | 6  |
-| Containers with overlay | 90%  | 33  | 25  | 20  | 5  |
-| Containers with opa | 42%  | 78  | 15  | 11  | 4  |
-| Containers with opa_layer | 51%  | 73  | 18  | 16  | 2  |
-| Containers with scrolling | 96%  | 32  | 27  | 21  | 6  |
-| Widgets demo | 99%  | 27  | 19  | 18  | 1  |
-| All scenes avg. | 65%  | 63  | 15  | 11  | 4  |
+| Empty screen | 93%  | 38  | 22  | 6  | 16  |
+| Moving wallpaper | 94%  | 39  | 24  | 12  | 12  |
+| Single rectangle | 27%  | 98  | 0  | 0  | 0  |
+| Multiple rectangles | 90%  | 60  | 13  | 8  | 5  |
+| Multiple RGB images | 31%  | 93  | 0  | 0  | 0  |
+| Multiple ARGB images | 35%  | 92  | 4  | 3  | 1  |
+| Rotated ARGB images | 83%  | 57  | 17  | 16  | 1  |
+| Multiple labels | 71%  | 94  | 4  | 4  | 0  |
+| Screen sized text | 94%  | 23  | 39  | 38  | 1  |
+| Multiple arcs | 30%  | 90  | 1  | 1  | 0  |
+| Containers | 37%  | 83  | 13  | 8  | 5  |
+| Containers with overlay | 92%  | 33  | 26  | 21  | 5  |
+| Containers with opa | 51%  | 76  | 16  | 12  | 4  |
+| Containers with opa_layer | 47%  | 71  | 18  | 15  | 3  |
+| Containers with scrolling | 95%  | 32  | 26  | 21  | 5  |
+| Widgets demo | 96%  | 27  | 20  | 18  | 2  |
+| All scenes avg. | 66%  | 62  | 14  | 11  | 3  |
 
 
 
