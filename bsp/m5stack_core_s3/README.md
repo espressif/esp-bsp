@@ -89,7 +89,7 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 | Containers with opa_layer | 61%  | 56  | 26  | 21  | 5  |
 | Containers with scrolling | 93%  | 27  | 32  | 20  | 12  |
 | Widgets demo | 96%  | 27  | 20  | 17  | 3  |
-| All scenes avg. | 64%  | 56  | 17  | 11  | 6  |
+| All scenes avg. | 64%  | 57  | 17  | 11  | 6  |
 
 
 

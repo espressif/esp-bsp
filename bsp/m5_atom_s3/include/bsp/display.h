@@ -32,7 +32,7 @@
 /* LCD display color bits */
 #define BSP_LCD_BITS_PER_PIXEL      (16)
 /* LCD display color space */
-#define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_BGR)
+#define BSP_LCD_COLOR_SPACE         (LCD_RGB_ELEMENT_ORDER_BGR)
 /* LCD definition */
 #define BSP_LCD_H_RES              (128)
 #define BSP_LCD_V_RES              (128)
