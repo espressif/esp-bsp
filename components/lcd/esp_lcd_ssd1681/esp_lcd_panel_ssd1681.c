@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -7,6 +7,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sdkconfig.h"
+
 #if CONFIG_LCD_ENABLE_DEBUG_LOG
 // The local log level must be defined before including esp_log.h
 // Set the maximum log level for this source file
@@ -23,6 +24,8 @@
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_ssd1681_commands.h"
 
+// TODO: valid for 1.54 inch 200x200 display. Might not be valid for others.
+#define SSD1681_LUT_SIZE                   159
 
 static const char *TAG = "lcd_panel.epaper";
 
@@ -41,6 +44,8 @@ typedef struct {
     // Configurations from epaper_ssd1681_conf
     int busy_gpio_num;
     bool full_refresh;
+    int display_x;  // width in pixels
+    int display_y;  // height in pixels
     // Configurations from interface functions
     int gap_x;
     int gap_y;
@@ -270,6 +275,8 @@ esp_lcd_new_panel_ssd1681(const esp_lcd_panel_io_handle_t io, const esp_lcd_pane
     epaper_panel->busy_gpio_num = epaper_ssd1681_conf->busy_gpio_num;
     epaper_panel->reset_level = panel_dev_config->flags.reset_active_high;
     epaper_panel->_non_copy_mode = epaper_ssd1681_conf->non_copy_mode;
+    epaper_panel->display_x = epaper_ssd1681_conf->display_x;
+    epaper_panel->display_y = epaper_ssd1681_conf->display_y;
     // functions
     epaper_panel->base.del = epaper_panel_del;
     epaper_panel->base.reset = epaper_panel_reset;
@@ -283,7 +290,7 @@ esp_lcd_new_panel_ssd1681(const esp_lcd_panel_io_handle_t io, const esp_lcd_pane
     *ret_panel = &(epaper_panel->base);
     // --- Init framebuffer
     if (!(epaper_panel->_non_copy_mode)) {
-        epaper_panel->_framebuffer = heap_caps_malloc(DISPLAY_W * DISPLAY_H / 8,
+        epaper_panel->_framebuffer = heap_caps_malloc(epaper_panel->display_x * epaper_panel->display_y / 8,
                                      MALLOC_CAP_DMA);
         ESP_RETURN_ON_FALSE(epaper_panel->_framebuffer, ESP_ERR_NO_MEM, TAG, "epaper_panel_draw_bitmap allocating buffer memory err");
     }
@@ -384,7 +391,7 @@ static esp_err_t epaper_panel_init(esp_lcd_panel_t *panel)
     panel_epaper_wait_busy(panel);
     // --- Driver Output Control: prescribe the length of a row
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_OUTPUT_CTRL,
-                        SSD1681_PARAM_OUTPUT_CTRL(DISPLAY_W), 0), TAG, "SSD1681_CMD_OUTPUT_CTRL err");
+                        SSD1681_PARAM_OUTPUT_CTRL(epaper_panel->display_x), 0), TAG, "SSD1681_CMD_OUTPUT_CTRL err");
 
     // --- Border Waveform Control
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_SET_BORDER_WAVEFORM, (uint8_t[]) {
@@ -466,7 +473,7 @@ epaper_panel_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x
     // Y MIRROR
     else if ((!(epaper_panel->_mirror_x)) && (epaper_panel->_mirror_y)) {
 #if SQUARE_PANEL    // code for square panel
-        y_end = y_end + len_y -1;
+        y_end = y_end + len_y - 1;
 #else   // code that works with rectangular panels
         y_end = 0;
 #endif
@@ -484,7 +491,7 @@ epaper_panel_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x
     // X MIRROR
     else if (((epaper_panel->_mirror_x)) && (!(epaper_panel->_mirror_y))) {
 #if SQUARE_PANEL    // code for square panel
-        y_end = y_end + len_y -1;
+        y_end = y_end + len_y - 1;
 #else   // code that works with rectangular panels
         y_end = 0;
 #endif
@@ -605,7 +612,7 @@ static esp_err_t process_bitmap(esp_lcd_panel_t *panel, int len_x, int len_y, in
     if ((!(epaper_panel->_mirror_x)) && (!(epaper_panel->_mirror_y))) {
         if (!(epaper_panel->_non_copy_mode)) {
             if (epaper_panel->_swap_xy) {
-                memset(epaper_panel->_framebuffer, 0, DISPLAY_W * DISPLAY_H / 8);
+                memset(epaper_panel->_framebuffer, 0, epaper_panel->display_x * epaper_panel->display_y / 8);
                 for (int i = 0; i < buffer_size * 8; i++) {
                     uint8_t bitmap_byte = ((uint8_t *) (color_data))[i / 8];
                     uint8_t bitmap_pixel = (bitmap_byte & (0x01 << (7 - (i % 8)))) ? 0x01 : 0x00;
@@ -622,7 +629,7 @@ static esp_err_t process_bitmap(esp_lcd_panel_t *panel, int len_x, int len_y, in
     // MIRROR Y
     if ((!(epaper_panel->_mirror_x)) && (epaper_panel->_mirror_y)) {
         if (epaper_panel->_swap_xy) {
-            memset((epaper_panel->_framebuffer), 0, DISPLAY_W * DISPLAY_H / 8);
+            memset((epaper_panel->_framebuffer), 0, epaper_panel->display_x * epaper_panel->display_y / 8);
             for (int i = 0; i < buffer_size * 8; i++) {
                 uint8_t bitmap_byte = ((uint8_t *) (color_data))[i / 8];
                 uint8_t bitmap_pixel = (bitmap_byte & (0x01 << (7 - (i % 8)))) ? 0x01 : 0x00;
@@ -642,7 +649,7 @@ static esp_err_t process_bitmap(esp_lcd_panel_t *panel, int len_x, int len_y, in
     if (((epaper_panel->_mirror_x)) && (!(epaper_panel->_mirror_y))) {
         if (!(epaper_panel->_non_copy_mode)) {
             if (epaper_panel->_swap_xy) {
-                memset((epaper_panel->_framebuffer), 0, DISPLAY_W * DISPLAY_H / 8);
+                memset((epaper_panel->_framebuffer), 0, epaper_panel->display_x * epaper_panel->display_y / 8);
                 for (int i = 0; i < buffer_size * 8; i++) {
                     uint8_t bitmap_byte = ((uint8_t *) (color_data))[i / 8];
                     uint8_t bitmap_pixel = (bitmap_byte & (0x01 << (7 - (i % 8)))) ? 0x01 : 0x00;
@@ -662,7 +669,7 @@ static esp_err_t process_bitmap(esp_lcd_panel_t *panel, int len_x, int len_y, in
     // MIRROR_XY
     if (((epaper_panel->_mirror_x)) && (epaper_panel->_mirror_y)) {
         if (epaper_panel->_swap_xy) {
-            memset((epaper_panel->_framebuffer), 0, DISPLAY_W * DISPLAY_H / 8);
+            memset((epaper_panel->_framebuffer), 0, epaper_panel->display_x * epaper_panel->display_y / 8);
             for (int i = 0; i < buffer_size * 8; i++) {
                 uint8_t bitmap_byte = ((uint8_t *) (color_data))[i / 8];
                 uint8_t bitmap_pixel = (bitmap_byte & (0x01 << (7 - (i % 8)))) ? 0x01 : 0x00;

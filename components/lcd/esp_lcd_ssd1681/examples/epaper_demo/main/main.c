@@ -1,15 +1,45 @@
 /*
- * SPDX-FileCopyrightText: 2010-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2010-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 
+// Select the Waveshare or GooDisplay epaper display that you have.
+// The display must use a SSD1680 or 1681 controller (see Waveshare documentation to be sure).
+#define WAVE_27 1   // 2.7 inch V2
+#define WAVE_154 0  // 1.54 inch square (this code originally only supported this model)
+
+/* NOTE: (GDN) in my limited experience the rectangular displays assume portrait orientation:
+ * the X coordinate is the small dimension, Y is long. Waveshare documentation is ambiguous on this topic!
+ * When transferring bitmaps to the display,
+ * the controller increments X (index within a row) and then increments Y (row selector) when X has reached the end of a row.
+ * There are command options to change the direction of X and/or Y, from increment to decrement.
+ * The implementation in esp_lcd_panel_ssd1681.c changes the increment/decrement setting when mirroring the image.
+ * If you orient the display in landscape, the controller can be made to increment first over Y, then over X.
+ * The code in esp_lcd_panel_ssd1681.c is not currently implemented for these modes.
+ * See SSD1681_CMD_DATA_ENTRY_MODE values in esp_lcd_ssd1681_commands.h for more info.
+ */
+#define SSD1681_LUT_SIZE                   159
+#if defined(WAVE_154) && WAVE_154==1
+#define SSD1681_EPD_1IN54_V2_WIDTH         200
+#define SSD1681_EPD_1IN54_V2_HEIGHT        200
+#define DISPLAY_X SSD1681_EPD_1IN54_V2_WIDTH
+#define DISPLAY_Y SSD1681_EPD_1IN54_V2_HEIGHT
+#define SQUARE_PANEL    1
+#elif defined(WAVE_27) && WAVE_27==1
+// Waveshare 2.7 inch
+#define WAVE_27_V2_WIDTH         176
+#define WAVE_27_V2_HEIGHT        264
+#define DISPLAY_X WAVE_27_V2_WIDTH
+#define DISPLAY_Y WAVE_27_V2_HEIGHT
+#endif
+
 // Full screen test controls
-#define MIRROR_NO 1
-#define MIRROR_X 1
-#define MIRROR_Y 1
-#define MIRROR_XY 1
+#define MIRROR_NONE 1 // display image as input
+#define MIRROR_X 1  // mirror on the X axis
+#define MIRROR_Y 1  // mirror on the Y axis
+#define MIRROR_XY 1 // mirror on both axes
 
 // second part of test, smaller than full screen, move images around
 #define SHOW_PENGUIN 1
@@ -27,8 +57,8 @@
 #include "esp_lcd_panel_ops.h"
 #include "driver/spi_common.h"
 #include "driver/gpio.h"
-
-//#include "ssd1681_waveshare_1in54_lut.h"
+// NOTE: Custom LUT tables are not used in this example. Displays default to a built-in LUT.
+#include "ssd1681_waveshare_1in54_lut.h"
 #include "img_bitmap.h"
 
 // Test Images
@@ -58,16 +88,6 @@
 #define EXAMPLE_PIN_NUM_MOSI        7
 #define EXAMPLE_PIN_NUM_SCLK        6
 #endif
-#if 0
-// e-Paper GPIO with ESP32C6
-#define EXAMPLE_PIN_NUM_EPD_DC      8
-#define EXAMPLE_PIN_NUM_EPD_RST     10
-#define EXAMPLE_PIN_NUM_EPD_CS      5
-#define EXAMPLE_PIN_NUM_EPD_BUSY    11
-// e-Paper SPI
-#define EXAMPLE_PIN_NUM_MOSI        15
-#define EXAMPLE_PIN_NUM_SCLK        18
-#endif
 #if 1
 // e-Paper GPIO with Waveshare ESP32S3
 #define EXAMPLE_PIN_NUM_EPD_DC      8
@@ -95,33 +115,47 @@ static bool give_semaphore_in_isr(const esp_lcd_panel_handle_t handle, const voi
 
 // Copy a bitmap image to display buffer. Not used when FULL_IMAGE is same size as screen.
 // Also the display buffer is usually assumed to be full screen.
-uint8_t* crop_bitmap(const uint8_t* in_bitmap, int in_x, int in_y, int out_x, int out_y)
+uint8_t *crop_bitmap(const uint8_t *in_bitmap, int in_x, int in_y, int out_x, int out_y)
 {
-    out_x = (out_x < in_x) ? out_x : in_x;
-    int b_dup = 0;
-    if (out_y > in_y) b_dup = 1;
-
-    ESP_LOGD(TAG, "out_x = %d, out_y = %d", out_x, out_y);
-    uint8_t *out_bitmap = heap_caps_malloc(DISPLAY_W * DISPLAY_H / 8, MALLOC_CAP_DMA);
-    memset(out_bitmap, 0, DISPLAY_W * DISPLAY_H / 8);
-    if (in_x == out_x && in_y == out_y) {
-        memcpy(out_bitmap, in_bitmap, in_x * in_y / 8);
+    if (out_x > DISPLAY_X) {
+        ESP_LOGW(TAG, "crop_bitmap: out_x = %d too large, change to %d", out_x, DISPLAY_X);
+        out_x = DISPLAY_X;
     }
-    else {
+    if (out_y > DISPLAY_Y) {
+        ESP_LOGW(TAG, "crop_bitmap: out_y = %d too large, change to %d", out_y, DISPLAY_Y);
+        out_y = DISPLAY_Y;
+    }
+    out_x = (out_x < in_x) ? out_x : in_x;  // don't allow out_x to be bigger than in_x
+    bool b_dup = false;
+    if (out_y > in_y) {
+        b_dup = true;    // if out_y > in_y, then duplicate some of the input image
+    }
+
+    // The bitmap must be full size, so use DISPLAY_X and DISPLAY_Y, regardless of out_x, out_y.
+    uint8_t *out_bitmap = heap_caps_malloc(DISPLAY_X * DISPLAY_Y / 8, MALLOC_CAP_DMA);
+    memset(out_bitmap, 0, DISPLAY_X * DISPLAY_Y / 8);
+
+    if (in_x == out_x && in_y == out_y) {
+        // in and out are same size
+        memcpy(out_bitmap, in_bitmap, in_x * in_y / 8);
+    } else {
         uint8_t *out_ptr = out_bitmap;
         uint8_t *in_ptr = in_bitmap;
         ESP_LOGD(TAG, "in_bitmap = %p", (void *)in_bitmap);
         ESP_LOGD(TAG, "out_bitmap = %p", (void *)out_bitmap);
         // row index
         for (int iy = 0; iy < out_y; iy++) {
-            if (b_dup && iy >= in_y) { in_ptr = in_bitmap; b_dup = 0;}
+            if (b_dup && iy >= in_y) {
+                // Duplicate some of the input image, so start over.
+                in_ptr = in_bitmap; b_dup = 0;
+            }
             // ix is column index. Inner loop copies a single row.
-            for (int ix = 0; ix < out_x/8; ix++) {
+            for (int ix = 0; ix < out_x / 8; ix++) {
                 *out_ptr = *in_ptr;
                 out_ptr++; in_ptr++;
             }
             //ESP_LOGI(TAG, "crop_bitmap: row = %d, in_ptr idx = %d", iy, in_ptr-in_bitmap);
-            in_ptr += (in_x - out_x)/8;
+            in_ptr += (in_x - out_x) / 8;
         }
         ESP_LOGD(TAG, "crop_bitmap copied %d bytes", (out_ptr - out_bitmap));
     }
@@ -166,6 +200,9 @@ void app_main(void)
         // since those operations are not supported by ssd1681 and are implemented by software
         // Better use DMA-capable memory region, to avoid additional data copy
         .non_copy_mode = false,
+        // panel dimensions
+        .display_x = DISPLAY_X,
+        .display_y = DISPLAY_Y,
     };
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = EXAMPLE_PIN_NUM_EPD_RST,
@@ -211,14 +248,14 @@ void app_main(void)
 
     // --- Clear the VRAM of RED and BLACK
     ESP_LOGI(TAG, "Clear Screen");
-    uint8_t *empty_bitmap = heap_caps_malloc(DISPLAY_W * DISPLAY_H / 8, MALLOC_CAP_DMA);
-    memset(empty_bitmap, 0, DISPLAY_W * DISPLAY_H / 8);
-#if 0   // no RED on my panel
+    uint8_t *empty_bitmap = heap_caps_malloc(DISPLAY_X * DISPLAY_Y / 8, MALLOC_CAP_DMA);
+    memset(empty_bitmap, 0, DISPLAY_X * DISPLAY_Y / 8);
+#if WAVE_154   // no RED on WAVE_27
     epaper_panel_set_bitmap_color(panel_handle, SSD1681_EPAPER_BITMAP_RED);
-    esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_W, DISPLAY_H, empty_bitmap);
+    esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_X, DISPLAY_Y, empty_bitmap);
 #endif
     epaper_panel_set_bitmap_color(panel_handle, SSD1681_EPAPER_BITMAP_BLACK);
-    esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_W, DISPLAY_H, empty_bitmap);
+    esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_X, DISPLAY_Y, empty_bitmap);
     // refresh screen just so I can see that it is blank - not required
     ESP_ERROR_CHECK(epaper_panel_refresh_screen(panel_handle));
     // Maybe SPI operation is still going on, so set a delay
@@ -228,17 +265,17 @@ void app_main(void)
     // --- Draw full-screen bitmap
     ESP_LOGI(TAG, "Drawing bitmap...");
     ESP_LOGI(TAG, "Show image full-screen");
-    uint8_t *crop_image = heap_caps_malloc(DISPLAY_W * DISPLAY_H / 8, MALLOC_CAP_DMA);
-    memset(crop_image, 0, DISPLAY_W * DISPLAY_H / 8);
-    memcpy(crop_image, FULL_IMAGE, DISPLAY_W * DISPLAY_H / 8);
-#if MIRROR_NO
+    uint8_t *crop_image = heap_caps_malloc(DISPLAY_X * DISPLAY_Y / 8, MALLOC_CAP_DMA);
+    memset(crop_image, 0, DISPLAY_X * DISPLAY_Y / 8);
+    memcpy(crop_image, FULL_IMAGE, DISPLAY_X * DISPLAY_Y / 8);
+#if MIRROR_NONE
     ESP_LOGI(TAG, "Draw image NO Mirror");
     xSemaphoreTake(epaper_panel_semaphore, portMAX_DELAY);
     ESP_ERROR_CHECK(esp_lcd_panel_mirror(panel_handle, false, false));
     ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, FULL_INVERT));
     ESP_ERROR_CHECK(esp_lcd_panel_swap_xy(panel_handle, false));
     ESP_LOGI(TAG, "Drawing bitmap...");
-    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_W, DISPLAY_H, crop_image));
+    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_X, DISPLAY_Y, crop_image));
     ESP_ERROR_CHECK(epaper_panel_refresh_screen(panel_handle));
 #endif
 #if MIRROR_Y
@@ -249,7 +286,7 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, FULL_INVERT));
     ESP_ERROR_CHECK(esp_lcd_panel_swap_xy(panel_handle, false));
     ESP_LOGI(TAG, "Drawing bitmap...");
-    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_W, DISPLAY_H, crop_image));
+    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_X, DISPLAY_Y, crop_image));
     ESP_ERROR_CHECK(epaper_panel_refresh_screen(panel_handle));
 #endif
 #if MIRROR_X
@@ -260,7 +297,7 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, FULL_INVERT));
     ESP_ERROR_CHECK(esp_lcd_panel_swap_xy(panel_handle, false));
     ESP_LOGI(TAG, "Drawing bitmap...");
-    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_W, DISPLAY_H, crop_image));
+    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_X, DISPLAY_Y, crop_image));
     ESP_ERROR_CHECK(epaper_panel_refresh_screen(panel_handle));
 #endif
 #if MIRROR_XY
@@ -271,7 +308,7 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, FULL_INVERT));
     ESP_ERROR_CHECK(esp_lcd_panel_swap_xy(panel_handle, false));
     ESP_LOGI(TAG, "Drawing bitmap...");
-    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_W, DISPLAY_H, crop_image));
+    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_X, DISPLAY_Y, crop_image));
     ESP_ERROR_CHECK(epaper_panel_refresh_screen(panel_handle));
 #endif
 #if SQUARE_PANEL   // swap_xy tests: not implemented for non-square panels
@@ -281,7 +318,7 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, false));
     ESP_ERROR_CHECK(esp_lcd_panel_swap_xy(panel_handle, true));
     ESP_LOGI(TAG, "Drawing bitmap...");
-    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_W, DISPLAY_H, BITMAP_200_200));
+    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_X, DISPLAY_Y, BITMAP_200_200));
     ESP_ERROR_CHECK(epaper_panel_refresh_screen(panel_handle));
 
     xSemaphoreTake(epaper_panel_semaphore, portMAX_DELAY);
@@ -289,7 +326,7 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, false));
     ESP_ERROR_CHECK(esp_lcd_panel_swap_xy(panel_handle, true));
     ESP_LOGI(TAG, "Drawing bitmap...");
-    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_W, DISPLAY_H, BITMAP_200_200));
+    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_X, DISPLAY_Y, BITMAP_200_200));
     ESP_ERROR_CHECK(epaper_panel_refresh_screen(panel_handle));
 
     xSemaphoreTake(epaper_panel_semaphore, portMAX_DELAY);
@@ -297,7 +334,7 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, false));
     ESP_ERROR_CHECK(esp_lcd_panel_swap_xy(panel_handle, true));
     ESP_LOGI(TAG, "Drawing bitmap...");
-    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_W, DISPLAY_H, BITMAP_200_200));
+    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, DISPLAY_X, DISPLAY_Y, BITMAP_200_200));
     ESP_ERROR_CHECK(epaper_panel_refresh_screen(panel_handle));
 #endif
     heap_caps_free(crop_image);
@@ -306,7 +343,7 @@ void app_main(void)
     // Show penguin images that are smaller than full screen.
     // This code does not clear the display so the previous full screen image remains and goes thru
     // various XY mirrors. Furthermore the full screen image may have been displayed with invert_color,
-    // if so it will not be inverted here. 
+    // if so it will not be inverted here.
     vTaskDelay(pdMS_TO_TICKS(5000));
     ESP_LOGI(TAG, "Go to sleep mode...");
     esp_lcd_panel_disp_on_off(panel_handle, false);
