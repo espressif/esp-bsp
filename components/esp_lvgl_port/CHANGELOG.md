@@ -4,7 +4,7 @@
 
 ### Features
 - Added option to place LVGL task stack to external RAM
-- Added option to inclide a rounder callback for LVGL 9
+- Added option to include a rounder callback for LVGL 9
 
 ## 2.6.0
 
