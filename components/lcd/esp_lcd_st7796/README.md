@@ -14,7 +14,7 @@ Packages from this repository are uploaded to [Espressif's component service](ht
 You can add them to your project via `idf.py add-dependency`, e.g.
 
 ```bash
-compote manifest add-dependency espressif/esp_lcd_st7796==1.0.0
+idf.py add-dependency "espressif/esp_lcd_st7796^1.3.0"
 ```
 
 Alternatively, you can create `idf_component.yml`. More is in [Espressif's documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html).
@@ -59,23 +59,15 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
     //     .init_cmds_size = sizeof(lcd_init_cmds) / sizeof(st7796_lcd_init_cmd_t),
     // };
     const esp_lcd_panel_dev_config_t panel_config = {
-        .reset_gpio_num = EXAMPLE_PIN_NUM_LCD_RST,      // Set to -1 if not use
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)      // Implemented by LCD command `36h`
-        .color_space = ESP_LCD_COLOR_SPACE_RGB,
-#else
-        .rgb_endian = LCD_RGB_ENDIAN_RGB,
-#endif
-        .bits_per_pixel = EXAMPLE_LCD_BIT_PER_PIXEL,    // Implemented by LCD command `3Ah` (16/18/24)
-        // .vendor_config = &vendor_config,            // Uncomment this line if use custom initialization commands
+        .reset_gpio_num = EXAMPLE_PIN_NUM_LCD_RST,   // Set to -1 if not use
+        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,  // RGB element order: R-G-B
+        .bits_per_pixel = EXAMPLE_LCD_BIT_PER_PIXEL, // Implemented by LCD command `3Ah` (16/18/24)
+        // .vendor_config = &vendor_config,          // Uncomment this line if use custom initialization commands
     };
     ESP_ERROR_CHECK(esp_lcd_new_panel_st7796(io_handle, &panel_config, &panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-    ESP_ERROR_CHECK(esp_lcd_panel_disp_off(panel_handle, false));
-#else
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
-#endif
 ```
 
 ### MIPI Interface

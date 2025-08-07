@@ -74,7 +74,7 @@ esp_err_t esp_lcd_new_panel_st7796_general(const esp_lcd_panel_io_handle_t io, c
         ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported color space");
         break;
     }
-#else
+#elif ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
     switch (panel_dev_config->rgb_endian) {
     case LCD_RGB_ENDIAN_RGB:
         st7796->madctl_val = 0;
@@ -84,6 +84,18 @@ esp_err_t esp_lcd_new_panel_st7796_general(const esp_lcd_panel_io_handle_t io, c
         break;
     default:
         ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported rgb endian");
+        break;
+    }
+#else
+    switch (panel_dev_config->rgb_ele_order) {
+    case LCD_RGB_ELEMENT_ORDER_RGB:
+        st7796->madctl_val = 0;
+        break;
+    case LCD_RGB_ELEMENT_ORDER_BGR:
+        st7796->madctl_val |= LCD_CMD_BGR_BIT;
+        break;
+    default:
+        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported rgb element order");
         break;
     }
 #endif
