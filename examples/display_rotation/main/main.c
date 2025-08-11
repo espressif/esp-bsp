@@ -8,7 +8,7 @@
  * @file
  * @brief BSP Display Rotation Example
  * @details Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available)
- * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation
+ * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-
  */
 
 #include "esp_log.h"

@@ -46,7 +46,7 @@ The ESP32-LyraT is a stereo audio board. If you are looking for a mono audio boa
 
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
-| [Audio Example](https://github.com/espressif/esp-bsp/tree/master/examples/audio) | Play and record WAV file | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=audio) |
+| [Audio Example](https://github.com/espressif/esp-bsp/tree/master/examples/audio) | Play and record WAV file | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=audio-) |
 
 <!-- END_EXAMPLES -->
 </div>

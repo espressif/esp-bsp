@@ -8,7 +8,7 @@
  * @file
  * @brief BSP Display Example
  * @details Show an image on the screen with a simple startup animation (LVGL)
- * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display
+ * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-
  */
 
 #include <stdio.h>
