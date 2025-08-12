@@ -59,7 +59,7 @@ ESP32-Azure IoT Kit has integrated an ESP32-WROVER-B module, serial port-to-USB 
 
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
-| [Sensors Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_sensors) | Display sensor data on a monochrome screen (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sensors) |
+| [Sensors Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_sensors) | Display sensor data on a monochrome screen (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sensors-) |
 | [MQTT Example](https://github.com/espressif/esp-bsp/tree/master/examples/mqtt_example) | Collect sensor data and publish to an MQTT server | - |
 
 <!-- END_EXAMPLES -->

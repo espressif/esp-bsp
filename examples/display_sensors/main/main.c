@@ -8,7 +8,7 @@
  * @file
  * @brief BSP Sensors Example
  * @details Display sensor data on a monochrome screen (LVGL)
- * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sensors
+ * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sensors-
  */
 
 #include <stdio.h>

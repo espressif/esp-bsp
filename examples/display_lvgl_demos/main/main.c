@@ -8,7 +8,7 @@
  * @file
  * @brief BSP LVGL Demos Example
  * @details Run the LVGL demo player - all LVGL examples are included (LVGL)
- * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demo
+ * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos-
  */
 
 #include "freertos/FreeRTOS.h"

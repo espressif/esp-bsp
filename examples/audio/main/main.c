@@ -8,7 +8,7 @@
  * @file
  * @brief BSP Audio Example
  * @details Play and record WAV file
- * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=audio
+ * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=audio-
  */
 
 #include <stdio.h>
