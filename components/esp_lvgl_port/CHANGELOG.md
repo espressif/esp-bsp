@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Features
 - Added option to place LVGL task stack to external RAM
+- Properly swap bytes and draw to display for direct mode in LVGL9
 
 ## 2.6.0
 

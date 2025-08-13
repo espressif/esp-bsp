@@ -90,6 +90,7 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
 static void lvgl_port_disp_size_update_callback(lv_event_t *e);
 static void lvgl_port_disp_rotation_update(lvgl_port_display_ctx_t *disp_ctx);
 static void lvgl_port_display_invalidate_callback(lv_event_t *e);
+static void lvgl_port_draw_sw_rgb565_swap_area(void *buf, uint32_t screen_width, uint32_t screen_height, const lv_area_t *area);
 
 /*******************************************************************************
 * Public API functions
@@ -669,29 +670,33 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
     }
 
     if (disp_ctx->flags.swap_bytes) {
-        size_t len = lv_area_get_size(area);
-        lv_draw_sw_rgb565_swap(color_map, len);
+        if (disp_ctx->flags.direct_mode) {
+            // in direct mode, color_map is full size but we only need to swap the dirty area
+            lvgl_port_draw_sw_rgb565_swap_area(color_map, lv_disp_get_hor_res(drv), lv_disp_get_ver_res(drv), area);
+        } else {
+            size_t len = lv_area_get_size(area);
+            lv_draw_sw_rgb565_swap(color_map, len);
+        }
     }
     /* Transfer data in buffer for monochromatic screen */
     if (disp_ctx->flags.monochrome) {
         _lvgl_port_transform_monochrome(drv, area, &color_map);
     }
 
-    if ((disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI) && (disp_ctx->flags.direct_mode || disp_ctx->flags.full_refresh)) {
+    if (disp_ctx->flags.direct_mode || disp_ctx->flags.full_refresh) {
         if (lv_disp_flush_is_last(drv)) {
-            /* If the interface is I80 or SPI, this step cannot be used for drawing. */
             esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, 0, 0, lv_disp_get_hor_res(drv), lv_disp_get_ver_res(drv), color_map);
-            /* Waiting for the last frame buffer to complete transmission */
-            xSemaphoreTake(disp_ctx->trans_sem, 0);
-            xSemaphoreTake(disp_ctx->trans_sem, portMAX_DELAY);
+            if(disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI) {
+                /* Waiting for the last frame buffer to complete transmission */
+                xSemaphoreTake(disp_ctx->trans_sem, 0);
+                xSemaphoreTake(disp_ctx->trans_sem, portMAX_DELAY);
+            }
         }
     } else {
         esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
     }
 
-    if (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI && (disp_ctx->flags.direct_mode || disp_ctx->flags.full_refresh))) {
-        lv_disp_flush_ready(drv);
-    }
+    lv_disp_flush_ready(drv);
 }
 
 static void lvgl_port_disp_rotation_update(lvgl_port_display_ctx_t *disp_ctx)
@@ -751,4 +756,22 @@ static void lvgl_port_display_invalidate_callback(lv_event_t *e)
 {
     /* Wake LVGL task, if needed */
     lvgl_port_task_wake(LVGL_PORT_EVENT_DISPLAY, NULL);
+}
+
+static void lvgl_port_draw_sw_rgb565_swap_area(void *buf, uint32_t screen_width, uint32_t screen_height, const lv_area_t *area) {
+    if (!buf || !area)
+        return;
+    if (area->x1 > area->x2 || area->y1 > area->y2)
+        return;
+    if (area->x2 >= (int32_t)screen_width || area->y2 >= (int32_t)screen_height)
+        return;
+
+    uint16_t *buf16 = (uint16_t *)buf;
+    for (int32_t y = area->y1; y <= area->y2; ++y) {
+        uint32_t row_start = y * screen_width + area->x1;
+        for (int32_t x = area->x1; x <= area->x2; ++x) {
+            uint32_t idx = row_start + (x - area->x1);
+            buf16[idx] = ((buf16[idx] & 0xff00) >> 8) | ((buf16[idx] & 0x00ff) << 8);
+        }
+    }
 }
