@@ -57,10 +57,10 @@ M5Dial provides versatile power supply options to cater to various needs. It acc
 
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
-| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
+| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
 | [LVGL Benchmark Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_benchmark) | Run LVGL benchmark tests | - |
-| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demo) |
-| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation) |
+| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos-) |
+| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-) |
 
 <!-- END_EXAMPLES -->
 </div>
@@ -69,29 +69,29 @@ M5Dial provides versatile power supply options to cater to various needs. It acc
 
 ## LVGL Benchmark
 
-**DATE:** 08.07.2025 10:31
+**DATE:** 11.08.2025 02:49
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 96%  | 38  | 23  | 4  | 19  |
-| Moving wallpaper | 94%  | 41  | 23  | 11  | 12  |
-| Single rectangle | 32%  | 98  | 2  | 0  | 2  |
-| Multiple rectangles | 87%  | 63  | 12  | 9  | 3  |
-| Multiple RGB images | 34%  | 92  | 2  | 1  | 1  |
-| Multiple ARGB images | 37%  | 93  | 3  | 3  | 0  |
-| Rotated ARGB images | 79%  | 60  | 16  | 15  | 1  |
-| Multiple labels | 58%  | 98  | 5  | 5  | 0  |
-| Screen sized text | 97%  | 23  | 40  | 38  | 2  |
-| Multiple arcs | 20%  | 88  | 0  | 0  | 0  |
-| Containers | 38%  | 82  | 13  | 7  | 6  |
-| Containers with overlay | 90%  | 33  | 25  | 20  | 5  |
-| Containers with opa | 42%  | 78  | 15  | 11  | 4  |
-| Containers with opa_layer | 51%  | 73  | 18  | 16  | 2  |
-| Containers with scrolling | 96%  | 32  | 27  | 21  | 6  |
-| Widgets demo | 99%  | 27  | 19  | 18  | 1  |
-| All scenes avg. | 65%  | 63  | 15  | 11  | 4  |
+| Empty screen | 93%  | 38  | 22  | 6  | 16  |
+| Moving wallpaper | 94%  | 39  | 24  | 12  | 12  |
+| Single rectangle | 25%  | 97  | 0  | 0  | 0  |
+| Multiple rectangles | 89%  | 61  | 12  | 7  | 5  |
+| Multiple RGB images | 30%  | 94  | 1  | 1  | 0  |
+| Multiple ARGB images | 34%  | 94  | 3  | 3  | 0  |
+| Rotated ARGB images | 80%  | 59  | 16  | 16  | 0  |
+| Multiple labels | 66%  | 95  | 4  | 4  | 0  |
+| Screen sized text | 96%  | 23  | 40  | 38  | 2  |
+| Multiple arcs | 33%  | 92  | 1  | 1  | 0  |
+| Containers | 36%  | 81  | 13  | 8  | 5  |
+| Containers with overlay | 89%  | 33  | 26  | 21  | 5  |
+| Containers with opa | 43%  | 77  | 17  | 13  | 4  |
+| Containers with opa_layer | 49%  | 70  | 19  | 16  | 3  |
+| Containers with scrolling | 95%  | 32  | 27  | 21  | 6  |
+| Widgets demo | 97%  | 27  | 20  | 18  | 2  |
+| All scenes avg. | 65%  | 63  | 14  | 11  | 3  |
 
 
 

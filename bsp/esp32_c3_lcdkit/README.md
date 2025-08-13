@@ -50,7 +50,7 @@ ESP32-C3-LCDkit also uses a Type-C USB connector that provides 5 V of power inpu
 
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
-| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
+| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
 
 <!-- END_EXAMPLES -->
 </div>

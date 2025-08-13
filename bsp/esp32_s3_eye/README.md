@@ -54,10 +54,10 @@ The ESP32-S3-EYE board consists of two parts: the main board (ESP32-S3-EYE-MB) t
 
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
-| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
-| [Camera Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_camera) | Stream camera output to display (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera) |
+| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
+| [Camera Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_camera) | Stream camera output to display (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera-) |
 | [LVGL Benchmark Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_benchmark) | Run LVGL benchmark tests | - |
-| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demo) |
+| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos-) |
 
 <!-- END_EXAMPLES -->
 </div>
@@ -66,29 +66,29 @@ The ESP32-S3-EYE board consists of two parts: the main board (ESP32-S3-EYE-MB) t
 
 ## LVGL Benchmark
 
-**DATE:** 08.07.2025 10:31
+**DATE:** 11.08.2025 02:49
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 92%  | 59  | 14  | 3  | 11  |
-| Moving wallpaper | 59%  | 76  | 8  | 3  | 5  |
-| Single rectangle | 11%  | 92  | 0  | 0  | 0  |
-| Multiple rectangles | 83%  | 69  | 10  | 5  | 5  |
-| Multiple RGB images | 20%  | 89  | 1  | 1  | 0  |
-| Multiple ARGB images | 17%  | 91  | 3  | 3  | 0  |
-| Rotated ARGB images | 68%  | 64  | 14  | 13  | 1  |
-| Multiple labels | 38%  | 97  | 3  | 3  | 0  |
-| Screen sized text | 92%  | 34  | 26  | 16  | 10  |
-| Multiple arcs | 16%  | 96  | 0  | 0  | 0  |
-| Containers | 11%  | 91  | 5  | 4  | 1  |
-| Containers with overlay | 89%  | 40  | 23  | 12  | 11  |
-| Containers with opa | 29%  | 92  | 8  | 7  | 1  |
-| Containers with opa_layer | 31%  | 80  | 12  | 11  | 1  |
-| Containers with scrolling | 93%  | 40  | 22  | 11  | 11  |
-| Widgets demo | 96%  | 43  | 9  | 9  | 0  |
-| All scenes avg. | 52%  | 72  | 9  | 6  | 3  |
+| Empty screen | 92%  | 59  | 13  | 3  | 10  |
+| Moving wallpaper | 57%  | 76  | 8  | 5  | 3  |
+| Single rectangle | 16%  | 92  | 0  | 0  | 0  |
+| Multiple rectangles | 83%  | 68  | 11  | 5  | 6  |
+| Multiple RGB images | 22%  | 89  | 1  | 1  | 0  |
+| Multiple ARGB images | 17%  | 90  | 3  | 3  | 0  |
+| Rotated ARGB images | 69%  | 64  | 15  | 13  | 2  |
+| Multiple labels | 51%  | 97  | 3  | 3  | 0  |
+| Screen sized text | 94%  | 34  | 26  | 15  | 11  |
+| Multiple arcs | 11%  | 95  | 0  | 0  | 0  |
+| Containers | 13%  | 92  | 4  | 4  | 0  |
+| Containers with overlay | 91%  | 40  | 22  | 12  | 10  |
+| Containers with opa | 26%  | 92  | 7  | 6  | 1  |
+| Containers with opa_layer | 30%  | 82  | 12  | 12  | 0  |
+| Containers with scrolling | 94%  | 40  | 22  | 11  | 11  |
+| Widgets demo | 96%  | 42  | 10  | 9  | 1  |
+| All scenes avg. | 53%  | 72  | 9  | 6  | 3  |
 
 
 

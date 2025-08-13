@@ -83,11 +83,11 @@ Based on the above configurations, there are three different anti-tearing modes 
 
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
-| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
-| [Display, Audio and Photo Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_audio_photo) | Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo) |
+| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
+| [Display, Audio and Photo Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_audio_photo) | Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo-) |
 | [LVGL Benchmark Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_benchmark) | Run LVGL benchmark tests | - |
-| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demo) |
-| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation) |
+| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos-) |
+| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-) |
 
 <!-- END_EXAMPLES -->
 </div>
@@ -96,29 +96,29 @@ Based on the above configurations, there are three different anti-tearing modes 
 
 ## LVGL Benchmark
 
-**DATE:** 08.07.2025 10:31
+**DATE:** 11.08.2025 02:49
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
 | Empty screen | 98%  | 18  | 51  | 30  | 21  |
-| Moving wallpaper | 100%  | 8  | 109  | 84  | 25  |
-| Single rectangle | 99%  | 35  | 24  | 1  | 23  |
+| Moving wallpaper | 99%  | 8  | 106  | 83  | 23  |
+| Single rectangle | 99%  | 34  | 25  | 2  | 23  |
 | Multiple rectangles | 99%  | 32  | 27  | 18  | 9  |
-| Multiple RGB images | 99%  | 28  | 29  | 22  | 7  |
-| Multiple ARGB images | 99%  | 16  | 51  | 36  | 15  |
-| Rotated ARGB images | 100%  | 15  | 59  | 51  | 8  |
-| Multiple labels | 99%  | 18  | 47  | 35  | 12  |
-| Screen sized text | 100%  | 8  | 110  | 91  | 19  |
-| Multiple arcs | 99%  | 35  | 23  | 8  | 15  |
-| Containers | 99%  | 14  | 56  | 41  | 15  |
-| Containers with overlay | 99%  | 9  | 87  | 75  | 12  |
-| Containers with opa | 99%  | 11  | 72  | 58  | 14  |
-| Containers with opa_layer | 99%  | 6  | 149  | 135  | 14  |
-| Containers with scrolling | 99%  | 11  | 81  | 62  | 19  |
+| Multiple RGB images | 99%  | 28  | 31  | 24  | 7  |
+| Multiple ARGB images | 100%  | 17  | 51  | 35  | 16  |
+| Rotated ARGB images | 100%  | 14  | 62  | 52  | 10  |
+| Multiple labels | 99%  | 18  | 45  | 34  | 11  |
+| Screen sized text | 100%  | 8  | 108  | 92  | 16  |
+| Multiple arcs | 99%  | 35  | 22  | 7  | 15  |
+| Containers | 99%  | 16  | 53  | 42  | 11  |
+| Containers with overlay | 99%  | 9  | 89  | 77  | 12  |
+| Containers with opa | 99%  | 11  | 73  | 58  | 15  |
+| Containers with opa_layer | 99%  | 5  | 148  | 135  | 13  |
+| Containers with scrolling | 99%  | 11  | 81  | 63  | 18  |
 | Widgets demo | 99%  | 7  | 100  | 87  | 13  |
-| All scenes avg. | 99%  | 16  | 67  | 52  | 15  |
+| All scenes avg. | 99%  | 16  | 66  | 52  | 14  |
 
 
 

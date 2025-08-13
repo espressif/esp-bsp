@@ -53,12 +53,12 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
-| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
-| [Display, Audio and Photo Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_audio_photo) | Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo) |
-| [Camera Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_camera) | Stream camera output to display (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera) |
+| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
+| [Display, Audio and Photo Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_audio_photo) | Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo-) |
+| [Camera Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_camera) | Stream camera output to display (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera-) |
 | [LVGL Benchmark Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_benchmark) | Run LVGL benchmark tests | - |
-| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demo) |
-| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation) |
+| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos-) |
+| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-) |
 
 <!-- END_EXAMPLES -->
 </div>
@@ -67,27 +67,27 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 
 ## LVGL Benchmark
 
-**DATE:** 08.07.2025 10:31
+**DATE:** 11.08.2025 02:49
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 93%  | 29  | 30  | 5  | 25  |
+| Empty screen | 94%  | 29  | 30  | 5  | 25  |
 | Moving wallpaper | 93%  | 30  | 30  | 10  | 20  |
-| Single rectangle | 20%  | 91  | 0  | 0  | 0  |
-| Multiple rectangles | 82%  | 56  | 14  | 5  | 9  |
-| Multiple RGB images | 26%  | 88  | 1  | 1  | 0  |
-| Multiple ARGB images | 21%  | 88  | 3  | 3  | 0  |
-| Rotated ARGB images | 76%  | 51  | 17  | 14  | 3  |
+| Single rectangle | 20%  | 90  | 0  | 0  | 0  |
+| Multiple rectangles | 82%  | 56  | 13  | 4  | 9  |
+| Multiple RGB images | 17%  | 87  | 1  | 1  | 0  |
+| Multiple ARGB images | 26%  | 90  | 2  | 2  | 0  |
+| Rotated ARGB images | 84%  | 50  | 18  | 15  | 3  |
 | Multiple labels | 83%  | 80  | 9  | 9  | 0  |
-| Screen sized text | 95%  | 22  | 42  | 39  | 3  |
-| Multiple arcs | 23%  | 91  | 1  | 1  | 0  |
-| Containers | 31%  | 73  | 14  | 7  | 7  |
-| Containers with overlay | 91%  | 28  | 30  | 19  | 11  |
-| Containers with opa | 41%  | 72  | 15  | 10  | 5  |
-| Containers with opa_layer | 61%  | 55  | 26  | 22  | 4  |
-| Containers with scrolling | 93%  | 26  | 33  | 21  | 12  |
+| Screen sized text | 95%  | 22  | 41  | 39  | 2  |
+| Multiple arcs | 17%  | 91  | 1  | 1  | 0  |
+| Containers | 34%  | 73  | 14  | 7  | 7  |
+| Containers with overlay | 92%  | 28  | 30  | 18  | 12  |
+| Containers with opa | 41%  | 73  | 16  | 10  | 6  |
+| Containers with opa_layer | 61%  | 56  | 26  | 21  | 5  |
+| Containers with scrolling | 93%  | 27  | 32  | 20  | 12  |
 | Widgets demo | 96%  | 27  | 20  | 17  | 3  |
 | All scenes avg. | 64%  | 56  | 17  | 11  | 6  |
 
