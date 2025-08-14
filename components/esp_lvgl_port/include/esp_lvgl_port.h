@@ -67,7 +67,7 @@ typedef struct {
         .task_stack = 7168,                        \
         .task_affinity = -1,                       \
         .task_max_sleep_ms = 500,                  \
-        .task_stack_caps = MALLOC_CAP_DEFAULT,     \
+        .task_stack_caps = MALLOC_CAP_INTERNAL | MALLOC_CAP_DEFAULT,    \
         .timer_period_ms = 5,                      \
     }
 
