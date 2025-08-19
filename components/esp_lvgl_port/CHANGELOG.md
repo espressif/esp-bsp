@@ -1,8 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## 2.7.0
+
 ### Features
 - Added option to place LVGL task stack to external RAM
+- Added option to include a rounder callback for LVGL 9
 
 ## 2.6.0
 

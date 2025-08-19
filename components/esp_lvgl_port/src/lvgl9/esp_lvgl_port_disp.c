@@ -749,6 +749,12 @@ static void lvgl_port_disp_size_update_callback(lv_event_t *e)
 
 static void lvgl_port_display_invalidate_callback(lv_event_t *e)
 {
+    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_event_get_user_data(e);
+    lv_area_t *area = (lv_area_t *)lv_event_get_param(e);
+    if (area != NULL && disp_ctx != NULL && disp_ctx->rounder_cb != NULL) {
+        disp_ctx->rounder_cb(area);
+    }
+
     /* Wake LVGL task, if needed */
     lvgl_port_task_wake(LVGL_PORT_EVENT_DISPLAY, NULL);
 }
