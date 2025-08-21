@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -84,8 +84,7 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
         },
         .bus_width = BSP_LCD_WIDTH,
         .max_transfer_bytes = (BSP_LCD_H_RES) * 80 * sizeof(uint16_t),
-        .psram_trans_align = 64,
-        .sram_trans_align = 4,
+        .dma_burst_size = 64,
     };
     ESP_RETURN_ON_ERROR(esp_lcd_new_i80_bus(&bus_config, &i80_bus), TAG, "I80 init failed");
 
