@@ -13,7 +13,7 @@ dependencies:
   idf: ">=5.3" # We use I2C Driver-NG from IDF v5.2 but esp-codec-dev supports from v5.3
   esp_lcd_touch_tt21100: "^1"
   esp_lcd_touch_gt911: "^1"
-  esp_lcd_ili9341: "^1"
+  esp_lcd_ili9341: "^2.0.1"
 
   espressif/esp_lvgl_port:
     version: "^2"

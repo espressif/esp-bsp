@@ -118,7 +118,7 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
     };
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = BSP_LCD_RST,
-        .color_space = ESP_LCD_COLOR_SPACE_RGB,
+        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,
         .bits_per_pixel = 16,
         .vendor_config = (void *) &vendor_config,
     };

@@ -10,7 +10,7 @@ tags:
 
 dependencies:
   idf: ">=5.4" # I2C Driver-NG is supported in esp32-camera only from IDFv5.4
-  esp_lcd_ili9341: "^1"
+  esp_lcd_ili9341: "^2.0.1"
   esp_lcd_touch_tt21100: "^1"
 
   esp_io_expander_tca9554:

@@ -1,7 +1,7 @@
 # Examples: Always build all
 examples:
   disable:
-    - if: CONFIG_NAME in ["esp-box", "esp-box-lite"]
+    - if: CONFIG_NAME in ["esp-box", "esp-box-lite", "esp32_azure_iot_kit"]
       reason: Do not build examples for deprecated BSPs
     - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 2) and CONFIG_NAME in ["esp_bsp_generic", "esp_bsp_devkit", "m5stack_core"]
       reason: Example depends on BSP, which is supported only for IDF >= 5.2

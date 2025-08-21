@@ -95,7 +95,7 @@ const esp_lcd_panel_ra8875_config_t vendor_config = {
 
 esp_lcd_panel_dev_config_t panel_config = {
     .reset_gpio_num = BOARD_DISP_PARALLEL_RST,
-    .color_space = ESP_LCD_COLOR_SPACE_RGB,
+    .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,
     .bits_per_pixel = 16,
     .vendor_config = (void*)&vendor_config,
 };

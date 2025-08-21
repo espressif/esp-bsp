@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -77,13 +77,14 @@ esp_err_t esp_lcd_new_panel_ra8875(const esp_lcd_panel_io_handle_t io, const esp
     }
 
     // The RA8875 supports only RGB endian
-    // Note: Color space used for compatibility with IDF v4.4
-    switch (panel_dev_config->color_space) {
-    case ESP_LCD_COLOR_SPACE_RGB:
-        break;
-    default:
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+    if (panel_dev_config->color_space != ESP_LCD_COLOR_SPACE_RGB) {
+#elif ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
+    if (panel_dev_config->rgb_endian != LCD_RGB_ENDIAN_RGB) {
+#else
+    if (panel_dev_config->rgb_ele_order != LCD_RGB_ELEMENT_ORDER_RGB) {
+#endif
         ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported color space");
-        break;
     }
 
     switch (panel_dev_config->bits_per_pixel) {

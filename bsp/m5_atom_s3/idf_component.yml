@@ -11,7 +11,7 @@ tags:
 
 dependencies:
   idf: ">=5.2"
-  esp_lcd_gc9a01: "^1"
+  esp_lcd_gc9a01: "^2.0.3"
 
   espressif/esp_lvgl_port:
     version: "^2"

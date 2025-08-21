@@ -30,18 +30,18 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 <div align="center">
 <!-- START_DEPENDENCIES -->
 
-|     Available    |       Capability       |Controller/Codec|                                                  Component                                                 |   Version  |
-|------------------|------------------------|----------------|------------------------------------------------------------------------------------------------------------|------------|
-|:heavy_check_mark:|     :pager: DISPLAY    |     ili9341    | [espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341)<br/>idf |^1<br/>>=5.4|
-|:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |     ^2     |
-|:heavy_check_mark:|    :point_up: TOUCH    |     ft5x06     |[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|     ^1     |
-|        :x:       | :radio_button: BUTTONS |                |                                                                                                            |            |
-|:heavy_check_mark:|  :musical_note: AUDIO  |                |       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |   ~1.3.1   |
-|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     aw88298    |                                                                                                            |            |
-|:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                            |            |
-|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                     idf                                                    |    >=5.4   |
-|        :x:       |    :video_game: IMU    |                |                                                                                                            |            |
-|:heavy_check_mark:|     :camera: CAMERA    |                |        [espressif/esp32-camera](https://components.espressif.com/components/espressif/esp32-camera)        |   ^2.0.11  |
+|     Available    |       Capability       |Controller/Codec|                                                  Component                                                 |     Version    |
+|------------------|------------------------|----------------|------------------------------------------------------------------------------------------------------------|----------------|
+|:heavy_check_mark:|     :pager: DISPLAY    |     ili9341    | [espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341)<br/>idf |^2.0.1<br/>>=5.4|
+|:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |       ^2       |
+|:heavy_check_mark:|    :point_up: TOUCH    |     ft5x06     |[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|       ^1       |
+|        :x:       | :radio_button: BUTTONS |                |                                                                                                            |                |
+|:heavy_check_mark:|  :musical_note: AUDIO  |                |       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |     ~1.3.1     |
+|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     aw88298    |                                                                                                            |                |
+|:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                            |                |
+|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                     idf                                                    |      >=5.4     |
+|        :x:       |    :video_game: IMU    |                |                                                                                                            |                |
+|:heavy_check_mark:|     :camera: CAMERA    |                |        [espressif/esp32-camera](https://components.espressif.com/components/espressif/esp32-camera)        |     ^2.0.11    |
 
 <!-- END_DEPENDENCIES -->
 </div>
@@ -67,29 +67,29 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 
 ## LVGL Benchmark
 
-**DATE:** 11.08.2025 02:49
+**DATE:** 19.08.2025 02:45
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 94%  | 29  | 30  | 5  | 25  |
-| Moving wallpaper | 93%  | 30  | 30  | 10  | 20  |
-| Single rectangle | 20%  | 90  | 0  | 0  | 0  |
-| Multiple rectangles | 82%  | 56  | 13  | 4  | 9  |
-| Multiple RGB images | 17%  | 87  | 1  | 1  | 0  |
-| Multiple ARGB images | 26%  | 90  | 2  | 2  | 0  |
-| Rotated ARGB images | 84%  | 50  | 18  | 15  | 3  |
-| Multiple labels | 83%  | 80  | 9  | 9  | 0  |
-| Screen sized text | 95%  | 22  | 41  | 39  | 2  |
-| Multiple arcs | 17%  | 91  | 1  | 1  | 0  |
-| Containers | 34%  | 73  | 14  | 7  | 7  |
-| Containers with overlay | 92%  | 28  | 30  | 18  | 12  |
-| Containers with opa | 41%  | 73  | 16  | 10  | 6  |
-| Containers with opa_layer | 61%  | 56  | 26  | 21  | 5  |
-| Containers with scrolling | 93%  | 27  | 32  | 20  | 12  |
+| Empty screen | 94%  | 28  | 30  | 6  | 24  |
+| Moving wallpaper | 97%  | 29  | 30  | 9  | 21  |
+| Single rectangle | 19%  | 91  | 0  | 0  | 0  |
+| Multiple rectangles | 84%  | 57  | 14  | 6  | 8  |
+| Multiple RGB images | 15%  | 90  | 1  | 1  | 0  |
+| Multiple ARGB images | 26%  | 91  | 3  | 3  | 0  |
+| Rotated ARGB images | 80%  | 53  | 17  | 14  | 3  |
+| Multiple labels | 82%  | 80  | 9  | 9  | 0  |
+| Screen sized text | 96%  | 22  | 42  | 39  | 3  |
+| Multiple arcs | 23%  | 91  | 1  | 1  | 0  |
+| Containers | 37%  | 73  | 16  | 8  | 8  |
+| Containers with overlay | 97%  | 28  | 30  | 20  | 10  |
+| Containers with opa | 45%  | 73  | 16  | 10  | 6  |
+| Containers with opa_layer | 56%  | 56  | 25  | 20  | 5  |
+| Containers with scrolling | 95%  | 27  | 32  | 20  | 12  |
 | Widgets demo | 96%  | 27  | 20  | 17  | 3  |
-| All scenes avg. | 64%  | 57  | 17  | 11  | 6  |
+| All scenes avg. | 65%  | 57  | 17  | 11  | 6  |
 
 
 
