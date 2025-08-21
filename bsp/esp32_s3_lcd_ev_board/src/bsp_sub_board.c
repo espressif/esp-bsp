@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -104,7 +104,7 @@ drift, please enable `ESP32S3_DATA_CACHE_LINE_32B` instead");
         ESP_LOGI(TAG, "Initialize RGB panel");
         esp_lcd_rgb_panel_config_t rgb_conf = {
             .clk_src = LCD_CLK_SRC_PLL160M,
-            .psram_trans_align = 64,
+            .dma_burst_size = 64,
             .data_width = 16,
             .bits_per_pixel = 16,
             .de_gpio_num = BSP_LCD_SUB_BOARD_2_3_DE,
@@ -166,7 +166,7 @@ drift, please enable `ESP32S3_DATA_CACHE_LINE_32B` instead");
         ESP_LOGI(TAG, "Initialize RGB panel");
         esp_lcd_rgb_panel_config_t panel_conf = {
             .clk_src = LCD_CLK_SRC_PLL160M,
-            .psram_trans_align = 64,
+            .dma_burst_size = 64,
             .data_width = 16,
             .bits_per_pixel = 16,
             .de_gpio_num = BSP_LCD_SUB_BOARD_2_3_DE,
