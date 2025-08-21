@@ -66,29 +66,29 @@ The ESP32-S3-EYE board consists of two parts: the main board (ESP32-S3-EYE-MB) t
 
 ## LVGL Benchmark
 
-**DATE:** 11.08.2025 02:49
+**DATE:** 19.08.2025 02:45
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 92%  | 59  | 13  | 3  | 10  |
-| Moving wallpaper | 57%  | 76  | 8  | 5  | 3  |
-| Single rectangle | 16%  | 92  | 0  | 0  | 0  |
-| Multiple rectangles | 83%  | 68  | 11  | 5  | 6  |
-| Multiple RGB images | 22%  | 89  | 1  | 1  | 0  |
+| Empty screen | 92%  | 59  | 14  | 3  | 11  |
+| Moving wallpaper | 61%  | 75  | 9  | 4  | 5  |
+| Single rectangle | 15%  | 92  | 0  | 0  | 0  |
+| Multiple rectangles | 88%  | 73  | 10  | 5  | 5  |
+| Multiple RGB images | 10%  | 88  | 0  | 0  | 0  |
 | Multiple ARGB images | 17%  | 90  | 3  | 3  | 0  |
-| Rotated ARGB images | 69%  | 64  | 15  | 13  | 2  |
-| Multiple labels | 51%  | 97  | 3  | 3  | 0  |
-| Screen sized text | 94%  | 34  | 26  | 15  | 11  |
+| Rotated ARGB images | 75%  | 64  | 14  | 13  | 1  |
+| Multiple labels | 50%  | 98  | 4  | 3  | 1  |
+| Screen sized text | 95%  | 33  | 27  | 16  | 11  |
 | Multiple arcs | 11%  | 95  | 0  | 0  | 0  |
-| Containers | 13%  | 92  | 4  | 4  | 0  |
-| Containers with overlay | 91%  | 40  | 22  | 12  | 10  |
-| Containers with opa | 26%  | 92  | 7  | 6  | 1  |
-| Containers with opa_layer | 30%  | 82  | 12  | 12  | 0  |
+| Containers | 13%  | 93  | 4  | 4  | 0  |
+| Containers with overlay | 91%  | 40  | 22  | 11  | 11  |
+| Containers with opa | 27%  | 91  | 7  | 6  | 1  |
+| Containers with opa_layer | 31%  | 80  | 13  | 12  | 1  |
 | Containers with scrolling | 94%  | 40  | 22  | 11  | 11  |
-| Widgets demo | 96%  | 42  | 10  | 9  | 1  |
-| All scenes avg. | 53%  | 72  | 9  | 6  | 3  |
+| Widgets demo | 96%  | 43  | 8  | 8  | 0  |
+| All scenes avg. | 54%  | 72  | 9  | 6  | 3  |
 
 
 

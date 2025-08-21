@@ -26,17 +26,17 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 <div align="center">
 <!-- START_DEPENDENCIES -->
 
-|     Available    |       Capability       |Controller/Codec|                                                                                                          Component                                                                                                          |   Version  |
-|------------------|------------------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-|:heavy_check_mark:|     :pager: DISPLAY    | st7789, ili9341|                                                          [espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341)<br/>idf                                                         |^1<br/>>=5.3|
-|:heavy_check_mark:|:black_circle: LVGL_PORT|                |                                                                [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)                                                               |     ^2     |
-|:heavy_check_mark:|    :point_up: TOUCH    | tt21100, gt911 |[espressif/esp_lcd_touch_gt911](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911)<br/>[espressif/esp_lcd_touch_tt21100](https://components.espressif.com/components/espressif/esp_lcd_touch_tt21100)|  ^1<br/>^1 |
-|:heavy_check_mark:| :radio_button: BUTTONS |                |                                                                       [espressif/button](https://components.espressif.com/components/espressif/button)                                                                      |     ^4     |
-|:heavy_check_mark:|  :musical_note: AUDIO  |                |                                                                [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)                                                               |   ~1.3.1   |
-|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     es8311     |                                                                                                                                                                                                                             |            |
-|:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                                                                                                                                             |            |
-|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                                                                             idf                                                                                                             |    >=5.3   |
-|:heavy_check_mark:|    :video_game: IMU    |                |                                                                     [espressif/icm42670](https://components.espressif.com/components/espressif/icm42670)                                                                    |   ^2.0.1   |
+|     Available    |       Capability       |Controller/Codec|                                                                                                          Component                                                                                                          |     Version    |
+|------------------|------------------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
+|:heavy_check_mark:|     :pager: DISPLAY    | st7789, ili9341|                                                          [espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341)<br/>idf                                                         |^2.0.1<br/>>=5.3|
+|:heavy_check_mark:|:black_circle: LVGL_PORT|                |                                                                [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)                                                               |       ^2       |
+|:heavy_check_mark:|    :point_up: TOUCH    | tt21100, gt911 |[espressif/esp_lcd_touch_gt911](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911)<br/>[espressif/esp_lcd_touch_tt21100](https://components.espressif.com/components/espressif/esp_lcd_touch_tt21100)|    ^1<br/>^1   |
+|:heavy_check_mark:| :radio_button: BUTTONS |                |                                                                       [espressif/button](https://components.espressif.com/components/espressif/button)                                                                      |       ^4       |
+|:heavy_check_mark:|  :musical_note: AUDIO  |                |                                                                [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)                                                               |     ~1.3.1     |
+|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     es8311     |                                                                                                                                                                                                                             |                |
+|:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                                                                                                                                             |                |
+|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                                                                             idf                                                                                                             |      >=5.3     |
+|:heavy_check_mark:|    :video_game: IMU    |                |                                                                     [espressif/icm42670](https://components.espressif.com/components/espressif/icm42670)                                                                    |     ^2.0.1     |
 
 <!-- END_DEPENDENCIES -->
 </div>
@@ -61,29 +61,29 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 
 ## LVGL Benchmark
 
-**DATE:** 11.08.2025 02:49
+**DATE:** 19.08.2025 02:45
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 93%  | 26  | 34  | 3  | 31  |
-| Moving wallpaper | 97%  | 25  | 35  | 5  | 30  |
-| Single rectangle | 10%  | 91  | 0  | 0  | 0  |
-| Multiple rectangles | 90%  | 51  | 16  | 3  | 13  |
-| Multiple RGB images | 18%  | 90  | 0  | 0  | 0  |
-| Multiple ARGB images | 20%  | 87  | 3  | 2  | 1  |
-| Rotated ARGB images | 74%  | 54  | 18  | 12  | 6  |
-| Multiple labels | 89%  | 79  | 9  | 2  | 7  |
+| Empty screen | 93%  | 26  | 33  | 3  | 30  |
+| Moving wallpaper | 95%  | 26  | 35  | 5  | 30  |
+| Single rectangle | 10%  | 92  | 0  | 0  | 0  |
+| Multiple rectangles | 90%  | 52  | 15  | 2  | 13  |
+| Multiple RGB images | 7%  | 88  | 0  | 0  | 0  |
+| Multiple ARGB images | 21%  | 87  | 3  | 2  | 1  |
+| Rotated ARGB images | 81%  | 57  | 17  | 12  | 5  |
+| Multiple labels | 87%  | 79  | 9  | 3  | 6  |
 | Screen sized text | 98%  | 15  | 59  | 28  | 31  |
-| Multiple arcs | 16%  | 90  | 0  | 0  | 0  |
-| Containers | 33%  | 72  | 16  | 4  | 12  |
-| Containers with overlay | 93%  | 20  | 45  | 15  | 30  |
-| Containers with opa | 49%  | 68  | 20  | 7  | 13  |
-| Containers with opa_layer | 61%  | 53  | 29  | 16  | 13  |
+| Multiple arcs | 9%  | 87  | 0  | 0  | 0  |
+| Containers | 37%  | 74  | 15  | 4  | 11  |
+| Containers with overlay | 87%  | 20  | 44  | 14  | 30  |
+| Containers with opa | 49%  | 68  | 19  | 7  | 12  |
+| Containers with opa_layer | 59%  | 54  | 27  | 15  | 12  |
 | Containers with scrolling | 95%  | 21  | 44  | 13  | 31  |
-| Widgets demo | 96%  | 25  | 25  | 11  | 14  |
-| All scenes avg. | 64%  | 54  | 21  | 7  | 14  |
+| Widgets demo | 97%  | 25  | 25  | 11  | 14  |
+| All scenes avg. | 63%  | 54  | 21  | 7  | 14  |
 
 
 
