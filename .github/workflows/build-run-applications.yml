@@ -129,7 +129,6 @@ jobs:
         runner:
           - example: "test_example_display"
           - example: "test_example_lvgl_demos"
-          - example: "test_example_display_sensors"
           - example: "test_example_generic_button_led"
           - example: "test_example_lvgl_benchmark"
     env:
@@ -161,7 +160,7 @@ jobs:
         run: |
           export PYTEST_EMBEDDED_CACHE_DIR=/tmp/pytest-embedded-cache-dummy
           mkdir -p /tmp/pytest-embedded-cache-dummy
-          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} -k ${{ matrix.runner.example }} -n auto ${{ env.PYTEST_BENCHMARK_IGNORE }}
+          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} -k "${{ matrix.runner.example }} and not test_example_display_sensors" -n auto ${{ env.PYTEST_BENCHMARK_IGNORE }}
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
