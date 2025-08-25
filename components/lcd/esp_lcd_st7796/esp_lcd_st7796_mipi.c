@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -65,7 +65,32 @@ esp_err_t esp_lcd_new_panel_st7796_mipi(const esp_lcd_panel_io_handle_t io, cons
         ESP_GOTO_ON_ERROR(gpio_config(&io_conf), err, TAG, "configure GPIO for RST line failed");
     }
 
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
     switch (panel_dev_config->color_space) {
+    case ESP_LCD_COLOR_SPACE_RGB:
+        st7796->madctl_val = 0;
+        break;
+    case ESP_LCD_COLOR_SPACE_BGR:
+        st7796->madctl_val |= LCD_CMD_BGR_BIT;
+        break;
+    default:
+        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported color space");
+        break;
+    }
+#elif ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
+    switch (panel_dev_config->rgb_endian) {
+    case LCD_RGB_ENDIAN_RGB:
+        st7796->madctl_val = 0;
+        break;
+    case LCD_RGB_ENDIAN_BGR:
+        st7796->madctl_val |= LCD_CMD_BGR_BIT;
+        break;
+    default:
+        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported rgb endian");
+        break;
+    }
+#else
+    switch (panel_dev_config->rgb_ele_order) {
     case LCD_RGB_ELEMENT_ORDER_RGB:
         st7796->madctl_val = 0;
         break;
@@ -73,9 +98,10 @@ esp_err_t esp_lcd_new_panel_st7796_mipi(const esp_lcd_panel_io_handle_t io, cons
         st7796->madctl_val |= LCD_CMD_BGR_BIT;
         break;
     default:
-        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported color space");
+        ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported rgb element order");
         break;
     }
+#endif
 
     switch (panel_dev_config->bits_per_pixel) {
     case 16: // RGB565

@@ -30,9 +30,9 @@
 #define BSP_LCD_BITS_PER_PIXEL      (16)
 /* LCD display color space */
 #if defined(CONFIG_BSP_DISPLAY_COLOR_SPACE_RGB)
-#define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_RGB)
+#define BSP_LCD_COLOR_SPACE         (LCD_RGB_ELEMENT_ORDER_RGB)
 #elif defined(CONFIG_BSP_DISPLAY_COLOR_SPACE_BGR)
-#define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_BGR)
+#define BSP_LCD_COLOR_SPACE         (LCD_RGB_ELEMENT_ORDER_BGR)
 #endif
 /* Display definition */
 #define BSP_LCD_H_RES              (CONFIG_BSP_DISPLAY_WIDTH)

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,6 +13,7 @@
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
+#include "esp_idf_version.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_io_additions.h"
@@ -104,7 +105,11 @@ TEST_CASE("test gc9503 to draw color bar with RGB interface, using GPIO", "[gc95
     ESP_LOGI(TAG, "Install GC9503 panel driver");
     esp_lcd_rgb_panel_config_t rgb_config = {
         .clk_src = LCD_CLK_SRC_DEFAULT,
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 3, 0)
         .psram_trans_align = 64,
+#else
+        .dma_burst_size = 64,
+#endif
         .data_width = TEST_LCD_DATA_WIDTH,
         .bits_per_pixel = TEST_RGB_BIT_PER_PIXEL,
         .de_gpio_num = TEST_LCD_IO_RGB_DE,
@@ -191,7 +196,11 @@ TEST_CASE("test gc9503 to draw color bar with RGB interface, using IO expander",
     ESP_LOGI(TAG, "Install GC9503 panel driver");
     esp_lcd_rgb_panel_config_t rgb_config = {
         .clk_src = LCD_CLK_SRC_DEFAULT,
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 3, 0)
         .psram_trans_align = 64,
+#else
+        .dma_burst_size = 64,
+#endif
         .data_width = TEST_LCD_DATA_WIDTH,
         .bits_per_pixel = TEST_RGB_BIT_PER_PIXEL,
         .de_gpio_num = TEST_LCD_IO_RGB_DE,

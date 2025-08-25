@@ -47,17 +47,17 @@ Core2 V1.1 is an iterative version of Core2 with the following upgrades and addi
 <div align="center">
 <!-- START_DEPENDENCIES -->
 
-|     Available    |       Capability       |Controller/Codec|                                                  Component                                                 |   Version  |
-|------------------|------------------------|----------------|------------------------------------------------------------------------------------------------------------|------------|
-|:heavy_check_mark:|     :pager: DISPLAY    |     ili9341    | [espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341)<br/>idf |^1<br/>>=5.0|
-|:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |     ^2     |
-|:heavy_check_mark:|    :point_up: TOUCH    |     ft5x06     |[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|     ^1     |
-|        :x:       | :radio_button: BUTTONS |                |                                                                                                            |            |
-|:heavy_check_mark:|  :musical_note: AUDIO  |                |       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |    ~1.1    |
-|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|                |                                                                                                            |            |
-|        :x:       | :microphone: AUDIO_MIC |                |                                                                                                            |            |
-|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                     idf                                                    |    >=5.0   |
-|        :x:       |    :video_game: IMU    |                |                                                                                                            |            |
+|     Available    |       Capability       |Controller/Codec|                                                  Component                                                 |     Version    |
+|------------------|------------------------|----------------|------------------------------------------------------------------------------------------------------------|----------------|
+|:heavy_check_mark:|     :pager: DISPLAY    |     ili9341    | [espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341)<br/>idf |^2.0.1<br/>>=5.0|
+|:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |       ^2       |
+|:heavy_check_mark:|    :point_up: TOUCH    |     ft5x06     |[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|       ^1       |
+|        :x:       | :radio_button: BUTTONS |                |                                                                                                            |                |
+|:heavy_check_mark:|  :musical_note: AUDIO  |                |       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |      ~1.1      |
+|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|                |                                                                                                            |                |
+|        :x:       | :microphone: AUDIO_MIC |                |                                                                                                            |                |
+|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                     idf                                                    |      >=5.0     |
+|        :x:       |    :video_game: IMU    |                |                                                                                                            |                |
 
 <!-- END_DEPENDENCIES -->
 </div>

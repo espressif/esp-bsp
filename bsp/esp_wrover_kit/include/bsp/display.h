@@ -34,9 +34,9 @@
 #define BSP_LCD_BITS_PER_PIXEL      (16)
 /* LCD display color space */
 #ifdef CONFIG_BSP_LCD_ILI9341
-#define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_BGR)
+#define BSP_LCD_COLOR_SPACE         (LCD_RGB_ELEMENT_ORDER_BGR)
 #else
-#define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_RGB)
+#define BSP_LCD_COLOR_SPACE         (LCD_RGB_ELEMENT_ORDER_RGB)
 #endif
 /* LCD definition */
 #define BSP_LCD_H_RES               (240)

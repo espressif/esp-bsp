@@ -61,8 +61,7 @@ esp_lcd_i80_bus_config_t bus_config = {
     },
     .bus_width = BOARD_DISP_PARALLEL_WIDTH,
     .max_transfer_bytes = (BOARD_DISP_PARALLEL_HRES) * 80 * sizeof(uint16_t),
-    .psram_trans_align = 64,
-    .sram_trans_align = 4,
+    .dma_burst_size = 64,
 };
 ESP_ERROR_CHECK(esp_lcd_new_i80_bus(&bus_config, &i80_bus));
 
@@ -95,7 +94,7 @@ const esp_lcd_panel_ra8875_config_t vendor_config = {
 
 esp_lcd_panel_dev_config_t panel_config = {
     .reset_gpio_num = BOARD_DISP_PARALLEL_RST,
-    .color_space = ESP_LCD_COLOR_SPACE_RGB,
+    .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,
     .bits_per_pixel = 16,
     .vendor_config = (void*)&vendor_config,
 };

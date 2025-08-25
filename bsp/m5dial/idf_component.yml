@@ -1,4 +1,4 @@
-version: "2.0.0~3"
+version: "2.0.1"
 description: Board Support Package (BSP) for M5Dial
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5dial
 
@@ -11,7 +11,7 @@ tags:
 
 dependencies:
   idf: ">=5.0"
-  esp_lcd_gc9a01: "^1"
+  esp_lcd_gc9a01: "^2.0.3"
   esp_lcd_touch_ft5x06: "^1"
 
   espressif/esp_lvgl_port:
