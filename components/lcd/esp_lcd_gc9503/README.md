@@ -56,7 +56,7 @@ It's recommended to use the [esp_lcd_panel_io_additions](https://components.espr
     ESP_LOGI(TAG, "Install GC9503 panel driver");
     esp_lcd_rgb_panel_config_t rgb_config = {
         .clk_src = LCD_CLK_SRC_DEFAULT,
-        .psram_trans_align = 64,
+        .dma_burst_size = 64,
         .data_width = 16,
         .bits_per_pixel = 16,
         .de_gpio_num = EXAMPLE_LCD_IO_RGB_DE,

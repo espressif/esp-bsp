@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Features
 - Added option to place LVGL task stack to external RAM
+- Fixed callback for RGB display for IDF6
 
 ## 2.6.0
 

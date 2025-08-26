@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -7,6 +7,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_check.h"
+#include "esp_idf_version.h"
 #include "driver/i2c.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
@@ -96,7 +97,11 @@ static esp_err_t app_lcd_init(void)
     ESP_LOGI(TAG, "Initialize RGB panel");
     esp_lcd_rgb_panel_config_t panel_conf = {
         .clk_src = LCD_CLK_SRC_PLL160M,
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 3, 0)
         .psram_trans_align = 64,
+#else
+        .dma_burst_size = 64,
+#endif
         .data_width = 16,
         .bits_per_pixel = 16,
         .de_gpio_num = EXAMPLE_LCD_GPIO_DE,
