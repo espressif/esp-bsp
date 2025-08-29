@@ -95,6 +95,34 @@ esp_err_t ds18b20_set_resolution(ds18b20_device_handle_t ds18b20, ds18b20_resolu
 esp_err_t ds18b20_trigger_temperature_conversion(ds18b20_device_handle_t ds18b20);
 
 /**
+ * @brief Trigger temperature conversion for all DS18B20 sensors on the same bus simultaneously without waiting for completion
+ *
+ * @note This function triggers temperature conversion but does not wait for completion.
+ *       It's useful when working with multiple sensors - you can trigger conversion on all sensors
+ *       and then call ds18b20_wait_for_conversion() once to wait for all conversions to complete.
+ *
+ * @param[in] ds18b20 DS18B20 device handle returned by `ds18b20_new_device`
+ * @return
+ *      - ESP_OK: Trigger temperature conversion successfully
+ *      - ESP_ERR_INVALID_ARG: Trigger temperature conversion failed due to invalid argument
+ *      - ESP_FAIL: Trigger temperature conversion failed due to other reasons
+ */
+esp_err_t ds18b20_trigger_all_sensors_temperature_conversion(ds18b20_device_handle_t ds18b20);
+
+/**
+ * @brief Wait for temperature conversion to complete
+ *
+ * @note This function waits for the appropriate amount of time based on the sensor resolution.
+ *       Use this after calling ds18b20_trigger_temperature_conversion_no_wait() on one or more sensors.
+ *
+ * @param[in] resolution Resolution to determine wait time (use the highest resolution among your sensors)
+ * @return
+ *      - ESP_OK: Wait completed successfully
+ *      - ESP_ERR_INVALID_ARG: Wait failed due to invalid argument
+ */
+esp_err_t ds18b20_wait_for_conversion(ds18b20_resolution_t resolution);
+
+/**
  * @brief Get temperature from DS18B20
  *
  * @param[in] ds18b20 DS18B20 device handle returned by `ds18b20_new_device`
