@@ -129,6 +129,8 @@ menu "Board Support Package (ESP32-P4)"
 
             config BSP_LCD_TYPE_1024_600
                 bool "LCD 7-inch 1024x600 - ek79007"
+            config BSP_LCD_TYPE_1024_600_JD9165
+                bool "LCD 1024x600 - jd9165"
             config BSP_LCD_TYPE_1280_800
                 bool "LCD 1280x800 - ili9881c"
             config BSP_LCD_TYPE_HDMI
