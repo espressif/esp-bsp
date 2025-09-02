@@ -10,7 +10,7 @@ components/esp_lvgl_port/examples/i2c_oled:
     - "components/esp_lvgl_port/**"
     - "components/lcd/sh1107/**"
   disable:
-    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 2) or IDF_VERSION_MAJOR < 5
+    - if: IDF_VERSION < "5.2.0"
       reason: Requires I2C Driver-NG which was introduced in v5.2
 
 components/esp_lvgl_port/test_apps/simd:
@@ -31,12 +31,12 @@ components/icm42670:
   depends_filepatterns:
     - "components/icm42670/**"
   disable:
-    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 2) or IDF_VERSION_MAJOR < 5
+    - if: IDF_VERSION < "5.2.0"
       reason: Requires I2C Driver-NG which was introduced in v5.2
 
 components/qma6100p:
   depends_filepatterns:
     - "components/qma6100p/**"
   disable:
-    - if: (IDF_VERSION_MAJOR == 5 and IDF_VERSION_MINOR < 2) or IDF_VERSION_MAJOR < 5
+    - if: IDF_VERSION < "5.2.0"
       reason: Requires I2C Driver-NG which was introduced in v5.2
