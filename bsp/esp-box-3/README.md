@@ -61,29 +61,29 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 
 ## LVGL Benchmark
 
-**DATE:** 19.08.2025 02:45
+**DATE:** 03.09.2025 02:41
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 93%  | 26  | 33  | 3  | 30  |
-| Moving wallpaper | 95%  | 26  | 35  | 5  | 30  |
-| Single rectangle | 10%  | 92  | 0  | 0  | 0  |
-| Multiple rectangles | 90%  | 52  | 15  | 2  | 13  |
-| Multiple RGB images | 7%  | 88  | 0  | 0  | 0  |
-| Multiple ARGB images | 21%  | 87  | 3  | 2  | 1  |
-| Rotated ARGB images | 81%  | 57  | 17  | 12  | 5  |
-| Multiple labels | 87%  | 79  | 9  | 3  | 6  |
-| Screen sized text | 98%  | 15  | 59  | 28  | 31  |
-| Multiple arcs | 9%  | 87  | 0  | 0  | 0  |
-| Containers | 37%  | 74  | 15  | 4  | 11  |
-| Containers with overlay | 87%  | 20  | 44  | 14  | 30  |
-| Containers with opa | 49%  | 68  | 19  | 7  | 12  |
-| Containers with opa_layer | 59%  | 54  | 27  | 15  | 12  |
-| Containers with scrolling | 95%  | 21  | 44  | 13  | 31  |
-| Widgets demo | 97%  | 25  | 25  | 11  | 14  |
-| All scenes avg. | 63%  | 54  | 21  | 7  | 14  |
+| Empty screen | 95%  | 26  | 33  | 3  | 30  |
+| Moving wallpaper | 99%  | 25  | 36  | 5  | 31  |
+| Single rectangle | 23%  | 90  | 0  | 0  | 0  |
+| Multiple rectangles | 96%  | 50  | 15  | 2  | 13  |
+| Multiple RGB images | 35%  | 95  | 0  | 0  | 0  |
+| Multiple ARGB images | 27%  | 90  | 2  | 2  | 0  |
+| Rotated ARGB images | 76%  | 56  | 17  | 12  | 5  |
+| Multiple labels | 99%  | 80  | 8  | 3  | 5  |
+| Screen sized text | 99%  | 15  | 58  | 28  | 30  |
+| Multiple arcs | 24%  | 92  | 0  | 0  | 0  |
+| Containers | 45%  | 78  | 18  | 5  | 13  |
+| Containers with overlay | 95%  | 20  | 45  | 15  | 30  |
+| Containers with opa | 56%  | 75  | 18  | 6  | 12  |
+| Containers with opa_layer | 66%  | 56  | 28  | 16  | 12  |
+| Containers with scrolling | 100%  | 20  | 43  | 13  | 30  |
+| Widgets demo | 99%  | 24  | 25  | 11  | 14  |
+| All scenes avg. | 70%  | 55  | 21  | 7  | 14  |
 
 
 
