@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -36,6 +36,12 @@
 /* The recording will be RECORDING_LENGTH * BUFFER_SIZE long (in bytes)
    With sampling frequency 22050 Hz and 16bit mono resolution it equals to ~3.715 seconds */
 #define RECORDING_LENGTH (160)
+
+#if defined(BSP_BOARD_M5STACK_TAB5)
+#define MCLK_MULTIPLE    (I2S_MCLK_MULTIPLE_256)
+#else
+#define MCLK_MULTIPLE    (I2S_MCLK_MULTIPLE_384)
+#endif
 
 #define REC_FILENAME    FS_MNT_PATH"/recording.wav"
 
@@ -348,7 +354,7 @@ static void play_file(void *arg)
         .sample_rate = wav_header.sample_rate,
         .channel = wav_header.num_channels,
         .bits_per_sample = wav_header.bits_per_sample,
-        .mclk_multiple = I2S_MCLK_MULTIPLE_384,
+        .mclk_multiple = MCLK_MULTIPLE,
     };
     esp_codec_dev_open(spk_codec_dev, &fs);
 
@@ -802,7 +808,7 @@ static void rec_file(void *arg)
         .sample_rate = SAMPLE_RATE,
         .channel = 1,
         .bits_per_sample = 16,
-        .mclk_multiple = I2S_MCLK_MULTIPLE_384,
+        .mclk_multiple = MCLK_MULTIPLE,
     };
     esp_codec_dev_open(mic_codec_dev, &fs);
 
