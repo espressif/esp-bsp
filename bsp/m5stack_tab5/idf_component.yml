@@ -19,3 +19,6 @@ dependencies:
     override_path: "../../components/esp_lvgl_port"
   espressif/esp_lcd_touch_gt911: ^1.1.1~2
   espressif/usb_host_hid: ^1.0.3
+  esp_io_expander_pi4ioe5v6408:
+    version: "^1.0.0"
+    override_path: "../../components/io_expander/esp_io_expander_pi4ioe5v6408"

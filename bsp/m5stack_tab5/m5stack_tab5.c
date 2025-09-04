@@ -29,6 +29,7 @@
 #include "esp_codec_dev_defaults.h"
 #include "ili9881_init_data.h"
 #include "string.h"
+#include "esp_io_expander_pi4ioe5v6408.h"
 
 static const char *TAG = "M5STACK_TAB5";
 
@@ -85,113 +86,49 @@ static i2c_master_bus_handle_t bsp_i2c_get_handle(void)
 }
 
 //==================================================================================
-// I/O Expander PI4IOE5V6416
+// I/O Expander PI4IOE5V6408
 //==================================================================================
-#define I2C_DEV_ADDR_PI4IOE1  0x43  // addr pin low
-#define I2C_DEV_ADDR_PI4IOE2  0x44  // addr pin high
-#define I2C_MASTER_TIMEOUT_MS 50
+static esp_io_expander_handle_t io_expander_pi4ioe1 = NULL;
+static esp_io_expander_handle_t io_expander_pi4ioe2 = NULL;
 
-static i2c_master_dev_handle_t i2c_dev_handle_pi4ioe1 = NULL;
-static i2c_master_dev_handle_t i2c_dev_handle_pi4ioe2 = NULL;
-
-// PI4IO registers
-#define PI4IO_REG_CHIP_RESET 0x01
-#define PI4IO_REG_IO_DIR     0x03
-#define PI4IO_REG_OUT_SET    0x05
-#define PI4IO_REG_OUT_H_IM   0x07
-#define PI4IO_REG_IN_DEF_STA 0x09
-#define PI4IO_REG_PULL_EN    0x0B
-#define PI4IO_REG_PULL_SEL   0x0D
-#define PI4IO_REG_IN_STA     0x0F
-#define PI4IO_REG_INT_MASK   0x11
-#define PI4IO_REG_IRQ_STA    0x13
-
-#define setbit(x, y) ((x) |= (0x01 << (y)))
-#define clrbit(x, y) ((x) &= ~(0x01 << (y)))
-
-static void bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
+static esp_err_t bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
 {
-    if (i2c_dev_handle_pi4ioe1) {
-        return;
+    if (io_expander_pi4ioe1 && io_expander_pi4ioe2) {
+        return ESP_OK;
     }
 
-    uint8_t write_buf[2] = {0};
-    uint8_t read_buf[1]  = {0};
+    // Initialize PI4IOE1 (address 0x43)
+    ESP_RETURN_ON_ERROR(esp_io_expander_new_i2c_pi4ioe5v6408(bus_handle, ESP_IO_EXPANDER_I2C_PI4IOE5V6408_ADDRESS_LOW, &io_expander_pi4ioe1), TAG, "Create PI4IOE1 failed");
 
-    /* */
-    i2c_device_config_t dev_cfg1 = {
-        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-        .device_address  = I2C_DEV_ADDR_PI4IOE1,
-        .scl_speed_hz    = 400000,
+    // Initialize PI4IOE2 (address 0x44)
+    ESP_RETURN_ON_ERROR(esp_io_expander_new_i2c_pi4ioe5v6408(bus_handle, ESP_IO_EXPANDER_I2C_PI4IOE5V6408_ADDRESS_HIGH, &io_expander_pi4ioe2), TAG, "Create PI4IOE2 failed");
+
+    // P0: input, P1: SPK_EN(output), P2: EXT5V_EN(output), P3: input, P4: LCD_RST(output), P5: TP_RST(output), P6: CAM_RST(output), P7: input
+    const esp_io_expander_pi4ioe5v6408_config_t pi4ioe1_config = {
+        .io_dir     = 0b01111111,  // 0=input, 1=output
+        .out_h_im   = 0b00000000,  // output high impedance
+        .pull_sel   = 0b01111111,  // pull up/down select, 0=down, 1=up
+        .pull_en    = 0b01111111,  // pull up/down enable, 0=disable, 1=enable
+        .in_def_sta = 0xFF,        // skip this register
+        .int_mask   = 0xFF,        // skip this register
+        .out_set    = 0b01110110   // P1(SPK_EN), P2(EXT5V_EN), P4(LCD_RST), P5(TP_RST), P6(CAM_RST)
     };
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &dev_cfg1, &i2c_dev_handle_pi4ioe1));
+    ESP_RETURN_ON_ERROR(esp_io_expander_pi4ioe5v6408_config_registers(io_expander_pi4ioe1, &pi4ioe1_config), TAG, "PI4IOE1 config failed");
 
-    write_buf[0] = PI4IO_REG_CHIP_RESET;
-    write_buf[1] = 0xFF;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-    write_buf[0] = PI4IO_REG_CHIP_RESET;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe1, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-    write_buf[0] = PI4IO_REG_IO_DIR;
-    write_buf[1] = 0b01111111;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2, I2C_MASTER_TIMEOUT_MS);  // 0: input 1: output
-    write_buf[0] = PI4IO_REG_OUT_H_IM;
-    write_buf[1] = 0b00000000;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2,
-                        I2C_MASTER_TIMEOUT_MS);
-    write_buf[0] = PI4IO_REG_PULL_SEL;
-    write_buf[1] = 0b01111111;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2,
-                        I2C_MASTER_TIMEOUT_MS);  // pull up/down select, 0 down, 1 up
-    write_buf[0] = PI4IO_REG_PULL_EN;
-    write_buf[1] = 0b01111111;
-
-    i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2,
-                        I2C_MASTER_TIMEOUT_MS);
-    /* Output Port Register P1(SPK_EN), P2(EXT5V_EN), P4(LCD_RST), P5(TP_RST), P6(CAM)RST */
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    write_buf[1] = 0b01110110;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe1, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-
-    /* */
-    i2c_device_config_t dev_cfg2 = {
-        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-        .device_address  = I2C_DEV_ADDR_PI4IOE2,
-        .scl_speed_hz    = 400000,
+    // P0: WLAN_PWR_EN(output), P1: input, P2: input, P3: USB5V_EN(output), P4: input, P5: input, P6: input, P7: CHG_EN(output)
+    const esp_io_expander_pi4ioe5v6408_config_t pi4ioe2_config = {
+        .io_dir     = 0b10111001,  // 0=input, 1=output
+        .out_h_im   = 0b00000110,  // output high impedance
+        .pull_sel   = 0b10111001,  // pull up/down select, 0=down, 1=up
+        .pull_en    = 0b11111001,  // pull up/down enable, 0=disable, 1=enable
+        .in_def_sta = 0b01000000,  // input default status
+        .int_mask   = 0b10111111,  // interrupt mask
+        .out_set    = 0b00001001   // P0(WLAN_PWR_EN)=0, P3(USB5V_EN)=1, P7(CHG_EN)=0
     };
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &dev_cfg2, &i2c_dev_handle_pi4ioe2));
+    ESP_RETURN_ON_ERROR(esp_io_expander_pi4ioe5v6408_config_registers(io_expander_pi4ioe2, &pi4ioe2_config), TAG, "PI4IOE2 config failed");
 
-    write_buf[0] = PI4IO_REG_CHIP_RESET;
-    write_buf[1] = 0xFF;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-    write_buf[0] = PI4IO_REG_CHIP_RESET;
-    i2c_master_transmit_receive(i2c_dev_handle_pi4ioe2, write_buf, 1, read_buf, 1, I2C_MASTER_TIMEOUT_MS);
-    write_buf[0] = PI4IO_REG_IO_DIR;
-    write_buf[1] = 0b10111001;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);  // 0: input 1: output
-    write_buf[0] = PI4IO_REG_OUT_H_IM;
-    write_buf[1] = 0b00000110;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2,
-                        I2C_MASTER_TIMEOUT_MS);
-    write_buf[0] = PI4IO_REG_PULL_SEL;
-    write_buf[1] = 0b10111001;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2,
-                        I2C_MASTER_TIMEOUT_MS);  // pull up/down select, 0 down, 1 up
-    write_buf[0] = PI4IO_REG_PULL_EN;
-    write_buf[1] = 0b11111001;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2,
-                        I2C_MASTER_TIMEOUT_MS);  // pull up/down enable, 0 disable, 1 enable
-    write_buf[0] = PI4IO_REG_IN_DEF_STA;
-    write_buf[1] = 0b01000000;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
-    write_buf[0] = PI4IO_REG_INT_MASK;
-    write_buf[1] = 0b10111111;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2,
-                        I2C_MASTER_TIMEOUT_MS);
-    /* Output Port Register P0(WLAN_PWR_EN), P3(USB5V_EN), P7(CHG_EN) */
-    write_buf[0] = PI4IO_REG_OUT_SET;
-    // write_buf[1] = 0b10001001;
-    write_buf[1] = 0b00001001;
-    i2c_master_transmit(i2c_dev_handle_pi4ioe2, write_buf, 2, I2C_MASTER_TIMEOUT_MS);
+    ESP_LOGI(TAG, "PI4IOE5V6408 IO expanders initialized");
+    return ESP_OK;
 }
 
 //==================================================================================
@@ -879,10 +816,10 @@ static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 
 lv_display_t *bsp_display_start(void)
 {
-    if (!i2c_dev_handle_pi4ioe1) {
-        bsp_i2c_init();
+    if (!io_expander_pi4ioe1) {
+        ESP_ERROR_CHECK(bsp_i2c_init());
         i2c_master_bus_handle_t i2c_bus_handle = bsp_i2c_get_handle();
-        bsp_io_expander_pi4ioe_init(i2c_bus_handle);
+        ESP_ERROR_CHECK(bsp_io_expander_pi4ioe_init(i2c_bus_handle));
     }
 
     bsp_display_lcd_config_t cfg = {.lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),

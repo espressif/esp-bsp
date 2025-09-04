@@ -11,6 +11,7 @@ idf_component_register(
         esp_lvgl_port
         spiffs
         fatfs
-	esp_lcd_ili9881c
+	    esp_lcd_ili9881c
+        esp_io_expander_pi4ioe5v6408
     PRIV_REQUIRES usb
 )
