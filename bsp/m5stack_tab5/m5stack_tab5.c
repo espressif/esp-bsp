@@ -201,13 +201,6 @@ static void bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
 #define BSP_LDO_PROBE_SD_VOLTAGE_MV 3300
 #define SDMMC_BUS_WIDTH (4)
 #define SDCARD_SDMMC_HOST_SLOT (SDMMC_HOST_SLOT_0)
-#define GPIO_SDMMC_DET  (GPIO_NUM_NC)
-#define GPIO_SDMMC_CLK (GPIO_NUM_43)
-#define GPIO_SDMMC_CMD (GPIO_NUM_44)
-#define GPIO_SDMMC_D0  (GPIO_NUM_39)
-#define GPIO_SDMMC_D1  (GPIO_NUM_40)
-#define GPIO_SDMMC_D2  (GPIO_NUM_41)
-#define GPIO_SDMMC_D3  (GPIO_NUM_42)
 
 esp_err_t bsp_sdcard_mount(void)
 {
@@ -270,12 +263,12 @@ void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config)
     memset(config, 0, sizeof(sdmmc_slot_config_t));
 
     config->width = SDMMC_BUS_WIDTH;
-    config->clk   = GPIO_SDMMC_CLK;
-    config->cmd   = GPIO_SDMMC_CMD;
-    config->d0    = GPIO_SDMMC_D0;
-    config->d1    = GPIO_SDMMC_D1;
-    config->d2    = GPIO_SDMMC_D2;
-    config->d3    = GPIO_SDMMC_D3;
+    config->clk   = BSP_SD_CLK;
+    config->cmd   = BSP_SD_CMD;
+    config->d0    = BSP_SD_D0;
+    config->d1    = BSP_SD_D1;
+    config->d2    = BSP_SD_D2;
+    config->d3    = BSP_SD_D3;
 }
 
 void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_config_t *config)
