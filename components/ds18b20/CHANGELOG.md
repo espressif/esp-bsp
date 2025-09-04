@@ -1,6 +1,8 @@
-## 0.1.3
+## 0.2.0
 
-- Support for efficient multi-sensor temperature reading
+- Support trigger temperature conversion for all DS18B20 sensors on the same bus with a single function call (`ds18b20_trigger_temperature_conversion_for_all`).
+- Renamed `ds18b20_new_device` to `ds18b20_new_device_from_enumeration`.
+- Renamed `ds18b20_new_single_device` to `ds18b20_new_device_from_bus`.
 
 ## 0.1.2
 

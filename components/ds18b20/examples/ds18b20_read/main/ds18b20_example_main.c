@@ -1,15 +1,23 @@
-# DS18B20 Device Driver
+/*
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Unlicense OR CC0-1.0
+ */
 
-[![Component Registry](https://components.espressif.com/components/espressif/ds18b20/badge.svg)](https://components.espressif.com/components/espressif/ds18b20)
+#include <stdio.h>
+#include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "onewire_bus.h"
+#include "ds18b20.h"
 
-DS18B20 temperature sensor only uses a single wire to write and read data, the interface is also called the `1-Wire` bus. This component only contains the sensor driver. For 1-Wire bus setup, you need to use the [onewire_bus](https://components.espressif.com/components/espressif/onewire_bus) library to initialize and enumerate the devices.
+#define EXAMPLE_ONEWIRE_BUS_GPIO    18
+#define EXAMPLE_ONEWIRE_MAX_DS18B20 2
 
-## How to enumerate DS18B20 devices on the 1-Wire bus
+static const char *TAG = "example";
 
-```c
-    #define EXAMPLE_ONEWIRE_BUS_GPIO    0
-    #define EXAMPLE_ONEWIRE_MAX_DS18B20 2
-
+void app_main(void)
+{
     // install 1-wire bus
     onewire_bus_handle_t bus = NULL;
     onewire_bus_config_t bus_config = {
@@ -22,6 +30,7 @@ DS18B20 temperature sensor only uses a single wire to write and read data, the i
         .max_rx_bytes = 10, // 1byte ROM command + 8byte ROM number + 1byte device command
     };
     ESP_ERROR_CHECK(onewire_new_bus_rmt(&bus_config, &rmt_config, &bus));
+    ESP_LOGI(TAG, "1-Wire bus installed on GPIO%d", EXAMPLE_ONEWIRE_BUS_GPIO);
 
     int ds18b20_device_num = 0;
     ds18b20_device_handle_t ds18b20s[EXAMPLE_ONEWIRE_MAX_DS18B20];
@@ -42,6 +51,10 @@ DS18B20 temperature sensor only uses a single wire to write and read data, the i
                 ds18b20_get_device_address(ds18b20s[ds18b20_device_num], &address);
                 ESP_LOGI(TAG, "Found a DS18B20[%d], address: %016llX", ds18b20_device_num, address);
                 ds18b20_device_num++;
+                if (ds18b20_device_num >= EXAMPLE_ONEWIRE_MAX_DS18B20) {
+                    ESP_LOGI(TAG, "Max DS18B20 number reached, stop searching...");
+                    break;
+                }
             } else {
                 ESP_LOGI(TAG, "Found an unknown device, address: %016llX", next_onewire_device.address);
             }
@@ -50,19 +63,15 @@ DS18B20 temperature sensor only uses a single wire to write and read data, the i
     ESP_ERROR_CHECK(onewire_del_device_iter(iter));
     ESP_LOGI(TAG, "Searching done, %d DS18B20 device(s) found", ds18b20_device_num);
 
-    // Now you have the DS18B20 sensor handle, you can use it to read the temperature
-```
+    float temperature;
+    while (1) {
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-## Trigger a temperature conversion and then read the data sensor by sensor
-
-```c
-ESP_ERROR_CHECK(ds18b20_trigger_temperature_conversion_for_all(bus));
-for (int i = 0; i < ds18b20_device_num; i ++) {
-    ESP_ERROR_CHECK(ds18b20_get_temperature(ds18b20s[i], &temperature));
-    ESP_LOGI(TAG, "temperature read from DS18B20[%d]: %.2fC", i, temperature);
+        // trigger temperature conversion for all sensors on the bus
+        ESP_ERROR_CHECK(ds18b20_trigger_temperature_conversion_for_all(bus));
+        for (int i = 0; i < ds18b20_device_num; i ++) {
+            ESP_ERROR_CHECK(ds18b20_get_temperature(ds18b20s[i], &temperature));
+            ESP_LOGI(TAG, "temperature read from DS18B20[%d]: %.2fC", i, temperature);
+        }
+    }
 }
-```
-
-## Reference
-
-* See [DS18B20 datasheet](https://www.analog.com/media/en/technical-documentation/data-sheets/ds18b20.pdf)

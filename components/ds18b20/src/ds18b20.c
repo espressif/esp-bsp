@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -35,14 +35,13 @@ typedef struct  {
 
 typedef struct ds18b20_device_t {
     onewire_bus_handle_t bus;
-    bool single_mode;
-    onewire_device_address_t addr;
+    onewire_device_address_t addr; // if the addr is 0, we will send "ONEWIRE_CMD_SKIP_ROM" command
     uint8_t th_user1;
     uint8_t tl_user2;
     ds18b20_resolution_t resolution;
 } ds18b20_device_t;
 
-esp_err_t ds18b20_new_device(onewire_device_t *device, const ds18b20_config_t *config, ds18b20_device_handle_t *ret_ds18b20)
+esp_err_t ds18b20_new_device_from_enumeration(onewire_device_t *device, const ds18b20_config_t *config, ds18b20_device_handle_t *ret_ds18b20)
 {
     ds18b20_device_t *ds18b20 = NULL;
     ESP_RETURN_ON_FALSE(device && config && ret_ds18b20, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
@@ -62,7 +61,7 @@ esp_err_t ds18b20_new_device(onewire_device_t *device, const ds18b20_config_t *c
     return ESP_OK;
 }
 
-esp_err_t ds18b20_new_single_device(onewire_bus_handle_t bus, const ds18b20_config_t *config, ds18b20_device_handle_t *ret_ds18b20)
+esp_err_t ds18b20_new_device_from_bus(onewire_bus_handle_t bus, const ds18b20_config_t *config, ds18b20_device_handle_t *ret_ds18b20)
 {
     ds18b20_device_t *ds18b20 = NULL;
     ESP_RETURN_ON_FALSE(bus && config && ret_ds18b20, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
@@ -70,9 +69,9 @@ esp_err_t ds18b20_new_single_device(onewire_bus_handle_t bus, const ds18b20_conf
     ds18b20 = calloc(1, sizeof(ds18b20_device_t));
     ESP_RETURN_ON_FALSE(ds18b20, ESP_ERR_NO_MEM, TAG, "no mem for ds18b20");
     ds18b20->bus = bus;
-    ds18b20->addr = 0;
-    ds18b20->single_mode = true;
     ds18b20->resolution = DS18B20_RESOLUTION_12B; // DS18B20 default resolution is 12 bits
+    // we don't know the device address because there is no enumeration
+    ds18b20->addr = 0;
 
     *ret_ds18b20 = ds18b20;
     return ESP_OK;
@@ -87,12 +86,15 @@ esp_err_t ds18b20_del_device(ds18b20_device_handle_t ds18b20)
 
 static esp_err_t ds18b20_send_command(ds18b20_device_handle_t ds18b20, uint8_t cmd)
 {
-    // No addres mode (singe device connectd to the bus) created using ds18b20_new_single_device
-    if (ds18b20->single_mode) {
+    // No address mode (single device connected to the bus)
+    // use "Skip ROM" command
+    if (ds18b20->addr == 0) {
         uint8_t tx_buffer[2] = {ONEWIRE_CMD_SKIP_ROM, cmd};
         return onewire_bus_write_bytes(ds18b20->bus, tx_buffer, sizeof(tx_buffer));
     }
-    // send command
+
+    // otherwise,
+    // send device address first, then send the command
     uint8_t tx_buffer[10] = {0};
     tx_buffer[0] = ONEWIRE_CMD_MATCH_ROM;
     memcpy(&tx_buffer[1], &ds18b20->addr, sizeof(ds18b20->addr));
@@ -131,34 +133,26 @@ esp_err_t ds18b20_trigger_temperature_conversion(ds18b20_device_handle_t ds18b20
     // send command: DS18B20_CMD_CONVERT_TEMP
     ESP_RETURN_ON_ERROR(ds18b20_send_command(ds18b20, DS18B20_CMD_CONVERT_TEMP), TAG, "send DS18B20_CMD_CONVERT_TEMP failed");
 
-    // delay proper time for temperature conversion
+    // delay proper time based on its resolution
     const uint32_t delays_ms[] = {100, 200, 400, 800};
     vTaskDelay(pdMS_TO_TICKS(delays_ms[ds18b20->resolution]));
 
     return ESP_OK;
 }
 
-esp_err_t ds18b20_wait_for_conversion(ds18b20_resolution_t resolution)
+esp_err_t ds18b20_trigger_temperature_conversion_for_all(onewire_bus_handle_t bus)
 {
-    ESP_RETURN_ON_FALSE(resolution <= DS18B20_RESOLUTION_12B, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
-
-    // delay proper time for temperature conversion
-    const uint32_t delays_ms[] = {100, 200, 400, 800};
-    vTaskDelay(pdMS_TO_TICKS(delays_ms[resolution]));
-
-    return ESP_OK;
-}
-
-esp_err_t ds18b20_trigger_all_sensors_temperature_conversion(ds18b20_device_handle_t ds18b20)
-{
-    ESP_RETURN_ON_FALSE(ds18b20, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
+    ESP_RETURN_ON_FALSE(bus, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
 
     // reset bus and check if devices are present
-    ESP_RETURN_ON_ERROR(onewire_bus_reset(ds18b20->bus), TAG, "reset bus error");
+    ESP_RETURN_ON_ERROR(onewire_bus_reset(bus), TAG, "reset bus error");
 
-    // use Skip ROM command to trigger conversion on all sensors simultaneously
+    // use Skip ROM command to trigger conversion for all sensors
     uint8_t tx_buffer[2] = {ONEWIRE_CMD_SKIP_ROM, DS18B20_CMD_CONVERT_TEMP};
-    ESP_RETURN_ON_ERROR(onewire_bus_write_bytes(ds18b20->bus, tx_buffer, sizeof(tx_buffer)), TAG, "send convert command to all sensors failed");
+    ESP_RETURN_ON_ERROR(onewire_bus_write_bytes(bus, tx_buffer, sizeof(tx_buffer)), TAG, "send DS18B20_CMD_CONVERT_TEMP failed");
+
+    // delay proper time for temperature conversion
+    vTaskDelay(pdMS_TO_TICKS(800));
 
     return ESP_OK;
 }
