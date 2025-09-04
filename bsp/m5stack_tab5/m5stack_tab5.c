@@ -707,7 +707,7 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
 
     const esp_lcd_panel_dev_config_t lcd_dev_config = {
         .bits_per_pixel = 16,
-        .rgb_ele_order  = LCD_RGB_ELEMENT_ORDER_RGB,
+        .rgb_ele_order  = BSP_LCD_COLOR_SPACE,
         .reset_gpio_num = -1,
         .vendor_config  = &vendor_config,
     };
