@@ -92,7 +92,7 @@
 #define BSP_LCD_TOUCH_INT (GPIO_NUM_NC)
 /** @} */ // end of display
 
-/** @defgroup g02_storage SD Card and SPIFFS
+/** @defgroup g05_storage SD Card and SPIFFS
  *  @brief SPIFFS and SD card BSP API
  *  @{
  */
@@ -102,6 +102,10 @@
 #define BSP_SD_D3  (GPIO_NUM_42)
 #define BSP_SD_CMD (GPIO_NUM_44)
 #define BSP_SD_CLK (GPIO_NUM_43)
+#define BSP_SD_SPI_MOSI           (BSP_SD_CMD)   // CMD pin as MOSI
+#define BSP_SD_SPI_MISO           (BSP_SD_D0)    // D0 pin as MISO
+#define BSP_SD_SPI_SCK            (BSP_SD_CLK)   // CLK pin as SCK
+#define BSP_SD_SPI_CS             (BSP_SD_D3)    // D3 pin as CS
 /** @} */ // end of storage
 
 #ifdef __cplusplus
@@ -276,7 +280,7 @@ typedef struct {
 } bsp_sdcard_cfg_t;
 
 /**
- * @brief Mount microSD card to virtual file system
+ * @brief Mount microSD card to virtual file system (MMC mode)
  *
  * @return
  *      - ESP_OK on success
@@ -286,6 +290,18 @@ typedef struct {
  *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
  */
 esp_err_t bsp_sdcard_mount(void);
+
+/**
+ * @brief Mount microSD card to virtual file system (SPI mode)
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_fat_sdmmc_mount was already called
+ *      - ESP_ERR_NO_MEM if memory can not be allocated
+ *      - ESP_FAIL if partition can not be mounted
+ *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+ */
+esp_err_t bsp_sdcard_spi_mount(void);
 
 /**
  * @brief Unmount microSD card from virtual file system

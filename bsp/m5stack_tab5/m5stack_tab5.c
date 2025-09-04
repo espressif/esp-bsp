@@ -7,6 +7,7 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/ledc.h"
+#include "driver/spi_master.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_check.h"
@@ -15,6 +16,7 @@
 #include "esp_lcd_mipi_dsi.h"
 #include "esp_ldo_regulator.h"
 #include "esp_vfs_fat.h"
+#include "driver/sdspi_host.h"
 
 #include "usb/usb_host.h"
 #include "sd_pwr_ctrl_by_on_chip_ldo.h"
@@ -46,6 +48,9 @@ static TaskHandle_t usb_host_task;
 // sys i2c
 static bool i2c_initialized               = false;
 static i2c_master_bus_handle_t i2c_handle = NULL;
+
+// spi
+static bool spi_initialized = false;
 
 // i2s
 static i2s_chan_handle_t i2s_tx_chan            = NULL;
@@ -83,6 +88,29 @@ esp_err_t bsp_i2c_deinit(void)
 static i2c_master_bus_handle_t bsp_i2c_get_handle(void)
 {
     return i2c_handle;
+}
+
+static esp_err_t bsp_spi_init(uint32_t max_transfer_sz)
+{
+    /* SPI was initialized before */
+    if (spi_initialized) {
+        return ESP_OK;
+    }
+
+    ESP_LOGD(TAG, "Initialize SPI bus");
+    const spi_bus_config_t buscfg = {
+        .sclk_io_num     = BSP_SD_SPI_SCK,
+        .mosi_io_num     = BSP_SD_SPI_MOSI,
+        .miso_io_num     = BSP_SD_SPI_MISO,
+        .quadwp_io_num   = GPIO_NUM_NC,
+        .quadhd_io_num   = GPIO_NUM_NC,
+        .max_transfer_sz = max_transfer_sz,
+    };
+    ESP_RETURN_ON_ERROR(spi_bus_initialize(BSP_SDSPI_HOST, &buscfg, SPI_DMA_CH_AUTO), TAG, "SPI init failed");
+
+    spi_initialized = true;
+
+    return ESP_OK;
 }
 
 //==================================================================================
@@ -148,12 +176,24 @@ esp_err_t bsp_sdcard_mount(void)
     return bsp_sdcard_sdmmc_mount(&cfg);
 }
 
+esp_err_t bsp_sdcard_spi_mount(void)
+{
+    bsp_sdcard_cfg_t cfg = {0};
+    return bsp_sdcard_sdspi_mount(&cfg);
+}
+
 esp_err_t bsp_sdcard_unmount(void)
 {
     esp_err_t ret = ESP_OK;
 
     ret |= esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
     bsp_sdcard = NULL;
+
+    // Free SPI bus if it was initialized for SD card
+    if (spi_initialized) {
+        ret |= spi_bus_free(BSP_SDSPI_HOST);
+        spi_initialized = false;
+    }
 
     return ret;
 }
@@ -193,8 +233,11 @@ void bsp_sdcard_get_sdmmc_host(const int slot, sdmmc_host_t *config)
 void bsp_sdcard_get_sdspi_host(const int slot, sdmmc_host_t *config)
 {
     assert(config);
-    memset(config, 0, sizeof(sdmmc_host_t));
-    ESP_LOGE(TAG, "SD card SPI mode is not supported yet");
+
+    sdmmc_host_t host_config = SDSPI_HOST_DEFAULT();
+    host_config.slot = slot;
+
+    memcpy(config, &host_config, sizeof(sdmmc_host_t));
 }
 
 void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config)
@@ -215,7 +258,15 @@ void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_co
 {
     assert(config);
     memset(config, 0, sizeof(sdspi_device_config_t));
-    ESP_LOGE(TAG, "SD card SPI mode is not supported yet");
+
+    config->gpio_cs   = BSP_SD_SPI_CS;
+    config->gpio_cd   = SDSPI_SLOT_NO_CD;
+    config->gpio_wp   = SDSPI_SLOT_NO_WP;
+    config->gpio_int  = GPIO_NUM_NC;
+    config->host_id = spi_host;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 2, 0)
+    config->gpio_wp_polarity = SDSPI_IO_ACTIVE_LOW;
+#endif
 }
 
 esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
@@ -286,8 +337,43 @@ esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
 
 esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg)
 {
-    ESP_LOGE(TAG, "SD card SPIFFS mode is not supported yet");
-    return ESP_ERR_NOT_SUPPORTED;
+    sdmmc_host_t sdhost = {0};
+    sdspi_device_config_t sdslot = {0};
+    const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+#ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
+        .format_if_mount_failed = true,
+#else
+        .format_if_mount_failed = false,
+#endif
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024
+    };
+    assert(cfg);
+
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_SD, true));
+
+    // Initialize SPI bus for SD card
+    ESP_RETURN_ON_ERROR(bsp_spi_init(4096), TAG, "SPI init failed");
+
+    if (!cfg->mount) {
+        cfg->mount = &mount_config;
+    }
+
+    if (!cfg->host) {
+        bsp_sdcard_get_sdspi_host(SDMMC_HOST_SLOT_0, &sdhost);
+        cfg->host = &sdhost;
+    }
+
+    if (!cfg->slot.sdspi) {
+        bsp_sdcard_sdspi_get_slot(BSP_SDSPI_HOST, &sdslot);
+        cfg->slot.sdspi = &sdslot;
+    }
+
+#if !CONFIG_FATFS_LONG_FILENAMES
+    ESP_LOGW(TAG, "Warning: Long filenames on SD card are disabled in menuconfig!");
+#endif
+
+    return esp_vfs_fat_sdspi_mount(BSP_SD_MOUNT_POINT, cfg->host, cfg->slot.sdspi, cfg->mount, &bsp_sdcard);
 }
 
 //==================================================================================
