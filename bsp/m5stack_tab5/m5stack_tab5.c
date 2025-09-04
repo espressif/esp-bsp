@@ -45,17 +45,11 @@ static TaskHandle_t usb_host_task;
 // sys i2c
 static bool i2c_initialized               = false;
 static i2c_master_bus_handle_t i2c_handle = NULL;
-// ext i2c
-static bool ext_i2c_initialized                   = false;
-static i2c_master_bus_handle_t ext_i2c_bus_handle = NULL;
-// grove i2c
-static bool grove_i2c_initialized                   = false;
-static i2c_master_bus_handle_t grove_i2c_bus_handle = NULL;
+
 // i2s
 static i2s_chan_handle_t i2s_tx_chan            = NULL;
 static i2s_chan_handle_t i2s_rx_chan            = NULL;
 static const audio_codec_data_if_t *i2s_data_if = NULL; /* Codec data interface */
-static bool codec_initialized = false;
 
 esp_err_t bsp_i2c_init(void)
 {
@@ -400,34 +394,9 @@ esp_err_t bsp_spiffs_unmount(void)
 //==================================================================================
 // audio es7210 + es8388
 //==================================================================================
-typedef esp_err_t (*bsp_i2s_read_fn)(void *audio_buffer, size_t len, size_t *bytes_read, uint32_t timeout_ms);
-typedef esp_err_t (*bsp_i2s_write_fn)(void *audio_buffer, size_t len, size_t *bytes_written, uint32_t timeout_ms);
-typedef esp_err_t (*bsp_codec_set_in_gain_fn)(float gain);
 typedef esp_err_t (*bsp_codec_mute_fn)(bool enable);
-typedef int (*bsp_codec_volume_fn)(int volume);
-typedef esp_err_t (*bsp_codec_get_volume_fn)(void);
 typedef esp_err_t (*bsp_codec_reconfig_fn)(uint32_t rate, uint32_t bps, i2s_slot_mode_t ch);
 typedef esp_err_t (*bsp_i2s_reconfig_clk_fn)(uint32_t rate, uint32_t bits_cfg, i2s_slot_mode_t ch);
-
-typedef struct {
-    bsp_i2s_read_fn i2s_read;
-    bsp_i2s_write_fn i2s_write;
-    bsp_codec_mute_fn set_mute;
-    bsp_codec_volume_fn set_volume;
-    bsp_codec_get_volume_fn get_volume;
-    bsp_codec_set_in_gain_fn set_in_gain;
-    bsp_codec_reconfig_fn codec_reconfig_fn;
-    bsp_i2s_reconfig_clk_fn i2s_reconfig_clk_fn;
-} bsp_codec_config_t;
-
-static void bsp_codec_init(void);
-static bsp_codec_config_t *bsp_get_codec_handle(void);
-static uint8_t bsp_codec_feed_channel(void);
-
-static esp_codec_dev_handle_t play_dev_handle;
-static esp_codec_dev_handle_t record_dev_handle;
-static bsp_codec_config_t g_codec_handle;
-static int volume;
 
 /* Can be used for `i2s_std_gpio_config_t` and/or `i2s_std_config_t` initialization */
 #define BSP_I2S_GPIO_CFG                                                                                           \
@@ -529,8 +498,6 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     }
     assert(i2s_data_if);
 
-    const audio_codec_gpio_if_t *gpio_if = audio_codec_new_gpio();
-
     i2c_master_bus_handle_t i2c_bus_handle = bsp_i2c_get_handle();
     audio_codec_i2c_cfg_t i2c_cfg          = {
         .port       = BSP_I2C_NUM,
@@ -539,11 +506,6 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);
-
-    esp_codec_dev_hw_gain_t gain = {
-        .pa_voltage        = 5.0,
-        .codec_dac_voltage = 3.3,
-    };
 
     es8388_codec_cfg_t es8388_cfg = {
         .codec_mode  = ESP_CODEC_DEV_WORK_MODE_DAC,
@@ -600,125 +562,6 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
     };
 
     return esp_codec_dev_new(&codec_es7210_dev_cfg);
-}
-
-static esp_err_t bsp_i2s_read(void *audio_buffer, size_t len, size_t *bytes_read, uint32_t timeout_ms)
-{
-    esp_err_t ret = ESP_OK;
-    ret           = esp_codec_dev_read(record_dev_handle, audio_buffer, len);
-    *bytes_read   = len;
-    return ret;
-}
-
-static esp_err_t bsp_i2s_write(void *audio_buffer, size_t len, size_t *bytes_written, uint32_t timeout_ms)
-{
-    esp_err_t ret  = ESP_OK;
-    ret            = esp_codec_dev_write(play_dev_handle, audio_buffer, len);
-    *bytes_written = len;
-    return ret;
-}
-
-static esp_err_t bsp_codec_set_in_gain(float gain)
-{
-    return esp_codec_dev_set_in_gain(record_dev_handle, gain);
-}
-
-static esp_err_t bsp_codec_set_mute(bool enable)
-{
-    esp_err_t ret = ESP_OK;
-    ret           = esp_codec_dev_set_out_mute(play_dev_handle, enable);
-    return ret;
-}
-
-static esp_err_t bsp_codec_set_volume(int v)
-{
-    esp_err_t ret = ESP_OK;
-
-    if (v <= 0) {
-        volume = 0;
-        ret    = esp_codec_dev_set_out_mute(play_dev_handle, true);
-    } else {
-        volume = v;
-        ret    = esp_codec_dev_set_out_mute(play_dev_handle, false);
-        ret |= esp_codec_dev_set_out_vol(play_dev_handle, volume);
-    }
-
-    return ret;
-}
-
-static int bsp_codec_get_volume(void)
-{
-    return volume;
-}
-
-static bsp_codec_config_t *bsp_get_codec_handle(void)
-{
-    return &g_codec_handle;
-}
-
-static esp_err_t bsp_codec_es8388_set(uint32_t rate, uint32_t bps, i2s_slot_mode_t ch)
-{
-    esp_err_t ret = ESP_OK;
-
-    esp_codec_dev_sample_info_t fs = {
-        .sample_rate     = rate,
-        .channel         = ch,
-        .bits_per_sample = bps,
-    };
-
-    if (play_dev_handle) {
-        ret = esp_codec_dev_close(play_dev_handle);
-    }
-    ret = esp_codec_dev_open(play_dev_handle, &fs);
-
-    return ret;
-}
-
-static esp_err_t bsp_codec_es7210_set(uint32_t rate, uint32_t bps, i2s_slot_mode_t ch)
-{
-    esp_err_t ret = ESP_OK;
-
-    esp_codec_dev_sample_info_t fs = {
-        .sample_rate     = rate,
-        .channel         = ch,
-        .bits_per_sample = bps,
-    };
-
-    if (record_dev_handle) {
-        ret = esp_codec_dev_close(record_dev_handle);
-    }
-    ret = esp_codec_dev_open(record_dev_handle, &fs);
-
-    return ret;
-}
-
-static void bsp_codec_init(void)
-{
-    play_dev_handle = bsp_audio_codec_speaker_init();
-    assert((play_dev_handle) && "play_dev_handle not initialized");
-
-    record_dev_handle = bsp_audio_codec_microphone_init();
-    assert((record_dev_handle) && "record_dev_handle not initialized");
-
-    bsp_codec_es7210_set(48000, 16, 4);
-    bsp_codec_es8388_set(48000, 16, 2);
-
-    bsp_codec_config_t *codec_cfg  = bsp_get_codec_handle();
-    codec_cfg->i2s_read            = bsp_i2s_read;
-    codec_cfg->i2s_write           = bsp_i2s_write;
-    codec_cfg->set_mute            = bsp_codec_set_mute;
-    codec_cfg->set_volume          = bsp_codec_set_volume;
-    codec_cfg->get_volume          = bsp_codec_get_volume;
-    codec_cfg->set_in_gain         = bsp_codec_set_in_gain;
-    codec_cfg->codec_reconfig_fn   = bsp_codec_es7210_set;
-    codec_cfg->i2s_reconfig_clk_fn = bsp_codec_es8388_set;
-
-    codec_cfg->set_volume(80);
-}
-
-static uint8_t bsp_codec_feed_channel(void)
-{
-    return 3;  // 2*mic_num + ref_num
 }
 
 // Bit number used to represent command and parameter
