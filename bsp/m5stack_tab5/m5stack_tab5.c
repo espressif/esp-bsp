@@ -91,11 +91,14 @@ static i2c_master_bus_handle_t bsp_i2c_get_handle(void)
 static esp_io_expander_handle_t io_expander_pi4ioe1 = NULL;
 static esp_io_expander_handle_t io_expander_pi4ioe2 = NULL;
 
-static esp_err_t bsp_io_expander_pi4ioe_init(i2c_master_bus_handle_t bus_handle)
+static esp_err_t bsp_io_expander_pi4ioe_init()
 {
     if (io_expander_pi4ioe1 && io_expander_pi4ioe2) {
         return ESP_OK;
     }
+
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+    i2c_master_bus_handle_t bus_handle = bsp_i2c_get_handle();
 
     // Initialize PI4IOE1 (address 0x43)
     ESP_RETURN_ON_ERROR(esp_io_expander_new_i2c_pi4ioe5v6408(bus_handle, ESP_IO_EXPANDER_I2C_PI4IOE5V6408_ADDRESS_LOW, &io_expander_pi4ioe1), TAG, "Create PI4IOE1 failed");
@@ -222,6 +225,8 @@ esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
     if (NULL != bsp_sdcard) {
         return ESP_ERR_INVALID_STATE;
     }
+
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_SD, true));
 
     /**
      * @brief Use settings defined above to initialize SD card and mount FAT filesystem.
@@ -428,6 +433,8 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     }
     assert(i2s_data_if);
 
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_SPEAKER, true));
+
     i2c_master_bus_handle_t i2c_bus_handle = bsp_i2c_get_handle();
     audio_codec_i2c_cfg_t i2c_cfg          = {
         .port       = BSP_I2C_NUM,
@@ -583,6 +590,8 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
 
 esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_lcd_handles_t *ret_handles)
 {
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_LCD, true));
+
     esp_err_t ret                     = ESP_OK;
     esp_lcd_panel_io_handle_t io      = NULL;
     esp_lcd_panel_handle_t disp_panel = NULL;
@@ -678,8 +687,7 @@ err:
 
 esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t *ret_touch)
 {
-    /* Initilize I2C */
-    BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_TOUCH, true));
 
     /* Initialize touch */
     const esp_lcd_touch_config_t tp_cfg = {
@@ -816,12 +824,6 @@ static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 
 lv_display_t *bsp_display_start(void)
 {
-    if (!io_expander_pi4ioe1) {
-        ESP_ERROR_CHECK(bsp_i2c_init());
-        i2c_master_bus_handle_t i2c_bus_handle = bsp_i2c_get_handle();
-        ESP_ERROR_CHECK(bsp_io_expander_pi4ioe_init(i2c_bus_handle));
-    }
-
     bsp_display_lcd_config_t cfg = {.lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
                                     .buffer_size   = BSP_LCD_DRAW_BUFF_SIZE,
                                     .double_buffer = BSP_LCD_DRAW_BUFF_DOUBLE,
@@ -916,4 +918,23 @@ esp_err_t bsp_usb_host_stop(void)
         vTaskDelete(usb_host_task);
     }
     return ESP_OK;
+}
+
+esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
+{
+    esp_err_t err = ESP_OK;
+
+    /* Initilize I2C */
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_io_expander_pi4ioe_init());
+
+    switch (feature) {
+    case BSP_FEATURE_LCD:
+    case BSP_FEATURE_TOUCH:
+    case BSP_FEATURE_SD:
+    case BSP_FEATURE_SPEAKER:
+    case BSP_FEATURE_BATTERY:
+    }
+    return err;
 }

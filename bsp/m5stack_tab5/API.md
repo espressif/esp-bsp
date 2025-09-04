@@ -863,6 +863,7 @@ Below are some of the most relevant predefined constants:
 | Type | Name |
 | ---: | :--- |
 | struct | [**bsp\_display\_lcd\_config\_t**](#struct-bsp_display_lcd_config_t) <br>_BSP display configuration structure._ |
+| enum  | [**bsp\_feature\_t**](#enum-bsp_feature_t)  <br> |
 | enum  | [**bsp\_usb\_host\_power\_mode\_t**](#enum-bsp_usb_host_power_mode_t)  <br>_Power modes of USB Host connector._ |
 | typedef enum [**bsp\_usb\_host\_power\_mode\_t**](#enum-bsp_usb_host_power_mode_t) | [**bsp\_usb\_host\_power\_mode\_t**](#typedef-bsp_usb_host_power_mode_t)  <br>_Power modes of USB Host connector._ |
 
@@ -876,6 +877,7 @@ Below are some of the most relevant predefined constants:
 |  lv\_display\_t \* | [**bsp\_display\_start**](#function-bsp_display_start) (void) <br>_Initialize display._ |
 |  lv\_display\_t \* | [**bsp\_display\_start\_with\_config**](#function-bsp_display_start_with_config) (const [**bsp\_display\_lcd\_config\_t**](#struct-bsp_display_lcd_config_t) \*cfg) <br>_Initialize display._ |
 |  void | [**bsp\_display\_unlock**](#function-bsp_display_unlock) (void) <br>_Give LVGL mutex._ |
+|  esp\_err\_t | [**bsp\_feature\_enable**](#function-bsp_feature_enable) (bsp\_feature\_t feature, bool enable) <br> |
 |  esp\_err\_t | [**bsp\_usb\_host\_start**](#function-bsp_usb_host_start) ([**bsp\_usb\_host\_power\_mode\_t**](#enum-bsp_usb_host_power_mode_t) mode, bool limit\_500mA) <br>_Start USB host._ |
 |  esp\_err\_t | [**bsp\_usb\_host\_stop**](#function-bsp_usb_host_stop) (void) <br>_Stop USB host._ |
 
@@ -913,6 +915,18 @@ Variables:
 -  lvgl\_port\_cfg\_t lvgl_port_cfg  <br>LVGL port configuration
 
 -  unsigned int sw_rotate  <br>Use software rotation (slower), The feature is unavailable under avoid-tear mode
+
+### enum `bsp_feature_t`
+
+```c
+enum bsp_feature_t {
+    BSP_FEATURE_LCD,
+    BSP_FEATURE_TOUCH,
+    BSP_FEATURE_SD,
+    BSP_FEATURE_SPEAKER,
+    BSP_FEATURE_BATTERY
+};
+```
 
 ### enum `bsp_usb_host_power_mode_t`
 
@@ -1043,6 +1057,15 @@ _Give LVGL mutex._
 ```c
 void bsp_display_unlock (
     void
+) 
+```
+
+### function `bsp_feature_enable`
+
+```c
+esp_err_t bsp_feature_enable (
+    bsp_feature_t feature,
+    bool enable
 ) 
 ```
 

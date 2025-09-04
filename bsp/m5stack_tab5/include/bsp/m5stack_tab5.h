@@ -505,6 +505,31 @@ esp_err_t bsp_usb_host_start(bsp_usb_host_power_mode_t mode, bool limit_500mA);
  */
 esp_err_t bsp_usb_host_stop(void);
 
+/**************************************************************************************************
+ *
+ * BSP Features
+ *
+ * This module provides an interface to enable and disable various features on the M5Stack-Tab5 board.
+ * Supported features include the LCD display, touch screen, SD card, and speaker.
+ *
+ * Parameters:
+ * - feature: The feature to enable or disable, of type bsp_feature_t enum.
+ * - enable: A boolean value, true to enable the feature, false to disable it.
+ *
+ * Return value:
+ * - esp_err_t: Error code indicating the result of the operation.
+ *
+ **************************************************************************************************/
+typedef enum {
+    BSP_FEATURE_LCD,
+    BSP_FEATURE_TOUCH,
+    BSP_FEATURE_SD,
+    BSP_FEATURE_SPEAKER,
+    BSP_FEATURE_BATTERY,
+} bsp_feature_t;
+
+esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable);
+
 /** @} */ // end of display
 
 #ifdef __cplusplus
