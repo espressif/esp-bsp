@@ -67,7 +67,7 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 
 ## LVGL Benchmark
 
-**DATE:** 03.09.2025 02:41
+**DATE:** 05.09.2025 08:59
 
 **LVGL version:** 9.3.0
 
@@ -76,19 +76,19 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 | Empty screen | 95%  | 29  | 30  | 6  | 24  |
 | Moving wallpaper | 95%  | 30  | 30  | 7  | 23  |
 | Single rectangle | 22%  | 96  | 0  | 0  | 0  |
-| Multiple rectangles | 78%  | 53  | 15  | 8  | 7  |
-| Multiple RGB images | 27%  | 90  | 1  | 1  | 0  |
-| Multiple ARGB images | 25%  | 89  | 3  | 3  | 0  |
-| Rotated ARGB images | 78%  | 51  | 18  | 15  | 3  |
-| Multiple labels | 89%  | 80  | 10  | 8  | 2  |
-| Screen sized text | 96%  | 22  | 42  | 39  | 3  |
+| Multiple rectangles | 79%  | 53  | 15  | 8  | 7  |
+| Multiple RGB images | 26%  | 89  | 1  | 1  | 0  |
+| Multiple ARGB images | 26%  | 89  | 3  | 3  | 0  |
+| Rotated ARGB images | 78%  | 49  | 18  | 15  | 3  |
+| Multiple labels | 89%  | 80  | 9  | 8  | 1  |
+| Screen sized text | 95%  | 21  | 41  | 39  | 2  |
 | Multiple arcs | 25%  | 92  | 1  | 1  | 0  |
 | Containers | 35%  | 72  | 15  | 6  | 9  |
 | Containers with overlay | 92%  | 28  | 31  | 20  | 11  |
-| Containers with opa | 42%  | 72  | 15  | 9  | 6  |
-| Containers with opa_layer | 59%  | 55  | 26  | 22  | 4  |
-| Containers with scrolling | 93%  | 26  | 32  | 21  | 11  |
-| Widgets demo | 96%  | 26  | 20  | 17  | 3  |
+| Containers with opa | 41%  | 72  | 15  | 9  | 6  |
+| Containers with opa_layer | 57%  | 55  | 26  | 22  | 4  |
+| Containers with scrolling | 94%  | 26  | 33  | 22  | 11  |
+| Widgets demo | 97%  | 26  | 21  | 18  | 3  |
 | All scenes avg. | 65%  | 56  | 17  | 11  | 6  |
 
 
