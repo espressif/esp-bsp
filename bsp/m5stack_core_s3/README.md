@@ -67,29 +67,29 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 
 ## LVGL Benchmark
 
-**DATE:** 19.08.2025 02:45
+**DATE:** 03.09.2025 02:41
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 94%  | 28  | 30  | 6  | 24  |
-| Moving wallpaper | 97%  | 29  | 30  | 9  | 21  |
-| Single rectangle | 19%  | 91  | 0  | 0  | 0  |
-| Multiple rectangles | 84%  | 57  | 14  | 6  | 8  |
-| Multiple RGB images | 15%  | 90  | 1  | 1  | 0  |
-| Multiple ARGB images | 26%  | 91  | 3  | 3  | 0  |
-| Rotated ARGB images | 80%  | 53  | 17  | 14  | 3  |
-| Multiple labels | 82%  | 80  | 9  | 9  | 0  |
+| Empty screen | 95%  | 29  | 30  | 6  | 24  |
+| Moving wallpaper | 95%  | 30  | 30  | 7  | 23  |
+| Single rectangle | 22%  | 96  | 0  | 0  | 0  |
+| Multiple rectangles | 78%  | 53  | 15  | 8  | 7  |
+| Multiple RGB images | 27%  | 90  | 1  | 1  | 0  |
+| Multiple ARGB images | 25%  | 89  | 3  | 3  | 0  |
+| Rotated ARGB images | 78%  | 51  | 18  | 15  | 3  |
+| Multiple labels | 89%  | 80  | 10  | 8  | 2  |
 | Screen sized text | 96%  | 22  | 42  | 39  | 3  |
-| Multiple arcs | 23%  | 91  | 1  | 1  | 0  |
-| Containers | 37%  | 73  | 16  | 8  | 8  |
-| Containers with overlay | 97%  | 28  | 30  | 20  | 10  |
-| Containers with opa | 45%  | 73  | 16  | 10  | 6  |
-| Containers with opa_layer | 56%  | 56  | 25  | 20  | 5  |
-| Containers with scrolling | 95%  | 27  | 32  | 20  | 12  |
-| Widgets demo | 96%  | 27  | 20  | 17  | 3  |
-| All scenes avg. | 65%  | 57  | 17  | 11  | 6  |
+| Multiple arcs | 25%  | 92  | 1  | 1  | 0  |
+| Containers | 35%  | 72  | 15  | 6  | 9  |
+| Containers with overlay | 92%  | 28  | 31  | 20  | 11  |
+| Containers with opa | 42%  | 72  | 15  | 9  | 6  |
+| Containers with opa_layer | 59%  | 55  | 26  | 22  | 4  |
+| Containers with scrolling | 93%  | 26  | 32  | 21  | 11  |
+| Widgets demo | 96%  | 26  | 20  | 17  | 3  |
+| All scenes avg. | 65%  | 56  | 17  | 11  | 6  |
 
 
 
