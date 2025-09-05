@@ -1,0 +1,34 @@
+
+version: "1.0.0"
+description: Board Support Package (BSP) for esp32_p4_eye
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_p4_eye
+
+targets:
+  - esp32p4
+
+tags:
+  - bsp
+
+dependencies:
+  idf: ">=5.3" # We use I2C Driver-NG from IDF v5.2 but esp-codec-dev supports from v5.3
+  
+  esp_lvgl_port:
+    version: "*"
+    public:  true
+  
+  knob:
+    version: "^0.1.3"
+    public:  true
+  
+  button:
+    version: "^4"
+    public:  true
+  
+  esp_video:
+    version: "0.9.*"
+    public:  true
+  
+  led_indicator:
+    version: "^1"
+    public:  true
+  
