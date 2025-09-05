@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Unlicense OR CC0-1.0
  */
@@ -8,30 +8,32 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "ds18b20.h"
 #include "onewire_bus.h"
+#include "ds18b20.h"
 
 #define EXAMPLE_ONEWIRE_BUS_GPIO    18
 #define EXAMPLE_ONEWIRE_MAX_DS18B20 2
 
-static int s_ds18b20_device_num = 0;
-static float s_temperature = 0.0;
-static ds18b20_device_handle_t s_ds18b20s[EXAMPLE_ONEWIRE_MAX_DS18B20];
+static const char *TAG = "example";
 
-static const char *TAG = "DS18B20";
-
-static void sensor_detect(void)
+void app_main(void)
 {
     // install 1-wire bus
     onewire_bus_handle_t bus = NULL;
     onewire_bus_config_t bus_config = {
         .bus_gpio_num = EXAMPLE_ONEWIRE_BUS_GPIO,
+        .flags = {
+            .en_pull_up = true, // enable the internal pull-up resistor in case the external device didn't have one
+        }
     };
     onewire_bus_rmt_config_t rmt_config = {
         .max_rx_bytes = 10, // 1byte ROM command + 8byte ROM number + 1byte device command
     };
     ESP_ERROR_CHECK(onewire_new_bus_rmt(&bus_config, &rmt_config, &bus));
+    ESP_LOGI(TAG, "1-Wire bus installed on GPIO%d", EXAMPLE_ONEWIRE_BUS_GPIO);
 
+    int ds18b20_device_num = 0;
+    ds18b20_device_handle_t ds18b20s[EXAMPLE_ONEWIRE_MAX_DS18B20];
     onewire_device_iter_handle_t iter = NULL;
     onewire_device_t next_onewire_device;
     esp_err_t search_result = ESP_OK;
@@ -45,40 +47,31 @@ static void sensor_detect(void)
             ds18b20_config_t ds_cfg = {};
             onewire_device_address_t address;
             // check if the device is a DS18B20, if so, return the ds18b20 handle
-            if (ds18b20_new_device(&next_onewire_device, &ds_cfg, &s_ds18b20s[s_ds18b20_device_num]) == ESP_OK) {
-                ds18b20_get_device_address(s_ds18b20s[s_ds18b20_device_num], &address);
-                ESP_LOGI(TAG, "Found a DS18B20[%d], address: %016llX", s_ds18b20_device_num, address);
-                s_ds18b20_device_num++;
+            if (ds18b20_new_device_from_enumeration(&next_onewire_device, &ds_cfg, &ds18b20s[ds18b20_device_num]) == ESP_OK) {
+                ds18b20_get_device_address(ds18b20s[ds18b20_device_num], &address);
+                ESP_LOGI(TAG, "Found a DS18B20[%d], address: %016llX", ds18b20_device_num, address);
+                ds18b20_device_num++;
+                if (ds18b20_device_num >= EXAMPLE_ONEWIRE_MAX_DS18B20) {
+                    ESP_LOGI(TAG, "Max DS18B20 number reached, stop searching...");
+                    break;
+                }
             } else {
                 ESP_LOGI(TAG, "Found an unknown device, address: %016llX", next_onewire_device.address);
             }
         }
     } while (search_result != ESP_ERR_NOT_FOUND);
     ESP_ERROR_CHECK(onewire_del_device_iter(iter));
-    ESP_LOGI(TAG, "Searching done, %d DS18B20 device(s) found", s_ds18b20_device_num);
-}
+    ESP_LOGI(TAG, "Searching done, %d DS18B20 device(s) found", ds18b20_device_num);
 
-void sensor_read(void)
-{
-    for (int i = 0; i < s_ds18b20_device_num; i++) {
-        ESP_ERROR_CHECK(ds18b20_trigger_temperature_conversion(s_ds18b20s[i]));
-        ESP_ERROR_CHECK(ds18b20_get_temperature(s_ds18b20s[i], &s_temperature));
-        ESP_LOGI(TAG, "Temperature read from DS18B20[%d]: %.2fC", i, s_temperature);
-    }
-}
-
-void sensor_readTask(void *pvParameters)
-{
+    float temperature;
     while (1) {
-        sensor_read();
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-}
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-void app_main(void)
-{
-    // Detect the DS18B20 sensor in the bus
-    sensor_detect();
-    // Start task to read the temperature from DS18B20 sensor
-    xTaskCreate(&sensor_readTask, "sensor_readTask", 4096, NULL, 5, NULL);
+        // trigger temperature conversion for all sensors on the bus
+        ESP_ERROR_CHECK(ds18b20_trigger_temperature_conversion_for_all(bus));
+        for (int i = 0; i < ds18b20_device_num; i ++) {
+            ESP_ERROR_CHECK(ds18b20_get_temperature(ds18b20s[i], &temperature));
+            ESP_LOGI(TAG, "temperature read from DS18B20[%d]: %.2fC", i, temperature);
+        }
+    }
 }
