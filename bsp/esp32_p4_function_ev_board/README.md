@@ -89,7 +89,7 @@ This BSP supports HDMI converter Lontium LT8912B. Follow these rules for using i
 
 ## LVGL Benchmark
 
-**DATE:** 03.09.2025 02:41
+**DATE:** 05.09.2025 08:59
 
 **LVGL version:** 9.3.0
 
