@@ -1,0 +1,6 @@
+description: BSP Display and camera example
+
+dependencies:
+  esp32_p4_eye:
+    version: "*"
+    override_path: "../../../bsp/esp32_p4_eye"
