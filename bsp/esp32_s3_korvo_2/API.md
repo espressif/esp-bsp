@@ -1487,8 +1487,8 @@ led_indicator_start(leds[0], BSP_LED_BREATHE_SLOW);
 
 ```c
 enum bsp_led_t {
-    BSP_LED_BLUE = IO_EXPANDER_PIN_NUM_6,
-    BSP_LED_RED = IO_EXPANDER_PIN_NUM_7
+    BSP_LED_RED = IO_EXPANDER_PIN_NUM_6,
+    BSP_LED_BLUE = IO_EXPANDER_PIN_NUM_7
 };
 ```
 

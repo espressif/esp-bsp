@@ -61,29 +61,29 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 
 ## LVGL Benchmark
 
-**DATE:** 03.09.2025 02:41
+**DATE:** 05.09.2025 08:59
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 95%  | 26  | 33  | 3  | 30  |
-| Moving wallpaper | 99%  | 25  | 36  | 5  | 31  |
-| Single rectangle | 23%  | 90  | 0  | 0  | 0  |
+| Empty screen | 95%  | 25  | 34  | 4  | 30  |
+| Moving wallpaper | 99%  | 25  | 35  | 5  | 30  |
+| Single rectangle | 18%  | 89  | 0  | 0  | 0  |
 | Multiple rectangles | 96%  | 50  | 15  | 2  | 13  |
-| Multiple RGB images | 35%  | 95  | 0  | 0  | 0  |
-| Multiple ARGB images | 27%  | 90  | 2  | 2  | 0  |
-| Rotated ARGB images | 76%  | 56  | 17  | 12  | 5  |
-| Multiple labels | 99%  | 80  | 8  | 3  | 5  |
-| Screen sized text | 99%  | 15  | 58  | 28  | 30  |
-| Multiple arcs | 24%  | 92  | 0  | 0  | 0  |
-| Containers | 45%  | 78  | 18  | 5  | 13  |
-| Containers with overlay | 95%  | 20  | 45  | 15  | 30  |
-| Containers with opa | 56%  | 75  | 18  | 6  | 12  |
-| Containers with opa_layer | 66%  | 56  | 28  | 16  | 12  |
-| Containers with scrolling | 100%  | 20  | 43  | 13  | 30  |
-| Widgets demo | 99%  | 24  | 25  | 11  | 14  |
-| All scenes avg. | 70%  | 55  | 21  | 7  | 14  |
+| Multiple RGB images | 38%  | 95  | 0  | 0  | 0  |
+| Multiple ARGB images | 34%  | 94  | 2  | 2  | 0  |
+| Rotated ARGB images | 80%  | 57  | 17  | 13  | 4  |
+| Multiple labels | 96%  | 79  | 8  | 3  | 5  |
+| Screen sized text | 100%  | 15  | 59  | 29  | 30  |
+| Multiple arcs | 28%  | 91  | 0  | 0  | 0  |
+| Containers | 47%  | 76  | 18  | 4  | 14  |
+| Containers with overlay | 93%  | 20  | 45  | 14  | 31  |
+| Containers with opa | 58%  | 72  | 18  | 6  | 12  |
+| Containers with opa_layer | 66%  | 56  | 28  | 15  | 13  |
+| Containers with scrolling | 97%  | 21  | 43  | 13  | 30  |
+| Widgets demo | 96%  | 24  | 25  | 11  | 14  |
+| All scenes avg. | 71%  | 55  | 21  | 7  | 14  |
 
 
 

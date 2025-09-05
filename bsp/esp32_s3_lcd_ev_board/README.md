@@ -96,16 +96,16 @@ Based on the above configurations, there are three different anti-tearing modes 
 
 ## LVGL Benchmark
 
-**DATE:** 03.09.2025 02:41
+**DATE:** 05.09.2025 08:59
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 96%  | 18  | 51  | 29  | 22  |
+| Empty screen | 96%  | 18  | 51  | 30  | 21  |
 | Moving wallpaper | 99%  | 9  | 93  | 82  | 11  |
 | Single rectangle | 98%  | 35  | 24  | 1  | 23  |
-| Multiple rectangles | 98%  | 32  | 28  | 18  | 10  |
+| Multiple rectangles | 98%  | 32  | 27  | 17  | 10  |
 | Multiple RGB images | 99%  | 28  | 29  | 22  | 7  |
 | Multiple ARGB images | 99%  | 17  | 51  | 35  | 16  |
 | Rotated ARGB images | 99%  | 16  | 58  | 50  | 8  |
@@ -113,9 +113,9 @@ Based on the above configurations, there are three different anti-tearing modes 
 | Screen sized text | 99%  | 8  | 109  | 89  | 20  |
 | Multiple arcs | 99%  | 35  | 22  | 6  | 16  |
 | Containers | 99%  | 15  | 53  | 40  | 13  |
-| Containers with overlay | 99%  | 10  | 85  | 73  | 12  |
+| Containers with overlay | 99%  | 10  | 85  | 72  | 13  |
 | Containers with opa | 99%  | 11  | 73  | 55  | 18  |
-| Containers with opa_layer | 99%  | 6  | 134  | 127  | 7  |
+| Containers with opa_layer | 99%  | 6  | 139  | 128  | 11  |
 | Containers with scrolling | 99%  | 11  | 81  | 61  | 20  |
 | Widgets demo | 99%  | 7  | 98  | 84  | 14  |
 | All scenes avg. | 98%  | 17  | 64  | 50  | 14  |
