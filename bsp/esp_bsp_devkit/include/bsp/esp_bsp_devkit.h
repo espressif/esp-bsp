@@ -121,7 +121,7 @@ typedef enum {
 } bsp_button_t;
 /** @} */ // end of buttons
 
-/** \addtogroup 6_led
+/** \addtogroup g06_led
  *  @brief BSP Leds
  *  @{
  */
