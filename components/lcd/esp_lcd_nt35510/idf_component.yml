@@ -1,0 +1,5 @@
+version: "1.0.0"
+description: ESP LCD NT35510
+url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_nt35510
+dependencies:
+  idf: ">=5.3" # For earlier versions, NT35510 driver can be found in esp_lcd component
