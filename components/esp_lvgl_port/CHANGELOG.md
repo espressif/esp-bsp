@@ -1,9 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## 2.6.1
 ### Features
 - Added option to place LVGL task stack to external RAM
 - Fixed callback for RGB display for IDF6
+
+### Fixes
+- Register button callbacks only if encoder_enter is set https://github.com/espressif/esp-bsp/pull/571/files
 
 ## 2.6.0
 
