@@ -1,7 +1,9 @@
 # BSP: ESP32-S2-Kaluga-Kit
 
-| [HW Reference](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/hw-reference/esp32s2/user-guide-esp32-s2-kaluga-1-kit.html) | [HOW TO USE API](API.md) | [EXAMPLES](#compatible-bsp-examples) |[![Component Registry](https://components.espressif.com/components/espressif/esp32_s2_kaluga_kit/badge.svg)](https://components.espressif.com/components/espressif/esp32_s2_kaluga_kit) | ![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg) |
+| [HW Reference](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/hw-reference/esp32s2/user-guide-esp32-s2-kaluga-1-kit.html) | [HOW TO USE API](API.md) | [EXAMPLES](#compatible-bsp-examples) |[![Component Registry](https://components.espressif.com/components/espressif/esp32_s2_kaluga_kit/badge.svg)](https://components.espressif.com/components/espressif/esp32_s2_kaluga_kit) | ![maintenance-status](https://img.shields.io/badge/maintenance-deprecated-red.svg) |
 | --- | --- | --- | --- | -- |
+
+:warning: **ESP32-S2-Kaluga-Kit is deprecated. This BSP is provided as-is with no further development and compatibility maintenance**
 
 ## Overview
 

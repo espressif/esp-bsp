@@ -7,6 +7,7 @@
 /**
  * @file
  * @brief ESP BSP: ESP32-S2-Kaluga Kit
+ * @deprecated This board is deprecated and no longer maintained
  */
 
 #pragma once
