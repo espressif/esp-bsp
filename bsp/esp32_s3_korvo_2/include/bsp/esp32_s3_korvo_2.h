@@ -149,8 +149,8 @@
  *  @{
  */
 typedef enum bsp_led_t {
-    BSP_LED_BLUE = IO_EXPANDER_PIN_NUM_6,
-    BSP_LED_RED = IO_EXPANDER_PIN_NUM_7,
+    BSP_LED_RED = IO_EXPANDER_PIN_NUM_6,
+    BSP_LED_BLUE = IO_EXPANDER_PIN_NUM_7,
 } bsp_led_t;
 /** @} */ // end of leds
 
