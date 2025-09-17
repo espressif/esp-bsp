@@ -24,17 +24,17 @@ The ESP32-LyraT is a stereo audio board. If you are looking for a mono audio boa
 <div align="center">
 <!-- START_DEPENDENCIES -->
 
-|     Available    |       Capability      |Controller/Codec|                                           Component                                          |  Version  |
-|------------------|-----------------------|----------------|----------------------------------------------------------------------------------------------|-----------|
-|        :x:       |    :pager: DISPLAY    |                |                                                                                              |           |
-|        :x:       |    :point_up: TOUCH   |                |                                                                                              |           |
-|:heavy_check_mark:| :radio_button: BUTTONS|                |       [espressif/button](https://components.espressif.com/components/espressif/button)       |     ^4    |
-|:heavy_check_mark:|  :musical_note: AUDIO |                |[espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)|^1.0.3,<1.2|
-|:heavy_check_mark:|:speaker: AUDIO_SPEAKER|     es8388     |                                                                                              |           |
-|:heavy_check_mark:| :microphone: AUDIO_MIC|     es8388     |                                                                                              |           |
-|:heavy_check_mark:|       :bulb: LED      |                |                                              idf                                             |   >=4.4   |
-|:heavy_check_mark:|  :floppy_disk: SDCARD |                |                                              idf                                             |   >=4.4   |
-|        :x:       |    :video_game: IMU   |                |                                                                                              |           |
+|     Available    |       Capability      |Controller/Codec|                                           Component                                          |Version|
+|------------------|-----------------------|----------------|----------------------------------------------------------------------------------------------|-------|
+|        :x:       |    :pager: DISPLAY    |                |                                                                                              |       |
+|        :x:       |    :point_up: TOUCH   |                |                                                                                              |       |
+|:heavy_check_mark:| :radio_button: BUTTONS|                |       [espressif/button](https://components.espressif.com/components/espressif/button)       |   ^4  |
+|:heavy_check_mark:|  :musical_note: AUDIO |                |[espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)|  ~1.4 |
+|:heavy_check_mark:|:speaker: AUDIO_SPEAKER|     es8388     |                                                                                              |       |
+|:heavy_check_mark:| :microphone: AUDIO_MIC|     es8388     |                                                                                              |       |
+|:heavy_check_mark:|       :bulb: LED      |                |                                              idf                                             | >=5.3 |
+|:heavy_check_mark:|  :floppy_disk: SDCARD |                |                                              idf                                             | >=5.3 |
+|        :x:       |    :video_game: IMU   |                |                                                                                              |       |
 
 <!-- END_DEPENDENCIES -->
 </div>

@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "intr_types.h"
 #include "esp_lcd_panel_vendor.h"
 
 #ifdef __cplusplus
@@ -77,9 +76,6 @@ esp_err_t esp_lcd_new_panel_gc9a01(const esp_lcd_panel_io_handle_t io, const esp
         .data6_io_num = -1,                                     \
         .data7_io_num = -1,                                     \
         .max_transfer_sz = max_trans_sz,                        \
-        .flags = 0,                                             \
-        .isr_cpu_id = INTR_CPU_ID_AUTO,               \
-        .intr_flags = 0                                         \
     }
 
 

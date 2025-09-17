@@ -11,7 +11,11 @@ tags:
 
 dependencies:
   idf: ">=5.2"
-  esp_lcd_gc9a01: "^2.0.3"
+
+  espressif/esp_lcd_gc9a01:
+    version:  "^2"
+    public: true
+    override_path: "../../components/lcd/esp_lcd_gc9a01"
 
   espressif/esp_lvgl_port:
     version: "^2"
