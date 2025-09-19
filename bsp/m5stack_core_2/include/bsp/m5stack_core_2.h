@@ -13,7 +13,7 @@
 
 #include "sdkconfig.h"
 #include "driver/gpio.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "driver/sdmmc_host.h"
 #include "driver/sdspi_host.h"
 #include "esp_vfs_fat.h"
@@ -201,6 +201,14 @@ esp_err_t bsp_i2c_init(void);
  *
  */
 esp_err_t bsp_i2c_deinit(void);
+
+/**
+ * @brief Get I2C driver handle
+ *
+ * @return
+ *      - I2C handle
+ */
+i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
 /** @} */ // end of i2c
 

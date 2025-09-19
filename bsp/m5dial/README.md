@@ -34,18 +34,18 @@ M5Dial provides versatile power supply options to cater to various needs. It acc
 <div align="center">
 <!-- START_DEPENDENCIES -->
 
-|     Available    |       Capability       |Controller/Codec|                                                  Component                                                 |     Version    |
-|------------------|------------------------|----------------|------------------------------------------------------------------------------------------------------------|----------------|
-|:heavy_check_mark:|     :pager: DISPLAY    |     gc9a01     |  [espressif/esp_lcd_gc9a01](https://components.espressif.com/components/espressif/esp_lcd_gc9a01)<br/>idf  |^2.0.3<br/>>=5.0|
-|:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |       ^2       |
-|:heavy_check_mark:|    :point_up: TOUCH    |     ft5x06     |[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|       ^1       |
-|:heavy_check_mark:| :radio_button: BUTTONS |                |              [espressif/button](https://components.espressif.com/components/espressif/button)              |       ^4       |
-|:heavy_check_mark:|   :white_circle: KNOB  |                |                [espressif/knob](https://components.espressif.com/components/espressif/knob)                |     ^0.1.3     |
-|        :x:       |  :musical_note: AUDIO  |                |                                                                                                            |                |
-|        :x:       | :speaker: AUDIO_SPEAKER|                |                                                                                                            |                |
-|        :x:       | :microphone: AUDIO_MIC |                |                                                                                                            |                |
-|        :x:       |  :floppy_disk: SDCARD  |                |                                                                                                            |                |
-|        :x:       |    :video_game: IMU    |                |                                                                                                            |                |
+|     Available    |       Capability       |Controller/Codec|                                                  Component                                                 |   Version  |
+|------------------|------------------------|----------------|------------------------------------------------------------------------------------------------------------|------------|
+|:heavy_check_mark:|     :pager: DISPLAY    |     gc9a01     |  [espressif/esp_lcd_gc9a01](https://components.espressif.com/components/espressif/esp_lcd_gc9a01)<br/>idf  |^2<br/>>=5.3|
+|:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |     ^2     |
+|:heavy_check_mark:|    :point_up: TOUCH    |     ft5x06     |[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|     ^1     |
+|:heavy_check_mark:| :radio_button: BUTTONS |                |              [espressif/button](https://components.espressif.com/components/espressif/button)              |     ^4     |
+|:heavy_check_mark:|   :white_circle: KNOB  |                |                [espressif/knob](https://components.espressif.com/components/espressif/knob)                |   ^0.1.3   |
+|        :x:       |  :musical_note: AUDIO  |                |                                                                                                            |            |
+|        :x:       | :speaker: AUDIO_SPEAKER|                |                                                                                                            |            |
+|        :x:       | :microphone: AUDIO_MIC |                |                                                                                                            |            |
+|        :x:       |  :floppy_disk: SDCARD  |                |                                                                                                            |            |
+|        :x:       |    :video_game: IMU    |                |                                                                                                            |            |
 
 <!-- END_DEPENDENCIES -->
 </div>
@@ -69,29 +69,29 @@ M5Dial provides versatile power supply options to cater to various needs. It acc
 
 ## LVGL Benchmark
 
+**DATE:** 17.09.2025 02:52
 
-**DATE:** 05.09.2025 08:59
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
 | Empty screen | 93%  | 37  | 23  | 6  | 17  |
-| Moving wallpaper | 93%  | 39  | 23  | 11  | 12  |
-| Single rectangle | 22%  | 97  | 0  | 0  | 0  |
-| Multiple rectangles | 83%  | 59  | 13  | 9  | 4  |
-| Multiple RGB images | 31%  | 93  | 1  | 1  | 0  |
-| Multiple ARGB images | 30%  | 92  | 3  | 3  | 0  |
-| Rotated ARGB images | 75%  | 56  | 16  | 16  | 0  |
-| Multiple labels | 56%  | 94  | 4  | 3  | 1  |
-| Screen sized text | 95%  | 23  | 40  | 39  | 1  |
-| Multiple arcs | 20%  | 94  | 0  | 0  | 0  |
-| Containers | 37%  | 82  | 15  | 10  | 5  |
-| Containers with overlay | 95%  | 32  | 28  | 22  | 6  |
-| Containers with opa | 53%  | 76  | 16  | 13  | 3  |
-| Containers with opa_layer | 49%  | 71  | 18  | 17  | 1  |
-| Containers with scrolling | 93%  | 31  | 28  | 24  | 4  |
-| Widgets demo | 96%  | 26  | 21  | 19  | 2  |
-| All scenes avg. | 63%  | 62  | 15  | 12  | 3  |
+| Moving wallpaper | 94%  | 37  | 23  | 11  | 12  |
+| Single rectangle | 20%  | 95  | 0  | 0  | 0  |
+| Multiple rectangles | 84%  | 59  | 13  | 9  | 4  |
+| Multiple RGB images | 28%  | 94  | 1  | 1  | 0  |
+| Multiple ARGB images | 30%  | 90  | 4  | 4  | 0  |
+| Rotated ARGB images | 77%  | 56  | 17  | 17  | 0  |
+| Multiple labels | 57%  | 94  | 5  | 3  | 2  |
+| Screen sized text | 95%  | 23  | 40  | 38  | 2  |
+| Multiple arcs | 24%  | 95  | 0  | 0  | 0  |
+| Containers | 35%  | 82  | 14  | 9  | 5  |
+| Containers with overlay | 91%  | 32  | 27  | 21  | 6  |
+| Containers with opa | 47%  | 76  | 17  | 13  | 4  |
+| Containers with opa_layer | 52%  | 72  | 18  | 17  | 1  |
+| Containers with scrolling | 96%  | 31  | 28  | 23  | 5  |
+| Widgets demo | 97%  | 26  | 21  | 19  | 2  |
+| All scenes avg. | 63%  | 62  | 14  | 11  | 3  |
 
 
 

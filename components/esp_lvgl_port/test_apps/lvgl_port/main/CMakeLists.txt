@@ -1,4 +1,4 @@
 idf_component_register(
     SRCS "test.c"
-    REQUIRES unity
+    REQUIRES unity driver esp_lcd
 )

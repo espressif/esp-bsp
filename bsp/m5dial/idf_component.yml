@@ -1,4 +1,4 @@
-version: "2.0.1"
+version: "3.0.0"
 description: Board Support Package (BSP) for M5Dial
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5dial
 
@@ -10,9 +10,13 @@ tags:
   - M5Stack
 
 dependencies:
-  idf: ">=5.0"
-  esp_lcd_gc9a01: "^2.0.3"
+  idf: ">=5.3" # We use I2C Driver-NG from IDF v5.2 but esp-codec-dev supports from v5.3
   esp_lcd_touch_ft5x06: "^1"
+
+  espressif/esp_lcd_gc9a01:
+    version:  "^2"
+    public: true
+    override_path: "../../components/lcd/esp_lcd_gc9a01"
 
   espressif/esp_lvgl_port:
     version: "^2"
