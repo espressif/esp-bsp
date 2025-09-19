@@ -1,10 +1,12 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// This is LVGL RGB888 simple fill for ESP32 processor
+#include <xtensa/config/core-isa.h>
+
+// This is LVGL RGB888 simple fill for ESP32, ESP32S2 processor
 
     .section .text
     .align  4
@@ -40,6 +42,9 @@ lv_color_blend_to_rgb888_esp:
     l32i.n   a7,    a2,    20                   // a7 - src_buff (color)
     l32i.n   a8,    a7,    0                    // a8 - color as value
 
+    beqz     a4,   _zero_matrix_len_check       // Check if dest_w a4 is zero
+    beqz     a5,   _zero_matrix_len_check       // Check if dest_h a5 is zero
+
     // a11 - dest_w_bytes = sizeof(uint24_t) * dest_w = 3 * a4
     slli     a11,   a4,    1                    // a11 - dest_w_bytes = sizeof(uint16_t) * dest_w
     add      a11,   a11,   a4                   // a11 - dest_w_bytes = a11 + a4
@@ -64,15 +69,27 @@ lv_color_blend_to_rgb888_esp:
     srli     a9,     a4,    2                    // a9 = loop_len = dest_w / 4, calculate main loop_len for original dest_w
     movi.n   a8,     0x3                         // a8 = 0x3, remainder mask
     and      a10,    a4,    a8                   // a10 - remainder after division by 4 = a4 and 0x3
+    movi.n   a12,    12                          // a12 = 12 (pointer increment in main loop for esp32s2)
 
     .outer_loop:
 
+#if XCHAL_HAVE_LOOPS
+        loopnez a9,  ._main_loop                        // zero-overhead loop (not supported for esp32s2)
+#else
+        // Init loop parameters
+        beqz    a9,   ._main_loop                       // Branch to the end, if a9 is 0 (no need to run the main loop)
+        mul16u  a11,  a9,   a12                         // a11 = 12 (a12) * loop_len (a9) both operands must be lower than 16bit values (mul16u)
+        add     a11,  a11,  a3                          // a12 += dest_buf address
+        .main_loop_done:
+#endif
         // Run main loop which sets 12 bytes (4 rgb888) in one loop run
-        loopnez a9, ._main_loop
             s32i.n      a13,  a3,  0                    // save 32 bits from 32-bit color a13 to dest_buff a3, offset 0
             s32i.n      a14,  a3,  4                    // save 32 bits from 32-bit color a14 to dest_buff a3, offset 4
             s32i.n      a15,  a3,  8                    // save 32 bits from 32-bit color a15 to dest_buff a3, offset 8
             addi.n      a3,   a3,  12                   // increment dest_buff pointer by 12
+#if !XCHAL_HAVE_LOOPS
+        blt     a3,   a11,  .main_loop_done             // Check end of the main loop, branch if dest_buf (a3) lower than a11
+#endif
         ._main_loop:
 
         bnei   a10,  0x3,  _less_than_3                 // branch if less than 3 values left
@@ -101,5 +118,12 @@ lv_color_blend_to_rgb888_esp:
         and     a7,  a8,  a3                            // a7 = dest_buff AND 0x3 (check if the address is 4-byte aligned)
     bnez a5, .outer_loop
 
+    movi.n   a2, 1                                      // return LV_RESULT_OK = 1
+    retw.n                                              // return
+
+//**********************************************************************************************************************
+
+    // One of the matrix dimensions is zero, return early
+    _zero_matrix_len_check:
     movi.n   a2, 1                                      // return LV_RESULT_OK = 1
     retw.n                                              // return
