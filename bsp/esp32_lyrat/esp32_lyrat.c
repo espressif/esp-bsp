@@ -25,6 +25,16 @@ static esp_err_t  bsp_touchpad_custom_deinit(button_driver_t *button_driver);
 static uint8_t bsp_touchpad_custom_get_key_value(button_driver_t *button_driver);
 static bool i2c_initialized = false;
 
+/**
+ * @brief I2C handle for BSP usage
+ *
+ * In IDF v5.4 you can call i2c_master_get_bus_handle(BSP_I2C_NUM, i2c_master_bus_handle_t *ret_handle)
+ * from #include "esp_private/i2c_platform.h" to get this handle
+ *
+ * For IDF 5.2 and 5.3 you must call bsp_i2c_get_handle()
+ */
+static i2c_master_bus_handle_t i2c_handle = NULL;
+
 typedef enum {
     BSP_BUTTON_TYPE_GPIO,
     BSP_BUTTON_TYPE_CUSTOM
@@ -107,27 +117,29 @@ esp_err_t bsp_i2c_init(void)
         return ESP_OK;
     }
 
-    const i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    const i2c_master_bus_config_t i2c_config = {
+        .i2c_port = BSP_I2C_NUM,
         .sda_io_num = BSP_I2C_SDA,
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_io_num = BSP_I2C_SCL,
-        .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
+        .clk_source = I2C_CLK_SRC_DEFAULT,
     };
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
     i2c_initialized = true;
-
     return ESP_OK;
 }
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
     i2c_initialized = false;
     return ESP_OK;
+}
+
+i2c_master_bus_handle_t bsp_i2c_get_handle(void)
+{
+    bsp_i2c_init();
+    return i2c_handle;
 }
 
 esp_err_t bsp_spiffs_mount(void)
@@ -340,6 +352,7 @@ static esp_codec_dev_handle_t bsp_audio_codec_init(void)
     audio_codec_i2c_cfg_t i2c_cfg = {
         .port = BSP_I2C_NUM,
         .addr = ES8388_CODEC_DEFAULT_ADDR,
+        .bus_handle = i2c_handle,
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);

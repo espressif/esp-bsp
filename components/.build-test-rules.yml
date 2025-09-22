@@ -5,10 +5,17 @@ components/esp_lvgl_port:
     - "components/lcd_touch/esp_lcd_touch_tt21100/**"
     - "components/lcd_touch/esp_lcd_touch_gt1151/**"
 
-components/esp_lvgl_port/examples/i2c_oled:
+components/esp_lvgl_port/examples:
   depends_filepatterns:
     - "components/esp_lvgl_port/**"
     - "components/lcd/sh1107/**"
+  disable:
+    - if: IDF_VERSION < "5.2.0"
+      reason: Requires I2C Driver-NG which was introduced in v5.2
+
+components/esp_lvgl_port/test_apps/lvgl_port:
+  depends_filepatterns:
+    - "components/esp_lvgl_port/**"
   disable:
     - if: IDF_VERSION < "5.2.0"
       reason: Requires I2C Driver-NG which was introduced in v5.2
@@ -37,6 +44,13 @@ components/icm42670:
 components/qma6100p:
   depends_filepatterns:
     - "components/qma6100p/**"
+  disable:
+    - if: IDF_VERSION < "5.2.0"
+      reason: Requires I2C Driver-NG which was introduced in v5.2
+
+components/lcd_touch/esp_lcd_touch_cst816s/test_apps:
+  depends_filepatterns:
+    - "components/lcd_touch/esp_lcd_touch_cst816s/**"
   disable:
     - if: IDF_VERSION < "5.2.0"
       reason: Requires I2C Driver-NG which was introduced in v5.2

@@ -2,7 +2,7 @@
 
 [![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_sh1107/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_sh1107)
 
-Implementation of the SH1107 LCD controller with esp_lcd component. 
+Implementation of the SH1107 LCD controller with esp_lcd component.
 
 | LCD controller | Communication interface | Component name | Link to datasheet |
 | :------------: | :---------------------: | :------------: | :---------------: |
@@ -11,7 +11,7 @@ Implementation of the SH1107 LCD controller with esp_lcd component.
 ## Add to project
 
 Packages from this repository are uploaded to [Espressif's component service](https://components.espressif.com/).
-You can add them to your project via `idf.py add-dependancy`, e.g. 
+You can add them to your project via `idf.py add-dependancy`, e.g.
 ```
     idf.py add-dependency esp_lcd_sh1107==1.0.0
 ```
@@ -22,12 +22,21 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
 
 For detailed usage, please go to [LCD documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html).
 
-## Example initialization 
+## Example initialization
 
 ```
+i2c_master_bus_handle_t i2c_handle = NULL;
+const i2c_master_bus_config_t i2c_config = {
+    .i2c_port = EXAMPLE_I2C_NUM,
+    .sda_io_num = EXAMPLE_I2C_SDA,
+    .scl_io_num = EXAMPLE_I2C_SCL,
+    .clk_source = I2C_CLK_SRC_DEFAULT,
+};
+BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
+
 esp_lcd_panel_io_handle_t io_handle = NULL;
 esp_lcd_panel_io_i2c_config_t io_config = ESP_LCD_IO_I2C_SH1107_CONFIG();
-ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)config->i2c.port, &io_config, &io_handle));
+ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_handle, &io_config, &io_handle));
 
 esp_lcd_panel_handle_t lcd_panel_handle = NULL;
 esp_lcd_panel_dev_config_t panel_config = {
