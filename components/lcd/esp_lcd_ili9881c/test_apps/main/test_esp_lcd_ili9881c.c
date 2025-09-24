@@ -10,7 +10,6 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/i2c.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"

@@ -7,8 +7,8 @@ components/lcd/esp_lcd_gc9503:
   depends_filepatterns:
     - "components/lcd/esp_lcd_gc9503/**"
   disable:
-    - if: (IDF_VERSION < "5.0.5") or (IDF_VERSION == "5.1.1")
-      reason: Supported from version 5.0.5 and not supported in version 5.1.1
+    - if: IDF_VERSION < "5.2.0"
+      reason: Component is supported only for IDF >= 5.2
 
 components/lcd/esp_lcd_ili9341:
   depends_filepatterns:

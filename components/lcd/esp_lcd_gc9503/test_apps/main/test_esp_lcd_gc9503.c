@@ -8,7 +8,7 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
@@ -164,20 +164,18 @@ TEST_CASE("test gc9503 to draw color bar with RGB interface, using GPIO", "[gc95
 TEST_CASE("test gc9503 to draw color bar with RGB interface, using IO expander", "[gc9503][rgb][expander]")
 {
     ESP_LOGI(TAG, "Install I2C");
-    const i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    i2c_master_bus_handle_t i2c_handle = NULL;
+    const i2c_master_bus_config_t i2c_config = {
+        .i2c_port = TEST_EXPANDER_I2C_HOST,
         .sda_io_num = TEST_EXPANDER_IO_I2C_SDA,
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_io_num = TEST_EXPANDER_IO_I2C_SCL,
-        .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master.clk_speed = 400 * 1000
+        .clk_source = I2C_CLK_SRC_DEFAULT,
     };
-    TEST_ESP_OK(i2c_param_config(TEST_EXPANDER_I2C_HOST, &i2c_conf));
-    TEST_ESP_OK(i2c_driver_install(TEST_EXPANDER_I2C_HOST, i2c_conf.mode, 0, 0, 0));
+    TEST_ESP_OK(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
     ESP_LOGI(TAG, "Create TCA9554 IO expander");
     esp_io_expander_handle_t expander_handle = NULL;
-    TEST_ESP_OK(esp_io_expander_new_i2c_tca9554(TEST_EXPANDER_I2C_HOST, TEST_EXPANDER_I2C_ADDR, &expander_handle));
+    TEST_ESP_OK(esp_io_expander_new_i2c_tca9554(i2c_handle, TEST_EXPANDER_I2C_ADDR, &expander_handle));
 
     ESP_LOGI(TAG, "Install 3-wire SPI panel IO");
     spi_line_config_t line_config = {
@@ -257,7 +255,7 @@ TEST_CASE("test gc9503 to draw color bar with RGB interface, using IO expander",
 
     TEST_ESP_OK(esp_lcd_panel_io_del(io_handle));
     TEST_ESP_OK(esp_lcd_panel_del(panel_handle));
-    TEST_ESP_OK(i2c_driver_delete(TEST_EXPANDER_I2C_HOST));
+    TEST_ESP_OK(i2c_del_master_bus(i2c_handle));
 }
 
 // Some resources are lazy allocated in the LCD driver, the threadhold is left for that case
