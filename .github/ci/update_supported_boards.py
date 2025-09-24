@@ -123,7 +123,7 @@ def extract_board_info(board_path):
 
     # Prepare image path
     image_path = next(board_path.glob(f"doc/{board_name}.webp"), None)
-    img_html = f'<img src="{image_path.as_posix()}" width="150">' if image_path.exists() else "-"
+    img_html = f'<img src="{image_path.as_posix()}" width="150">' if image_path and image_path.exists() else "-"
 
     # Emoji map for features
     feature_emojis = {

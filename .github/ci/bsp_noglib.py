@@ -55,6 +55,17 @@ def remove_esp_lvgl_port(bsp_path):
     return 0
 
 
+def remove_examples(bsp_path):
+    manager = ManifestManager(bsp_path, 'bsp')
+    try:
+        del manager.manifest_tree["examples"]
+    except KeyError:
+        print("{}: no examples section found".format(str(bsp_path)))
+        return 0
+    manager.dump()
+    return 0
+
+
 def add_notice_to_readme(bsp_path):
     readme_path = bsp_path / 'README.md'
     bsp_name = bsp_path.parts[-1].rstrip("_noglib")
@@ -85,6 +96,7 @@ def bsp_no_glib_all(bsp_names):
         # 2. Modify the configuration, dependencies and README
         ret += select_bsp_config_no_graphic_lib(bsp_path)
         ret += remove_esp_lvgl_port(bsp_path)
+        ret += remove_examples(bsp_path)
         ret += add_notice_to_readme(bsp_path)
         try:
             check_bsp_readme(bsp_path)
