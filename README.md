@@ -3,8 +3,8 @@
 
 # ESP-BSP: Espressif's Board Support Packages
 
-| [HOW TO USE](docu/how_to_use.md) | [BOARDS](#supported-boards) | [EXAMPLES](#examples) | [CONTRIBUTING](docu/CONTRIBUTING.md) | [LVGL port](components/esp_lvgl_port) | [LCD drivers](docu/LCD.md) |
-| :---------------------------------------: | :-------------------------: | :-------------------: | :--------------: | :-----------------------------------: | :------------------------: |
+| [HOW TO USE](docu/how_to_use.md) | [BOARDS](#supported-boards) | [EXAMPLES](#examples) | [CONTRIBUTING](docu/CONTRIBUTING.md) | [LVGL port](components/esp_lvgl_port) | [LCD drivers](docu/LCD.md) | [Releases](https://espressif.github.io/esp-bsp/release_checker.html) |
+| :---------------------------------------: | :-------------------------: | :-------------------: | :--------------: | :-----------------------------------: | :------------------------: | :------------------------: |
 
 This repository provides **Board Support Packages (BSPs)** for various Espressif and M5Stack development boards. Written in **C**, each BSP offers a **unified and consistent API** to simplify the initialization and use of common onboard peripherals such as **displays, touch panels, audio codecs, SD cards, and selected sensors.** The goal is to streamline development and reduce hardware-specific boilerplate, enabling faster prototyping and cleaner application code.
 
