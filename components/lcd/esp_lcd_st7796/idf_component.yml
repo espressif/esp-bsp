@@ -4,6 +4,7 @@ targets:
   - esp32s2
   - esp32s3
   - esp32p4
+  - esp32c3
 description: ESP LCD ST7796 driver (SPI && I80 && MIPI DSI)
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_st7796
 dependencies:
