@@ -21,7 +21,7 @@ dependencies:
     override_path: "../../components/esp_lvgl_port"
 
   esp_codec_dev:
-    version: "1.2.*"
+    version: "^1.4.0"
     public: true
 
   espressif/esp_lcd_lt8912b:
