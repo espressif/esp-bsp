@@ -9,7 +9,7 @@ This example shows how to use SSD1681 e-paper display driver from Component mana
 ### Hardware Required
 
 * An ESP development board
-* An SSD1681 e-paper panel, with SPI interface
+* An SSD1681 or SSD1680 e-paper panel, with SPI interface
 * An USB cable for power supply and programming
 
 ### Hardware Connection
@@ -42,7 +42,9 @@ The GPIO number used by this example can be changed in [main.c](main/main.c).
 ### Software configuration
 
 - Change all the `EXAMPLE_PIN` macro definition according to your hardware connection.
-- If you are not using waveshare 1.54 inch V2 e-paper panel, please use the waveform lut provided by your panel vendor instead of using the demo built-in ones, or just simply comment the `epaper_panel_set_custom_lut` call and use the panel built-in waveform lut.
+- Select the display model in esp_lcd_panel_ssd1681.h. Supported displays are 1.54 inch 200x200 and 2.7 inch 176x264. The 2.7 inch display has a SSD1680 controller.
+- If you are not using waveshare 1.54 inch V2 e-paper panel, please use the waveform lut provided by your panel vendor instead of using the demo built-in ones, or just simply comment out the `epaper_panel_set_custom_lut` call and use the panel built-in waveform lut.
+NOTE: Waveshare and GooDisplay epaper displays can default to use built-in LUT.
 
 ### Build and Flash
 
@@ -72,7 +74,10 @@ I (720) epaper_demo_plain: Drawing bitmap...
 ...
 ```
 
-## Show Custom Bitmap
+## Show Test Images
+
+Images are found in img_bitmap.c and bitmaps_176x264.c. If you want to test other size panels you should make your own bitmap image files.
+Choosing the display (see Software COnfiguration) also selects an appropriate test image.
 
 As you could see from the demo, each bitmap is stored as an array. If you want to display your custom image, you need to convert your image to a bitmap array first.
 
@@ -87,6 +92,7 @@ You could convert your image to bitmap array by the following steps:
 - Do not select the `Output in big-endian format` option.
 - Click `Convert` and you get a `.c` file containing the bitmap array.
 
+Programs image2cpp or img2cpp can generate bitmap.c files from JPEG or PNG inputs.
 There are plenty of software alternative with such functionality, please pay attention to the scan mode if you prefer to use them.
 
 The driver writes bitmap array to the vram in the sequence below by default:

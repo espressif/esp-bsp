@@ -5,4 +5,5 @@ dependencies:
     # I am specifying the path of the component because the component
     # had not been published to the ESP Component Registry by the time 
     # I write this example.
+    # Development will be better if you add esp_lcd_ssd1681 as a component to your project.
     path: "../../../"
