@@ -529,7 +529,6 @@ void app_main(void)
         // The task running lv_timer_handler should have lower priority than that running `lv_tick_inc`
         lv_time = lv_timer_handler();
         ESP_LOGD(TAG, "lv_time returned = %lu", lv_time);
-        memset(buf1, 0x0, DISPLAY_X * DISPLAY_Y / 8);
         set_swap_mirror(&disp_drv, ROTATE_TEST[i]);
         lvgl_canvas_ui(DISPLAY_X, DISPLAY_Y, ROTATE_TEST[i]);
         int delay_ms = 0;
