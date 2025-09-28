@@ -151,7 +151,7 @@ static esp_err_t epaper_set_lut(esp_lcd_panel_io_handle_t io, const uint8_t *lut
 
 static esp_err_t epaper_set_cursor(esp_lcd_panel_io_handle_t io, uint32_t cur_x, uint32_t cur_y)
 {
-    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    //esp_log_level_set(TAG, ESP_LOG_DEBUG);
     ESP_LOGD(TAG, "set_cursor: x,y = %lu, %lu", cur_x, cur_y);
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SET_INIT_X_ADDR_COUNTER, (uint8_t[]) {
         (uint8_t)((cur_x >> 3) & 0xff)
@@ -167,7 +167,7 @@ static esp_err_t epaper_set_cursor(esp_lcd_panel_io_handle_t io, uint32_t cur_x,
 
 static esp_err_t epaper_set_area(esp_lcd_panel_io_handle_t io, uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y)
 {
-    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    //esp_log_level_set(TAG, ESP_LOG_DEBUG);
     ESP_LOGD(TAG, "epaper_set_area: start_xy=(%lu,%lu), end_xy=(%lu,%lu)", start_x, start_y, end_x, end_y);
     // --- Set RAMX Start/End Position
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SET_RAMX_START_END_POS, (uint8_t[]) {
@@ -196,7 +196,7 @@ static esp_err_t panel_epaper_wait_busy(esp_lcd_panel_t *panel)
 
 esp_err_t panel_epaper_set_vram(esp_lcd_panel_io_handle_t io, uint8_t *bw_bitmap, uint8_t *red_bitmap, size_t size)
 {
-    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    //esp_log_level_set(TAG, ESP_LOG_DEBUG);
     ESP_LOGD(TAG, "panel_epaper_set_vram: size = %u", size);
 
     // Note: the screen region to be used to draw bitmap had been defined
@@ -249,7 +249,7 @@ esp_err_t
 esp_lcd_new_panel_ssd1681(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *const panel_dev_config,
                           esp_lcd_panel_handle_t *const ret_panel)
 {
-    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    //esp_log_level_set(TAG, ESP_LOG_DEBUG);
     ESP_RETURN_ON_FALSE(io && panel_dev_config && ret_panel, ESP_ERR_INVALID_ARG, TAG, "1 or more args is NULL");
     esp_lcd_ssd1681_config_t *epaper_ssd1681_conf = panel_dev_config->vendor_config;
     esp_err_t ret = ESP_OK;
@@ -335,7 +335,7 @@ err:
 
 static esp_err_t epaper_panel_del(esp_lcd_panel_t *panel)
 {
-    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    //esp_log_level_set(TAG, ESP_LOG_DEBUG);
     epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
     // --- Reset used GPIO pins
     if ((epaper_panel->reset_gpio_num) >= 0) {
@@ -389,9 +389,9 @@ static esp_err_t epaper_panel_init(esp_lcd_panel_t *panel)
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SWRST, NULL, 0), TAG,
                         "param SSD1681_CMD_SWRST err");
     panel_epaper_wait_busy(panel);
-    // --- Driver Output Control: prescribe the length of a row
+    // --- Driver Output Control: prescribe the number of rows
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_OUTPUT_CTRL,
-                        SSD1681_PARAM_OUTPUT_CTRL(epaper_panel->display_x), 0), TAG, "SSD1681_CMD_OUTPUT_CTRL err");
+                        SSD1681_PARAM_OUTPUT_CTRL(epaper_panel->display_y), 3), TAG, "SSD1681_CMD_OUTPUT_CTRL err");
 
     // --- Border Waveform Control
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_SET_BORDER_WAVEFORM, (uint8_t[]) {
@@ -421,7 +421,7 @@ static esp_err_t epaper_panel_init(esp_lcd_panel_t *panel)
 static esp_err_t
 epaper_panel_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end, const void *color_data)
 {
-    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    //esp_log_level_set(TAG, ESP_LOG_DEBUG);
     ESP_LOGD(TAG, "epaper_panel_draw_bitmap: xy_start=(%d,%d), end=(%d,%d)", x_start, y_start, x_end, y_end);
     epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
     if (gpio_get_level(epaper_panel->busy_gpio_num)) {
@@ -605,7 +605,7 @@ static esp_err_t epaper_panel_disp_on_off(esp_lcd_panel_t *panel, bool on_off)
 
 static esp_err_t process_bitmap(esp_lcd_panel_t *panel, int len_x, int len_y, int buffer_size, const void *color_data)
 {
-    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    //esp_log_level_set(TAG, ESP_LOG_DEBUG);
     epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
     // --- Convert image according to configuration
     // NO MIRROR
