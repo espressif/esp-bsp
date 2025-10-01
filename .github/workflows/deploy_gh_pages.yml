@@ -13,19 +13,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download site from launchpad examples
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: gh-pages-launchpad
           path: ./combined-site
 
       - name: Download site from release checker
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: gh-pages-release-checker
           path: ./combined-site
 
       - name: Upload combined site
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./combined-site
 
