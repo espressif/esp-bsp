@@ -1,4 +1,4 @@
-name: "ESP-IDF build examples to github pages (push)"
+name: Build examples for Launchpad
 
 on:
   push:
@@ -61,8 +61,6 @@ jobs:
       - name: Upload built files to gh pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: binaries/
+            name: gh-pages-launchpad
+            path: binaries/
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
