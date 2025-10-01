@@ -1,0 +1,113 @@
+name: Build examples for Launchpad
+
+# This job:
+# - Build all examples for Launchpad
+# - Prepare release check table
+# - Deploy all to github-pages (config.toml, release_checker.html)
+
+on:
+  push:
+      branches:
+      - master
+
+jobs:
+
+  build-launchpad:
+    strategy:
+      matrix:
+        idf_ver: ["v5.4"]
+    runs-on: ubuntu-latest
+    container: espressif/idf:${{ matrix.idf_ver }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Upgrade component manager
+        shell: bash
+        run: |
+          . ${IDF_PATH}/export.sh
+          pip install idf-component-manager==2.* --upgrade
+
+      - name: Action for building binaries and config.toml
+        env:
+          IDF_EXTRA_ACTIONS_PATH: "${{ github.workspace }}/examples"
+        uses: espressif/idf-examples-launchpad-ci-action@v1.0.3
+        with:
+          idf_version: ${{ matrix.idf_ver }}
+          config_file: examples/.idf_build_apps.toml
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: built_files
+          path: binaries/
+
+  release-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # all git history
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run release_checker.py
+        run: |
+          pip install requests pyyaml tabulate wcwidth pytz
+          mkdir site
+          python .github/ci/release_checker.py > site/release_checker.html
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release_checker
+          path: site/
+
+  deploy:
+    needs:
+      - build-launchpad
+      - release-check
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download built files
+        uses: actions/download-artifact@v4
+        with:
+          name: built_files
+          path: binaries/
+
+      - name: Download built files
+        uses: actions/download-artifact@v4
+        with:
+          name: release_checker
+          path: site/
+
+      - name: Prepare combined site
+        run: |
+          mkdir pages
+          cp -r binaries/* pages/
+          cp -r site/* pages/
+
+      - name: Upload combined site to GitHub Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
