@@ -113,4 +113,6 @@ This BSP supports HDMI converter Lontium LT8912B. Follow these rules for using i
 | Widgets demo | 99%  | 17  | 50  | 48  | 2  |
 | All scenes avg. | 67%  | 65  | 16  | 15  | 1  |
 
+
+
 <!-- END_BENCHMARK -->
