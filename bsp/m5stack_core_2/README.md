@@ -49,7 +49,7 @@ Core2 V1.1 is an iterative version of Core2 with the following upgrades and addi
 
 |     Available    |       Capability       |Controller/Codec|                                                  Component                                                 |     Version    |
 |------------------|------------------------|----------------|------------------------------------------------------------------------------------------------------------|----------------|
-|:heavy_check_mark:|     :pager: DISPLAY    |     ili9341    | [espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341)<br/>idf |^2.0.1<br/>>=5.3|
+|:heavy_check_mark:|     :pager: DISPLAY    |     ili9341    | idf<br/>[espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341) |>=5.3<br/>^2.0.1|
 |:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |       ^2       |
 |:heavy_check_mark:|    :point_up: TOUCH    |     ft5x06     |[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|       ^1       |
 |        :x:       | :radio_button: BUTTONS |                |                                                                                                            |                |

@@ -210,7 +210,7 @@ for row in results:
     row[3] = pad_visual(row[3], 8)
 
 # Table header
-headers = ["Component", "Version", "Released", "Changed", "Files"]
+headers = ["Component", "Version", "Released", "Changed", "File Types"]
 
 tz = pytz.timezone("Europe/Prague")
 last_updated = datetime.now(tz).strftime("%d.%m.%Y %H:%M:%S %Z")

@@ -29,7 +29,7 @@ repos:
         language: python
         files: 'bsp/.*/include/bsp/.*\.h|bsp/.*/idf_component\.yml|bsp/.*/README\.md' # All idf_component.yml, README.md and .h files in bsp directory
         additional_dependencies:
-          - idf_component_manager==1.4.2
+          - idf_component_manager==2.4.1
           - py-markdown-table
 
   - repo: local
@@ -40,7 +40,8 @@ repos:
         language: python
         files: ^README\.md$|^bsp/
         additional_dependencies:
-          - idf_component_manager==1.4.2
+          - PyYAML
+          - idf_component_manager==2.4.1
 
   - repo: local
     hooks:

@@ -41,7 +41,7 @@ The ESP32-S3-EYE board consists of two parts: the main board (ESP32-S3-EYE-MB) t
 |        :x:       | :speaker: AUDIO_SPEAKER|                |                                                                                              |       |
 |:heavy_check_mark:| :microphone: AUDIO_MIC |                |                                                                                              |       |
 |:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                              idf                                             | >=5.4 |
-|:heavy_check_mark:|    :video_game: IMU    |                |               [qma6100p](https://components.espressif.com/components/qma6100p)               |   ^2  |
+|:heavy_check_mark:|    :video_game: IMU    |                |     [espressif/qma6100p](https://components.espressif.com/components/espressif/qma6100p)     |   ^2  |
 |:heavy_check_mark:|     :camera: CAMERA    |                | [espressif/esp32-camera](https://components.espressif.com/components/espressif/esp32-camera) |^2.0.13|
 
 <!-- END_DEPENDENCIES -->

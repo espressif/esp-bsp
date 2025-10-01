@@ -18,7 +18,7 @@ jobs:
         env:
           BSPs: "bsp/esp_wrover_kit bsp/esp32_s3_eye bsp/esp32_p4_function_ev_board bsp/m5stack_core_s3 bsp/m5stack_core_2 bsp/m5stack_core bsp/m5dial bsp/m5_atom_s3 bsp/esp-box-3 bsp/esp32_s3_lcd_ev_board bsp/esp32_s3_korvo_2"
         run: |
-          pip install idf-component-manager==1.* py-markdown-table --upgrade
+          pip install idf-component-manager==2.* py-markdown-table --upgrade
           python .github/ci/bsp_noglib.py ${BSPs}
       - uses: espressif/upload-components-ci-action@v2
         with:

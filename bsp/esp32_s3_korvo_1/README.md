@@ -34,7 +34,7 @@ The ESP32-S3-Korvo-1 board consists of two parts: the main board (ESP32-S3-Korvo
 |:heavy_check_mark:| :microphone: AUDIO_MIC|     es7210     |                                                                                                      |              |
 |:heavy_check_mark:|  :floppy_disk: SDCARD |                |                                                  idf                                                 |     >=5.3    |
 |        :x:       |    :video_game: IMU   |                |                                                                                                      |              |
-|:heavy_check_mark:|       :bulb: LED      |                |[espressif/led_indicator](https://components.espressif.com/components/espressif/led_indicator)<br/>idf|~2.0<br/>>=5.3|
+|:heavy_check_mark:|       :bulb: LED      |                |idf<br/>[espressif/led_indicator](https://components.espressif.com/components/espressif/led_indicator)|>=5.3<br/>~2.0|
 
 <!-- END_DEPENDENCIES -->
 </div>
