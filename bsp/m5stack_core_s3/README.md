@@ -36,7 +36,7 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 |:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |       ^2       |
 |:heavy_check_mark:|    :point_up: TOUCH    |     ft5x06     |[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|       ^1       |
 |        :x:       | :radio_button: BUTTONS |                |                                                                                                            |                |
-|:heavy_check_mark:|  :musical_note: AUDIO  |                |       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |     ~1.3.1     |
+|:heavy_check_mark:|  :musical_note: AUDIO  |                |       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |      ~1.5      |
 |:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     aw88298    |                                                                                                            |                |
 |:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                            |                |
 |:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                     idf                                                    |      >=5.4     |
@@ -67,29 +67,29 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 
 ## LVGL Benchmark
 
-**DATE:** 05.09.2025 08:59
+**DATE:** 01.10.2025 13:12
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 95%  | 29  | 30  | 6  | 24  |
-| Moving wallpaper | 95%  | 30  | 30  | 7  | 23  |
-| Single rectangle | 22%  | 96  | 0  | 0  | 0  |
-| Multiple rectangles | 79%  | 53  | 15  | 8  | 7  |
-| Multiple RGB images | 26%  | 89  | 1  | 1  | 0  |
-| Multiple ARGB images | 26%  | 89  | 3  | 3  | 0  |
-| Rotated ARGB images | 78%  | 49  | 18  | 15  | 3  |
-| Multiple labels | 89%  | 80  | 9  | 8  | 1  |
-| Screen sized text | 95%  | 21  | 41  | 39  | 2  |
-| Multiple arcs | 25%  | 92  | 1  | 1  | 0  |
-| Containers | 35%  | 72  | 15  | 6  | 9  |
-| Containers with overlay | 92%  | 28  | 31  | 20  | 11  |
-| Containers with opa | 41%  | 72  | 15  | 9  | 6  |
-| Containers with opa_layer | 57%  | 55  | 26  | 22  | 4  |
-| Containers with scrolling | 94%  | 26  | 33  | 22  | 11  |
-| Widgets demo | 97%  | 26  | 21  | 18  | 3  |
-| All scenes avg. | 65%  | 56  | 17  | 11  | 6  |
+| Empty screen | 94%  | 29  | 30  | 6  | 24  |
+| Moving wallpaper | 94%  | 30  | 29  | 7  | 22  |
+| Single rectangle | 21%  | 93  | 0  | 0  | 0  |
+| Multiple rectangles | 86%  | 56  | 15  | 9  | 6  |
+| Multiple RGB images | 27%  | 91  | 1  | 1  | 0  |
+| Multiple ARGB images | 26%  | 90  | 3  | 3  | 0  |
+| Rotated ARGB images | 77%  | 50  | 18  | 15  | 3  |
+| Multiple labels | 90%  | 80  | 9  | 7  | 2  |
+| Screen sized text | 97%  | 21  | 42  | 40  | 2  |
+| Multiple arcs | 26%  | 93  | 1  | 1  | 0  |
+| Containers | 36%  | 75  | 14  | 8  | 6  |
+| Containers with overlay | 91%  | 28  | 30  | 19  | 11  |
+| Containers with opa | 42%  | 73  | 17  | 10  | 7  |
+| Containers with opa_layer | 61%  | 55  | 27  | 22  | 5  |
+| Containers with scrolling | 93%  | 27  | 33  | 21  | 12  |
+| Widgets demo | 96%  | 26  | 21  | 18  | 3  |
+| All scenes avg. | 66%  | 57  | 17  | 11  | 6  |
 
 
 

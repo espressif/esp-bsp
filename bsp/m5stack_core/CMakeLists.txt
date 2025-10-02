@@ -1,7 +1,15 @@
+if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "5.3")
+    set(REQ esp_driver_i2c esp_driver_gpio esp_driver_sdmmc esp_driver_sdspi)
+    set(PRIV_REQ esp_driver_spi esp_driver_ledc)
+else()
+    set(REQ driver)
+    set(PRIV_REQ "")
+endif()
+
 idf_component_register(
     SRCS "m5stack_core.c"
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "priv_include"
-    REQUIRES driver spiffs fatfs
-    PRIV_REQUIRES esp_lcd esp_psram
+    REQUIRES ${REQ} fatfs
+    PRIV_REQUIRES ${PRIV_REQ} esp_lcd spiffs esp_psram
 )

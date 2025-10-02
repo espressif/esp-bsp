@@ -1,4 +1,4 @@
-version: "2.0.2"
+version: "2.0.3"
 description: I2C driver for ICM 42670 6-Axis MotionTracking
 url: https://github.com/espressif/esp-bsp/tree/master/components/icm42670
 dependencies:

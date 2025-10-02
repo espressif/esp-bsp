@@ -32,11 +32,11 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 |:heavy_check_mark:|:black_circle: LVGL_PORT|                |                                                                [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)                                                               |       ^2       |
 |:heavy_check_mark:|    :point_up: TOUCH    | tt21100, gt911 |[espressif/esp_lcd_touch_gt911](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911)<br/>[espressif/esp_lcd_touch_tt21100](https://components.espressif.com/components/espressif/esp_lcd_touch_tt21100)|    ^1<br/>^1   |
 |:heavy_check_mark:| :radio_button: BUTTONS |                |                                                                       [espressif/button](https://components.espressif.com/components/espressif/button)                                                                      |       ^4       |
-|:heavy_check_mark:|  :musical_note: AUDIO  |                |                                                                [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)                                                               |     ~1.3.1     |
+|:heavy_check_mark:|  :musical_note: AUDIO  |                |                                                                [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)                                                               |      ~1.5      |
 |:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     es8311     |                                                                                                                                                                                                                             |                |
 |:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                                                                                                                                             |                |
 |:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                                                                             idf                                                                                                             |      >=5.3     |
-|:heavy_check_mark:|    :video_game: IMU    |                |                                                                     [espressif/icm42670](https://components.espressif.com/components/espressif/icm42670)                                                                    |     ^2.0.1     |
+|:heavy_check_mark:|    :video_game: IMU    |                |                                                                               [icm42670](https://components.espressif.com/components/icm42670)                                                                              |     ^2.0.2     |
 
 <!-- END_DEPENDENCIES -->
 </div>
@@ -61,30 +61,29 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 
 ## LVGL Benchmark
 
-
-**DATE:** 05.09.2025 08:59
+**DATE:** 01.10.2025 13:12
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 95%  | 25  | 34  | 4  | 30  |
-| Moving wallpaper | 99%  | 25  | 35  | 5  | 30  |
-| Single rectangle | 18%  | 89  | 0  | 0  | 0  |
-| Multiple rectangles | 96%  | 50  | 15  | 2  | 13  |
-| Multiple RGB images | 38%  | 95  | 0  | 0  | 0  |
-| Multiple ARGB images | 34%  | 94  | 2  | 2  | 0  |
-| Rotated ARGB images | 80%  | 57  | 17  | 13  | 4  |
-| Multiple labels | 96%  | 79  | 8  | 3  | 5  |
-| Screen sized text | 100%  | 15  | 59  | 29  | 30  |
-| Multiple arcs | 28%  | 91  | 0  | 0  | 0  |
-| Containers | 47%  | 76  | 18  | 4  | 14  |
-| Containers with overlay | 93%  | 20  | 45  | 14  | 31  |
-| Containers with opa | 58%  | 72  | 18  | 6  | 12  |
-| Containers with opa_layer | 66%  | 56  | 28  | 15  | 13  |
-| Containers with scrolling | 97%  | 21  | 43  | 13  | 30  |
-| Widgets demo | 96%  | 24  | 25  | 11  | 14  |
-| All scenes avg. | 71%  | 55  | 21  | 7  | 14  |
+| Empty screen | 94%  | 26  | 33  | 3  | 30  |
+| Moving wallpaper | 97%  | 25  | 36  | 6  | 30  |
+| Single rectangle | 10%  | 91  | 0  | 0  | 0  |
+| Multiple rectangles | 91%  | 50  | 16  | 2  | 14  |
+| Multiple RGB images | 17%  | 90  | 0  | 0  | 0  |
+| Multiple ARGB images | 18%  | 87  | 2  | 2  | 0  |
+| Rotated ARGB images | 73%  | 56  | 18  | 12  | 6  |
+| Multiple labels | 89%  | 79  | 9  | 3  | 6  |
+| Screen sized text | 97%  | 15  | 59  | 28  | 31  |
+| Multiple arcs | 19%  | 91  | 0  | 0  | 0  |
+| Containers | 33%  | 72  | 15  | 4  | 11  |
+| Containers with overlay | 89%  | 20  | 45  | 14  | 31  |
+| Containers with opa | 49%  | 70  | 19  | 7  | 12  |
+| Containers with opa_layer | 60%  | 53  | 27  | 16  | 11  |
+| Containers with scrolling | 95%  | 20  | 44  | 14  | 30  |
+| Widgets demo | 97%  | 25  | 25  | 11  | 14  |
+| All scenes avg. | 64%  | 54  | 21  | 7  | 14  |
 
 
 

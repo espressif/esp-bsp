@@ -1,4 +1,4 @@
-version: "3.0.0"
+version: "3.0.1"
 description: Board Support Package (BSP) for M5Dial
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5dial
 
@@ -28,7 +28,7 @@ dependencies:
     version: "^4"
 
   knob:
-    version: "^0.1.3"
+    version: "^1"
     public: true
 
 examples:
