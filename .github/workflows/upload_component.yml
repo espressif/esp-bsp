@@ -34,6 +34,7 @@ jobs:
           m5stack_core_s3,
           m5_atom_s3,
           m5dial,
+          esp32_p4_eye,
         ]
     steps:
       - uses: actions/checkout@master
