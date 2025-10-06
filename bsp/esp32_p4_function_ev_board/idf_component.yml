@@ -40,3 +40,4 @@ examples:
   - path: ../../examples/display_lvgl_demos
   - path: ../../examples/display_lvgl_benchmark
   - path: ../../examples/display_usb_hid
+  - path: ../../examples/display_sdcard
