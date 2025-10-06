@@ -30,13 +30,13 @@ If a pre-commit hook has modified any of the files when you run `git commit`, ad
 
 ## Adding new components
 
-[Pull request template](.github/PULL_REQUEST_TEMPLATE/pr_template_bsp.md) contains a checklist of things we require in new components. Please familiarize yourself with the checklist when developing a new component.
+[Pull request template](../.github/PULL_REQUEST_TEMPLATE/pr_template_bsp.md) contains a checklist of things we require in new components. Please familiarize yourself with the checklist when developing a new component.
 
 New Board Support Packages should follow recommendations in [BSP development guide](./BSP_development_guide.md).
 
 ## Supported IDF versions
 
-All components are expected to be usable with multiple supported IDF versions. You can find the list in the [CI workflow file](.github/workflows/build_test.yml).
+All components are expected to be usable with multiple supported IDF versions. You can find the list in the [CI workflow file](../.github/workflows/build-run-applications.yml).
 
 ## Additional information
 More information about idf-component-manager can be found in [Espressif API guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html)
