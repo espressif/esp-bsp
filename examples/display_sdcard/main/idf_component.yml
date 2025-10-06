@@ -1,0 +1,6 @@
+description: BSP display and SD card example
+
+dependencies:
+  esp-box-3:
+    version: "*"
+    override_path: "../../../bsp/esp-box-3"
