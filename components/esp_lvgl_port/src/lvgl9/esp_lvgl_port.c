@@ -43,6 +43,7 @@ typedef struct lvgl_port_ctx_s {
 /*******************************************************************************
 * Local variables
 *******************************************************************************/
+#if CONFIG_LVGL_PORT_INTERNAL_TASK
 static lvgl_port_ctx_t lvgl_port_ctx;
 
 /*******************************************************************************
@@ -51,6 +52,7 @@ static lvgl_port_ctx_t lvgl_port_ctx;
 static void lvgl_port_task(void *arg);
 static esp_err_t lvgl_port_tick_init(void);
 static void lvgl_port_task_deinit(void);
+#endif
 
 /*******************************************************************************
 * Public API functions
@@ -58,6 +60,7 @@ static void lvgl_port_task_deinit(void);
 
 esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
 {
+#if CONFIG_LVGL_PORT_INTERNAL_TASK
     esp_err_t ret = ESP_OK;
     ESP_GOTO_ON_FALSE(cfg, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
     ESP_GOTO_ON_FALSE(cfg->task_affinity < (configNUM_CORES), ESP_ERR_INVALID_ARG, err, TAG, "Bad core number for task! Maximum core number is %d", (configNUM_CORES - 1));
@@ -104,10 +107,14 @@ err:
     }
 
     return ret;
+#else
+    return ESP_OK;
+#endif
 }
 
 esp_err_t lvgl_port_resume(void)
 {
+#if CONFIG_LVGL_PORT_INTERNAL_TASK
     esp_err_t ret = ESP_ERR_INVALID_STATE;
 
     if (lvgl_port_ctx.tick_timer != NULL) {
@@ -116,10 +123,14 @@ esp_err_t lvgl_port_resume(void)
     }
 
     return ret;
+#else
+    return ESP_OK;
+#endif
 }
 
 esp_err_t lvgl_port_stop(void)
 {
+#if CONFIG_LVGL_PORT_INTERNAL_TASK
     esp_err_t ret = ESP_ERR_INVALID_STATE;
 
     if (lvgl_port_ctx.tick_timer != NULL) {
@@ -128,10 +139,14 @@ esp_err_t lvgl_port_stop(void)
     }
 
     return ret;
+#else
+    return ESP_OK;
+#endif
 }
 
 esp_err_t lvgl_port_deinit(void)
 {
+#if CONFIG_LVGL_PORT_INTERNAL_TASK
     /* Stop and delete timer */
     if (lvgl_port_ctx.tick_timer != NULL) {
         esp_timer_stop(lvgl_port_ctx.tick_timer);
@@ -153,25 +168,34 @@ esp_err_t lvgl_port_deinit(void)
 
     lvgl_port_task_deinit();
 
+#endif
     return ESP_OK;
 }
 
 bool lvgl_port_lock(uint32_t timeout_ms)
 {
+#if CONFIG_LVGL_PORT_INTERNAL_TASK
     assert(lvgl_port_ctx.lvgl_mux && "lvgl_port_init must be called first");
 
     const TickType_t timeout_ticks = (timeout_ms == 0) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
     return xSemaphoreTakeRecursive(lvgl_port_ctx.lvgl_mux, timeout_ticks) == pdTRUE;
+#else
+    (void)timeout_ms;
+    return true;
+#endif
 }
 
 void lvgl_port_unlock(void)
 {
+#if CONFIG_LVGL_PORT_INTERNAL_TASK
     assert(lvgl_port_ctx.lvgl_mux && "lvgl_port_init must be called first");
     xSemaphoreGiveRecursive(lvgl_port_ctx.lvgl_mux);
+#endif
 }
 
 esp_err_t lvgl_port_task_wake(lvgl_port_event_type_t event, void *param)
 {
+#if CONFIG_LVGL_PORT_INTERNAL_TASK
     EventBits_t bits = 0;
     if (!lvgl_port_ctx.lvgl_events) {
         return ESP_ERR_INVALID_STATE;
@@ -197,12 +221,13 @@ esp_err_t lvgl_port_task_wake(lvgl_port_event_type_t event, void *param)
     } else {
         xEventGroupSetBits(lvgl_port_ctx.lvgl_events, bits);
     }
-
+#endif
     return ESP_OK;
 }
 
 IRAM_ATTR bool lvgl_port_task_notify(uint32_t value)
 {
+#if CONFIG_LVGL_PORT_INTERNAL_TASK
     BaseType_t need_yield = pdFALSE;
 
     // Notify LVGL task
@@ -213,12 +238,16 @@ IRAM_ATTR bool lvgl_port_task_notify(uint32_t value)
     }
 
     return (need_yield == pdTRUE);
+#else
+    return false;
+#endif
 }
 
 /*******************************************************************************
 * Private functions
 *******************************************************************************/
 
+#if CONFIG_LVGL_PORT_INTERNAL_TASK
 static void lvgl_port_task(void *arg)
 {
     TaskHandle_t task_to_notify = (TaskHandle_t)arg;
@@ -240,7 +269,7 @@ static void lvgl_port_task(void *arg)
     /* Tick init */
     lvgl_port_tick_init();
 
-    ESP_LOGI(TAG, "Starting LVGL task");
+    ESP_LOGI(TAG, "Starting LVGL task (custom)");
     lvgl_port_ctx.running = true;
     while (lvgl_port_ctx.running) {
         /* Wait for queue or timeout (sleep task) */
@@ -321,3 +350,5 @@ static esp_err_t lvgl_port_tick_init(void)
     ESP_RETURN_ON_ERROR(esp_timer_create(&lvgl_tick_timer_args, &lvgl_port_ctx.tick_timer), TAG, "Creating LVGL timer filed!");
     return esp_timer_start_periodic(lvgl_port_ctx.tick_timer, lvgl_port_ctx.timer_period_ms * 1000);
 }
+
+#endif
