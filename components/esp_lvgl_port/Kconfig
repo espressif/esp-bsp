@@ -8,7 +8,6 @@ menu "ESP LVGL PORT"
             Enables using PPA for screen rotation.
 
     config LVGL_PORT_INTERNAL_TASK
-        depends on SOC_PPA_SUPPORTED
         bool "Use an internal task for LVGL management"
         default y
         help
