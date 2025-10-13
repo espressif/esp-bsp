@@ -29,7 +29,7 @@ The ESP32-LyraT is a stereo audio board. If you are looking for a mono audio boa
 |        :x:       |    :pager: DISPLAY    |                |                                                                                              |       |
 |        :x:       |    :point_up: TOUCH   |                |                                                                                              |       |
 |:heavy_check_mark:| :radio_button: BUTTONS|                |       [espressif/button](https://components.espressif.com/components/espressif/button)       |   ^4  |
-|:heavy_check_mark:|  :musical_note: AUDIO |                |[espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)|  ~1.4 |
+|:heavy_check_mark:|  :musical_note: AUDIO |                |[espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)|  ~1.5 |
 |:heavy_check_mark:|:speaker: AUDIO_SPEAKER|     es8388     |                                                                                              |       |
 |:heavy_check_mark:| :microphone: AUDIO_MIC|     es8388     |                                                                                              |       |
 |:heavy_check_mark:|       :bulb: LED      |                |                                              idf                                             | >=5.3 |

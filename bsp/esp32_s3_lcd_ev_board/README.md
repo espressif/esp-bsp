@@ -67,7 +67,7 @@ Based on the above configurations, there are three different anti-tearing modes 
 |:heavy_check_mark:|:black_circle: LVGL_PORT|                |                                                                    [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)                                                                   |         ^2        |
 |:heavy_check_mark:|    :point_up: TOUCH    |                |    [espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)<br/>[espressif/esp_lcd_touch_gt1151](https://components.espressif.com/components/espressif/esp_lcd_touch_gt1151)    |     ^1<br/>^1     |
 |:heavy_check_mark:| :radio_button: BUTTONS |                |                                                                           [espressif/button](https://components.espressif.com/components/espressif/button)                                                                          |         ^4        |
-|:heavy_check_mark:|  :musical_note: AUDIO  |                |                                                                    [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)                                                                   |       ~1.3.1      |
+|:heavy_check_mark:|  :musical_note: AUDIO  |                |                                                                    [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)                                                                   |        ~1.5       |
 |:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     es8311     |                                                                                                                                                                                                                                     |                   |
 |:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                                                                                                                                                     |                   |
 |        :x:       |  :floppy_disk: SDCARD  |                |                                                                                                                                                                                                                                     |                   |
@@ -96,27 +96,27 @@ Based on the above configurations, there are three different anti-tearing modes 
 
 ## LVGL Benchmark
 
-**DATE:** 17.09.2025 02:52
+**DATE:** 01.10.2025 13:12
 
 **LVGL version:** 9.3.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 96%  | 18  | 51  | 30  | 21  |
-| Moving wallpaper | 99%  | 9  | 93  | 82  | 11  |
+| Empty screen | 97%  | 18  | 52  | 30  | 22  |
+| Moving wallpaper | 98%  | 9  | 91  | 81  | 10  |
 | Single rectangle | 98%  | 35  | 24  | 1  | 23  |
-| Multiple rectangles | 98%  | 32  | 27  | 17  | 10  |
-| Multiple RGB images | 99%  | 28  | 28  | 21  | 7  |
+| Multiple rectangles | 99%  | 32  | 28  | 18  | 10  |
+| Multiple RGB images | 99%  | 29  | 29  | 22  | 7  |
 | Multiple ARGB images | 99%  | 17  | 51  | 35  | 16  |
 | Rotated ARGB images | 99%  | 16  | 58  | 50  | 8  |
-| Multiple labels | 100%  | 18  | 45  | 31  | 14  |
+| Multiple labels | 100%  | 19  | 45  | 31  | 14  |
 | Screen sized text | 99%  | 8  | 109  | 89  | 20  |
 | Multiple arcs | 99%  | 35  | 22  | 6  | 16  |
-| Containers | 99%  | 15  | 53  | 40  | 13  |
-| Containers with overlay | 99%  | 10  | 85  | 72  | 13  |
-| Containers with opa | 99%  | 11  | 73  | 55  | 18  |
-| Containers with opa_layer | 99%  | 6  | 134  | 127  | 7  |
-| Containers with scrolling | 99%  | 11  | 82  | 61  | 21  |
+| Containers | 99%  | 15  | 55  | 42  | 13  |
+| Containers with overlay | 99%  | 10  | 84  | 73  | 11  |
+| Containers with opa | 99%  | 12  | 68  | 55  | 13  |
+| Containers with opa_layer | 99%  | 6  | 139  | 129  | 10  |
+| Containers with scrolling | 99%  | 11  | 82  | 62  | 20  |
 | Widgets demo | 99%  | 7  | 98  | 84  | 14  |
 | All scenes avg. | 98%  | 17  | 64  | 50  | 14  |
 

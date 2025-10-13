@@ -1,4 +1,4 @@
-version: "4.1.1"
+version: "4.1.2"
 description: Board Support Package (BSP) for ESP32-S3-Korvo-2
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_korvo_2
 
@@ -16,9 +16,10 @@ dependencies:
   esp_io_expander_tca9554:
     version: "^2"
     public: true
+    override_path: "../../components/io_expander/esp_io_expander_tca9554"
 
   esp_codec_dev:
-    version: "~1.4"
+    version: "~1.5"
     public: true
 
   esp32-camera:

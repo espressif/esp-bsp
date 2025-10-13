@@ -24,17 +24,17 @@ The ESP32-S3-Korvo-1 board consists of two parts: the main board (ESP32-S3-Korvo
 <div align="center">
 <!-- START_DEPENDENCIES -->
 
-|     Available    |       Capability      |Controller/Codec|                                               Component                                              |       Version       |
-|------------------|-----------------------|----------------|------------------------------------------------------------------------------------------------------|---------------------|
-|        :x:       |    :pager: DISPLAY    |                |                                                                                                      |                     |
-|        :x:       |    :point_up: TOUCH   |                |                                                                                                      |                     |
-|:heavy_check_mark:| :radio_button: BUTTONS|                |           [espressif/button](https://components.espressif.com/components/espressif/button)           |          ^4         |
-|:heavy_check_mark:|  :musical_note: AUDIO |                |    [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)    |         ~1.4        |
-|:heavy_check_mark:|:speaker: AUDIO_SPEAKER|     es8311     |                                                                                                      |                     |
-|:heavy_check_mark:| :microphone: AUDIO_MIC|     es7210     |                                                                                                      |                     |
-|:heavy_check_mark:|  :floppy_disk: SDCARD |                |                                                  idf                                                 |        >=5.3        |
-|        :x:       |    :video_game: IMU   |                |                                                                                                      |                     |
-|:heavy_check_mark:|       :bulb: LED      |                |[espressif/led_indicator](https://components.espressif.com/components/espressif/led_indicator)<br/>idf|>=0.7,<=0.8<br/>>=5.3|
+|     Available    |       Capability      |Controller/Codec|                                               Component                                              |    Version   |
+|------------------|-----------------------|----------------|------------------------------------------------------------------------------------------------------|--------------|
+|        :x:       |    :pager: DISPLAY    |                |                                                                                                      |              |
+|        :x:       |    :point_up: TOUCH   |                |                                                                                                      |              |
+|:heavy_check_mark:| :radio_button: BUTTONS|                |           [espressif/button](https://components.espressif.com/components/espressif/button)           |      ^4      |
+|:heavy_check_mark:|  :musical_note: AUDIO |                |    [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)    |     ~1.5     |
+|:heavy_check_mark:|:speaker: AUDIO_SPEAKER|     es8311     |                                                                                                      |              |
+|:heavy_check_mark:| :microphone: AUDIO_MIC|     es7210     |                                                                                                      |              |
+|:heavy_check_mark:|  :floppy_disk: SDCARD |                |                                                  idf                                                 |     >=5.3    |
+|        :x:       |    :video_game: IMU   |                |                                                                                                      |              |
+|:heavy_check_mark:|       :bulb: LED      |                |[espressif/led_indicator](https://components.espressif.com/components/espressif/led_indicator)<br/>idf|~2.0<br/>>=5.3|
 
 <!-- END_DEPENDENCIES -->
 </div>

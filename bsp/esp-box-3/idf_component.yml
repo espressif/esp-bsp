@@ -1,5 +1,5 @@
 
-version: "3.0.2"
+version: "3.0.3"
 description: Board Support Package (BSP) for ESP32-S3-BOX-3
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box-3
 
@@ -21,7 +21,7 @@ dependencies:
     override_path: "../../components/esp_lvgl_port"
 
   esp_codec_dev:
-    version: "~1.3.1"
+    version: "~1.5"
     public: true
 
   button:
@@ -29,8 +29,9 @@ dependencies:
     public: true
 
   icm42670:
-    version: "^2.0.1"
+    version: "^2.0.2"
     public: true
+    override_path: "../../components/icm42670"
 
 examples:
   - path: ../../examples/display

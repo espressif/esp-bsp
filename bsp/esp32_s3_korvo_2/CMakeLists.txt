@@ -1,7 +1,15 @@
+if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "5.3")
+    set(REQ esp_driver_i2c esp_driver_gpio esp_driver_i2s esp_driver_sdmmc esp_driver_sdspi)
+    set(PRIV_REQ esp_driver_spi esp_driver_ledc)
+else()
+    set(REQ driver)
+    set(PRIV_REQ "")
+endif()
+
 idf_component_register(
     SRCS "esp32_s3_korvo_2.c" "esp32_s3_korvo_2_idf5.c"
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "priv_include"
-    REQUIRES esp_driver_gpio esp_driver_i2s esp_driver_sdmmc esp_driver_i2c esp_adc fatfs
-    PRIV_REQUIRES spiffs esp_lcd esp_driver_spi esp_driver_ledc esp_psram
+    REQUIRES ${REQ} fatfs esp_adc
+    PRIV_REQUIRES ${PRIV_REQ} esp_lcd spiffs esp_psram
 )

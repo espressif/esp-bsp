@@ -16,7 +16,7 @@
 #include "esp_spiffs.h"
 #include "esp_codec_dev.h"
 #include "esp_codec_dev_defaults.h"
-#include "led_indicator.h"
+#include "led_indicator_strips.h"
 #include "esp_vfs_fat.h"
 #include "button_adc.h"
 
@@ -267,15 +267,12 @@ static const led_strip_rmt_config_t bsp_leds_rgb_rmt_config = {
 };
 
 static led_indicator_strips_config_t bsp_leds_rgb_config = {
-    .is_active_level_high = 1,
     .led_strip_cfg = bsp_leds_rgb_strip_config,
     .led_strip_driver = LED_STRIP_RMT,
     .led_strip_rmt_cfg = bsp_leds_rgb_rmt_config,
 };
 
 static const led_indicator_config_t bsp_leds_config = {
-    .mode = LED_STRIPS_MODE,
-    .led_indicator_strips_config = &bsp_leds_rgb_config,
     .blink_lists = bsp_led_blink_defaults_lists,
     .blink_list_num = BSP_LED_MAX,
 };
@@ -286,7 +283,7 @@ esp_err_t bsp_led_indicator_create(led_indicator_handle_t led_array[], int *led_
         return ESP_ERR_INVALID_ARG;
     }
 
-    led_array[0] = led_indicator_create(&bsp_leds_config);
+    led_indicator_new_strips_device(&bsp_leds_config, &bsp_leds_rgb_config, &led_array[0]);
     if (led_array[0] == NULL) {
         return ESP_FAIL;
     }

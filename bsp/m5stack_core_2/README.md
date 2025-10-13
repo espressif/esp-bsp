@@ -53,7 +53,7 @@ Core2 V1.1 is an iterative version of Core2 with the following upgrades and addi
 |:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |       ^2       |
 |:heavy_check_mark:|    :point_up: TOUCH    |     ft5x06     |[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|       ^1       |
 |        :x:       | :radio_button: BUTTONS |                |                                                                                                            |                |
-|:heavy_check_mark:|  :musical_note: AUDIO  |                |       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |      ~1.1      |
+|:heavy_check_mark:|  :musical_note: AUDIO  |                |       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |      ~1.5      |
 |:heavy_check_mark:| :speaker: AUDIO_SPEAKER|                |                                                                                                            |                |
 |        :x:       | :microphone: AUDIO_MIC |                |                                                                                                            |                |
 |:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                     idf                                                    |      >=5.3     |
