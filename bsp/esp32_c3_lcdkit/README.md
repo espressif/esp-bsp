@@ -28,7 +28,7 @@ ESP32-C3-LCDkit also uses a Type-C USB connector that provides 5 V of power inpu
 
 |     Available    |       Capability       |Controller/Codec|                                                Component                                               |    Version   |
 |------------------|------------------------|----------------|--------------------------------------------------------------------------------------------------------|--------------|
-|:heavy_check_mark:|     :pager: DISPLAY    |     gc9a01     |[espressif/esp_lcd_gc9a01](https://components.espressif.com/components/espressif/esp_lcd_gc9a01)<br/>idf|^2<br/>>=5.0.0|
+|:heavy_check_mark:|     :pager: DISPLAY    |     gc9a01     |idf<br/>[espressif/esp_lcd_gc9a01](https://components.espressif.com/components/espressif/esp_lcd_gc9a01)|>=5.0.0<br/>^2|
 |:heavy_check_mark:|:black_circle: LVGL_PORT|                |     [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)     |      ^2      |
 |        :x:       |    :point_up: TOUCH    |                |                                                                                                        |              |
 |        :x:       | :radio_button: BUTTONS |                |                                                                                                        |              |

@@ -10,7 +10,7 @@ Remove esp_lvgl_port from BSP's dependencies
 import sys
 import argparse
 from pathlib import Path
-from idf_component_tools.manifest import ManifestManager
+from idf_component_tools.manager import ManifestManager
 from update_readme_dependencies import check_bsp_readme
 
 DEFINE_NOGLIB_OFF = '#define BSP_CONFIG_NO_GRAPHIC_LIB (0)'
