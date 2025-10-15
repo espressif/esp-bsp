@@ -1,0 +1,20 @@
+{
+    "name":"ESP32-P4-EYE",
+    "version":"1.0.0",
+    "mcu":"ESP32P4",
+
+    "screen_width":"240",
+    "screen_height":"240",
+    "screen_color_swap":false,
+
+    "supported_lvgl_version":"9.1.*, 9.2.*",
+
+    "short_description":"ESP32-P4-EYE is a vision development board based on the ESP32-P4 chip, mainly targeting camera applications. ESP32-P4 features a dual-core RISC-V processor and supports up to 32 MB of PSRAM. In addition, ESP32-P4 supports USB 2.0 standard, MIPI-CSI/DSI, H264 Encoder, and various other peripherals. With all of its outstanding features, the board is an ideal choice for developing low-cost, high-performance, low-power network-connected audio and video products.",
+    "long_description":"ESP32-P4-EYE is a vision development board based on the ESP32-P4 chip, mainly targeting camera applications. ESP32-P4 features a dual-core RISC-V processor and supports up to 32 MB of PSRAM. In addition, ESP32-P4 supports USB 2.0 standard, MIPI-CSI/DSI, H264 Encoder, and various other peripherals. With all of its outstanding features, the board is an ideal choice for developing low-cost, high-performance, low-power network-connected audio and video products.",
+
+    "placeholders":
+    {
+        "__ESP_BOARD_INCLUDE__": "bsp/esp-bsp.h",
+        "__ESP_BOARD_I2C_INIT__": ""
+    }
+}

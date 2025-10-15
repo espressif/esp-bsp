@@ -1,0 +1,5 @@
+description: ESP-BSP SquareLine LVGL Example
+targets:
+    - esp32p4
+dependencies:
+  esp32_p4_eye: "*"
