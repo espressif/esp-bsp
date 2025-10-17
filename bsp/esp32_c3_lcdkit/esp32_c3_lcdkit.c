@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "esp_timer.h"
 #include "driver/gpio.h"
 #include "driver/ledc.h"
 #include "driver/spi_master.h"

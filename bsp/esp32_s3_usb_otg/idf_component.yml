@@ -1,4 +1,4 @@
-version: "2.0.3"
+version: "2.0.4"
 description: Board Support Package (BSP) for ESP32-S3-USB-OTG
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_usb_otg
 
@@ -19,6 +19,12 @@ dependencies:
     version: "^2"
     public: true
     override_path: "../../components/esp_lvgl_port"
+
+  usb:
+    version: "^1.0.0"
+    public: true
+    rules:
+     - if: "idf_version >=6.0"
 
 examples:
   - path: ../../examples/display
