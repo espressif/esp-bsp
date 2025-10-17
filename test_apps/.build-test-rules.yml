@@ -6,9 +6,5 @@ test_apps/noglib:
 # Legacy common components test_app: Build for changes in components which do not have their own test_app or example
 test_apps/components:
   depends_filepatterns:
-    - "components/fbm320/**"
-    - "components/hts221/**"
     - "components/lcd/esp_lcd_ra8875/**"
     - "components/lcd_touch/**"
-    - "components/mag3110/**"
-    - "components/mpu6050/**"

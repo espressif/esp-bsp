@@ -1,29 +1,31 @@
 # MPU6050 Driver Component
 
 [![Component Registry](https://components.espressif.com/components/espressif/mpu6050/badge.svg)](https://components.espressif.com/components/espressif/mpu6050)
-![maintenance-status](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen.svg)
+![maintenance-status](https://img.shields.io/badge/maintenance-as--is-yellow.svg)
+
+:warning: **MPU6050 component is provided as-is with no further development and compatibility maintenance**
 
 C driver for Invensense MPU6050 6-axis gyroscope and accelerometer based on I2C communication.
 
 ## Features
 
-- Get 3-axis accelerometer and 3-axis gyroscope data, either raw or as floating point values. 
+- Get 3-axis accelerometer and 3-axis gyroscope data, either raw or as floating point values.
 - Read temperature from MPU6050 internal temperature sensor.
 - Configure gyroscope and accelerometer sensitivity.
 - MPU6050 power down mode.
-- Support for MPU6050 interrupt generation when data ready (occurs each time a write to all sensor data registers has been completed).  
+- Support for MPU6050 interrupt generation when data ready (occurs each time a write to all sensor data registers has been completed).
 
 ## Important Notes
 
 - Keep in mind that MPU6050 I2C address depends on the level of its AD0 pin (9) (0x68 when low, 0x69 when high).
-- In order to receive MPU6050 interrupts, its INT pin (12) must be conneced to a GPIO on the ESP32. 
+- In order to receive MPU6050 interrupts, its INT pin (12) must be conneced to a GPIO on the ESP32.
 
 ## Limitations
 
 - Only I2C communication is supported.
 - Driver has not been tested with MPU 6000 yet.
 - 9-axis support through MPU6050 I2C aux is not supported.
-- If MPU6050 interrupts are used, it is recommended to not read data using I2C directly from the ISR. 
+- If MPU6050 interrupts are used, it is recommended to not read data using I2C directly from the ISR.
 
 ## Get Started
 
