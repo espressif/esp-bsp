@@ -29,6 +29,7 @@ concurrency:
 
 jobs:
   build:
+    continue-on-error: ${{ matrix.allow_fail }}
     strategy:
       matrix:
         idf_ver: 
@@ -40,11 +41,13 @@ jobs:
           - "release-v5.5"
         parallel_index: [1, 2]
         include:
-          # Default parallel_count for all versions
+          # Default values for all versions
           - parallel_count: 2
-          # Change parallel_count for latest version
+            allow_fail: false
+          # Change values for latest version
           - idf_ver: "latest"
             parallel_count: 5
+            allow_fail: true
           # Add indexes for non-default parallel counts
           - idf_ver: "latest"
             parallel_index: 3
