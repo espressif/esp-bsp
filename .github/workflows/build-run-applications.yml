@@ -122,6 +122,7 @@ jobs:
           - "release-v5.5"
         runner:
           - example: "test_example_display"
+          - example: "test_example_sdcard"
           - example: "test_example_lvgl_demos"
           - example: "test_example_generic_button_led"
           - example: "test_example_lvgl_benchmark"
