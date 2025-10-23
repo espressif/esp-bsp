@@ -5,7 +5,7 @@
 
 
 
-| :1234: [CAPABILITIES](#1234-capabilities) | :floppy_disk: [SD CARD AND SPIFFS](#floppy_disk-sd-card-and-spiffs) | :musical_note: [AUDIO](#musical_note-audio) | :pager: [DISPLAY AND TOUCH](#pager-display-and-touch) | :radio_button: [BUTTONS](#radio_button-buttons) | :bulb: [LEDS](#bulb-leds) | :camera: [CAMERA](#camera-camera) | :battery: [BATTERY](#battery-battery) | 
+| :1234: [CAPABILITIES](#1234-capabilities) | :floppy_disk: [SD CARD AND SPIFFS](#floppy_disk-sd-card-and-spiffs) | :musical_note: [AUDIO](#musical_note-audio) | :pager: [DISPLAY AND TOUCH](#pager-display-and-touch) | :radio_button: [BUTTONS](#radio_button-buttons) | :bulb: [LEDS](#bulb-leds) | :battery: [BATTERY](#battery-battery) | :camera: [CAMERA](#camera-camera) | 
 | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | 
 
 </div>
@@ -1522,83 +1522,6 @@ esp_err_t bsp_led_set (
 
 
 
-## :camera: Camera
-
-There is no dedicated BSP API for camera functionality. Instead, the BSP provides default configuration macros:
-- `BSP_CAMERA_DEFAULT_CONFIG`
-- `BSP_CAMERA_VFLIP`
-- `BSP_CAMERA_HMIRROR`
-
-These macros are designed for use with the [esp32-camera](https://components.espressif.com/components/espressif/esp32-camera) component.
-
-> [!NOTE]
-> Don't forget to initialize I2C (`bsp_i2c_init()`) before using the camera, as some camera modules require I2C for configuration.
-
-### Example Usage
-
-```
-/* Initialize I2C bus (required by camera module) */
-bsp_i2c_init();
-
-/* Initialize the camera using BSP default config */
-const camera_config_t camera_config = BSP_CAMERA_DEFAULT_CONFIG;
-esp_camera_init(&camera_config);
-
-/* Optional: Set camera orientation */
-sensor_t *s = esp_camera_sensor_get();
-s->set_vflip(s, BSP_CAMERA_VFLIP);     // Vertical flip
-s->set_hmirror(s, BSP_CAMERA_HMIRROR); // Horizontal mirror
-
-...
-
-/* Capture a frame */
-camera_fb_t * pic = esp_camera_fb_get();
-if (pic) {
-    /* Access raw image data in pic->buf with size pic->len */
-    process_image(pic->buf, pic->len);  // Replace with your function
-    esp_camera_fb_return(pic);
-}
-```
-
-### Camera API Reference
-
-
-## Functions
-
-| Type | Name |
-| ---: | :--- |
-|  esp\_err\_t | [**bsp\_camera\_start**](#function-bsp_camera_start) (void) <br>_Initialize camera._ |
-
-## Macros
-
-| Type | Name |
-| ---: | :--- |
-| define  | [**BSP\_CAMERA\_EN**](#define-bsp_camera_en)  (GPIO\_NUM\_12)<br> |
-| define  | [**BSP\_CAMERA\_GPIO\_XCLK**](#define-bsp_camera_gpio_xclk)  (GPIO\_NUM\_11)<br> |
-| define  | [**BSP\_CAMERA\_RST**](#define-bsp_camera_rst)  (GPIO\_NUM\_26)<br> |
-| define  | [**BSP\_CAMERA\_XCLK\_CLOCK\_MHZ**](#define-bsp_camera_xclk_clock_mhz)  24<br> |
-
-
-
-## Functions Documentation
-
-### function `bsp_camera_start`
-
-_Initialize camera._
-```c
-esp_err_t bsp_camera_start (
-    void
-) 
-```
-
-
-Camera sensor initialization.
-
-
-
-
-
-
 ## :battery: Battery
 
 Some boards with battery support can measure the battery voltage using an ADC channel. BSP provides a simple API for this:
@@ -1692,6 +1615,73 @@ false Calibration failed
 * ESP\_ERR\_NO\_MEM No memory
 * ESP\_ERR\_NOT\_FOUND ADC peripheral to be claimed is already in use
 * ESP\_ERR\_NOT\_SUPPORTED ADC scheme required eFuse bits not burnt
+
+
+
+
+
+
+## :camera: Camera
+
+The BSP provides a helper function bsp_camera_start() for initializing the on-board camera module.
+This function sets up the required I2C bus, video subsystem, and camera clock if necessary.
+
+### Example Usage
+
+Camera usage can be quite complex. For a complete example, refer to the [`display_camera_csi`](https://github.com/espressif/esp-bsp/tree/master/examples/display_camera_csi) example in the BSP repository, or to the examples provided in the [`esp_video`](https://github.com/espressif/esp-video-components/tree/master/esp_video) component.
+
+> [!NOTE]
+> Please, do not forget select right camera sensor in `menuconfig`
+
+### Camera API Reference
+
+## Structures and Types
+
+| Type | Name |
+| ---: | :--- |
+| struct | [**bsp\_camera\_cfg\_t**](#struct-bsp_camera_cfg_t) <br>_BSP camera configuration structure (for future use)_ |
+
+## Functions
+
+| Type | Name |
+| ---: | :--- |
+|  esp\_err\_t | [**bsp\_camera\_start**](#function-bsp_camera_start) (const [**bsp\_camera\_cfg\_t**](#struct-bsp_camera_cfg_t) \*cfg) <br>_Initialize camera._ |
+
+## Macros
+
+| Type | Name |
+| ---: | :--- |
+| define  | [**BSP\_CAMERA\_DEVICE**](#define-bsp_camera_device)  (ESP\_VIDEO\_MIPI\_CSI\_DEVICE\_NAME)<br> |
+| define  | [**BSP\_CAMERA\_EN**](#define-bsp_camera_en)  (GPIO\_NUM\_12)<br> |
+| define  | [**BSP\_CAMERA\_GPIO\_XCLK**](#define-bsp_camera_gpio_xclk)  (GPIO\_NUM\_11)<br> |
+| define  | [**BSP\_CAMERA\_RST**](#define-bsp_camera_rst)  (GPIO\_NUM\_26)<br> |
+| define  | [**BSP\_CAMERA\_XCLK\_CLOCK\_MHZ**](#define-bsp_camera_xclk_clock_mhz)  (24)<br> |
+
+
+## Structures and Types Documentation
+
+### struct `bsp_camera_cfg_t`
+
+_BSP camera configuration structure (for future use)_
+
+Variables:
+
+-  uint8\_t dummy  
+
+
+## Functions Documentation
+
+### function `bsp_camera_start`
+
+_Initialize camera._
+```c
+esp_err_t bsp_camera_start (
+    const bsp_camera_cfg_t *cfg
+) 
+```
+
+
+Camera sensor initialization.
 
 
 

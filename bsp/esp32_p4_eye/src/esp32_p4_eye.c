@@ -755,7 +755,7 @@ esp_err_t bsp_display_exit_sleep(void)
 }
 #endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
-esp_err_t bsp_camera_start(void)
+esp_err_t bsp_camera_start(const bsp_camera_cfg_t *cfg)
 {
     esp_cam_sensor_xclk_handle_t xclk_handle = NULL;
 

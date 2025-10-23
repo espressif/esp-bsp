@@ -7,6 +7,12 @@ This very simple example continuously fetches image frames from camera and displ
 
 Any board with MIPI-CSI camera.
 
+- ESP32-P4-EYE
+    - Camera sensor: OV2710
+- ESP32-P4-Function-EV-Board
+    - Camera sensor: SC2336 (forward direction ribbon cable)
+    - Camera sensor: OV5647 Raspberry Pi (reverse direction ribbon cable)
+
 ## Build and Flash
 
 To build and flash the example for a specific `{board}` and `{port}`, use the following command:

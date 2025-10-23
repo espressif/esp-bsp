@@ -98,7 +98,7 @@
 #define BSP_LCD_EN           (GPIO_NUM_12)
 /** @} */ // end of display
 
-/** @defgroup g08_camera Camera
+/** @defgroup g12_camera Camera
  *  @brief Camera BSP API
  *  @{
  */
@@ -557,24 +557,35 @@ void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 
 /** @} */ // end of display
 
-/** @addtogroup g08_camera
+/** @addtogroup g12_camera
  *  @{
  */
 
 /**************************************************************************************************
  *
  * Camera interface
+ * Supported camera sensors: OV2710
+ * More information in display_camera_csi example
  *
  **************************************************************************************************/
 
-#define BSP_CAMERA_XCLK_CLOCK_MHZ     24
+#define BSP_CAMERA_DEVICE             (ESP_VIDEO_MIPI_CSI_DEVICE_NAME)
+#define BSP_CAMERA_XCLK_CLOCK_MHZ     (24)
+
+/**
+ * @brief BSP camera configuration structure (for future use)
+ *
+ */
+typedef struct {
+    uint8_t dummy;
+} bsp_camera_cfg_t;
 
 /**
  * @brief Initialize camera
  *
  * Camera sensor initialization.
  */
-esp_err_t bsp_camera_start(void);
+esp_err_t bsp_camera_start(const bsp_camera_cfg_t *cfg);
 
 /** @} */ // end of camera
 
