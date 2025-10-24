@@ -29,6 +29,7 @@ jobs:
         run: |
           . ${IDF_PATH}/export.sh
           pip install idf-component-manager==2.* --upgrade
+          pip install -U "esp-idf-kconfig<3"
 
       - name: Action for building binaries and config.toml
         env:
