@@ -39,3 +39,4 @@ examples:
   - path: ../../examples/display_audio_photo
   - path: ../../examples/display_lvgl_demos
   - path: ../../examples/display_lvgl_benchmark
+  - path: ../../examples/display_sdcard

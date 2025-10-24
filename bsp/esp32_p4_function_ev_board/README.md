@@ -80,6 +80,7 @@ This BSP supports HDMI converter Lontium LT8912B. Follow these rules for using i
 | [LVGL Benchmark Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_benchmark) | Run LVGL benchmark tests | - |
 | [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos-) |
 | [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-) |
+| [Display SD card Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_sdcard) | Example of mounting an SD card using SD-MMC/SPI with display interaction. This example is also supported on boards without a display. | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sdcard) |
 | [USB HID Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_usb_hid) | USB HID demo (keyboard, mouse, or gamepad visualization using LVGL) | - |
 
 <!-- END_EXAMPLES -->
@@ -89,29 +90,29 @@ This BSP supports HDMI converter Lontium LT8912B. Follow these rules for using i
 
 ## LVGL Benchmark
 
-**DATE:** 01.10.2025 13:12
+**DATE:** 21.10.2025 03:17
 
-**LVGL version:** 9.3.0
+**LVGL version:** 9.4.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 55%  | 88  | 5  | 2  | 3  |
-| Moving wallpaper | 92%  | 73  | 11  | 9  | 2  |
-| Single rectangle | 22%  | 89  | 1  | 1  | 0  |
-| Multiple rectangles | 40%  | 91  | 3  | 3  | 0  |
-| Multiple RGB images | 28%  | 97  | 1  | 1  | 0  |
-| Multiple ARGB images | 55%  | 90  | 6  | 6  | 0  |
-| Rotated ARGB images | 77%  | 75  | 10  | 10  | 0  |
-| Multiple labels | 95%  | 61  | 13  | 12  | 1  |
-| Screen sized text | 99%  | 13  | 70  | 68  | 2  |
-| Multiple arcs | 98%  | 45  | 18  | 16  | 2  |
-| Containers | 28%  | 88  | 3  | 3  | 0  |
-| Containers with overlay | 91%  | 28  | 31  | 29  | 2  |
-| Containers with opa | 36%  | 91  | 4  | 4  | 0  |
-| Containers with opa_layer | 62%  | 76  | 12  | 12  | 0  |
-| Containers with scrolling | 98%  | 28  | 31  | 29  | 2  |
-| Widgets demo | 99%  | 17  | 50  | 48  | 2  |
-| All scenes avg. | 67%  | 65  | 16  | 15  | 1  |
+| Empty screen | 55%  | 88  | 5  | 4  | 1  |
+| Moving wallpaper | 89%  | 71  | 10  | 7  | 3  |
+| Single rectangle | 23%  | 89  | 1  | 1  | 0  |
+| Multiple rectangles | 40%  | 90  | 2  | 2  | 0  |
+| Multiple RGB images | 25%  | 91  | 1  | 1  | 0  |
+| Multiple ARGB images | 56%  | 91  | 6  | 6  | 0  |
+| Rotated ARGB images | 76%  | 77  | 10  | 10  | 0  |
+| Multiple labels | 93%  | 61  | 14  | 13  | 1  |
+| Screen sized text | 99%  | 14  | 68  | 66  | 2  |
+| Multiple arcs | 96%  | 45  | 17  | 15  | 2  |
+| Containers | 26%  | 90  | 3  | 3  | 0  |
+| Containers with overlay | 93%  | 28  | 31  | 29  | 2  |
+| Containers with opa | 33%  | 92  | 4  | 4  | 0  |
+| Containers with opa_layer | 63%  | 72  | 12  | 12  | 0  |
+| Containers with scrolling | 96%  | 29  | 31  | 28  | 3  |
+| Widgets demo | 98%  | 17  | 50  | 48  | 2  |
+| All scenes avg. | 66%  | 65  | 16  | 15  | 1  |
 
 
 

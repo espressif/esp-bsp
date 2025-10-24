@@ -53,6 +53,7 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 | [LVGL Benchmark Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_benchmark) | Run LVGL benchmark tests | - |
 | [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos-) |
 | [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-) |
+| [Display SD card Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_sdcard) | Example of mounting an SD card using SD-MMC/SPI with display interaction. This example is also supported on boards without a display. | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sdcard) |
 
 <!-- END_EXAMPLES -->
 </div>
@@ -61,29 +62,29 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 
 ## LVGL Benchmark
 
-**DATE:** 01.10.2025 13:12
+**DATE:** 21.10.2025 03:17
 
-**LVGL version:** 9.3.0
+**LVGL version:** 9.4.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 94%  | 26  | 33  | 3  | 30  |
-| Moving wallpaper | 97%  | 25  | 36  | 6  | 30  |
+| Empty screen | 94%  | 26  | 34  | 3  | 31  |
+| Moving wallpaper | 98%  | 25  | 36  | 5  | 31  |
 | Single rectangle | 10%  | 91  | 0  | 0  | 0  |
-| Multiple rectangles | 91%  | 50  | 16  | 2  | 14  |
-| Multiple RGB images | 17%  | 90  | 0  | 0  | 0  |
-| Multiple ARGB images | 18%  | 87  | 2  | 2  | 0  |
-| Rotated ARGB images | 73%  | 56  | 18  | 12  | 6  |
-| Multiple labels | 89%  | 79  | 9  | 3  | 6  |
-| Screen sized text | 97%  | 15  | 59  | 28  | 31  |
-| Multiple arcs | 19%  | 91  | 0  | 0  | 0  |
-| Containers | 33%  | 72  | 15  | 4  | 11  |
-| Containers with overlay | 89%  | 20  | 45  | 14  | 31  |
-| Containers with opa | 49%  | 70  | 19  | 7  | 12  |
-| Containers with opa_layer | 60%  | 53  | 27  | 16  | 11  |
+| Multiple rectangles | 90%  | 49  | 17  | 4  | 13  |
+| Multiple RGB images | 9%  | 89  | 0  | 0  | 0  |
+| Multiple ARGB images | 21%  | 88  | 3  | 3  | 0  |
+| Rotated ARGB images | 83%  | 54  | 19  | 13  | 6  |
+| Multiple labels | 89%  | 76  | 10  | 5  | 5  |
+| Screen sized text | 97%  | 15  | 58  | 27  | 31  |
+| Multiple arcs | 17%  | 94  | 0  | 0  | 0  |
+| Containers | 36%  | 71  | 17  | 4  | 13  |
+| Containers with overlay | 88%  | 20  | 46  | 15  | 31  |
+| Containers with opa | 50%  | 70  | 18  | 8  | 10  |
+| Containers with opa_layer | 61%  | 53  | 29  | 16  | 13  |
 | Containers with scrolling | 95%  | 20  | 44  | 14  | 30  |
-| Widgets demo | 97%  | 25  | 25  | 11  | 14  |
-| All scenes avg. | 64%  | 54  | 21  | 7  | 14  |
+| Widgets demo | 97%  | 24  | 26  | 12  | 14  |
+| All scenes avg. | 64%  | 54  | 22  | 8  | 14  |
 
 
 
