@@ -161,6 +161,7 @@ void app_main(void)
     int fd = app_video_open(ESP_VIDEO_MIPI_CSI_DEVICE_NAME, APP_VIDEO_FMT_RGB565);
     if (fd < 0) {
         ESP_LOGE(TAG, "Failed to open video device");
+        ESP_LOGW(TAG, "Please, try to select another camera sensor in menuconfig.");
         return;
     }
 

@@ -71,6 +71,7 @@ def extract_board_info(board_path):
         touch_types = []
         speaker_codec = []
         mic_codec = []
+        cam_sensor = []
         for line in lines:
             match = re.match(r"#define\s+BSP_CAPS_([A-Z0-9_]+)\s+1\b", line)
             if match:
@@ -91,6 +92,12 @@ def extract_board_info(board_path):
 
                 # TOUCH: esp_lcd_touch_new_i2c_*
                 touch_types = re.findall(r"esp_lcd_touch_new_i2c_([a-z0-9_]+)\s*\(", c_code)
+
+                # CAMERA: find camera sensors
+                if "CAMERA" in features:
+                    match = re.search(r"Supported camera sensors:\s*(.*)", content)
+                    if match:
+                        cam_sensor = re.findall(r"[A-Z0-9_]+", match.group(1))
 
                 # AUDIO_SPEAKER
                 if "AUDIO_SPEAKER" in features:
@@ -173,6 +180,8 @@ def extract_board_info(board_path):
             f_suffix = f" ({', '.join(speaker_codec)})" if speaker_codec else ""
         elif f == "AUDIO_MIC":
             f_suffix = f" ({', '.join(mic_codec)})" if mic_codec else ""
+        elif f == "CAMERA":
+            f_suffix = f" ({', '.join(cam_sensor)})" if cam_sensor else ""
 
         feature_list += f"{f_emoji} {f_name} {f_suffix}<br/>"
     feature_list += ""

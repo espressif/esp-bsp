@@ -5,8 +5,8 @@
 
 
 
-| :1234: [CAPABILITIES](#1234-capabilities) | :floppy_disk: [SD CARD AND SPIFFS](#floppy_disk-sd-card-and-spiffs) | :musical_note: [AUDIO](#musical_note-audio) | :pager: [DISPLAY AND TOUCH](#pager-display-and-touch) | :electric_plug: [USB](#electric_plug-usb) | 
-| :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | 
+| :1234: [CAPABILITIES](#1234-capabilities) | :floppy_disk: [SD CARD AND SPIFFS](#floppy_disk-sd-card-and-spiffs) | :musical_note: [AUDIO](#musical_note-audio) | :pager: [DISPLAY AND TOUCH](#pager-display-and-touch) | :electric_plug: [USB](#electric_plug-usb) | :camera: [CAMERA](#camera-camera) | 
+| :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | 
 
 </div>
 
@@ -148,6 +148,7 @@ You can use these macros to conditionally compile code depending on feature avai
 | define  | [**BSP\_CAPS\_AUDIO\_MIC**](#define-bsp_caps_audio_mic)  1<br> |
 | define  | [**BSP\_CAPS\_AUDIO\_SPEAKER**](#define-bsp_caps_audio_speaker)  1<br> |
 | define  | [**BSP\_CAPS\_BUTTONS**](#define-bsp_caps_buttons)  0<br> |
+| define  | [**BSP\_CAPS\_CAMERA**](#define-bsp_caps_camera)  1<br> |
 | define  | [**BSP\_CAPS\_DISPLAY**](#define-bsp_caps_display)  1<br> |
 | define  | [**BSP\_CAPS\_IMU**](#define-bsp_caps_imu)  0<br> |
 | define  | [**BSP\_CAPS\_SDCARD**](#define-bsp_caps_sdcard)  1<br> |
@@ -1471,6 +1472,81 @@ USB Host lib will be uninstalled and power from connector removed.
 
 * ESP\_OK On success
 * ESP\_ERR\_INVALID\_ARG Parameter error
+
+
+
+
+
+
+## :camera: Camera
+
+There is no dedicated BSP API for camera functionality. Instead, the BSP provides default configuration macros:
+- `BSP_CAMERA_DEFAULT_CONFIG`
+- `BSP_CAMERA_VFLIP`
+- `BSP_CAMERA_HMIRROR`
+
+These macros are designed for use with the [esp32-camera](https://components.espressif.com/components/espressif/esp32-camera) component.
+
+> [!NOTE]
+> Don't forget to initialize I2C (`bsp_i2c_init()`) before using the camera, as some camera modules require I2C for configuration.
+
+### Example Usage
+
+```
+/* Initialize I2C bus (required by camera module) */
+bsp_i2c_init();
+
+/* Initialize the camera using BSP default config */
+const camera_config_t camera_config = BSP_CAMERA_DEFAULT_CONFIG;
+esp_camera_init(&camera_config);
+
+/* Optional: Set camera orientation */
+sensor_t *s = esp_camera_sensor_get();
+s->set_vflip(s, BSP_CAMERA_VFLIP);     // Vertical flip
+s->set_hmirror(s, BSP_CAMERA_HMIRROR); // Horizontal mirror
+
+...
+
+/* Capture a frame */
+camera_fb_t * pic = esp_camera_fb_get();
+if (pic) {
+    /* Access raw image data in pic->buf with size pic->len */
+    process_image(pic->buf, pic->len);  // Replace with your function
+    esp_camera_fb_return(pic);
+}
+```
+
+### Camera API Reference
+
+
+## Functions
+
+| Type | Name |
+| ---: | :--- |
+|  esp\_err\_t | [**bsp\_camera\_start**](#function-bsp_camera_start) (void) <br>_Initialize camera._ |
+
+## Macros
+
+| Type | Name |
+| ---: | :--- |
+| define  | [**BSP\_CAMERA\_GPIO\_XCLK**](#define-bsp_camera_gpio_xclk)  (GPIO\_NUM\_NC)<br> |
+| define  | [**BSP\_CAMERA\_RST**](#define-bsp_camera_rst)  (GPIO\_NUM\_NC)<br> |
+
+
+
+## Functions Documentation
+
+### function `bsp_camera_start`
+
+_Initialize camera._
+```c
+esp_err_t bsp_camera_start (
+    void
+) 
+```
+
+
+Camera sensor initialization.
 
 
 
