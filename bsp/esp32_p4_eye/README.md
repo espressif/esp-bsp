@@ -40,7 +40,7 @@ ESP32-P4-EYE is a vision development board based on the ESP32-P4 chip, mainly ta
 |:heavy_check_mark:| :microphone: AUDIO_MIC |                |                                                                                                      |            |
 |:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                  idf                                                 |    >=5.4   |
 |:heavy_check_mark:|       :bulb: LED       |                |idf<br/>[espressif/led_indicator](https://components.espressif.com/components/espressif/led_indicator)|>=5.4<br/>^2|
-|:heavy_check_mark:|     :camera: CAMERA    |                |                                                                                                      |            |
+|:heavy_check_mark:|     :camera: CAMERA    |     OV2710     |                                                                                                      |            |
 |:heavy_check_mark:|      :battery: BAT     |                |                                                  idf                                                 |    >=5.4   |
 |        :x:       |    :video_game: IMU    |                |                                                                                                      |            |
 
@@ -61,4 +61,3 @@ ESP32-P4-EYE is a vision development board based on the ESP32-P4 chip, mainly ta
 
 <!-- END_EXAMPLES -->
 </div>
-
