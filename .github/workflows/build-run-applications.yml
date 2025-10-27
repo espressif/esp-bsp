@@ -29,6 +29,9 @@ concurrency:
 
 jobs:
   build:
+    env:
+      component_manager_ver: "2.2.*"
+      idf_build_apps_ver: "2.10.1"
     strategy:
       matrix:
         include:
@@ -98,7 +101,7 @@ jobs:
           ALL_CHANGED_FILES: ${{ (github.event_name != 'pull_request') && format(' ') || format('--modified-files=') }}${{ (github.event_name != 'pull_request') && format(' ') || steps.changed-files.outputs.all_modified_files }}
         run: |
           . ${IDF_PATH}/export.sh
-          pip install idf-component-manager==2.2.* ruamel.yaml idf-build-apps==2.4.3 --upgrade
+          pip install idf-component-manager==${{ env.component_manager_ver }} ruamel.yaml idf-build-apps==${{ env.idf_build_apps_ver }} --upgrade
 
           echo "Files changed: "${{env.ALL_CHANGED_FILES}}
           idf-build-apps find ${{env.ALL_CHANGED_FILES}}

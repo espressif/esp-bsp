@@ -13,9 +13,11 @@ on:
 jobs:
 
   build-launchpad:
+    env:
+      component_manager_ver: "2.2.*"
     strategy:
       matrix:
-        idf_ver: ["v5.4"]
+        idf_ver: ["release-v5.4"]
     runs-on: ubuntu-latest
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
@@ -28,7 +30,7 @@ jobs:
         shell: bash
         run: |
           . ${IDF_PATH}/export.sh
-          pip install idf-component-manager==2.* --upgrade
+          pip install idf-component-manager==${{ env.component_manager_ver }} --upgrade
           pip install -U "esp-idf-kconfig<3"
 
       - name: Action for building binaries and config.toml
