@@ -254,6 +254,7 @@ static esp_err_t app_lvgl_init(void)
     return ESP_OK;
 }
 
+#if 0
 static void _app_button_cb(lv_event_t *e)
 {
     lv_disp_rotation_t rotation = lv_disp_get_rotation(lvgl_disp);
@@ -265,7 +266,6 @@ static void _app_button_cb(lv_event_t *e)
     /* LCD HW rotation */
     lv_disp_set_rotation(lvgl_disp, rotation);
 }
-
 static void app_main_display(void)
 {
     lv_obj_t *scr = lv_scr_act();
@@ -296,6 +296,7 @@ static void app_main_display(void)
     lv_obj_align(btn, LV_ALIGN_BOTTOM_MID, 0, -30);
     lv_obj_add_event_cb(btn, _app_button_cb, LV_EVENT_CLICKED, NULL);
 }
+#endif
 
 void app_main(void)
 {
@@ -313,4 +314,5 @@ void app_main(void)
     //app_main_display();
     lv_demo_music();
     lvgl_port_unlock();
+
 }
