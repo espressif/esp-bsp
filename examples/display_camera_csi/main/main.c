@@ -127,7 +127,7 @@ void app_main(void)
     bsp_display_backlight_on(); // Set display brightness to 100%
 
     /* Initialize Camera */
-    bsp_camera_start();
+    bsp_camera_start(NULL);
 
     /* Initialize PPA for scaling */
     app_ppa_init();
@@ -158,9 +158,10 @@ void app_main(void)
     bsp_display_unlock();
 
     /* Open video device */
-    int fd = app_video_open(ESP_VIDEO_MIPI_CSI_DEVICE_NAME, APP_VIDEO_FMT_RGB565);
+    int fd = app_video_open(BSP_CAMERA_DEVICE, APP_VIDEO_FMT_RGB565);
     if (fd < 0) {
         ESP_LOGE(TAG, "Failed to open video device");
+        ESP_LOGW(TAG, "Please, try to select another camera sensor in menuconfig.");
         return;
     }
 

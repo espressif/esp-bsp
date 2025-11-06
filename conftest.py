@@ -89,6 +89,10 @@ def pytest_generate_tests(metafunc):
                      '/dev/boards/esp32_s3_korvo_2',
                      'build_esp32_s3_korvo_2',
                      id='esp32_s3_korvo_2'),
+        pytest.param('/dev/boards/esp32_p4_eye',
+                     '/dev/boards/esp32_p4_eye',
+                     'build_esp32_p4_eye',
+                     id='esp32_p4_eye'),
     ]
 
     # filter by markers

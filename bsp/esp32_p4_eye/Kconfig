@@ -11,7 +11,7 @@ menu "Board Support Package(ESP32-P4-EYE)"
             default 1
             range 0 1
             help
-                MCU has two I2C peripherals, pick the one you want to use.
+                Pick the I2C you want to use.
 
         config BSP_I2C_FAST_MODE
             bool "Enable I2C fast mode"
@@ -90,5 +90,5 @@ menu "Board Support Package(ESP32-P4-EYE)"
         default 0
         range 0 2
         help
-            MCU has three I2S peripherals, pick the one you want to use.
+            Pick the I2S you want to use.
 endmenu

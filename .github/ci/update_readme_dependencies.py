@@ -133,6 +133,8 @@ def get_capabilities_table(header_path, main_path, manifest):
     Get markdown formatted table of manifest's capabilities
     """
     with open(header_path, 'r') as f:
+        h_code = f.read()
+    with open(header_path, 'r') as f:
         content = f.readlines()
         table_data = []
         for line in content:
@@ -180,6 +182,12 @@ def get_capabilities_table(header_path, main_path, manifest):
                                 if mic_code_section is not None:
                                     matches = re.findall(r"([a-z0-9_]+)_codec_new", mic_code_section)
                                     additional_info = [m for m in matches if not m.startswith("audio")]
+
+                # CAMERA SENSOR
+                if capability == "CAMERA":
+                    cam_match = re.search(r"Supported camera sensors:\s*(.*)", h_code)
+                    if cam_match:
+                        additional_info = re.findall(r"[A-Z0-9_]+", cam_match.group(1))
 
                 components = []
                 versions = []
