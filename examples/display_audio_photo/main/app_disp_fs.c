@@ -347,7 +347,9 @@ static void play_file(void *arg)
         .sample_rate = wav_header.sample_rate,
         .channel = wav_header.num_channels,
         .bits_per_sample = wav_header.bits_per_sample,
+#if !defined(BSP_BOARD_M5STACK_TAB5)
         .mclk_multiple = I2S_MCLK_MULTIPLE_384,
+#endif
     };
     esp_codec_dev_open(spk_codec_dev, &fs);
 

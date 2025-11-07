@@ -1,33 +1,33 @@
 /*
- * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
  * @file
- * @brief ESP BSP: ESP32-P4 Function EV Board
+ * @brief ESP BSP: m5stack_tab5
  */
 
 #pragma once
 
 #include "sdkconfig.h"
 #include "driver/gpio.h"
+#include "bsp/config.h"
 #include "driver/i2c_master.h"
 #include "driver/sdmmc_host.h"
 #include "driver/sdspi_host.h"
 #include "esp_vfs_fat.h"
 #include "driver/i2s_std.h"
-#include "bsp/config.h"
-#include "bsp/display.h"
 #include "esp_codec_dev.h"
-#include "sdkconfig.h"
+#include "bsp/display.h"
+#include "esp_io_expander.h"
+
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
-
 /**************************************************************************************************
  *  BSP Board Name
  **************************************************************************************************/
@@ -36,7 +36,7 @@
  *  @brief BSP Board Name
  *  @{
  */
-#define BSP_BOARD_ESP32_P4_FUNCTION_EV_BOARD
+#define BSP_BOARD_M5STACK_TAB5
 /** @} */ // end of boardname
 
 /**************************************************************************************************
@@ -47,57 +47,64 @@
  *  @brief BSP Capabilities
  *  @{
  */
-#define BSP_CAPS_DISPLAY        1
-#define BSP_CAPS_TOUCH          1
-#define BSP_CAPS_BUTTONS        0
-#define BSP_CAPS_AUDIO          1
-#define BSP_CAPS_AUDIO_SPEAKER  1
-#define BSP_CAPS_AUDIO_MIC      1
-#define BSP_CAPS_SDCARD         1
-#define BSP_CAPS_IMU            0
-#define BSP_CAPS_CAMERA         1
+#define BSP_CAPS_DISPLAY          1
+#define BSP_CAPS_TOUCH            1
+#define BSP_CAPS_BUTTONS          0
+#define BSP_CAPS_KNOB             0
+#define BSP_CAPS_AUDIO            1
+#define BSP_CAPS_AUDIO_SPEAKER    1
+#define BSP_CAPS_AUDIO_MIC        1
+#define BSP_CAPS_SDCARD           1
+#define BSP_CAPS_LED              0
+#define BSP_CAPS_CAMERA           1
+#define BSP_CAPS_BAT              0
+#define BSP_CAPS_IMU              0
 /** @} */ // end of capabilities
 
 /**************************************************************************************************
- *  ESP-BOX pinout
+ *  Board pinout
  **************************************************************************************************/
 
 /** @defgroup g01_i2c I2C
  *  @brief I2C BSP API
  *  @{
  */
-#define BSP_I2C_SCL           (GPIO_NUM_8)
-#define BSP_I2C_SDA           (GPIO_NUM_7)
+#define BSP_I2C_SCL     (GPIO_NUM_32)
+#define BSP_I2C_SDA     (GPIO_NUM_31)
 /** @} */ // end of i2c
 
 /** @defgroup g03_audio Audio
  *  @brief Audio BSP API
  *  @{
  */
-#define BSP_I2S_SCLK          (GPIO_NUM_12)
-#define BSP_I2S_MCLK          (GPIO_NUM_13)
-#define BSP_I2S_LCLK          (GPIO_NUM_10)
-#define BSP_I2S_DOUT          (GPIO_NUM_9)
-#define BSP_I2S_DSIN          (GPIO_NUM_11)
-#define BSP_POWER_AMP_IO      (GPIO_NUM_53)
+#define BSP_I2S_MCLK         (GPIO_NUM_30)
+#define BSP_I2S_SCLK         (GPIO_NUM_27)
+#define BSP_I2S_LCLK         (GPIO_NUM_29)
+#define BSP_I2S_DOUT         (GPIO_NUM_26)
+#define BSP_I2S_DSIN         (GPIO_NUM_28)
+#define BSP_POWER_AMP_IO     (GPIO_NUM_NC)
+#define BSP_SPEAKER_EN       (IO_EXPANDER_PIN_NUM_1)
 /** @} */ // end of audio
 
 /** @defgroup g04_display Display and Touch
  *  @brief Display BSP API
  *  @{
  */
-#if CONFIG_BSP_LCD_TYPE_1024_600
-#define BSP_LCD_BACKLIGHT     (GPIO_NUM_26)
-#define BSP_LCD_RST           (GPIO_NUM_27)
-#define BSP_LCD_TOUCH_RST     (GPIO_NUM_NC)
-#define BSP_LCD_TOUCH_INT     (GPIO_NUM_NC)
-#else
-#define BSP_LCD_BACKLIGHT     (GPIO_NUM_23)
-#define BSP_LCD_RST           (GPIO_NUM_NC)
-#define BSP_LCD_TOUCH_RST     (GPIO_NUM_NC)
-#define BSP_LCD_TOUCH_INT     (GPIO_NUM_NC)
-#endif
+#define BSP_LCD_RST          (GPIO_NUM_NC)
+#define BSP_LCD_BACKLIGHT    (GPIO_NUM_22)
+#define BSP_LCD_EN           (IO_EXPANDER_PIN_NUM_4)
+#define BSP_LCD_TOUCH_INT    (GPIO_NUM_NC)
+#define BSP_TOUCH_EN         (IO_EXPANDER_PIN_NUM_5)
 /** @} */ // end of display
+
+/** @defgroup g07_usb USB
+ *  @brief USB BSP API
+ *  @{
+ */
+#define BSP_USB_EN           (IO_EXPANDER_PIN_NUM_3)
+#define BSP_USB_POS          (GPIO_NUM_20)
+#define BSP_USB_NEG          (GPIO_NUM_19)
+/** @} */ // end of usb
 
 /** @defgroup g12_camera Camera
  *  @brief Camera BSP API
@@ -105,38 +112,89 @@
  */
 #define BSP_CAMERA_GPIO_XCLK (GPIO_NUM_NC)
 #define BSP_CAMERA_RST       (GPIO_NUM_NC)
+#define BSP_CAMERA_EN        (IO_EXPANDER_PIN_NUM_6)
 /** @} */ // end of camera
 
 /** @defgroup g02_storage SD Card and SPIFFS
  *  @brief SPIFFS and SD card BSP API
  *  @{
  */
-/* uSD card MMC */
-#define BSP_SD_D0             (GPIO_NUM_39)
-#define BSP_SD_D1             (GPIO_NUM_40)
-#define BSP_SD_D2             (GPIO_NUM_41)
-#define BSP_SD_D3             (GPIO_NUM_42)
-#define BSP_SD_CMD            (GPIO_NUM_44)
-#define BSP_SD_CLK            (GPIO_NUM_43)
-
-/* uSD card SPI */
-#define BSP_SD_SPI_MISO       (GPIO_NUM_39)
-#define BSP_SD_SPI_CS         (GPIO_NUM_42)
-#define BSP_SD_SPI_MOSI       (GPIO_NUM_44)
-#define BSP_SD_SPI_CLK        (GPIO_NUM_43)
+#define BSP_SD_D0            (GPIO_NUM_39)
+#define BSP_SD_D1            (GPIO_NUM_40)
+#define BSP_SD_D2            (GPIO_NUM_41)
+#define BSP_SD_D3            (GPIO_NUM_42)
+#define BSP_SD_CMD           (GPIO_NUM_44)
+#define BSP_SD_CLK           (GPIO_NUM_43)
+#define BSP_SD_DET           (GPIO_NUM_NC)
+#define BSP_SD_SPI_CLK       (GPIO_NUM_43)
+#define BSP_SD_SPI_MISO      (GPIO_NUM_39)
+#define BSP_SD_SPI_MOSI      (GPIO_NUM_44)
+#define BSP_SD_SPI_CS        (GPIO_NUM_42)
 /** @} */ // end of storage
-
-/** @defgroup g07_usb USB
- *  @brief USB BSP API
- *  @{
- */
-#define BSP_USB_POS           (GPIO_NUM_20)
-#define BSP_USB_NEG           (GPIO_NUM_19)
-/** @} */ // end of usb
+#define BSP_WIFI_EN          (IO_EXPANDER_PIN_NUM_0)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** \addtogroup g03_audio
+ *  @{
+ */
+
+/**************************************************************************************************
+ *
+ * I2S audio interface
+ *
+ * For speaker initialization use bsp_audio_codec_speaker_init() which is inside initialize I2S with bsp_audio_init().
+ * For microphone initialization use bsp_audio_codec_microphone_init() which is inside initialize I2S with bsp_audio_init().
+ * After speaker or microphone initialization, use functions from esp_codec_dev for play/record audio.
+ * Example audio play:
+ * \code{.c}
+ * esp_codec_dev_set_out_vol(spk_codec_dev, DEFAULT_VOLUME);
+ * esp_codec_dev_open(spk_codec_dev, &fs);
+ * esp_codec_dev_write(spk_codec_dev, wav_bytes, bytes_read_from_spiffs);
+ * esp_codec_dev_close(spk_codec_dev);
+ * \endcode
+ **************************************************************************************************/
+
+/**
+ * @brief Init audio
+ *
+ * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
+ * @param[in]  i2s_config I2S configuration. Pass NULL to use default values
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
+ *      - ESP_ERR_INVALID_ARG   NULL pointer or invalid configuration
+ *      - ESP_ERR_NOT_FOUND     No available I2S channel found
+ *      - ESP_ERR_NO_MEM        No memory for storing the channel information
+ *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
+ */
+esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
+
+/**
+ * @brief Get codec I2S interface (initialized in bsp_audio_init)
+ *
+ * @return
+ *      - Pointer to codec I2S interface handle or NULL when error occurred
+ */
+const audio_codec_data_if_t *bsp_audio_get_codec_itf(void);
+
+/**
+ * @brief Initialize speaker codec device
+ *
+ * @return Pointer to codec device handle or NULL when error occurred
+ */
+esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
+
+/**
+ * @brief Initialize microphone codec device
+ *
+ * @return Pointer to codec device handle or NULL when error occurred
+ */
+esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
+
+/** @} */ // end of audio
 
 /** \addtogroup g01_i2c
  *  @{
@@ -146,9 +204,6 @@ extern "C" {
  *
  * I2C interface
  *
- * There are multiple devices connected to I2C peripheral:
- *  - Codec ES8311 (configuration only)
- *  - LCD Touch controller
  **************************************************************************************************/
 #define BSP_I2C_NUM     CONFIG_BSP_I2C_NUM
 
@@ -178,66 +233,10 @@ esp_err_t bsp_i2c_deinit(void);
  *
  * @return
  *      - I2C handle
- *
  */
 i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
 /** @} */ // end of i2c
-
-/** \addtogroup g03_audio
- *  @{
- */
-
-/**************************************************************************************************
- *
- * I2S audio interface
- *
- * There are two devices connected to the I2S peripheral:
- *  - Codec ES8311 for output(playback) and input(recording) path
- *
- * For speaker initialization use bsp_audio_codec_speaker_init() which is inside initialize I2S with bsp_audio_init().
- * For microphone initialization use bsp_audio_codec_microphone_init() which is inside initialize I2S with bsp_audio_init().
- * After speaker or microphone initialization, use functions from esp_codec_dev for play/record audio.
- * Example audio play:
- * \code{.c}
- * esp_codec_dev_set_out_vol(spk_codec_dev, DEFAULT_VOLUME);
- * esp_codec_dev_open(spk_codec_dev, &fs);
- * esp_codec_dev_write(spk_codec_dev, wav_bytes, bytes_read_from_spiffs);
- * esp_codec_dev_close(spk_codec_dev);
- * \endcode
- **************************************************************************************************/
-
-/**
- * @brief Init audio
- *
- * @note There is no deinit audio function. Users can free audio resources by calling i2s_del_channel()
- * @warning The type of i2s_config param is depending on IDF version.
- * @param[in]  i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
- * @return
- *      - ESP_OK                On success
- *      - ESP_ERR_NOT_SUPPORTED The communication mode is not supported on the current chip
- *      - ESP_ERR_INVALID_ARG   NULL pointer or invalid configuration
- *      - ESP_ERR_NOT_FOUND     No available I2S channel found
- *      - ESP_ERR_NO_MEM        No memory for storing the channel information
- *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
- */
-esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
-
-/**
- * @brief Initialize speaker codec device
- *
- * @return Pointer to codec device handle or NULL when error occurred
- */
-esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
-
-/**
- * @brief Initialize microphone codec device
- *
- * @return Pointer to codec device handle or NULL when error occurred
- */
-esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
-
-/** @} */ // end of audio
 
 /** \addtogroup g02_storage
  *  @{
@@ -283,17 +282,18 @@ esp_err_t bsp_spiffs_unmount(void);
 
 /**************************************************************************************************
  *
- * uSD card
+ * SD card
  *
- * After mounting the uSD card, it can be accessed with stdio functions ie.:
+ * After mounting the SD card, it can be accessed with stdio functions ie.:
  * \code{.c}
- * FILE* f = fopen(BSP_MOUNT_POINT"/hello.txt", "w");
+ * FILE* f = fopen(BSP_SD_MOUNT_POINT"/hello.txt", "w");
  * fprintf(f, "Hello %s!\n", bsp_sdcard->cid.name);
  * fclose(f);
  * \endcode
+ *
  **************************************************************************************************/
 #define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
-#define BSP_SDSPI_HOST          (SDSPI_DEFAULT_HOST)
+#define BSP_SDSPI_HOST          (SPI3_HOST)
 
 /**
  * @brief BSP SD card configuration structure
@@ -313,14 +313,14 @@ typedef struct {
  * @return
  *      - ESP_OK on success
  *      - ESP_ERR_INVALID_STATE if esp_vfs_fat_sdmmc_mount was already called
- *      - ESP_ERR_NO_MEM if memory cannot be allocated
- *      - ESP_FAIL if partition cannot be mounted
+ *      - ESP_ERR_NO_MEM if memory can not be allocated
+ *      - ESP_FAIL if partition can not be mounted
  *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
  */
 esp_err_t bsp_sdcard_mount(void);
 
 /**
- * @brief Unmount microSD card from virtual file system
+ * @brief Unmount micorSD card from virtual file system
  *
  * @return
  *      - ESP_OK on success
@@ -409,31 +409,22 @@ esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
  *
  * LCD interface
  *
- * ESP-BOX is shipped with 2.4inch ST7789 display controller.
- * It features 16-bit colors, 320x240 resolution and capacitive touch controller.
- *
  * LVGL is used as graphics library. LVGL is NOT thread safe, therefore the user must take LVGL mutex
  * by calling bsp_display_lock() before calling and LVGL API (lv_...) and then give the mutex with
  * bsp_display_unlock().
  *
  * Display's backlight must be enabled explicitly by calling bsp_display_backlight_on()
  **************************************************************************************************/
-#define BSP_LCD_PIXEL_CLOCK_MHZ     (80)
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
-#define BSP_LCD_DRAW_BUFF_SIZE     (BSP_LCD_H_RES * 50) // Frame buffer size in pixels
-#define BSP_LCD_DRAW_BUFF_DOUBLE   (0)
-
 /**
  * @brief BSP display configuration structure
- *
  */
 typedef struct {
     lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
     uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
     bool            double_buffer;  /*!< True, if should be allocated two buffers */
-    bsp_display_config_t hw_cfg;    /*!< Display HW configuration */
     struct {
         unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
         unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
@@ -444,33 +435,24 @@ typedef struct {
 /**
  * @brief Initialize display
  *
- * This function initializes MIPI-DSI, display controller and starts LVGL handling task.
+ * This function initializes SPI, display controller and starts LVGL handling task.
  * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
  *
- * @return Pointer to LVGL display or NULL when error occured
+ * @return Pointer to LVGL display or NULL when error occurred
  */
 lv_display_t *bsp_display_start(void);
 
 /**
  * @brief Initialize display
  *
- * This function initializes MIPI-DSI, display controller and starts LVGL handling task.
+ * This function initializes SPI, display controller and starts LVGL handling task.
  * LCD backlight must be enabled separately by calling bsp_display_brightness_set()
  *
  * @param cfg display configuration
  *
- * @return Pointer to LVGL display or NULL when error occured
+ * @return Pointer to LVGL display or NULL when error occurred
  */
 lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg);
-
-/**
- * @brief Deinitialize display
- *
- * This function deinitializes MIPI-DSI, display controller and stops LVGL.
- *
- * @param display Pointer to LVGL display
- */
-void bsp_display_stop(lv_display_t *display);
 
 /**
  * @brief Get pointer to input device (touch, buttons, ...)
@@ -497,6 +479,28 @@ bool bsp_display_lock(uint32_t timeout_ms);
 void bsp_display_unlock(void);
 
 /**
+ * @brief Set display enter sleep mode
+ *
+ * All the display (LCD, backlight, touch) will enter sleep mode.
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_NOT_SUPPORTED if this function is not supported by the panel
+ */
+esp_err_t bsp_display_enter_sleep(void);
+
+/**
+ * @brief Set display exit sleep mode
+ *
+ * All the display (LCD, backlight, touch) will exit sleep mode.
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_NOT_SUPPORTED if this function is not supported by the panel
+ */
+esp_err_t bsp_display_exit_sleep(void);
+
+/**
  * @brief Rotate screen
  *
  * Display must be already initialized by calling bsp_display_start()
@@ -508,6 +512,81 @@ void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 #endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
 /** @} */ // end of display
+
+/** @addtogroup g12_camera
+ *  @{
+ */
+
+/**************************************************************************************************
+ *
+ * Camera interface
+ * Supported camera sensors: SC202CS
+ * More information in display_camera_csi example
+ *
+ **************************************************************************************************/
+
+#define BSP_CAMERA_DEVICE             (ESP_VIDEO_MIPI_CSI_DEVICE_NAME)
+#define BSP_CAMERA_ROTATION           (270)
+
+/**
+ * @brief BSP camera configuration structure (for future use)
+ *
+ */
+typedef struct {
+    uint8_t dummy;
+} bsp_camera_cfg_t;
+
+/**
+ * @brief Initialize camera
+ *
+ * Camera sensor initialization.
+ */
+esp_err_t bsp_camera_start(const bsp_camera_cfg_t *cfg);
+
+/** @} */ // end of camera
+
+/** @defgroup g99_others Others
+ *  @brief Other BSP API
+ *  @{
+ */
+
+/**************************************************************************************************
+ *
+ * BSP Features
+ *
+ * This module provides an interface to enable and disable various features on this board.
+ *
+ * The bsp_feature_enable function is used to enable or disable a specified feature.
+ *
+ * Parameters:
+ * - feature: The feature to enable or disable, of type bsp_feature_t enum.
+ * - enable: A boolean value, true to enable the feature, false to disable it.
+ *
+ * Return value:
+ * - esp_err_t: Error code indicating the result of the operation.
+ *
+ **************************************************************************************************/
+typedef enum {
+    BSP_FEATURE_LCD,
+    BSP_FEATURE_TOUCH,
+    BSP_FEATURE_SPEAKER,
+    BSP_FEATURE_CAMERA,
+    BSP_FEATURE_USB,
+    BSP_FEATURE_WIFI
+} bsp_feature_t;
+
+/**
+ * @brief Enable selected feature
+ *
+ * @param feature  Feature for enablement
+ * @param enable   Enable/disable selected feature
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ */
+esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable);
+
+/** @} */ // end of others
 
 /** \addtogroup g07_usb
  *  @{
@@ -554,37 +633,29 @@ esp_err_t bsp_usb_host_stop(void);
 
 /** @} */ // end of usb
 
-/** @addtogroup g12_camera
+/** @defgroup g99_others Others
+ *  @brief Other BSP API
  *  @{
  */
 
 /**************************************************************************************************
  *
- * Camera interface
- * Supported camera sensors: OV5647, SC2336
- * More information in display_camera_csi example
+ * IO Expander Interface
+ * IO expander: pi4ioe5v6408
  *
  **************************************************************************************************/
-
-#define BSP_CAMERA_DEVICE       (ESP_VIDEO_MIPI_CSI_DEVICE_NAME)
-#define BSP_CAMERA_ROTATION     (0)
-
-/**
- * @brief BSP camera configuration structure (for future use)
- *
- */
-typedef struct {
-    uint8_t dummy;
-} bsp_camera_cfg_t;
+#define BSP_IO_EXPANDER_ADDRESS    (ESP_IO_EXPANDER_I2C_PI4IOE5V6408_ADDRESS_LOW)
+#define BSP_IO_EXPANDER_ADDRESS_1  (ESP_IO_EXPANDER_I2C_PI4IOE5V6408_ADDRESS_HIGH)
 
 /**
- * @brief Initialize camera
+ * @brief Init IO expander
+ * @note If the device was already initialized, users can also call it to get handle
  *
- * Camera sensor initialization.
+ * @return Pointer to device handle or NULL when error occurred
  */
-esp_err_t bsp_camera_start(const bsp_camera_cfg_t *cfg);
+esp_io_expander_handle_t bsp_io_expander_init(void);
 
-/** @} */ // end of camera
+/** @} */ // end of others
 
 #ifdef __cplusplus
 }

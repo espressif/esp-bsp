@@ -1654,6 +1654,7 @@ Camera usage can be quite complex. For a complete example, refer to the [`displa
 | define  | [**BSP\_CAMERA\_DEVICE**](#define-bsp_camera_device)  (ESP\_VIDEO\_MIPI\_CSI\_DEVICE\_NAME)<br> |
 | define  | [**BSP\_CAMERA\_EN**](#define-bsp_camera_en)  (GPIO\_NUM\_12)<br> |
 | define  | [**BSP\_CAMERA\_GPIO\_XCLK**](#define-bsp_camera_gpio_xclk)  (GPIO\_NUM\_11)<br> |
+| define  | [**BSP\_CAMERA\_ROTATION**](#define-bsp_camera_rotation)  (0)<br> |
 | define  | [**BSP\_CAMERA\_RST**](#define-bsp_camera_rst)  (GPIO\_NUM\_26)<br> |
 | define  | [**BSP\_CAMERA\_XCLK\_CLOCK\_MHZ**](#define-bsp_camera_xclk_clock_mhz)  (24)<br> |
 
