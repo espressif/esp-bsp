@@ -93,6 +93,8 @@ jobs:
         if: ${{ github.event_name == 'pull_request' && steps.buildapps.outcome == 'failure' && matrix.allow_fail == true }}
         uses: thollander/actions-comment-pull-request@v3
         with:
+          comment-tag: build_warning_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}
+          mode: recreate
           message: |
             ### ⚠️ Build failed for idf_ver=${{ matrix.idf_ver }} index=${{ matrix.parallel_index }}
             This failure was ignored (continue-on-error enabled).
