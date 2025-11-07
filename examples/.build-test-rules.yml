@@ -7,7 +7,7 @@ examples:
       reason: Example depends on BSP, which is supported only for IDF >= 5.2
     - if: (IDF_VERSION < "5.3.0") and CONFIG_NAME in ["esp-box-3", "esp32_s3_lcd_ev_board", "m5_atom_s3", "m5dial", "m5stack_core_2", "esp32_lyrat", "esp32_s3_korvo_1"]
       reason: Example depends on BSP, which is supported only for IDF >= 5.3
-    - if: (IDF_VERSION < "5.4.0") and CONFIG_NAME in ["m5stack_core_s3", "esp32_s3_korvo_2", "esp32_s3_eye", "esp32_p4_eye", "esp32_p4_function_ev_board"]
+    - if: (IDF_VERSION < "5.4.0") and CONFIG_NAME in ["m5stack_core_s3", "esp32_s3_korvo_2", "esp32_s3_eye", "esp32_p4_eye", "esp32_p4_function_ev_board", "m5stack_tab5"]
       reason: Example depends on BSP, which is supported only for IDF >= 5.4
     - if: (IDF_VERSION >= "6.0.0") and CONFIG_NAME in ["esp32_lyrat"]
       reason: Example depends on BSP, which is supported only for IDF < 6.0 (LyraT incompatible Touch pad driver)

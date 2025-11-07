@@ -10,7 +10,7 @@ This example demonstrates usage of ESP-BOX Board Support Package. This is a sing
 Example files are downloaded into ESP-BOX from [spiffs_content](/spiffs_content) folder.
 
 </td><td width="200" valign="top">
-  <img src="/examplesdisplay_audio_photo/doc/pic.webp">
+  <img src="/examples/display_audio_photo/doc/pic.webp">
 </td></tr>
 </table>
 
