@@ -566,7 +566,8 @@ esp_err_t bsp_usb_host_stop(void);
  *
  **************************************************************************************************/
 
-#define BSP_CAMERA_DEVICE   (ESP_VIDEO_MIPI_CSI_DEVICE_NAME)
+#define BSP_CAMERA_DEVICE       (ESP_VIDEO_MIPI_CSI_DEVICE_NAME)
+#define BSP_CAMERA_ROTATION     (0)
 
 /**
  * @brief BSP camera configuration structure (for future use)
