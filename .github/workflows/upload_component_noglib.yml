@@ -11,7 +11,7 @@ jobs:
   upload_components:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v5
 
       - name: Upload noglib version of BSPs
         # TODO: Extend this part to all BSPs

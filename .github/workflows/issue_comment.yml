@@ -8,9 +8,9 @@ jobs:
     name: Sync Issue Comments to Jira
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v5
       - name: Sync issue comments to JIRA
-        uses: espressif/sync-jira-actions@master
+        uses: espressif/sync-jira-actions@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JIRA_PASS: ${{ secrets.JIRA_PASS }}
