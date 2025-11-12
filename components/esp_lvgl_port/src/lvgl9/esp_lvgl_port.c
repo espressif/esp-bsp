@@ -22,8 +22,6 @@
 
 static const char *TAG = "LVGL";
 
-#define ESP_LVGL_PORT_TASK_MUX_DELAY_MS    10000
-
 /*******************************************************************************
 * Types definitions
 *******************************************************************************/
@@ -33,7 +31,6 @@ typedef struct lvgl_port_ctx_s {
     SemaphoreHandle_t   lvgl_mux;
     SemaphoreHandle_t   timer_mux;
     EventGroupHandle_t  lvgl_events;
-    SemaphoreHandle_t   task_init_mux;
     esp_timer_handle_t  tick_timer;
     bool                running;
     int                 task_max_sleep_ms;
@@ -77,9 +74,6 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
     /* LVGL semaphore */
     lvgl_port_ctx.lvgl_mux = xSemaphoreCreateRecursiveMutex();
     ESP_GOTO_ON_FALSE(lvgl_port_ctx.lvgl_mux, ESP_ERR_NO_MEM, err, TAG, "Create LVGL mutex fail!");
-    /* Task init semaphore */
-    lvgl_port_ctx.task_init_mux = xSemaphoreCreateMutex();
-    ESP_GOTO_ON_FALSE(lvgl_port_ctx.task_init_mux, ESP_ERR_NO_MEM, err, TAG, "Create LVGL task sem fail!");
     /* Task queue */
     lvgl_port_ctx.lvgl_events = xEventGroupCreate();
     ESP_GOTO_ON_FALSE(lvgl_port_ctx.lvgl_events, ESP_ERR_NO_MEM, err, TAG, "Create LVGL Event Group fail!");
@@ -132,26 +126,10 @@ esp_err_t lvgl_port_stop(void)
 
 esp_err_t lvgl_port_deinit(void)
 {
-    /* Stop and delete timer */
-    if (lvgl_port_ctx.tick_timer != NULL) {
-        esp_timer_stop(lvgl_port_ctx.tick_timer);
-        esp_timer_delete(lvgl_port_ctx.tick_timer);
-        lvgl_port_ctx.tick_timer = NULL;
-    }
-
     /* Stop running task */
     if (lvgl_port_ctx.running) {
         lvgl_port_ctx.running = false;
     }
-
-    /* Wait for stop task */
-    if (xSemaphoreTake(lvgl_port_ctx.task_init_mux, pdMS_TO_TICKS(ESP_LVGL_PORT_TASK_MUX_DELAY_MS)) != pdTRUE) {
-        ESP_LOGE(TAG, "Failed to stop LVGL task");
-        return ESP_ERR_TIMEOUT;
-    }
-    ESP_LOGI(TAG, "Stopped LVGL task");
-
-    lvgl_port_task_deinit();
 
     return ESP_OK;
 }
@@ -226,13 +204,6 @@ static void lvgl_port_task(void *arg)
     uint32_t task_delay_ms = 0;
     lv_indev_t *indev = NULL;
 
-    /* Take the task semaphore */
-    if (xSemaphoreTake(lvgl_port_ctx.task_init_mux, 0) != pdTRUE) {
-        ESP_LOGE(TAG, "Failed to take LVGL task sem");
-        lvgl_port_task_deinit();
-        vTaskDelete( NULL );
-    }
-
     /* LVGL init */
     lv_init();
     /* LVGL is initialized, notify lvgl_port_init() function about it */
@@ -275,8 +246,10 @@ static void lvgl_port_task(void *arg)
         vTaskDelay(1);
     }
 
-    /* Give semaphore back */
-    xSemaphoreGive(lvgl_port_ctx.task_init_mux);
+    ESP_LOGI(TAG, "Stopped LVGL task");
+
+    /* Deinit LVGL */
+    lvgl_port_task_deinit();
 
     /* Close task */
     vTaskDelete( NULL );
@@ -284,14 +257,18 @@ static void lvgl_port_task(void *arg)
 
 static void lvgl_port_task_deinit(void)
 {
+    /* Stop and delete timer */
+    if (lvgl_port_ctx.tick_timer != NULL) {
+        esp_timer_stop(lvgl_port_ctx.tick_timer);
+        esp_timer_delete(lvgl_port_ctx.tick_timer);
+        lvgl_port_ctx.tick_timer = NULL;
+    }
+
     if (lvgl_port_ctx.timer_mux) {
         vSemaphoreDelete(lvgl_port_ctx.timer_mux);
     }
     if (lvgl_port_ctx.lvgl_mux) {
         vSemaphoreDelete(lvgl_port_ctx.lvgl_mux);
-    }
-    if (lvgl_port_ctx.task_init_mux) {
-        vSemaphoreDelete(lvgl_port_ctx.task_init_mux);
     }
     if (lvgl_port_ctx.lvgl_events) {
         vEventGroupDelete(lvgl_port_ctx.lvgl_events);
