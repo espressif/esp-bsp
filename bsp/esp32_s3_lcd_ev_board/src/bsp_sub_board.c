@@ -106,7 +106,11 @@ drift, please enable `ESP32S3_DATA_CACHE_LINE_32B` instead");
             .clk_src = LCD_CLK_SRC_PLL160M,
             .dma_burst_size = 64,
             .data_width = 16,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6,0,0)
+            .in_color_format = LCD_COLOR_FMT_RGB565,
+#else
             .bits_per_pixel = 16,
+#endif
             .de_gpio_num = BSP_LCD_SUB_BOARD_2_3_DE,
             .pclk_gpio_num = BSP_LCD_SUB_BOARD_2_3_PCLK,
             .vsync_gpio_num = BSP_LCD_SUB_BOARD_2_3_VSYNC,
@@ -168,7 +172,11 @@ drift, please enable `ESP32S3_DATA_CACHE_LINE_32B` instead");
             .clk_src = LCD_CLK_SRC_PLL160M,
             .dma_burst_size = 64,
             .data_width = 16,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6,0,0)
+            .in_color_format = LCD_COLOR_FMT_RGB565,
+#else
             .bits_per_pixel = 16,
+#endif
             .de_gpio_num = BSP_LCD_SUB_BOARD_2_3_DE,
             .pclk_gpio_num = BSP_LCD_SUB_BOARD_2_3_PCLK,
             .vsync_gpio_num = BSP_LCD_SUB_BOARD_2_3_VSYNC,
