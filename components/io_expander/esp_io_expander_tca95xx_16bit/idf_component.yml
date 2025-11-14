@@ -6,3 +6,4 @@ dependencies:
   esp_io_expander:
     version: "^1.0.1"
     public: true
+    override_path: ../esp_io_expander

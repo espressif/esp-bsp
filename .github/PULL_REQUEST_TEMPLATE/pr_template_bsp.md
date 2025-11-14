@@ -3,7 +3,7 @@
 - [ ] Component contains License
 - [ ] Component contains README.md
 - [ ] Project [README.md](../README.md) updated
-- [ ] Component contains idf_component.yml file with `url` field defined
+- [ ] Component contains idf_component.yml file with `url` field defined and overriden paths for local components
 - [ ] Component was added to CI [upload job](https://github.com/espressif/esp-bsp/blob/master/.github/workflows/upload_component.yml#L17)
 - [ ] New files were added to CI build job
 - [ ] New BSP definitions added to [bsp_ext.py](../examples/bsp_ext.py)
