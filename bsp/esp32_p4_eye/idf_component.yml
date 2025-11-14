@@ -19,6 +19,7 @@ dependencies:
   espressif/esp_lvgl_port:
     version: "^2"
     public:  true
+    override_path: "../../components/esp_lvgl_port"
 
   knob:
     version: "^1"

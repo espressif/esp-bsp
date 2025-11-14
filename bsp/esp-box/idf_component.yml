@@ -11,7 +11,9 @@ tags:
 
 dependencies:
   idf: ">=4.4.5,<6.0"
-  esp_lcd_touch_tt21100: "^1"
+  esp_lcd_touch_tt21100: 
+    version: "^1"
+    override_path: "../../components/lcd_touch/esp_lcd_touch_tt21100"
 
   espressif/esp_lvgl_port:
     version: "^2"
@@ -29,3 +31,4 @@ dependencies:
   icm42670:
     version: "^1"
     public: true
+    override_path: "../../components/icm42670"

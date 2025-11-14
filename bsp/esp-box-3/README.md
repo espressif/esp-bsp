@@ -62,29 +62,29 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 
 ## LVGL Benchmark
 
-**DATE:** 21.10.2025 03:17
+**DATE:** 07.11.2025 09:03
 
 **LVGL version:** 9.4.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 94%  | 26  | 34  | 3  | 31  |
-| Moving wallpaper | 98%  | 25  | 36  | 5  | 31  |
+| Empty screen | 93%  | 25  | 33  | 4  | 29  |
+| Moving wallpaper | 97%  | 25  | 35  | 5  | 30  |
 | Single rectangle | 10%  | 91  | 0  | 0  | 0  |
-| Multiple rectangles | 90%  | 49  | 17  | 4  | 13  |
-| Multiple RGB images | 9%  | 89  | 0  | 0  | 0  |
-| Multiple ARGB images | 21%  | 88  | 3  | 3  | 0  |
-| Rotated ARGB images | 83%  | 54  | 19  | 13  | 6  |
-| Multiple labels | 89%  | 76  | 10  | 5  | 5  |
-| Screen sized text | 97%  | 15  | 58  | 27  | 31  |
+| Multiple rectangles | 91%  | 50  | 16  | 4  | 12  |
+| Multiple RGB images | 18%  | 91  | 0  | 0  | 0  |
+| Multiple ARGB images | 20%  | 86  | 2  | 1  | 1  |
+| Rotated ARGB images | 72%  | 54  | 18  | 13  | 5  |
+| Multiple labels | 89%  | 77  | 10  | 5  | 5  |
+| Screen sized text | 97%  | 15  | 58  | 28  | 30  |
 | Multiple arcs | 17%  | 94  | 0  | 0  | 0  |
-| Containers | 36%  | 71  | 17  | 4  | 13  |
-| Containers with overlay | 88%  | 20  | 46  | 15  | 31  |
-| Containers with opa | 50%  | 70  | 18  | 8  | 10  |
-| Containers with opa_layer | 61%  | 53  | 29  | 16  | 13  |
+| Containers | 37%  | 72  | 18  | 5  | 13  |
+| Containers with overlay | 95%  | 20  | 46  | 15  | 31  |
+| Containers with opa | 49%  | 69  | 18  | 8  | 10  |
+| Containers with opa_layer | 60%  | 53  | 28  | 16  | 12  |
 | Containers with scrolling | 95%  | 20  | 44  | 14  | 30  |
 | Widgets demo | 97%  | 24  | 26  | 12  | 14  |
-| All scenes avg. | 64%  | 54  | 22  | 8  | 14  |
+| All scenes avg. | 64%  | 54  | 21  | 8  | 13  |
 
 
 

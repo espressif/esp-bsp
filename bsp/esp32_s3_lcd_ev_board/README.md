@@ -96,29 +96,29 @@ Based on the above configurations, there are three different anti-tearing modes 
 
 ## LVGL Benchmark
 
-**DATE:** 01.10.2025 13:12
+**DATE:** 07.11.2025 09:03
 
-**LVGL version:** 9.3.0
+**LVGL version:** 9.4.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 97%  | 18  | 52  | 30  | 22  |
-| Moving wallpaper | 98%  | 9  | 91  | 81  | 10  |
-| Single rectangle | 98%  | 35  | 24  | 1  | 23  |
-| Multiple rectangles | 99%  | 32  | 28  | 18  | 10  |
+| Empty screen | 96%  | 18  | 51  | 29  | 22  |
+| Moving wallpaper | 100%  | 10  | 85  | 81  | 4  |
+| Single rectangle | 99%  | 35  | 25  | 2  | 23  |
+| Multiple rectangles | 99%  | 32  | 27  | 18  | 9  |
 | Multiple RGB images | 99%  | 29  | 29  | 22  | 7  |
-| Multiple ARGB images | 99%  | 17  | 51  | 35  | 16  |
-| Rotated ARGB images | 99%  | 16  | 58  | 50  | 8  |
-| Multiple labels | 100%  | 19  | 45  | 31  | 14  |
-| Screen sized text | 99%  | 8  | 109  | 89  | 20  |
-| Multiple arcs | 99%  | 35  | 22  | 6  | 16  |
-| Containers | 99%  | 15  | 55  | 42  | 13  |
-| Containers with overlay | 99%  | 10  | 84  | 73  | 11  |
-| Containers with opa | 99%  | 12  | 68  | 55  | 13  |
-| Containers with opa_layer | 99%  | 6  | 139  | 129  | 10  |
-| Containers with scrolling | 99%  | 11  | 82  | 62  | 20  |
-| Widgets demo | 99%  | 7  | 98  | 84  | 14  |
-| All scenes avg. | 98%  | 17  | 64  | 50  | 14  |
+| Multiple ARGB images | 99%  | 16  | 51  | 35  | 16  |
+| Rotated ARGB images | 100%  | 15  | 58  | 50  | 8  |
+| Multiple labels | 99%  | 18  | 46  | 34  | 12  |
+| Screen sized text | 100%  | 8  | 109  | 88  | 21  |
+| Multiple arcs | 99%  | 35  | 23  | 8  | 15  |
+| Containers | 100%  | 15  | 56  | 42  | 14  |
+| Containers with overlay | 99%  | 9  | 86  | 73  | 13  |
+| Containers with opa | 100%  | 11  | 75  | 57  | 18  |
+| Containers with opa_layer | 100%  | 6  | 145  | 133  | 12  |
+| Containers with scrolling | 99%  | 11  | 81  | 61  | 20  |
+| Widgets demo | 99%  | 7  | 99  | 85  | 14  |
+| All scenes avg. | 99%  | 17  | 65  | 51  | 14  |
 
 
 
