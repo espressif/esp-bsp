@@ -65,6 +65,7 @@ def action_extensions(base_actions, project_path=os.getcwd()):
             'm5stack_core',
             'm5_atom_s3',
             'esp32_p4_eye',
+            'm5stack_tab5',
         }
 
         if bsp == '':
