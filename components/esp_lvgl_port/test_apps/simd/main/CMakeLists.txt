@@ -1,18 +1,18 @@
 # Include SIMD assembly source code for rendering
-if(CONFIG_IDF_TARGET_ESP32 OR CONFIG_IDF_TARGET_ESP32S3)
+if(CONFIG_IDF_TARGET_ESP32 OR CONFIG_IDF_TARGET_ESP32S3 OR CONFIG_IDF_TARGET_ESP32S2)
     message(VERBOSE "Compiling SIMD")
     set(PORT_PATH "../../../src/lvgl9")
 
     if(CONFIG_IDF_TARGET_ESP32S3)
-        file(GLOB_RECURSE ASM_SOURCES ${PORT_PATH}/simd/*_esp32s3.S)    # Select only esp32s3 related files
+        file(GLOB_RECURSE ASM_SOURCES ${PORT_PATH}/simd/*_xtensa_pie.S)       # Select Xtensa PIE, for esp32s3 target
     else()
-        file(GLOB_RECURSE ASM_SOURCES ${PORT_PATH}/simd/*_esp32.S)      # Select only esp32 related files
+        file(GLOB_RECURSE ASM_SOURCES ${PORT_PATH}/simd/*_xtensa_base.S)      # Select Xtensa Base for esp32, esp32s2 targets
     endif()
 
     file(GLOB_RECURSE ASM_MACROS ${PORT_PATH}/simd/lv_macro_*.S)        # Explicitly add all assembler macro files
 
 else()
-    message(WARNING "This test app is intended only for esp32 and esp32s3")
+    message(WARNING "This test app is intended only for Xtensa targets (esp32, esp32s2, esp32s3")
 endif()
 
 # Hard copy of LV files
