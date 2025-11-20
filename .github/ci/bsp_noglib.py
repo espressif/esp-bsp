@@ -35,13 +35,14 @@ def select_bsp_config_no_graphic_lib(bsp_path):
 
 def remove_esp_lvgl_port(bsp_path):
     manager = ManifestManager(bsp_path, 'bsp')
+    deps = manager.manifest.dependencies
     try:
-        del manager.manifest_tree["dependencies"]["espressif/esp_lvgl_port"]
+        del deps["espressif/esp_lvgl_port"]
     except KeyError:
         print("{}: could not remove esp_lvgl_port".format(str(bsp_path)))
         return 1
     try:
-        del manager.manifest_tree["dependencies"]["lvgl/lvgl"]
+        del deps["lvgl/lvgl"]
     except KeyError:
         print("{}: no lvgl dependency found".format(str(bsp_path)))
     manager.manifest_tree["description"] = manager.manifest_tree["description"] + ' with no graphical library'
@@ -58,7 +59,7 @@ def remove_esp_lvgl_port(bsp_path):
 def remove_examples(bsp_path):
     manager = ManifestManager(bsp_path, 'bsp')
     try:
-        del manager.manifest_tree["examples"]
+        del manager.manifest.examples
     except KeyError:
         print("{}: no examples section found".format(str(bsp_path)))
         return 0
