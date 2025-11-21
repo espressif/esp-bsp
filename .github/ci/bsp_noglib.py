@@ -45,12 +45,14 @@ def remove_esp_lvgl_port(bsp_path):
         del deps["lvgl/lvgl"]
     except KeyError:
         print("{}: no lvgl dependency found".format(str(bsp_path)))
-    manager.manifest_tree["description"] = manager.manifest_tree["description"] + ' with no graphical library'
+
+    manager.manifest.description = manager.manifest.description + ' with no graphical library'
 
     # Add 'noglib' tag
-    tags = manager.manifest_tree.get("tags", [])
-    tags.append("noglib")
-    manager.manifest_tree["tags"] = list(set(tags))  # make unique
+    tags = manager.manifest.tags or []
+    if "noglib" not in tags:
+        tags.append("noglib")
+    manager.manifest.tags = tags
 
     manager.dump()
     return 0
