@@ -6,3 +6,4 @@ dependencies:
   esp_lcd_touch:
     version: "^1.0.4"
     public: true
+    override_path: ../esp_lcd_touch
