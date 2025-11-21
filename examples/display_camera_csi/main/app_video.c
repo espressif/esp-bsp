@@ -186,13 +186,6 @@ esp_err_t app_video_get_bufs(int fb_num, void **fb)
     return ESP_OK;
 }
 
-uint32_t app_video_get_buf_size(void)
-{
-    uint32_t buf_size = app_camera_video.camera_buf_hes * app_camera_video.camera_buf_ves * (APP_VIDEO_FMT == APP_VIDEO_FMT_RGB565 ? 2 : 3);
-
-    return buf_size;
-}
-
 static inline esp_err_t video_receive_video_frame(int video_fd)
 {
     memset(&app_camera_video.v4l2_buf, 0, sizeof(app_camera_video.v4l2_buf));

@@ -570,6 +570,7 @@ void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
  **************************************************************************************************/
 
 #define BSP_CAMERA_DEVICE             (ESP_VIDEO_MIPI_CSI_DEVICE_NAME)
+#define BSP_CAMERA_ROTATION           (0)
 #define BSP_CAMERA_XCLK_CLOCK_MHZ     (24)
 
 /**
