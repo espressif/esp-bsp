@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -72,6 +72,7 @@ typedef struct {
     uint8_t points; /*!< Count of touch points saved */
 
     struct {
+        uint8_t track_id;
         uint16_t x; /*!< X coordinate */
         uint16_t y; /*!< Y coordinate */
         uint16_t strength; /*!< Strength */
@@ -144,6 +145,18 @@ struct esp_lcd_touch_s {
      *      - Returns true, when touched and coordinates readed. Otherwise returns false.
      */
     bool (*get_xy)(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+
+    /**
+     * @brief Get track ids of touch points
+     *
+     * @param tp: Touch handler
+     * @param track_id: Array of track ids
+     * @param point_num: Count of touched points to return
+     *
+     * @return
+     *      - ESP_OK on success, otherwise returns ESP_ERR_xxx
+     */
+    esp_err_t (*get_track_id)(esp_lcd_touch_handle_t tp, uint8_t *track_id, uint8_t point_num);
 
 
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
@@ -286,6 +299,18 @@ esp_err_t esp_lcd_touch_read_data(esp_lcd_touch_handle_t tp);
  */
 bool esp_lcd_touch_get_coordinates(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
 
+
+/**
+ * @brief Get track ids of touch points
+ *
+ * @param tp: Touch handler
+ * @param track_id: Array of track ids
+ * @param point_num: Count of touched points to return
+ *
+ * @return
+ *      - ESP_OK on success, otherwise returns ESP_ERR_xxx
+ */
+esp_err_t esp_lcd_touch_get_track_id(esp_lcd_touch_handle_t tp, uint8_t *track_id, uint8_t point_num);
 
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
 /**

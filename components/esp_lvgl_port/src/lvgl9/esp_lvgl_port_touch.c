@@ -9,6 +9,7 @@
 #include "esp_check.h"
 #include "esp_lcd_touch.h"
 #include "esp_lvgl_port.h"
+#include "esp_timer.h"
 
 static const char *TAG = "LVGL";
 
@@ -117,15 +118,42 @@ static void lvgl_port_touchpad_read(lv_indev_t *indev_drv, lv_indev_data_t *data
     assert(touch_ctx);
     assert(touch_ctx->handle);
 
-    uint16_t touchpad_x[1] = {0};
-    uint16_t touchpad_y[1] = {0};
+    uint16_t touchpad_x[CONFIG_ESP_LCD_TOUCH_MAX_POINTS] = {0};
+    uint16_t touchpad_y[CONFIG_ESP_LCD_TOUCH_MAX_POINTS] = {0};
     uint8_t touchpad_cnt = 0;
 
     /* Read data from touch controller into memory */
     esp_lcd_touch_read_data(touch_ctx->handle);
 
     /* Read data from touch controller */
-    bool touchpad_pressed = esp_lcd_touch_get_coordinates(touch_ctx->handle, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 1);
+    bool touchpad_pressed = esp_lcd_touch_get_coordinates(touch_ctx->handle, touchpad_x, touchpad_y, NULL, &touchpad_cnt, CONFIG_ESP_LCD_TOUCH_MAX_POINTS);
+
+#if (CONFIG_ESP_LCD_TOUCH_MAX_POINTS > 1 && CONFIG_LVGL_PORT_ENABLE_GESTURES)
+    // Number of touch points which need to be constantly updated inside gesture recognizers
+#define GESTURE_TOUCH_POINTS 2
+
+    uint8_t touchpad_track_id[CONFIG_ESP_LCD_TOUCH_MAX_POINTS] = {0};
+
+    /* Read track IDs for TODO number of touch points*/
+    esp_err_t err =  esp_lcd_touch_get_track_id(touch_ctx->handle, touchpad_track_id, GESTURE_TOUCH_POINTS);
+
+    /* Initialize LVGL touch data for each activated touch point */
+    /* static */ lv_indev_touch_data_t touches[CONFIG_ESP_LCD_TOUCH_MAX_POINTS] = {0};
+    if (err != ESP_ERR_NOT_SUPPORTED) {
+        for (int i = 0; i < touchpad_cnt; i++) {
+            touches[i].state = LV_INDEV_STATE_PRESSED;
+            touches[i].point.x = touchpad_x[i];
+            touches[i].point.y = touchpad_y[i];
+            touches[i].id = touchpad_track_id[i];
+            touches[i].timestamp = esp_timer_get_time() / 1000;
+        }
+    }
+
+    /* Pass touch data to LVGL gesture recognizers */
+    lv_indev_gesture_recognizers_update(indev_drv, touches, GESTURE_TOUCH_POINTS);
+    lv_indev_gesture_recognizers_set_data(indev_drv, data);
+
+#endif
 
     if (touchpad_pressed && touchpad_cnt > 0) {
         data->point.x = touch_ctx->scale.x * touchpad_x[0];
