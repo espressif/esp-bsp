@@ -6,5 +6,10 @@ menu "ESP LVGL PORT"
         default n
         help
             Enables using PPA for screen rotation.
-
+    config LVGL_PORT_ENABLE_GESTURES
+        depends on LV_USE_GESTURE_RECOGNITION
+        bool "Enable gesture detection"
+        default n
+        help
+            Enables gesture detection.
 endmenu
