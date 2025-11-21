@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2021-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -25,6 +25,10 @@ void app_main(void)
     ESP_LOGI("example", "Display LVGL animation");
     bsp_display_lock(0);
     lv_obj_t *scr = lv_disp_get_scr_act(NULL);
+#if (CONFIG_ESP_LCD_TOUCH_MAX_POINTS > 1 && CONFIG_LV_USE_GESTURE_RECOGNITION)
+    lv_indev_t *indev = bsp_display_get_input_dev();
+    lv_indev_set_rotation_rad_threshold(indev, 0.15f);
+#endif
     example_lvgl_demo_ui(scr);
 
     bsp_display_unlock();

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2021-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2021-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -28,6 +28,82 @@ static lv_color_t arc_color[] = {
     LV_COLOR_MAKE(126, 87, 162),
     LV_COLOR_MAKE(90, 202, 228),
 };
+
+#if (CONFIG_ESP_LCD_TOUCH_MAX_POINTS > 1 && CONFIG_LV_USE_GESTURE_RECOGNITION)
+void gesture_cb(lv_event_t *e)
+{
+    static uint32_t logo_scale = LV_SCALE_NONE;
+    static int32_t logo_rotation = 0;
+    static int32_t logo_offset_x = 0;
+    static int32_t logo_offset_y = 0;
+
+    lv_indev_gesture_type_t type = lv_event_get_gesture_type(e);
+    lv_indev_gesture_state_t state = lv_event_get_gesture_state(e, type);
+
+    if (state == LV_INDEV_GESTURE_STATE_RECOGNIZED || state == LV_INDEV_GESTURE_STATE_ENDED) {
+        switch (type) {
+        case LV_INDEV_GESTURE_PINCH:
+            // Read current pinch scale and convert it from float to image scale
+            uint32_t pinch_scale_rel = lv_event_get_pinch_scale(e) * LV_SCALE_NONE;
+            // Cutoff negative results at 0
+            uint32_t pinch_scale_abs = logo_scale + pinch_scale_rel < LV_SCALE_NONE ? 0 : logo_scale + ((int32_t)pinch_scale_rel - LV_SCALE_NONE);
+            lv_img_set_zoom(img_logo, pinch_scale_abs);
+            // Save the resulting image scale after the gesture ends
+            if (state == LV_INDEV_GESTURE_STATE_ENDED) {
+                logo_scale = pinch_scale_abs;
+            }
+            break;
+        case LV_INDEV_GESTURE_ROTATE:
+            // Get gesture rotation in degrees
+            int32_t rotation_rel = lv_event_get_rotation(e) * (180.0f / M_PI) * 10.0f;
+            // Calculate resulting angle and limit it to 360 degrees
+            int32_t rotation_abs = (logo_rotation + rotation_rel) % 3600;
+            lv_img_set_angle(img_logo, rotation_abs);
+            // Save the resulting image rotation angle after the gesture ends
+            if (state == LV_INDEV_GESTURE_STATE_ENDED) {
+                logo_rotation = rotation_abs;
+            }
+            break;
+        case LV_INDEV_GESTURE_TWO_FINGERS_SWIPE:
+            // Get two finger swipe values
+            lv_dir_t swipe_dir = lv_event_get_two_fingers_swipe_dir(e);
+            float swipe_dist = lv_event_get_two_fingers_swipe_distance(e);
+            int32_t swipe_dist_abs;
+            switch (swipe_dir) {
+            case LV_DIR_BOTTOM:
+            case LV_DIR_TOP:
+                // Vertical offset sign depends on the swipe direction
+                swipe_dist_abs = swipe_dir == LV_DIR_TOP ?
+                                 logo_offset_y - swipe_dist :
+                                 logo_offset_y + swipe_dist;
+                lv_obj_set_pos(img_logo, logo_offset_x, swipe_dist_abs);
+                // Save the resulting vertical image offset after the gesture ends
+                if (state == LV_INDEV_GESTURE_STATE_ENDED) {
+                    logo_offset_y = swipe_dist_abs;
+                }
+                break;
+            case LV_DIR_RIGHT:
+            case LV_DIR_LEFT:
+                // Horizontal offset sign depends on the swipe direction
+                swipe_dist_abs = swipe_dir == LV_DIR_LEFT ?
+                                 logo_offset_x - swipe_dist :
+                                 logo_offset_x + swipe_dist;
+                lv_obj_set_pos(img_logo, swipe_dist_abs, logo_offset_y);
+                // Save the resulting horizontal image offset after the gesture ends
+                if (state == LV_INDEV_GESTURE_STATE_ENDED) {
+                    logo_offset_x = swipe_dist_abs;
+                }
+                break;
+            default:
+                break;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+}
+#endif
 
 static void anim_timer_cb(lv_timer_t *timer)
 {
@@ -80,6 +156,10 @@ void example_lvgl_demo_ui(lv_obj_t *scr)
     img_logo = lv_img_create(scr);
     lv_img_set_src(img_logo, &esp_logo);
     lv_obj_center(img_logo);
+
+#if (CONFIG_ESP_LCD_TOUCH_MAX_POINTS > 1 && CONFIG_LV_USE_GESTURE_RECOGNITION)
+    lv_obj_add_event_cb(scr, gesture_cb, LV_EVENT_GESTURE, NULL);
+#endif
 
     // Create arcs
     for (size_t i = 0; i < sizeof(arc) / sizeof(arc[0]); i++) {
