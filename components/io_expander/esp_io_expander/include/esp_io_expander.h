@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -78,6 +78,25 @@ typedef enum {
 } esp_io_expander_dir_t;
 
 /**
+ * @brief IO Expander Pin output mode
+ *
+ */
+typedef enum {
+    IO_EXPANDER_OUTPUT_MODE_PUSH_PULL,  /*!< Output High-Z = 0 */
+    IO_EXPANDER_OUTPUT_MODE_OPEN_DRAIN, /*!< Output High-Z = 1 */
+} esp_io_expander_output_mode_t;
+
+/**
+ * @brief IO Expander Pin pull-up/pull-down
+ *
+ */
+typedef enum {
+    IO_EXPANDER_PULL_NONE,  /*!< Not used pull-up/pull-down */
+    IO_EXPANDER_PULL_UP,    /*!< Set pull-up */
+    IO_EXPANDER_PULL_DOWN,  /*!< Set pull-down */
+} esp_io_expander_pullupdown_t;
+
+/**
  * @brief IO Expander Configuration Type
  *
  */
@@ -87,6 +106,7 @@ typedef struct {
         uint8_t dir_out_bit_zero : 1;       /*!< If the direction of IO is output, the corresponding bit of the direction register is 0 */
         uint8_t input_high_bit_zero : 1;    /*!< If the input level of IO is high, the corresponding bit of the input register is 0 */
         uint8_t output_high_bit_zero : 1;   /*!< If the output level of IO is high, the corresponding bit of the output register is 0 */
+        uint8_t pullup_high_bit_zero : 1;    /*!< If the pullup/down level of IO is high, the corresponding bit of the output register is 0 */
     } flags;
     /* Don't support with interrupt mode yet, will be added soon */
 } esp_io_expander_config_t;
@@ -166,6 +186,87 @@ struct esp_io_expander_s {
     esp_err_t (*read_direction_reg)(esp_io_expander_handle_t handle, uint32_t *value);
 
     /**
+    * @brief Write value to high impedance register (optional)
+    *
+    * @note If there are multiple high impedance registers in the device, their values should be spliced together in order to form the `value`.
+    *
+    * @param handle: IO Expander handle
+    * @param value: Register's value
+    *
+    * @return
+    *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
+    */
+    esp_err_t (*write_highz_reg)(esp_io_expander_handle_t handle, uint32_t value);
+
+    /**
+     * @brief Read value from high impedance register (optional)
+     *
+     * @note This function can be implemented by reading the physical direction register, or simply by reading a variable that record the direction value (more faster)
+     * @note If there are multiple high impedance registers in the device, their values should be spliced together in order to form the `value`.
+     *
+     * @param handle: IO Expander handle
+     * @param value: Register's value
+     *
+     * @return
+     *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
+     */
+    esp_err_t (*read_highz_reg)(esp_io_expander_handle_t handle, uint32_t *value);
+
+    /**
+    * @brief Write value to enable pullup register (optional)
+    *
+    * @note If there are multiple enable pullup registers in the device, their values should be spliced together in order to form the `value`.
+    *
+    * @param handle: IO Expander handle
+    * @param value: Register's value
+    *
+    * @return
+    *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
+    */
+    esp_err_t (*write_pullup_en_reg)(esp_io_expander_handle_t handle, uint32_t value);
+
+    /**
+     * @brief Read value from enable pullup register (optional)
+     *
+     * @note This function can be implemented by reading the physical direction register, or simply by reading a variable that record the direction value (more faster)
+     * @note If there are multiple enable pullup registers in the device, their values should be spliced together in order to form the `value`.
+     *
+     * @param handle: IO Expander handle
+     * @param value: Register's value
+     *
+     * @return
+     *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
+     */
+    esp_err_t (*read_pullup_en_reg)(esp_io_expander_handle_t handle, uint32_t *value);
+
+    /**
+     * @brief Write value to select pullup register (optional)
+     *
+     * @note If there are multiple set pullup registers in the device, their values should be spliced together in order to form the `value`.
+     *
+     * @param handle: IO Expander handle
+     * @param value: Register's value
+     *
+     * @return
+     *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
+     */
+    esp_err_t (*write_pullup_sel_reg)(esp_io_expander_handle_t handle, uint32_t value);
+
+    /**
+     * @brief Read value from select pullup register (optional)
+     *
+     * @note This function can be implemented by reading the physical direction register, or simply by reading a variable that record the direction value (more faster)
+     * @note If there are multiple set pullup registers in the device, their values should be spliced together in order to form the `value`.
+     *
+     * @param handle: IO Expander handle
+     * @param value: Register's value
+     *
+     * @return
+     *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
+     */
+    esp_err_t (*read_pullup_sel_reg)(esp_io_expander_handle_t handle, uint32_t *value);
+
+    /**
      * @brief Reset the device to its initial state (mandatory)
      *
      * @note This function will reset all device's registers
@@ -232,6 +333,36 @@ esp_err_t esp_io_expander_set_level(esp_io_expander_handle_t handle, uint32_t pi
  *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
  */
 esp_err_t esp_io_expander_get_level(esp_io_expander_handle_t handle, uint32_t pin_num_mask, uint32_t *level_mask);
+
+/**
+ * @brief Set the pull-up/pull-down of a set of target IOs
+ *
+ * @note
+ *
+ * @param handle: IO Exapnder handle
+ * @param pin_num_mask: Bitwise OR of allowed pin num with type of `esp_io_expander_pin_num_t`
+ * @param state: State of pull-up/pull-down
+ *
+ * @return
+ *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
+ */
+esp_err_t esp_io_expander_set_pullupdown(esp_io_expander_handle_t handle, uint32_t pin_num_mask, esp_io_expander_pullupdown_t state);
+
+
+/**
+ * @brief Set the output mode (High-Z) of a set of target IOs
+ *
+ * @note
+ *
+ * @param handle: IO Exapnder handle
+ * @param pin_num_mask: Bitwise OR of allowed pin num with type of `esp_io_expander_pin_num_t`
+ * @param mode: Output mode
+ *
+ * @return
+ *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
+ */
+esp_err_t esp_io_expander_set_output_mode(esp_io_expander_handle_t handle, uint32_t pin_num_mask, esp_io_expander_output_mode_t mode);
+
 
 /**
  * @brief Print the current status of each IO of the device, including direction, input level and output level
