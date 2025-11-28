@@ -39,6 +39,7 @@ jobs:
         uses: espressif/idf-examples-launchpad-ci-action@v1.0.3
         with:
           idf_version: ${{ matrix.idf_ver }}
+          parallel_count: 5
           config_file: examples/.idf_build_apps.toml
 
       - name: Upload Artifact
