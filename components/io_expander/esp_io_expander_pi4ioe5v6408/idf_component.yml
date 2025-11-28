@@ -1,0 +1,9 @@
+version: "1.0.0"
+description: ESP IO Expander - PI4IOE5V6408
+url: https://github.com/espressif/esp-bsp/tree/master/components/io_expander/esp_io_expander_pi4ioe5v6408
+dependencies:
+  idf: ">=5.2"
+  esp_io_expander:
+    version: "^1.1.0"
+    public: true
+    override_path: "../esp_io_expander"
