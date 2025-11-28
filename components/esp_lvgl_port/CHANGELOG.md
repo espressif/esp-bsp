@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.7.0
+
+### Features
+
+- Added support for multi-touch gestures.
+
 ## 2.6.3
 
 ### Fixes
