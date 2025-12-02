@@ -28,6 +28,7 @@
 #define TEST_LCD_V_RES              (480)
 #define TEST_LCD_BIT_PER_PIXEL      (18)
 #define TEST_RGB_BIT_PER_PIXEL      (16)
+#define TEST_LCD_IN_COLOR_FORMAT    (LCD_COLOR_FMT_RGB565)
 #define TEST_LCD_DATA_WIDTH         (16)
 
 #define TEST_LCD_IO_RGB_DISP        (GPIO_NUM_NC)
@@ -111,7 +112,11 @@ TEST_CASE("test gc9503 to draw color bar with RGB interface, using GPIO", "[gc95
         .dma_burst_size = 64,
 #endif
         .data_width = TEST_LCD_DATA_WIDTH,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6,0,0)
+        .in_color_format = TEST_LCD_IN_COLOR_FORMAT,
+#else
         .bits_per_pixel = TEST_RGB_BIT_PER_PIXEL,
+#endif
         .de_gpio_num = TEST_LCD_IO_RGB_DE,
         .pclk_gpio_num = TEST_LCD_IO_RGB_PCLK,
         .vsync_gpio_num = TEST_LCD_IO_RGB_VSYNC,
@@ -200,7 +205,11 @@ TEST_CASE("test gc9503 to draw color bar with RGB interface, using IO expander",
         .dma_burst_size = 64,
 #endif
         .data_width = TEST_LCD_DATA_WIDTH,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6,0,0)
+        .in_color_format = TEST_LCD_IN_COLOR_FORMAT,
+#else
         .bits_per_pixel = TEST_RGB_BIT_PER_PIXEL,
+#endif
         .de_gpio_num = TEST_LCD_IO_RGB_DE,
         .pclk_gpio_num = TEST_LCD_IO_RGB_PCLK,
         .vsync_gpio_num = TEST_LCD_IO_RGB_VSYNC,
