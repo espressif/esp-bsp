@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -27,6 +27,12 @@ typedef struct {
     unsigned int delay_ms;  /*<! Delay in milliseconds after this command */
 } ili9341_lcd_init_cmd_t;
 
+typedef enum {
+    ILI9341_LCD_INIT_CMD_1 = 0,
+    ILI9341_LCD_INIT_CMD_2,
+    ILI9341_LCD_INIT_CMD_3,
+} ili9341_lcd_init_cmds_t;
+
 /**
  * @brief LCD panel vendor configuration.
  *
@@ -34,6 +40,7 @@ typedef struct {
  *
  */
 typedef struct {
+    ili9341_lcd_init_cmds_t init_cmds_sel;        /*<! Selection of init commands */
     const ili9341_lcd_init_cmd_t *init_cmds;     /*!< Pointer to initialization commands array. Set to NULL if using default commands.
                                                  *   The array should be declared as `static const` and positioned outside the function.
                                                  *   Please refer to `vendor_specific_init_default` in source file.
