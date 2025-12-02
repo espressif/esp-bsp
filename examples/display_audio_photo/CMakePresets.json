@@ -1,0 +1,61 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "binaryDir": "./build/default",
+            "cacheVariables": {
+                "SDKCONFIG_DEFAULTS": "sdkconfig.defaults.esp32s3",
+                "SDKCONFIG": "./build/default/sdkconfig"
+            }
+        },
+        {
+            "name": "esp-box",
+            "binaryDir": "./build/esp-box",
+            "cacheVariables": {
+                "SDKCONFIG_DEFAULTS": "sdkconfig.bsp.esp-box",
+                "SDKCONFIG": "./build/esp-box/sdkconfig"
+            }
+        },
+        {
+            "name": "esp-box-3",
+            "binaryDir": "./build/esp-box-3",
+            "cacheVariables": {
+                "SDKCONFIG_DEFAULTS": "sdkconfig.bsp.esp-box-3",
+                "SDKCONFIG": "./build/esp-box-3/sdkconfig"
+            }
+        },
+        {
+            "name": "esp-box-lite",
+            "binaryDir": "./build/esp-box-lite",
+            "cacheVariables": {
+                "SDKCONFIG_DEFAULTS": "sdkconfig.bsp.esp-box-lite",
+                "SDKCONFIG": "./build/esp-box-lite/sdkconfig"
+            }
+        },
+        {
+            "name": "esp32_s3_korvo_2",
+            "binaryDir": "./build/esp32_s3_korvo_2",
+            "cacheVariables": {
+                "SDKCONFIG_DEFAULTS": "sdkconfig.bsp.esp32_s3_korvo_2",
+                "SDKCONFIG": "./build/esp32_s3_korvo_2/sdkconfig"
+            }
+        },
+        {
+            "name": "m5stack_core_2",
+            "binaryDir": "./build/m5stack_core_2",
+            "cacheVariables": {
+                "SDKCONFIG_DEFAULTS": "sdkconfig.bsp.m5stack_core_2",
+                "SDKCONFIG": "./build/m5stack_core_2/sdkconfig"
+            }
+        },
+        {
+            "name": "m5stack_core_s3",
+            "binaryDir": "./build/m5stack_core_s3",
+            "cacheVariables": {
+                "SDKCONFIG_DEFAULTS": "sdkconfig.bsp.m5stack_core_s3",
+                "SDKCONFIG": "./build/m5stack_core_s3/sdkconfig"
+            }
+        }
+    ]
+}
