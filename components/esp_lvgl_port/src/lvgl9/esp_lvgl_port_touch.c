@@ -9,6 +9,8 @@
 #include "esp_check.h"
 #include "esp_lcd_touch.h"
 #include "esp_lvgl_port.h"
+#include "esp_timer.h"
+#include "sdkconfig.h"
 
 static const char *TAG = "LVGL";
 
@@ -117,19 +119,42 @@ static void lvgl_port_touchpad_read(lv_indev_t *indev_drv, lv_indev_data_t *data
     assert(touch_ctx);
     assert(touch_ctx->handle);
 
-    uint16_t touchpad_x[1] = {0};
-    uint16_t touchpad_y[1] = {0};
-    uint8_t touchpad_cnt = 0;
+    uint8_t touch_cnt = 0;
+    esp_lcd_touch_point_data_t touch_data[CONFIG_ESP_LCD_TOUCH_MAX_POINTS] = {0};
 
     /* Read data from touch controller into memory */
-    esp_lcd_touch_read_data(touch_ctx->handle);
+    ESP_ERROR_CHECK(esp_lcd_touch_read_data(touch_ctx->handle));
 
     /* Read data from touch controller */
-    bool touchpad_pressed = esp_lcd_touch_get_coordinates(touch_ctx->handle, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 1);
+    ESP_ERROR_CHECK(esp_lcd_touch_get_data(touch_ctx->handle, touch_data, &touch_cnt, CONFIG_ESP_LCD_TOUCH_MAX_POINTS));
 
-    if (touchpad_pressed && touchpad_cnt > 0) {
-        data->point.x = touch_ctx->scale.x * touchpad_x[0];
-        data->point.y = touch_ctx->scale.y * touchpad_y[0];
+#if (CONFIG_ESP_LCD_TOUCH_MAX_POINTS > 1 && CONFIG_LV_USE_GESTURE_RECOGNITION)
+    // Number of touch points which need to be constantly updated inside gesture recognizers
+#define GESTURE_TOUCH_POINTS 2
+#if GESTURE_TOUCH_POINTS > CONFIG_ESP_LCD_TOUCH_MAX_POINTS
+#error "Number of touch point for gesture exceeds maximum number of aquired touch points"
+#endif
+
+    /* Initialize LVGL touch data for each activated touch point */
+    lv_indev_touch_data_t touches[GESTURE_TOUCH_POINTS] = {0};
+
+    for (int i = 0; i < touch_cnt && i < GESTURE_TOUCH_POINTS; i++) {
+        touches[i].state = LV_INDEV_STATE_PRESSED;
+        touches[i].point.x = touch_ctx->scale.x * touch_data[i].x;
+        touches[i].point.y = touch_ctx->scale.y * touch_data[i].y;
+        touches[i].id = touch_data[i].track_id;
+        touches[i].timestamp = esp_timer_get_time() / 1000;
+    }
+
+    /* Pass touch data to LVGL gesture recognizers */
+    lv_indev_gesture_recognizers_update(indev_drv, touches, GESTURE_TOUCH_POINTS);
+    lv_indev_gesture_recognizers_set_data(indev_drv, data);
+
+#endif
+
+    if (touch_cnt > 0) {
+        data->point.x = touch_ctx->scale.x * touch_data[0].x;
+        data->point.y = touch_ctx->scale.y * touch_data[0].y;
         data->state = LV_INDEV_STATE_PRESSED;
     } else {
         data->state = LV_INDEV_STATE_RELEASED;

@@ -69,29 +69,29 @@ M5Dial provides versatile power supply options to cater to various needs. It acc
 
 ## LVGL Benchmark
 
-**DATE:** 01.10.2025 13:12
+**DATE:** 07.11.2025 09:03
 
-**LVGL version:** 9.3.0
+**LVGL version:** 9.4.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 96%  | 37  | 23  | 6  | 17  |
-| Moving wallpaper | 98%  | 38  | 23  | 11  | 12  |
-| Single rectangle | 32%  | 97  | 1  | 0  | 1  |
-| Multiple rectangles | 90%  | 59  | 13  | 10  | 3  |
-| Multiple RGB images | 40%  | 94  | 1  | 1  | 0  |
-| Multiple ARGB images | 35%  | 90  | 4  | 4  | 0  |
-| Rotated ARGB images | 81%  | 57  | 16  | 16  | 0  |
-| Multiple labels | 70%  | 94  | 4  | 2  | 2  |
-| Screen sized text | 98%  | 23  | 40  | 39  | 1  |
-| Multiple arcs | 23%  | 90  | 0  | 0  | 0  |
-| Containers | 42%  | 83  | 13  | 9  | 4  |
-| Containers with overlay | 97%  | 32  | 27  | 21  | 6  |
-| Containers with opa | 51%  | 78  | 16  | 12  | 4  |
-| Containers with opa_layer | 55%  | 73  | 20  | 17  | 3  |
-| Containers with scrolling | 98%  | 32  | 28  | 22  | 6  |
-| Widgets demo | 99%  | 26  | 20  | 18  | 2  |
-| All scenes avg. | 69%  | 62  | 14  | 11  | 3  |
+| Empty screen | 96%  | 38  | 22  | 6  | 16  |
+| Moving wallpaper | 97%  | 38  | 23  | 11  | 12  |
+| Single rectangle | 37%  | 97  | 1  | 0  | 1  |
+| Multiple rectangles | 92%  | 59  | 12  | 9  | 3  |
+| Multiple RGB images | 33%  | 89  | 1  | 1  | 0  |
+| Multiple ARGB images | 34%  | 93  | 4  | 4  | 0  |
+| Rotated ARGB images | 81%  | 56  | 17  | 16  | 1  |
+| Multiple labels | 57%  | 90  | 6  | 5  | 1  |
+| Screen sized text | 97%  | 23  | 41  | 39  | 2  |
+| Multiple arcs | 32%  | 89  | 1  | 1  | 0  |
+| Containers | 37%  | 80  | 14  | 9  | 5  |
+| Containers with overlay | 90%  | 32  | 28  | 22  | 6  |
+| Containers with opa | 51%  | 76  | 17  | 13  | 4  |
+| Containers with opa_layer | 50%  | 70  | 20  | 18  | 2  |
+| Containers with scrolling | 97%  | 31  | 30  | 25  | 5  |
+| Widgets demo | 99%  | 26  | 21  | 20  | 1  |
+| All scenes avg. | 67%  | 61  | 15  | 12  | 3  |
 
 
 
