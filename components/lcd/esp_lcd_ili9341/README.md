@@ -64,3 +64,29 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
 ```
 
 There is an example in ESP-IDF with this LCD controller. Please follow this [link](https://github.com/espressif/esp-idf/tree/master/examples/peripherals/lcd/spi_lcd_touch).
+
+## Predefined init vendor commands
+
+This driver contains various predefined vendor initialization commands which in some cases can improve image quality. Usage is in example below.
+
+Include selected commands:
+```c
+#include "esp_lcd_ili9341_init_cmds_1.h"
+```
+
+Use vendor config structure:
+```c
+    ...
+
+    ili9341_vendor_config_t vendor_config = {
+        .init_cmds = ili9341_lcd_init_vendor,
+        .init_cmds_size = sizeof(ili9341_lcd_init_vendor) / sizeof(ili9341_lcd_init_cmd_t),
+    };
+
+    const esp_lcd_panel_dev_config_t panel_config = {
+        ...
+        .vendor_config = &vendor_config,
+    };
+
+    ...
+```
