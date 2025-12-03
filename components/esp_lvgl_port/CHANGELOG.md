@@ -1,6 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## 2.7.1
+
+### Features
+- Added option to include a rounder callback
 
 ### Fixes
 - Fixed deinitialization of the task which was created with caps - https://github.com/espressif/esp-bsp/issues/680
