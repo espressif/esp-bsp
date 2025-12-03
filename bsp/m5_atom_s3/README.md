@@ -28,7 +28,7 @@ AtomS3 is designed with compactness in mind, measuring at only 24 *24 *13mm in s
 
 |     Available    |       Capability       |Controller/Codec|                                                Component                                               |   Version  |
 |------------------|------------------------|----------------|--------------------------------------------------------------------------------------------------------|------------|
-|:heavy_check_mark:|     :pager: DISPLAY    |     gc9a01     |[espressif/esp_lcd_gc9a01](https://components.espressif.com/components/espressif/esp_lcd_gc9a01)<br/>idf|^1<br/>>=5.2|
+|:heavy_check_mark:|     :pager: DISPLAY    |     gc9a01     |idf<br/>[espressif/esp_lcd_gc9a01](https://components.espressif.com/components/espressif/esp_lcd_gc9a01)|>=5.2<br/>^2|
 |:heavy_check_mark:|:black_circle: LVGL_PORT|                |     [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)     |     ^2     |
 |        :x:       |    :point_up: TOUCH    |                |                                                                                                        |            |
 |:heavy_check_mark:| :radio_button: BUTTONS |                |            [espressif/button](https://components.espressif.com/components/espressif/button)            |  >=4,<5.0  |
@@ -49,7 +49,7 @@ AtomS3 is designed with compactness in mind, measuring at only 24 *24 *13mm in s
 
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
-| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
+| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
 
 <!-- END_EXAMPLES -->
 </div>

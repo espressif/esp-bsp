@@ -1,4 +1,4 @@
-version: "2.0.0~3"
+version: "2.0.2"
 description: Board Support Package (BSP) for M5Stack Core
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5stack_core
 
@@ -11,7 +11,7 @@ tags:
 
 dependencies:
   idf: ">=5.2"
-  esp_lcd_ili9341: "^1"
+  esp_lcd_ili9341: "^2.0.1"
 
   button:
     version: "^4"

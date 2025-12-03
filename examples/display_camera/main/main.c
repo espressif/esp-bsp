@@ -8,7 +8,7 @@
  * @file
  * @brief BSP Camera Example
  * @details Stream camera output to display (LVGL)
- * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera
+ * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera-
  */
 
 #include <stdio.h>

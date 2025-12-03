@@ -1,14 +1,15 @@
-#IDF version is less than IDF5.0
-if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "5.0")
-    set(SRC_VER "esp32_lyrat_idf4.c")
+if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "5.3")
+    set(REQ esp_driver_i2c esp_driver_gpio esp_driver_i2s esp_driver_sdmmc esp_driver_sdspi)
+    set(PRIV_REQ esp_driver_ledc)
 else()
-    set(SRC_VER "esp32_lyrat_idf5.c")
+    set(REQ driver)
+    set(PRIV_REQ "")
 endif()
 
 idf_component_register(
-    SRCS "esp32_lyrat.c" ${SRC_VER}
+    SRCS "esp32_lyrat.c" "esp32_lyrat_idf5.c"
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "priv_include"
-    PRIV_REQUIRES esp_psram
-    REQUIRES driver spiffs fatfs 
+    REQUIRES ${REQ} driver fatfs
+    PRIV_REQUIRES ${PRIV_REQ} spiffs esp_psram
 )

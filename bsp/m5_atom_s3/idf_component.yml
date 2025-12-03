@@ -1,4 +1,4 @@
-version: "1.0.0~3"
+version: "1.0.2"
 description: Board Support Package (BSP) for M5 AtomS3
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5_atom_s3
 
@@ -11,7 +11,11 @@ tags:
 
 dependencies:
   idf: ">=5.2"
-  esp_lcd_gc9a01: "^1"
+
+  espressif/esp_lcd_gc9a01:
+    version:  "^2"
+    public: true
+    override_path: "../../components/lcd/esp_lcd_gc9a01"
 
   espressif/esp_lvgl_port:
     version: "^2"

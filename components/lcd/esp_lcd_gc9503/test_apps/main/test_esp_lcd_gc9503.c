@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -8,11 +8,12 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
+#include "esp_idf_version.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_io_additions.h"
@@ -27,6 +28,7 @@
 #define TEST_LCD_V_RES              (480)
 #define TEST_LCD_BIT_PER_PIXEL      (18)
 #define TEST_RGB_BIT_PER_PIXEL      (16)
+#define TEST_LCD_IN_COLOR_FORMAT    (LCD_COLOR_FMT_RGB565)
 #define TEST_LCD_DATA_WIDTH         (16)
 
 #define TEST_LCD_IO_RGB_DISP        (GPIO_NUM_NC)
@@ -104,9 +106,17 @@ TEST_CASE("test gc9503 to draw color bar with RGB interface, using GPIO", "[gc95
     ESP_LOGI(TAG, "Install GC9503 panel driver");
     esp_lcd_rgb_panel_config_t rgb_config = {
         .clk_src = LCD_CLK_SRC_DEFAULT,
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 3, 0)
         .psram_trans_align = 64,
+#else
+        .dma_burst_size = 64,
+#endif
         .data_width = TEST_LCD_DATA_WIDTH,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6,0,0)
+        .in_color_format = TEST_LCD_IN_COLOR_FORMAT,
+#else
         .bits_per_pixel = TEST_RGB_BIT_PER_PIXEL,
+#endif
         .de_gpio_num = TEST_LCD_IO_RGB_DE,
         .pclk_gpio_num = TEST_LCD_IO_RGB_PCLK,
         .vsync_gpio_num = TEST_LCD_IO_RGB_VSYNC,
@@ -159,20 +169,18 @@ TEST_CASE("test gc9503 to draw color bar with RGB interface, using GPIO", "[gc95
 TEST_CASE("test gc9503 to draw color bar with RGB interface, using IO expander", "[gc9503][rgb][expander]")
 {
     ESP_LOGI(TAG, "Install I2C");
-    const i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    i2c_master_bus_handle_t i2c_handle = NULL;
+    const i2c_master_bus_config_t i2c_config = {
+        .i2c_port = TEST_EXPANDER_I2C_HOST,
         .sda_io_num = TEST_EXPANDER_IO_I2C_SDA,
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_io_num = TEST_EXPANDER_IO_I2C_SCL,
-        .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master.clk_speed = 400 * 1000
+        .clk_source = I2C_CLK_SRC_DEFAULT,
     };
-    TEST_ESP_OK(i2c_param_config(TEST_EXPANDER_I2C_HOST, &i2c_conf));
-    TEST_ESP_OK(i2c_driver_install(TEST_EXPANDER_I2C_HOST, i2c_conf.mode, 0, 0, 0));
+    TEST_ESP_OK(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
     ESP_LOGI(TAG, "Create TCA9554 IO expander");
     esp_io_expander_handle_t expander_handle = NULL;
-    TEST_ESP_OK(esp_io_expander_new_i2c_tca9554(TEST_EXPANDER_I2C_HOST, TEST_EXPANDER_I2C_ADDR, &expander_handle));
+    TEST_ESP_OK(esp_io_expander_new_i2c_tca9554(i2c_handle, TEST_EXPANDER_I2C_ADDR, &expander_handle));
 
     ESP_LOGI(TAG, "Install 3-wire SPI panel IO");
     spi_line_config_t line_config = {
@@ -191,9 +199,17 @@ TEST_CASE("test gc9503 to draw color bar with RGB interface, using IO expander",
     ESP_LOGI(TAG, "Install GC9503 panel driver");
     esp_lcd_rgb_panel_config_t rgb_config = {
         .clk_src = LCD_CLK_SRC_DEFAULT,
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 3, 0)
         .psram_trans_align = 64,
+#else
+        .dma_burst_size = 64,
+#endif
         .data_width = TEST_LCD_DATA_WIDTH,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6,0,0)
+        .in_color_format = TEST_LCD_IN_COLOR_FORMAT,
+#else
         .bits_per_pixel = TEST_RGB_BIT_PER_PIXEL,
+#endif
         .de_gpio_num = TEST_LCD_IO_RGB_DE,
         .pclk_gpio_num = TEST_LCD_IO_RGB_PCLK,
         .vsync_gpio_num = TEST_LCD_IO_RGB_VSYNC,
@@ -248,7 +264,7 @@ TEST_CASE("test gc9503 to draw color bar with RGB interface, using IO expander",
 
     TEST_ESP_OK(esp_lcd_panel_io_del(io_handle));
     TEST_ESP_OK(esp_lcd_panel_del(panel_handle));
-    TEST_ESP_OK(i2c_driver_delete(TEST_EXPANDER_I2C_HOST));
+    TEST_ESP_OK(i2c_del_master_bus(i2c_handle));
 }
 
 // Some resources are lazy allocated in the LCD driver, the threadhold is left for that case

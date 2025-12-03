@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -7,7 +7,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_check.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "esp_lcd_panel_io.h"
@@ -26,7 +26,6 @@
 #define EXAMPLE_LCD_PIXEL_CLK_HZ    (40 * 1000 * 1000)
 #define EXAMPLE_LCD_CMD_BITS        (8)
 #define EXAMPLE_LCD_PARAM_BITS      (8)
-#define EXAMPLE_LCD_COLOR_SPACE     (ESP_LCD_COLOR_SPACE_BGR)
 #define EXAMPLE_LCD_BITS_PER_PIXEL  (16)
 #define EXAMPLE_LCD_DRAW_BUFF_DOUBLE (1)
 #define EXAMPLE_LCD_DRAW_BUFF_HEIGHT (50)
@@ -101,7 +100,11 @@ static esp_err_t app_lcd_init(void)
     ESP_LOGD(TAG, "Install LCD driver");
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = EXAMPLE_LCD_GPIO_RST,
-        .color_space = EXAMPLE_LCD_COLOR_SPACE,
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
+        .rgb_endian = LCD_RGB_ENDIAN_BGR,
+#else
+        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
+#endif
         .bits_per_pixel = EXAMPLE_LCD_BITS_PER_PIXEL,
     };
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7789(lcd_io, &panel_config, &lcd_panel), err, TAG, "New panel failed");
@@ -130,16 +133,14 @@ err:
 static esp_err_t app_touch_init(void)
 {
     /* Initilize I2C */
-    const i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    i2c_master_bus_handle_t i2c_handle = NULL;
+    const i2c_master_bus_config_t i2c_config = {
+        .i2c_port = EXAMPLE_TOUCH_I2C_NUM,
         .sda_io_num = EXAMPLE_TOUCH_I2C_SDA,
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_io_num = EXAMPLE_TOUCH_I2C_SCL,
-        .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master.clk_speed = EXAMPLE_TOUCH_I2C_CLK_HZ
+        .clk_source = I2C_CLK_SRC_DEFAULT,
     };
-    ESP_RETURN_ON_ERROR(i2c_param_config(EXAMPLE_TOUCH_I2C_NUM, &i2c_conf), TAG, "I2C configuration failed");
-    ESP_RETURN_ON_ERROR(i2c_driver_install(EXAMPLE_TOUCH_I2C_NUM, i2c_conf.mode, 0, 0, 0), TAG, "I2C initialization failed");
+    ESP_RETURN_ON_ERROR(i2c_new_master_bus(&i2c_config, &i2c_handle), TAG, "");
 
     /* Initialize touch HW */
     const esp_lcd_touch_config_t tp_cfg = {
@@ -158,8 +159,9 @@ static esp_err_t app_touch_init(void)
         },
     };
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-    const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
-    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)EXAMPLE_TOUCH_I2C_NUM, &tp_io_config, &tp_io_handle), TAG, "");
+    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
+    tp_io_config.scl_speed_hz = EXAMPLE_TOUCH_I2C_CLK_HZ;
+    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
     return esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, &touch_handle);
 }
 

@@ -7,7 +7,6 @@
 #include <string.h>
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
-#include "driver/i2c.h"
 #include "esp_err.h"
 #include "esp_log.h"
 
@@ -17,7 +16,7 @@
 #include "esp_spiffs.h"
 #include "esp_codec_dev.h"
 #include "esp_codec_dev_defaults.h"
-#include "led_indicator.h"
+#include "led_indicator_strips.h"
 #include "esp_vfs_fat.h"
 #include "button_adc.h"
 
@@ -27,6 +26,16 @@ static bool i2c_initialized = false;
 static sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 static bool spi_sd_initialized = false;
 
+/**
+ * @brief I2C handle for BSP usage
+ *
+ * In IDF v5.4 you can call i2c_master_get_bus_handle(BSP_I2C_NUM, i2c_master_bus_handle_t *ret_handle)
+ * from #include "esp_private/i2c_platform.h" to get this handle
+ *
+ * For IDF 5.2 and 5.3 you must call bsp_i2c_get_handle()
+ */
+static i2c_master_bus_handle_t i2c_handle = NULL;
+
 esp_err_t bsp_i2c_init(void)
 {
     /* I2C was initialized before */
@@ -34,27 +43,29 @@ esp_err_t bsp_i2c_init(void)
         return ESP_OK;
     }
 
-    const i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    const i2c_master_bus_config_t i2c_config = {
+        .i2c_port = BSP_I2C_NUM,
         .sda_io_num = BSP_I2C_SDA,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
         .scl_io_num = BSP_I2C_SCL,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
+        .clk_source = I2C_CLK_SRC_DEFAULT,
     };
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
     i2c_initialized = true;
-
     return ESP_OK;
 }
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
     i2c_initialized = false;
     return ESP_OK;
+}
+
+i2c_master_bus_handle_t bsp_i2c_get_handle(void)
+{
+    bsp_i2c_init();
+    return i2c_handle;
 }
 
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
@@ -74,6 +85,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     audio_codec_i2c_cfg_t i2c_cfg = {
         .port = BSP_I2C_NUM,
         .addr = ES8311_CODEC_DEFAULT_ADDR,
+        .bus_handle = i2c_handle,
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);
@@ -122,13 +134,14 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
     audio_codec_i2c_cfg_t i2c_cfg = {
         .port = BSP_I2C_NUM,
         .addr = ES7210_CODEC_DEFAULT_ADDR,
+        .bus_handle = i2c_handle,
     };
     const audio_codec_ctrl_if_t *i2c_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
     BSP_NULL_CHECK(i2c_ctrl_if, NULL);
 
     es7210_codec_cfg_t es7210_cfg = {
         .ctrl_if = i2c_ctrl_if,
-        .mic_selected = ES7120_SEL_MIC1 | ES7120_SEL_MIC2,
+        .mic_selected = ES7210_SEL_MIC1 | ES7210_SEL_MIC2,
     };
     const audio_codec_if_t *es7210_dev = es7210_codec_new(&es7210_cfg);
     BSP_NULL_CHECK(es7210_dev, NULL);
@@ -254,15 +267,12 @@ static const led_strip_rmt_config_t bsp_leds_rgb_rmt_config = {
 };
 
 static led_indicator_strips_config_t bsp_leds_rgb_config = {
-    .is_active_level_high = 1,
     .led_strip_cfg = bsp_leds_rgb_strip_config,
     .led_strip_driver = LED_STRIP_RMT,
     .led_strip_rmt_cfg = bsp_leds_rgb_rmt_config,
 };
 
 static const led_indicator_config_t bsp_leds_config = {
-    .mode = LED_STRIPS_MODE,
-    .led_indicator_strips_config = &bsp_leds_rgb_config,
     .blink_lists = bsp_led_blink_defaults_lists,
     .blink_list_num = BSP_LED_MAX,
 };
@@ -273,7 +283,7 @@ esp_err_t bsp_led_indicator_create(led_indicator_handle_t led_array[], int *led_
         return ESP_ERR_INVALID_ARG;
     }
 
-    led_array[0] = led_indicator_create(&bsp_leds_config);
+    led_indicator_new_strips_device(&bsp_leds_config, &bsp_leds_rgb_config, &led_array[0]);
     if (led_array[0] == NULL) {
         return ESP_FAIL;
     }

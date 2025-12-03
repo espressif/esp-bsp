@@ -14,17 +14,13 @@
 #include "iot_button.h"
 #include "esp_codec_dev.h"
 #include "led_indicator.h"
-#include "driver/sdmmc_host.h"
-#include "driver/sdspi_host.h"
-#include "esp_vfs_fat.h"
-
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-#include "driver/i2s.h"
-#else
 #include "driver/i2s_std.h"
 #include "driver/i2s_tdm.h"
+#include "driver/i2c_master.h"
+#include "driver/sdmmc_host.h"
+#include "driver/sdspi_host.h"
 #include "esp_adc/adc_oneshot.h"
-#endif
+#include "esp_vfs_fat.h"
 
 /**************************************************************************************************
  *  BSP Board Name
@@ -203,11 +199,7 @@ typedef enum {
  *      - ESP_ERR_NO_MEM        No memory for storing the channel information
  *      - ESP_ERR_INVALID_STATE This channel has not initialized or already started
  */
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
-esp_err_t bsp_audio_init(const i2s_config_t *i2s_config);
-#else
 esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
-#endif
 
 /**
  * @brief Get es8311 codec I2S interface (initialized in bsp_audio_init)
@@ -278,6 +270,14 @@ esp_err_t bsp_i2c_init(void);
  */
 esp_err_t bsp_i2c_deinit(void);
 
+/**
+ * @brief Get I2C driver handle
+ *
+ * @return
+ *      - I2C handle
+ */
+i2c_master_bus_handle_t bsp_i2c_get_handle(void);
+
 /** @} */ // end of i2c
 
 /** @defgroup g01_adc ADC
@@ -304,8 +304,6 @@ esp_err_t bsp_i2c_deinit(void);
  */
 esp_err_t bsp_adc_initialize(void);
 
-
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 /**
  * @brief Get ADC handle
  *
@@ -314,7 +312,6 @@ esp_err_t bsp_adc_initialize(void);
  * @return ADC handle
  */
 adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
-#endif
 
 /** @} */ // end of adc
 

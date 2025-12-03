@@ -29,7 +29,7 @@ repos:
         language: python
         files: 'bsp/.*/include/bsp/.*\.h|bsp/.*/idf_component\.yml|bsp/.*/README\.md' # All idf_component.yml, README.md and .h files in bsp directory
         additional_dependencies:
-          - idf_component_manager==1.4.2
+          - idf_component_manager==2.4.1
           - py-markdown-table
 
   - repo: local
@@ -40,7 +40,8 @@ repos:
         language: python
         files: ^README\.md$|^bsp/
         additional_dependencies:
-          - idf_component_manager==1.4.2
+          - PyYAML
+          - idf_component_manager==2.4.1
 
   - repo: local
     hooks:
@@ -104,3 +105,5 @@ repos:
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/m5stack_core_2", "-i", "bsp/m5stack_core_2/doxygen/xml", "-o", "bsp/m5stack_core_2/API.md"]
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/m5stack_core_s3", "-i", "bsp/m5stack_core_s3/doxygen/xml", "-o", "bsp/m5stack_core_s3/API.md"]
+      - id: doxygen-api-md
+        args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_p4_eye", "-i", "bsp/esp32_p4_eye/doxygen/xml", "-o", "bsp/esp32_p4_eye/API.md"]

@@ -5,7 +5,7 @@
  */
 
 #include <inttypes.h>
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "unity.h"
@@ -27,16 +27,14 @@
 TEST_CASE("test cst816s to initialize touch", "[cst816s][i2c]")
 {
     /* Initilize I2C */
-    const i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    i2c_master_bus_handle_t i2c_handle = NULL;
+    const i2c_master_bus_config_t i2c_config = {
+        .i2c_port = TEST_TOUCH_I2C_NUM,
         .sda_io_num = TEST_TOUCH_I2C_SDA,
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_io_num = TEST_TOUCH_I2C_SCL,
-        .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master.clk_speed = TEST_TOUCH_I2C_CLK_HZ
+        .clk_source = I2C_CLK_SRC_DEFAULT,
     };
-    TEST_ESP_OK(i2c_param_config(TEST_TOUCH_I2C_NUM, &i2c_conf));
-    TEST_ESP_OK(i2c_driver_install(TEST_TOUCH_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+    TEST_ESP_OK(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
     /* Initialize touch HW */
     const esp_lcd_touch_config_t tp_cfg = {
@@ -57,8 +55,9 @@ TEST_CASE("test cst816s to initialize touch", "[cst816s][i2c]")
 
     esp_lcd_touch_handle_t touch_handle;
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-    const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_CST816S_CONFIG();
-    TEST_ESP_OK(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)TEST_TOUCH_I2C_NUM, &tp_io_config, &tp_io_handle));
+    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_CST816S_CONFIG();
+    tp_io_config.scl_speed_hz = TEST_TOUCH_I2C_CLK_HZ;
+    TEST_ESP_OK(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle));
     TEST_ESP_OK(esp_lcd_touch_new_i2c_cst816s(tp_io_handle, &tp_cfg, &touch_handle));
 }
 

@@ -1,4 +1,4 @@
-version: "3.0.0~3"
+version: "3.0.2"
 description: Board Support Package (BSP) for M5Stack CoreS3
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5stack_core_s3
 
@@ -11,8 +11,12 @@ tags:
 
 dependencies:
   idf: ">=5.4" # I2C Driver-NG is supported in esp32-camera only from IDFv5.4
-  esp_lcd_ili9341: "^1"
-  esp_lcd_touch_ft5x06: "^1"
+  esp_lcd_ili9341: 
+    version: "^2.0.1"
+    override_path: "../../components/lcd/esp_lcd_ili9341"
+  esp_lcd_touch_ft5x06: 
+    version: "^1"
+    override_path: "../../components/lcd_touch/esp_lcd_touch_ft5x06"
 
   espressif/esp_lvgl_port:
     version: "^2"
@@ -20,7 +24,7 @@ dependencies:
     override_path: "../../components/esp_lvgl_port"
 
   esp_codec_dev:
-    version: "~1.3.1"
+    version: "~1.5"
     public: true
 
   esp32-camera:

@@ -44,17 +44,17 @@ M5Stack Core is a development board based on ESP32 microcontroller. It features:
 <div align="center">
 <!-- START_DEPENDENCIES -->
 
-|     Available    |       Capability       |Controller/Codec|                                                 Component                                                |   Version  |
-|------------------|------------------------|----------------|----------------------------------------------------------------------------------------------------------|------------|
-|:heavy_check_mark:|     :pager: DISPLAY    |     ili9341    |[espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341)<br/>idf|^1<br/>>=5.2|
-|:heavy_check_mark:|:black_circle: LVGL_PORT|                |      [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)      |     ^2     |
-|        :x:       |    :point_up: TOUCH    |                |                                                                                                          |            |
-|:heavy_check_mark:| :radio_button: BUTTONS |                |             [espressif/button](https://components.espressif.com/components/espressif/button)             |     ^4     |
-|        :x:       |  :musical_note: AUDIO  |                |                                                                                                          |            |
-|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|                |                                                                                                          |            |
-|        :x:       | :microphone: AUDIO_MIC |                |                                                                                                          |            |
-|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                    idf                                                   |    >=5.2   |
-|        :x:       |    :video_game: IMU    |                |                                                                                                          |            |
+|     Available    |       Capability       |Controller/Codec|                                                 Component                                                |     Version    |
+|------------------|------------------------|----------------|----------------------------------------------------------------------------------------------------------|----------------|
+|:heavy_check_mark:|     :pager: DISPLAY    |     ili9341    |idf<br/>[espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341)|>=5.2<br/>^2.0.1|
+|:heavy_check_mark:|:black_circle: LVGL_PORT|                |      [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)      |       ^2       |
+|        :x:       |    :point_up: TOUCH    |                |                                                                                                          |                |
+|:heavy_check_mark:| :radio_button: BUTTONS |                |             [espressif/button](https://components.espressif.com/components/espressif/button)             |       ^4       |
+|        :x:       |  :musical_note: AUDIO  |                |                                                                                                          |                |
+|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|                |                                                                                                          |                |
+|        :x:       | :microphone: AUDIO_MIC |                |                                                                                                          |                |
+|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                    idf                                                   |      >=5.2     |
+|        :x:       |    :video_game: IMU    |                |                                                                                                          |                |
 
 <!-- END_DEPENDENCIES -->
 </div>
@@ -66,8 +66,8 @@ M5Stack Core is a development board based on ESP32 microcontroller. It features:
 
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
-| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
-| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation) |
+| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
+| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-) |
 
 <!-- END_EXAMPLES -->
 </div>

@@ -1,4 +1,4 @@
-version: "5.0.0~3"
+version: "5.1.2"
 description: Board Support Package (BSP) for ESP32-P4 Function EV Board (preview)
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_p4_function_ev_board
 
@@ -9,24 +9,39 @@ tags:
   - bsp
 
 dependencies:
-  idf: ">=5.3"
-  esp_lcd_ili9881c: "1.*"
-  esp_lcd_ek79007: "1.*"
-  esp_lcd_touch_gt911: "^1"
+  idf: ">=5.4"
   lvgl/lvgl: ">=8,<10"
+  esp_lcd_ek79007: ">=2.0.1,<3.0.0"
+
+  esp_lcd_ili9881c:
+    version: ">=1.0.3,<2.0.0"
+    override_path: "../../components/lcd/esp_lcd_ili9881c"
+  esp_lcd_touch_gt911:
+    version: "^1"
+    override_path: "../../components/lcd_touch/esp_lcd_touch_gt911"
 
   espressif/esp_lvgl_port:
     version: "^2"
     public: true
     override_path: "../../components/esp_lvgl_port"
 
+  espressif/esp_lcd_lt8912b:
+    version: ">=0.1.3,<1.0.0"
+    override_path: "../../components/lcd/esp_lcd_lt8912b"
+
   esp_codec_dev:
-    version: "1.2.*"
+    version: "~1.5"
     public: true
 
-  espressif/esp_lcd_lt8912b:
-    version: ">=0.1.1,<1.0.0"
-    override_path: "../../components/lcd/esp_lcd_lt8912b"
+  esp_video:
+    version: "~1.4"
+    public:  true
+
+  usb:
+    version: "^1.0.0"
+    public: true
+    rules:
+     - if: "idf_version >=6.0"
 
 examples:
   - path: ../../examples/display
@@ -34,3 +49,5 @@ examples:
   - path: ../../examples/display_lvgl_demos
   - path: ../../examples/display_lvgl_benchmark
   - path: ../../examples/display_usb_hid
+  - path: ../../examples/display_sdcard
+  - path: ../../examples/display_camera_csi

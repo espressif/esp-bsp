@@ -8,7 +8,7 @@
  * @file
  * @brief BSP Display, Audio and Photo Example
  * @details Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL)
- * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo
+ * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo-
  */
 
 #include "esp_log.h"

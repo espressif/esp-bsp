@@ -1,9 +1,10 @@
 ## IDF Component Manager Manifest File
 dependencies:
   idf: ">=4.4"
-  esp_lcd_touch_tt21100:
+  esp_lcd_ili9341: "^2.0.1"
+  esp_lcd_touch_gt911:
     version: "^1"
-    override_path: "../../../../lcd_touch/esp_lcd_touch_tt21100/"
+    override_path: "../../../../lcd_touch/esp_lcd_touch_gt911/"
   esp_lvgl_port:
     version: "*"
     override_path: "../../../"

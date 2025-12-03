@@ -5,8 +5,8 @@
 
 
 
-| :1234: [CAPABILITIES](#1234-capabilities) | :floppy_disk: [SD CARD AND SPIFFS](#floppy_disk-sd-card-and-spiffs) | :musical_note: [AUDIO](#musical_note-audio) | :pager: [DISPLAY AND TOUCH](#pager-display-and-touch) | :electric_plug: [USB](#electric_plug-usb) | 
-| :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | 
+| :1234: [CAPABILITIES](#1234-capabilities) | :floppy_disk: [SD CARD AND SPIFFS](#floppy_disk-sd-card-and-spiffs) | :musical_note: [AUDIO](#musical_note-audio) | :pager: [DISPLAY AND TOUCH](#pager-display-and-touch) | :electric_plug: [USB](#electric_plug-usb) | :camera: [CAMERA](#camera-camera) | 
+| :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | 
 
 </div>
 
@@ -148,6 +148,7 @@ You can use these macros to conditionally compile code depending on feature avai
 | define  | [**BSP\_CAPS\_AUDIO\_MIC**](#define-bsp_caps_audio_mic)  1<br> |
 | define  | [**BSP\_CAPS\_AUDIO\_SPEAKER**](#define-bsp_caps_audio_speaker)  1<br> |
 | define  | [**BSP\_CAPS\_BUTTONS**](#define-bsp_caps_buttons)  0<br> |
+| define  | [**BSP\_CAPS\_CAMERA**](#define-bsp_caps_camera)  1<br> |
 | define  | [**BSP\_CAPS\_DISPLAY**](#define-bsp_caps_display)  1<br> |
 | define  | [**BSP\_CAPS\_IMU**](#define-bsp_caps_imu)  0<br> |
 | define  | [**BSP\_CAPS\_SDCARD**](#define-bsp_caps_sdcard)  1<br> |
@@ -902,7 +903,7 @@ Below are some of the most relevant predefined constants:
 | define  | [**BSP\_LCD\_BIGENDIAN**](#define-bsp_lcd_bigendian)  (0)<br> |
 | define  | [**BSP\_LCD\_BITS\_PER\_PIXEL**](#define-bsp_lcd_bits_per_pixel)  (16)<br> |
 | define  | [**BSP\_LCD\_COLOR\_FORMAT**](#define-bsp_lcd_color_format)  (ESP\_LCD\_COLOR\_FORMAT\_RGB565)<br> |
-| define  | [**BSP\_LCD\_COLOR\_SPACE**](#define-bsp_lcd_color_space)  (ESP\_LCD\_COLOR\_SPACE\_RGB)<br> |
+| define  | [**BSP\_LCD\_COLOR\_SPACE**](#define-bsp_lcd_color_space)  (LCD\_RGB\_ELEMENT\_ORDER\_RGB)<br> |
 | define  | [**BSP\_LCD\_DRAW\_BUFF\_DOUBLE**](#define-bsp_lcd_draw_buff_double)  (0)<br> |
 | define  | [**BSP\_LCD\_DRAW\_BUFF\_SIZE**](#define-bsp_lcd_draw_buff_size)  (BSP\_LCD\_H\_RES \* 50)<br> |
 | define  | [**BSP\_LCD\_H\_RES**](#define-bsp_lcd_h_res)  (800)<br> |
@@ -1471,6 +1472,71 @@ USB Host lib will be uninstalled and power from connector removed.
 
 * ESP\_OK On success
 * ESP\_ERR\_INVALID\_ARG Parameter error
+
+
+
+
+
+
+## :camera: Camera
+
+The BSP provides a helper function bsp_camera_start() for initializing the on-board camera module.
+This function sets up the required I2C bus, video subsystem, and camera clock if necessary.
+
+### Example Usage
+
+Camera usage can be quite complex. For a complete example, refer to the [`display_camera_csi`](https://github.com/espressif/esp-bsp/tree/master/examples/display_camera_csi) example in the BSP repository, or to the examples provided in the [`esp_video`](https://github.com/espressif/esp-video-components/tree/master/esp_video) component.
+
+> [!NOTE]
+> Please, do not forget select right camera sensor in `menuconfig`
+
+### Camera API Reference
+
+## Structures and Types
+
+| Type | Name |
+| ---: | :--- |
+| struct | [**bsp\_camera\_cfg\_t**](#struct-bsp_camera_cfg_t) <br>_BSP camera configuration structure (for future use)_ |
+
+## Functions
+
+| Type | Name |
+| ---: | :--- |
+|  esp\_err\_t | [**bsp\_camera\_start**](#function-bsp_camera_start) (const [**bsp\_camera\_cfg\_t**](#struct-bsp_camera_cfg_t) \*cfg) <br>_Initialize camera._ |
+
+## Macros
+
+| Type | Name |
+| ---: | :--- |
+| define  | [**BSP\_CAMERA\_DEVICE**](#define-bsp_camera_device)  (ESP\_VIDEO\_MIPI\_CSI\_DEVICE\_NAME)<br> |
+| define  | [**BSP\_CAMERA\_GPIO\_XCLK**](#define-bsp_camera_gpio_xclk)  (GPIO\_NUM\_NC)<br> |
+| define  | [**BSP\_CAMERA\_RST**](#define-bsp_camera_rst)  (GPIO\_NUM\_NC)<br> |
+
+
+## Structures and Types Documentation
+
+### struct `bsp_camera_cfg_t`
+
+_BSP camera configuration structure (for future use)_
+
+Variables:
+
+-  uint8\_t dummy  
+
+
+## Functions Documentation
+
+### function `bsp_camera_start`
+
+_Initialize camera._
+```c
+esp_err_t bsp_camera_start (
+    const bsp_camera_cfg_t *cfg
+) 
+```
+
+
+Camera sensor initialization.
 
 
 

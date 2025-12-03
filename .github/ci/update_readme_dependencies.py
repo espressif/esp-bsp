@@ -14,7 +14,7 @@ import argparse
 import subprocess
 import urllib.request
 from pathlib import Path
-from idf_component_tools.manifest import ManifestManager
+from idf_component_tools.manager import ManifestManager
 from py_markdown_table.markdown_table import markdown_table
 from typing import Any
 
@@ -81,13 +81,14 @@ def map_capability_to_driver(capability, manifest):
     components = []
     try:
         component_regex = capability_dict[capability]
-        for item in manifest.dependencies:
-            result = re.findall(component_regex, item.name)
+        for name, dependency in manifest.dependencies.items():
+            result = re.findall(component_regex, name)
             if result:
-                version = item.version_spec if item.version_spec else ""
-                component = item.name
+                version = dependency if isinstance(dependency, str) else dependency.version
+                component = name
                 # Add hyperlinks to components (but not to IDF component)
                 if component != "idf":
+                    component = name if name.startswith("espressif/") else f"espressif/{name}"
                     component = "[{}]({}{})".format(component, ESP_REGISTRY_URL, component)
 
                 components.append((component, version))
@@ -131,6 +132,8 @@ def get_capabilities_table(header_path, main_path, manifest):
     """
     Get markdown formatted table of manifest's capabilities
     """
+    with open(header_path, 'r') as f:
+        h_code = f.read()
     with open(header_path, 'r') as f:
         content = f.readlines()
         table_data = []
@@ -179,6 +182,12 @@ def get_capabilities_table(header_path, main_path, manifest):
                                 if mic_code_section is not None:
                                     matches = re.findall(r"([a-z0-9_]+)_codec_new", mic_code_section)
                                     additional_info = [m for m in matches if not m.startswith("audio")]
+
+                # CAMERA SENSOR
+                if capability == "CAMERA":
+                    cam_match = re.search(r"Supported camera sensors:\s*(.*)", h_code)
+                    if cam_match:
+                        additional_info = re.findall(r"[A-Z0-9_]+", cam_match.group(1))
 
                 components = []
                 versions = []
@@ -395,7 +404,8 @@ def check_all_bsps(filenames):
 
         try:
             check_bsp_readme(bsp_path)
-        except Exception:
+        except Exception as e:
+            print(e)
             ret += 1
     return ret
 

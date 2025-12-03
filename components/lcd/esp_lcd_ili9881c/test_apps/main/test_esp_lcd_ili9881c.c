@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -10,7 +10,6 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/i2c.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
@@ -37,11 +36,9 @@
 #define TEST_MIPI_DSI_LANE_NUM          (2)
 
 #if TEST_LCD_BIT_PER_PIXEL == 24
-#define TEST_MIPI_DPI_PX_FORMAT     (LCD_COLOR_PIXEL_FORMAT_RGB888)
-#elif TEST_LCD_BIT_PER_PIXEL == 18
-#define TEST_MIPI_DPI_PX_FORMAT     (LCD_COLOR_PIXEL_FORMAT_RGB666)
+#define TEST_MIPI_DPI_PX_FORMAT     (LCD_COLOR_FMT_RGB888)
 #elif TEST_LCD_BIT_PER_PIXEL == 16
-#define TEST_MIPI_DPI_PX_FORMAT     (LCD_COLOR_PIXEL_FORMAT_RGB565)
+#define TEST_MIPI_DPI_PX_FORMAT     (LCD_COLOR_FMT_RGB565)
 #endif
 
 #define TEST_DELAY_TIME_MS          (3000)
@@ -97,7 +94,7 @@ static void test_init_lcd(void)
     TEST_ESP_OK(esp_lcd_new_panel_io_dbi(mipi_dsi_bus, &dbi_config, &mipi_dbi_io));
 
     ESP_LOGI(TAG, "Install LCD driver of ili9881c");
-    esp_lcd_dpi_panel_config_t dpi_config = ILI9881C_800_1280_PANEL_60HZ_DPI_CONFIG(TEST_MIPI_DPI_PX_FORMAT);
+    esp_lcd_dpi_panel_config_t dpi_config = ILI9881C_800_1280_PANEL_60HZ_DPI_CONFIG_CF(TEST_MIPI_DPI_PX_FORMAT);
     ili9881c_vendor_config_t vendor_config = {
         .mipi_config = {
             .dsi_bus = mipi_dsi_bus,

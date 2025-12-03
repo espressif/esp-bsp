@@ -1,4 +1,4 @@
-version: "4.0.2"
+version: "4.1.2"
 description: Board Support Package (BSP) for ESP32-S3-Korvo-2
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_korvo_2
 
@@ -10,15 +10,20 @@ tags:
 
 dependencies:
   idf: ">=5.4" # I2C Driver-NG is supported in esp32-camera only from IDFv5.4
-  esp_lcd_ili9341: "^1"
-  esp_lcd_touch_tt21100: "^1"
+  esp_lcd_ili9341: 
+    version: "^2.0.1"
+    override_path: "../../components/lcd/esp_lcd_ili9341"
+  esp_lcd_touch_tt21100: 
+    version: "^1"
+    override_path: "../../components/lcd_touch/esp_lcd_touch_tt21100"
 
   esp_io_expander_tca9554:
     version: "^2"
     public: true
+    override_path: "../../components/io_expander/esp_io_expander_tca9554"
 
   esp_codec_dev:
-    version: "~1.3.1"
+    version: "~1.5"
     public: true
 
   esp32-camera:
@@ -42,3 +47,4 @@ examples:
   - path: ../../examples/display_camera
   - path: ../../examples/display_lvgl_demos
   - path: ../../examples/display_lvgl_benchmark
+  - path: ../../examples/display_sdcard

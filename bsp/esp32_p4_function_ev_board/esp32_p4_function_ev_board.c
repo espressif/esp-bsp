@@ -34,6 +34,8 @@
 #include "esp_lcd_touch_gt911.h"
 #include "bsp_err_check.h"
 #include "esp_codec_dev_defaults.h"
+#include "esp_video_device.h"
+#include "esp_video_init.h"
 
 static const char *TAG = "ESP32_P4_EV";
 
@@ -598,9 +600,9 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     ESP_LOGI(TAG, "Install EK79007 LCD control panel");
 
 #if CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
-    esp_lcd_dpi_panel_config_t dpi_config = EK79007_1024_600_PANEL_60HZ_CONFIG(LCD_COLOR_PIXEL_FORMAT_RGB888);
+    esp_lcd_dpi_panel_config_t dpi_config = EK79007_1024_600_PANEL_60HZ_CONFIG_CF(LCD_COLOR_FMT_RGB888);
 #else
-    esp_lcd_dpi_panel_config_t dpi_config = EK79007_1024_600_PANEL_60HZ_CONFIG(LCD_COLOR_PIXEL_FORMAT_RGB565);
+    esp_lcd_dpi_panel_config_t dpi_config = EK79007_1024_600_PANEL_60HZ_CONFIG_CF(LCD_COLOR_FMT_RGB565);
 #endif
     dpi_config.num_fbs = CONFIG_BSP_LCD_DPI_BUFFER_NUMS;
 
@@ -623,9 +625,9 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     // create ILI9881C control panel
     ESP_LOGI(TAG, "Install ILI9881C LCD control panel");
 #if CONFIG_BSP_LCD_COLOR_FORMAT_RGB888
-    esp_lcd_dpi_panel_config_t dpi_config = ILI9881C_800_1280_PANEL_60HZ_DPI_CONFIG(LCD_COLOR_PIXEL_FORMAT_RGB888);
+    esp_lcd_dpi_panel_config_t dpi_config = ILI9881C_800_1280_PANEL_60HZ_DPI_CONFIG_CF(LCD_COLOR_FMT_RGB888);
 #else
-    esp_lcd_dpi_panel_config_t dpi_config = ILI9881C_800_1280_PANEL_60HZ_DPI_CONFIG(LCD_COLOR_PIXEL_FORMAT_RGB565);
+    esp_lcd_dpi_panel_config_t dpi_config = ILI9881C_800_1280_PANEL_60HZ_DPI_CONFIG_CF(LCD_COLOR_FMT_RGB565);
 #endif
     dpi_config.num_fbs = CONFIG_BSP_LCD_DPI_BUFFER_NUMS;
 
@@ -1095,4 +1097,26 @@ esp_err_t bsp_usb_host_stop(void)
         vTaskDelete(usb_host_task);
     }
     return ESP_OK;
+}
+
+esp_err_t bsp_camera_start(const bsp_camera_cfg_t *cfg)
+{
+    /* Initilize I2C */
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+
+    const esp_video_init_csi_config_t base_csi_config = {
+        .sccb_config = {
+            .init_sccb = false,
+            .i2c_handle = i2c_handle,
+            .freq = 400000,
+        },
+        .reset_pin = BSP_CAMERA_RST,
+        .pwdn_pin  = -1,
+    };
+
+    esp_video_init_config_t cam_config = {
+        .csi      = &base_csi_config,
+    };
+
+    return esp_video_init(&cam_config);
 }

@@ -26,17 +26,17 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 <div align="center">
 <!-- START_DEPENDENCIES -->
 
-|     Available    |       Capability       |Controller/Codec|                                                                                                          Component                                                                                                          |   Version  |
-|------------------|------------------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-|:heavy_check_mark:|     :pager: DISPLAY    | st7789, ili9341|                                                          [espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341)<br/>idf                                                         |^1<br/>>=5.3|
-|:heavy_check_mark:|:black_circle: LVGL_PORT|                |                                                                [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)                                                               |     ^2     |
-|:heavy_check_mark:|    :point_up: TOUCH    | tt21100, gt911 |[espressif/esp_lcd_touch_gt911](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911)<br/>[espressif/esp_lcd_touch_tt21100](https://components.espressif.com/components/espressif/esp_lcd_touch_tt21100)|  ^1<br/>^1 |
-|:heavy_check_mark:| :radio_button: BUTTONS |                |                                                                       [espressif/button](https://components.espressif.com/components/espressif/button)                                                                      |     ^4     |
-|:heavy_check_mark:|  :musical_note: AUDIO  |                |                                                                [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)                                                               |   ~1.3.1   |
-|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     es8311     |                                                                                                                                                                                                                             |            |
-|:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                                                                                                                                             |            |
-|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                                                                             idf                                                                                                             |    >=5.3   |
-|:heavy_check_mark:|    :video_game: IMU    |                |                                                                     [espressif/icm42670](https://components.espressif.com/components/espressif/icm42670)                                                                    |   ^2.0.1   |
+|     Available    |       Capability       |Controller/Codec|                                                                                                          Component                                                                                                          |     Version    |
+|------------------|------------------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
+|:heavy_check_mark:|     :pager: DISPLAY    | st7789, ili9341|                                                          idf<br/>[espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341)                                                         |>=5.3<br/>^2.0.1|
+|:heavy_check_mark:|:black_circle: LVGL_PORT|                |                                                                [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)                                                               |       ^2       |
+|:heavy_check_mark:|    :point_up: TOUCH    | tt21100, gt911 |[espressif/esp_lcd_touch_tt21100](https://components.espressif.com/components/espressif/esp_lcd_touch_tt21100)<br/>[espressif/esp_lcd_touch_gt911](https://components.espressif.com/components/espressif/esp_lcd_touch_gt911)|    ^1<br/>^1   |
+|:heavy_check_mark:| :radio_button: BUTTONS |                |                                                                       [espressif/button](https://components.espressif.com/components/espressif/button)                                                                      |       ^4       |
+|:heavy_check_mark:|  :musical_note: AUDIO  |                |                                                                [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)                                                               |      ~1.5      |
+|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     es8311     |                                                                                                                                                                                                                             |                |
+|:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                                                                                                                                             |                |
+|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                                                                             idf                                                                                                             |      >=5.3     |
+|:heavy_check_mark:|    :video_game: IMU    |                |                                                                     [espressif/icm42670](https://components.espressif.com/components/espressif/icm42670)                                                                    |     ^2.0.2     |
 
 <!-- END_DEPENDENCIES -->
 </div>
@@ -48,11 +48,12 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
-| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
-| [Display, Audio and Photo Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_audio_photo) | Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo) |
+| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
+| [Display, Audio and Photo Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_audio_photo) | Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo-) |
 | [LVGL Benchmark Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_benchmark) | Run LVGL benchmark tests | - |
-| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demo) |
-| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation) |
+| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos-) |
+| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-) |
+| [Display SD card Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_sdcard) | Example of mounting an SD card using SD-MMC/SPI with display interaction. This example is also supported on boards without a display. | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sdcard) |
 
 <!-- END_EXAMPLES -->
 </div>
@@ -61,29 +62,29 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 
 ## LVGL Benchmark
 
-**DATE:** 08.07.2025 10:31
+**DATE:** 07.11.2025 09:03
 
-**LVGL version:** 9.3.0
+**LVGL version:** 9.4.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 94%  | 26  | 34  | 3  | 31  |
+| Empty screen | 93%  | 25  | 33  | 4  | 29  |
 | Moving wallpaper | 97%  | 25  | 35  | 5  | 30  |
 | Single rectangle | 10%  | 91  | 0  | 0  | 0  |
-| Multiple rectangles | 91%  | 50  | 16  | 2  | 14  |
-| Multiple RGB images | 17%  | 90  | 0  | 0  | 0  |
-| Multiple ARGB images | 18%  | 87  | 2  | 1  | 1  |
-| Rotated ARGB images | 74%  | 56  | 17  | 12  | 5  |
-| Multiple labels | 89%  | 79  | 9  | 3  | 6  |
-| Screen sized text | 98%  | 15  | 59  | 28  | 31  |
-| Multiple arcs | 17%  | 91  | 0  | 0  | 0  |
-| Containers | 33%  | 72  | 15  | 4  | 11  |
-| Containers with overlay | 95%  | 20  | 45  | 14  | 31  |
-| Containers with opa | 49%  | 69  | 18  | 7  | 11  |
-| Containers with opa_layer | 59%  | 54  | 27  | 15  | 12  |
-| Containers with scrolling | 94%  | 20  | 43  | 13  | 30  |
-| Widgets demo | 97%  | 25  | 26  | 12  | 14  |
-| All scenes avg. | 64%  | 54  | 21  | 7  | 14  |
+| Multiple rectangles | 91%  | 50  | 16  | 4  | 12  |
+| Multiple RGB images | 18%  | 91  | 0  | 0  | 0  |
+| Multiple ARGB images | 20%  | 86  | 2  | 1  | 1  |
+| Rotated ARGB images | 72%  | 54  | 18  | 13  | 5  |
+| Multiple labels | 89%  | 77  | 10  | 5  | 5  |
+| Screen sized text | 97%  | 15  | 58  | 28  | 30  |
+| Multiple arcs | 17%  | 94  | 0  | 0  | 0  |
+| Containers | 37%  | 72  | 18  | 5  | 13  |
+| Containers with overlay | 95%  | 20  | 46  | 15  | 31  |
+| Containers with opa | 49%  | 69  | 18  | 8  | 10  |
+| Containers with opa_layer | 60%  | 53  | 28  | 16  | 12  |
+| Containers with scrolling | 95%  | 20  | 44  | 14  | 30  |
+| Widgets demo | 97%  | 24  | 26  | 12  | 14  |
+| All scenes avg. | 64%  | 54  | 21  | 8  | 13  |
 
 
 

@@ -1,0 +1,6 @@
+## IDF Component Manager Manifest File
+dependencies:
+  idf: ">=5.2"
+  bh1750:
+    version: "*"
+    override_path: "../../"

@@ -1,10 +1,37 @@
 # Changelog
 
+## [Unreleased]
+
+### Features
+- Added option to include a rounder callback for LVGL 9
+- 
+### Fixes
+- Fixed deinitialization of the task which was created with caps - https://github.com/espressif/esp-bsp/issues/680
+- Call lv_deinit() - https://github.com/espressif/esp-bsp/issues/635
+
 ## 2.7.0
 
 ### Features
+
+- Added support for multi-touch gestures.
+
+## 2.6.3
+
+### Fixes
+- Improved and fixed deinit function (remove semaphor) - https://github.com/espressif/esp-bsp/issues/673
+
+## 2.6.2
+
+- Changed minimum IDF version to IDF5.1
+
+## 2.6.1
+
+### Features
 - Added option to place LVGL task stack to external RAM
-- Added option to include a rounder callback for LVGL 9
+- Fixed callback for RGB display for IDF6
+
+### Fixes
+- Register button callbacks only if encoder_enter is set https://github.com/espressif/esp-bsp/pull/571/files
 
 ## 2.6.0
 

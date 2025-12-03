@@ -36,11 +36,11 @@ M5Dial provides versatile power supply options to cater to various needs. It acc
 
 |     Available    |       Capability       |Controller/Codec|                                                  Component                                                 |   Version  |
 |------------------|------------------------|----------------|------------------------------------------------------------------------------------------------------------|------------|
-|:heavy_check_mark:|     :pager: DISPLAY    |     gc9a01     |  [espressif/esp_lcd_gc9a01](https://components.espressif.com/components/espressif/esp_lcd_gc9a01)<br/>idf  |^1<br/>>=5.0|
+|:heavy_check_mark:|     :pager: DISPLAY    |     gc9a01     |  idf<br/>[espressif/esp_lcd_gc9a01](https://components.espressif.com/components/espressif/esp_lcd_gc9a01)  |>=5.3<br/>^2|
 |:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |     ^2     |
 |:heavy_check_mark:|    :point_up: TOUCH    |     ft5x06     |[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|     ^1     |
 |:heavy_check_mark:| :radio_button: BUTTONS |                |              [espressif/button](https://components.espressif.com/components/espressif/button)              |     ^4     |
-|:heavy_check_mark:|   :white_circle: KNOB  |                |                [espressif/knob](https://components.espressif.com/components/espressif/knob)                |   ^0.1.3   |
+|:heavy_check_mark:|   :white_circle: KNOB  |                |                [espressif/knob](https://components.espressif.com/components/espressif/knob)                |     ^1     |
 |        :x:       |  :musical_note: AUDIO  |                |                                                                                                            |            |
 |        :x:       | :speaker: AUDIO_SPEAKER|                |                                                                                                            |            |
 |        :x:       | :microphone: AUDIO_MIC |                |                                                                                                            |            |
@@ -57,10 +57,10 @@ M5Dial provides versatile power supply options to cater to various needs. It acc
 
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
-| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
+| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
 | [LVGL Benchmark Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_benchmark) | Run LVGL benchmark tests | - |
-| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demo) |
-| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation) |
+| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos-) |
+| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-) |
 
 <!-- END_EXAMPLES -->
 </div>
@@ -69,29 +69,29 @@ M5Dial provides versatile power supply options to cater to various needs. It acc
 
 ## LVGL Benchmark
 
-**DATE:** 08.07.2025 10:31
+**DATE:** 07.11.2025 09:03
 
-**LVGL version:** 9.3.0
+**LVGL version:** 9.4.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 96%  | 38  | 23  | 4  | 19  |
-| Moving wallpaper | 94%  | 41  | 23  | 11  | 12  |
-| Single rectangle | 32%  | 98  | 2  | 0  | 2  |
-| Multiple rectangles | 87%  | 63  | 12  | 9  | 3  |
-| Multiple RGB images | 34%  | 92  | 2  | 1  | 1  |
-| Multiple ARGB images | 37%  | 93  | 3  | 3  | 0  |
-| Rotated ARGB images | 79%  | 60  | 16  | 15  | 1  |
-| Multiple labels | 58%  | 98  | 5  | 5  | 0  |
-| Screen sized text | 97%  | 23  | 40  | 38  | 2  |
-| Multiple arcs | 20%  | 88  | 0  | 0  | 0  |
-| Containers | 38%  | 82  | 13  | 7  | 6  |
-| Containers with overlay | 90%  | 33  | 25  | 20  | 5  |
-| Containers with opa | 42%  | 78  | 15  | 11  | 4  |
-| Containers with opa_layer | 51%  | 73  | 18  | 16  | 2  |
-| Containers with scrolling | 96%  | 32  | 27  | 21  | 6  |
-| Widgets demo | 99%  | 27  | 19  | 18  | 1  |
-| All scenes avg. | 65%  | 63  | 15  | 11  | 4  |
+| Empty screen | 96%  | 38  | 22  | 6  | 16  |
+| Moving wallpaper | 97%  | 38  | 23  | 11  | 12  |
+| Single rectangle | 37%  | 97  | 1  | 0  | 1  |
+| Multiple rectangles | 92%  | 59  | 12  | 9  | 3  |
+| Multiple RGB images | 33%  | 89  | 1  | 1  | 0  |
+| Multiple ARGB images | 34%  | 93  | 4  | 4  | 0  |
+| Rotated ARGB images | 81%  | 56  | 17  | 16  | 1  |
+| Multiple labels | 57%  | 90  | 6  | 5  | 1  |
+| Screen sized text | 97%  | 23  | 41  | 39  | 2  |
+| Multiple arcs | 32%  | 89  | 1  | 1  | 0  |
+| Containers | 37%  | 80  | 14  | 9  | 5  |
+| Containers with overlay | 90%  | 32  | 28  | 22  | 6  |
+| Containers with opa | 51%  | 76  | 17  | 13  | 4  |
+| Containers with opa_layer | 50%  | 70  | 20  | 18  | 2  |
+| Containers with scrolling | 97%  | 31  | 30  | 25  | 5  |
+| Widgets demo | 99%  | 26  | 21  | 20  | 1  |
+| All scenes avg. | 67%  | 61  | 15  | 12  | 3  |
 
 
 

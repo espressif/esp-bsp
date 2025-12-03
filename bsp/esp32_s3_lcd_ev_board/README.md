@@ -63,11 +63,11 @@ Based on the above configurations, there are three different anti-tearing modes 
 
 |     Available    |       Capability       |Controller/Codec|                                                                                                              Component                                                                                                              |      Version      |
 |------------------|------------------------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
-|:heavy_check_mark:|     :pager: DISPLAY    |                |[espressif/esp_lcd_gc9503](https://components.espressif.com/components/espressif/esp_lcd_gc9503)<br/>[espressif/esp_lcd_panel_io_additions](https://components.espressif.com/components/espressif/esp_lcd_panel_io_additions)<br/>idf|^3<br/>^1<br/>>=5.3|
+|:heavy_check_mark:|     :pager: DISPLAY    |                |idf<br/>[espressif/esp_lcd_panel_io_additions](https://components.espressif.com/components/espressif/esp_lcd_panel_io_additions)<br/>[espressif/esp_lcd_gc9503](https://components.espressif.com/components/espressif/esp_lcd_gc9503)|>=5.3<br/>^1<br/>^3|
 |:heavy_check_mark:|:black_circle: LVGL_PORT|                |                                                                    [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)                                                                   |         ^2        |
-|:heavy_check_mark:|    :point_up: TOUCH    |                |    [espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)<br/>[espressif/esp_lcd_touch_gt1151](https://components.espressif.com/components/espressif/esp_lcd_touch_gt1151)    |     ^1<br/>^1     |
+|:heavy_check_mark:|    :point_up: TOUCH    |                |    [espressif/esp_lcd_touch_gt1151](https://components.espressif.com/components/espressif/esp_lcd_touch_gt1151)<br/>[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)    |     ^1<br/>^1     |
 |:heavy_check_mark:| :radio_button: BUTTONS |                |                                                                           [espressif/button](https://components.espressif.com/components/espressif/button)                                                                          |         ^4        |
-|:heavy_check_mark:|  :musical_note: AUDIO  |                |                                                                    [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)                                                                   |       ~1.3.1      |
+|:heavy_check_mark:|  :musical_note: AUDIO  |                |                                                                    [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)                                                                   |        ~1.5       |
 |:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     es8311     |                                                                                                                                                                                                                                     |                   |
 |:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                                                                                                                                                     |                   |
 |        :x:       |  :floppy_disk: SDCARD  |                |                                                                                                                                                                                                                                     |                   |
@@ -83,11 +83,11 @@ Based on the above configurations, there are three different anti-tearing modes 
 
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
-| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display) |
-| [Display, Audio and Photo Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_audio_photo) | Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo) |
+| [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
+| [Display, Audio and Photo Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_audio_photo) | Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo-) |
 | [LVGL Benchmark Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_benchmark) | Run LVGL benchmark tests | - |
-| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demo) |
-| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation) |
+| [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos-) |
+| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-) |
 
 <!-- END_EXAMPLES -->
 </div>
@@ -96,29 +96,29 @@ Based on the above configurations, there are three different anti-tearing modes 
 
 ## LVGL Benchmark
 
-**DATE:** 08.07.2025 10:31
+**DATE:** 07.11.2025 09:03
 
-**LVGL version:** 9.3.0
+**LVGL version:** 9.4.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 98%  | 18  | 51  | 30  | 21  |
-| Moving wallpaper | 100%  | 8  | 109  | 84  | 25  |
-| Single rectangle | 99%  | 35  | 24  | 1  | 23  |
+| Empty screen | 96%  | 18  | 51  | 29  | 22  |
+| Moving wallpaper | 100%  | 10  | 85  | 81  | 4  |
+| Single rectangle | 99%  | 35  | 25  | 2  | 23  |
 | Multiple rectangles | 99%  | 32  | 27  | 18  | 9  |
-| Multiple RGB images | 99%  | 28  | 29  | 22  | 7  |
-| Multiple ARGB images | 99%  | 16  | 51  | 36  | 15  |
-| Rotated ARGB images | 100%  | 15  | 59  | 51  | 8  |
-| Multiple labels | 99%  | 18  | 47  | 35  | 12  |
-| Screen sized text | 100%  | 8  | 110  | 91  | 19  |
+| Multiple RGB images | 99%  | 29  | 29  | 22  | 7  |
+| Multiple ARGB images | 99%  | 16  | 51  | 35  | 16  |
+| Rotated ARGB images | 100%  | 15  | 58  | 50  | 8  |
+| Multiple labels | 99%  | 18  | 46  | 34  | 12  |
+| Screen sized text | 100%  | 8  | 109  | 88  | 21  |
 | Multiple arcs | 99%  | 35  | 23  | 8  | 15  |
-| Containers | 99%  | 14  | 56  | 41  | 15  |
-| Containers with overlay | 99%  | 9  | 87  | 75  | 12  |
-| Containers with opa | 99%  | 11  | 72  | 58  | 14  |
-| Containers with opa_layer | 99%  | 6  | 149  | 135  | 14  |
-| Containers with scrolling | 99%  | 11  | 81  | 62  | 19  |
-| Widgets demo | 99%  | 7  | 100  | 87  | 13  |
-| All scenes avg. | 99%  | 16  | 67  | 52  | 15  |
+| Containers | 100%  | 15  | 56  | 42  | 14  |
+| Containers with overlay | 99%  | 9  | 86  | 73  | 13  |
+| Containers with opa | 100%  | 11  | 75  | 57  | 18  |
+| Containers with opa_layer | 100%  | 6  | 145  | 133  | 12  |
+| Containers with scrolling | 99%  | 11  | 81  | 61  | 20  |
+| Widgets demo | 99%  | 7  | 99  | 85  | 14  |
+| All scenes avg. | 99%  | 17  | 65  | 51  | 14  |
 
 
 

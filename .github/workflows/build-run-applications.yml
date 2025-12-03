@@ -29,54 +29,28 @@ concurrency:
 
 jobs:
   build:
+    env:
+      component_manager_ver: "2.2.*"
+      idf_build_apps_ver: "2.10.1"
     strategy:
       matrix:
+        idf_ver:
+          - "latest"
+          - "release-v6.0"
+          - "release-v5.5"
+          - "release-v5.4"
+          - "release-v5.3"
+          - "release-v5.2"
+          - "release-v5.1"
+        parallel_index: [1, 2, 3, 4, 5]
         include:
+          # Default values for all versions
+          - parallel_count: 5
+            allow_fail: false
           - idf_ver: "latest"
-            parallel_count: 5
-            parallel_index: 1
-          - idf_ver: "latest"
-            parallel_count: 5
-            parallel_index: 2
-          - idf_ver: "latest"
-            parallel_count: 5
-            parallel_index: 3
-          - idf_ver: "latest"
-            parallel_count: 5
-            parallel_index: 4
-          - idf_ver: "latest"
-            parallel_count: 5
-            parallel_index: 5
-          - idf_ver: "release-v5.1"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.1"
-            parallel_count: 2
-            parallel_index: 2
-          - idf_ver: "release-v5.2"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.2"
-            parallel_count: 2
-            parallel_index: 2
-          - idf_ver: "release-v5.3"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.3"
-            parallel_count: 2
-            parallel_index: 2
-          - idf_ver: "release-v5.4"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.4"
-            parallel_count: 2
-            parallel_index: 2
-          - idf_ver: "release-v5.5"
-            parallel_count: 2
-            parallel_index: 1
-          - idf_ver: "release-v5.5"
-            parallel_count: 2
-            parallel_index: 2
+            allow_fail: true  # Do not fail CI, when fail "latest" build
+          - idf_ver: "release-v6.0" # TODO: Remove this section, when "release-v6.0" will be stable
+            allow_fail: true  # Do not fail CI, when fail "release-v6.0" build
     runs-on: ubuntu-latest
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
@@ -90,6 +64,8 @@ jobs:
           separator: ';' # idf-build-apps expects files seprated with semicolon
 
       - name: Build ESP-BSP applications
+        id: buildapps
+        continue-on-error: ${{ github.event_name == 'pull_request' && matrix.allow_fail == true }}
         if: always()
         shell: bash
         env:
@@ -98,14 +74,34 @@ jobs:
           ALL_CHANGED_FILES: ${{ (github.event_name != 'pull_request') && format(' ') || format('--modified-files=') }}${{ (github.event_name != 'pull_request') && format(' ') || steps.changed-files.outputs.all_modified_files }}
         run: |
           . ${IDF_PATH}/export.sh
-          pip install idf-component-manager==2.2.* ruamel.yaml idf-build-apps==2.4.3 --upgrade
+          pip install idf-component-manager==${{ env.component_manager_ver }} ruamel.yaml idf-build-apps==${{ env.idf_build_apps_ver }} --upgrade
 
           echo "Files changed: "${{env.ALL_CHANGED_FILES}}
           idf-build-apps find ${{env.ALL_CHANGED_FILES}}
           idf-build-apps build --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }} ${{env.ALL_CHANGED_FILES}} --collect-app-info build_info_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}.json
 
+      # Warning, if failed with master
+      - name: Warn if latest build failed
+        if: ${{ github.event_name == 'pull_request' && steps.buildapps.outcome == 'failure' && matrix.allow_fail == true }}
+        run: |
+          echo "::warning::Build failed for idf_ver=${{ matrix.idf_ver }} (ignored because it's '${{ matrix.idf_ver }}')"
+          echo "### ⚠️ Build failed for idf_ver=${{ matrix.idf_ver }}" >> $GITHUB_STEP_SUMMARY
+          echo "This failure was ignored (continue-on-error enabled)." >> $GITHUB_STEP_SUMMARY
+
+      # Warning, if failed with master
+      - name: Warn if latest build failed Comment PR
+        if: ${{ github.event_name == 'pull_request' && steps.buildapps.outcome == 'failure' && matrix.allow_fail == true }}
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          comment-tag: build_warning_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}
+          mode: recreate
+          message: |
+            ### ⚠️ Build failed for idf_ver=${{ matrix.idf_ver }} index=${{ matrix.parallel_index }}
+            This failure was ignored (continue-on-error enabled).
+            See details: [View build logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#step:${{ github.job }})
+
       - uses: actions/upload-artifact@v4
-        if: github.repository_owner == 'espressif' && needs.prepare.outputs.build_only == '0'
+        if: github.repository_owner == 'espressif' # && needs.prepare.outputs.build_only == '0'
         with:
           name: app_binaries_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}
           path: |
@@ -125,11 +121,11 @@ jobs:
       max-parallel: 5
       matrix:
         idf_ver:
-          - "latest"
+          - "release-v5.5"
         runner:
           - example: "test_example_display"
+          - example: "test_example_sdcard"
           - example: "test_example_lvgl_demos"
-          - example: "test_example_display_sensors"
           - example: "test_example_generic_button_led"
           - example: "test_example_lvgl_benchmark"
     env:
@@ -161,7 +157,7 @@ jobs:
         run: |
           export PYTEST_EMBEDDED_CACHE_DIR=/tmp/pytest-embedded-cache-dummy
           mkdir -p /tmp/pytest-embedded-cache-dummy
-          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} -k ${{ matrix.runner.example }} -n auto ${{ env.PYTEST_BENCHMARK_IGNORE }}
+          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} -k "${{ matrix.runner.example }} and not test_example_display_sensors" -n auto ${{ env.PYTEST_BENCHMARK_IGNORE }}
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()

@@ -23,22 +23,27 @@ dependencies:
   hts221:
     version: "^1.1.1"
     public: true
+    override_path: "../../components/hts221"
 
   bh1750:
     version: "^1.0.0"
     public: true
+    override_path: "../../components/bh1750"
 
   fbm320:
     version: "^1.0.0"
     public: true
+    override_path: "../../components/fbm320"
 
   mag3110:
     version: "^1.0.0"
     public: true
+    override_path: "../../components/mag3110"
 
   mpu6050:
     version: "^1.0.0"
     public: true
+    override_path: "../../components/mpu6050"
 
 examples:
   - path: ../../examples/mqtt_example

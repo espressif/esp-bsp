@@ -160,15 +160,15 @@ For LEDs handling is used component [led_indicator](https://components.espressif
 <div align="center">
 <!-- START_DEPENDENCIES -->
 
-|     Available    |       Capability      |Controller/Codec|                                               Component                                              |   Version  |
-|------------------|-----------------------|----------------|------------------------------------------------------------------------------------------------------|------------|
-|:heavy_check_mark:| :radio_button: BUTTONS|                |           [espressif/button](https://components.espressif.com/components/espressif/button)           |     ^4     |
-|:heavy_check_mark:|       :bulb: LED      |                |[espressif/led_indicator](https://components.espressif.com/components/espressif/led_indicator)<br/>idf|^1<br/>>=5.2|
-|        :x:       |  :musical_note: AUDIO |                |                                                                                                      |            |
-|        :x:       |:speaker: AUDIO_SPEAKER|                |                                                                                                      |            |
-|        :x:       | :microphone: AUDIO_MIC|                |                                                                                                      |            |
-|        :x:       |  :floppy_disk: SDCARD |                |                                                                                                      |            |
-|        :x:       |    :video_game: IMU   |                |                                                                                                      |            |
+|     Available    |       Capability      |Controller/Codec|                                               Component                                              |    Version   |
+|------------------|-----------------------|----------------|------------------------------------------------------------------------------------------------------|--------------|
+|:heavy_check_mark:| :radio_button: BUTTONS|                |           [espressif/button](https://components.espressif.com/components/espressif/button)           |      ^4      |
+|:heavy_check_mark:|       :bulb: LED      |                |idf<br/>[espressif/led_indicator](https://components.espressif.com/components/espressif/led_indicator)|>=5.2<br/>~2.0|
+|        :x:       |  :musical_note: AUDIO |                |                                                                                                      |              |
+|        :x:       |:speaker: AUDIO_SPEAKER|                |                                                                                                      |              |
+|        :x:       | :microphone: AUDIO_MIC|                |                                                                                                      |              |
+|        :x:       |  :floppy_disk: SDCARD |                |                                                                                                      |              |
+|        :x:       |    :video_game: IMU   |                |                                                                                                      |              |
 
 <!-- END_DEPENDENCIES -->
 </div>

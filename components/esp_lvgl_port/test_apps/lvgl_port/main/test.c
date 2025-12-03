@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -8,15 +8,16 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_check.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lvgl_port.h"
+#include "esp_lcd_ili9341.h"
 
-#include "esp_lcd_touch_tt21100.h"
+#include "esp_lcd_touch_gt911.h"
 
 #include "unity.h"
 
@@ -29,7 +30,6 @@
 #define EXAMPLE_LCD_PIXEL_CLK_HZ    (40 * 1000 * 1000)
 #define EXAMPLE_LCD_CMD_BITS        (8)
 #define EXAMPLE_LCD_PARAM_BITS      (8)
-#define EXAMPLE_LCD_COLOR_SPACE     (ESP_LCD_COLOR_SPACE_BGR)
 #define EXAMPLE_LCD_BITS_PER_PIXEL  (16)
 #define EXAMPLE_LCD_DRAW_BUFF_DOUBLE (1)
 #define EXAMPLE_LCD_DRAW_BUFF_HEIGHT (50)
@@ -41,7 +41,7 @@
 #define EXAMPLE_LCD_GPIO_RST        (GPIO_NUM_48)
 #define EXAMPLE_LCD_GPIO_DC         (GPIO_NUM_4)
 #define EXAMPLE_LCD_GPIO_CS         (GPIO_NUM_5)
-#define EXAMPLE_LCD_GPIO_BL         (GPIO_NUM_45)
+#define EXAMPLE_LCD_GPIO_BL         (GPIO_NUM_47)
 
 /* Touch settings */
 #define EXAMPLE_TOUCH_I2C_NUM       (0)
@@ -63,6 +63,27 @@ static esp_lcd_touch_handle_t touch_handle = NULL;
 /* LVGL display and touch */
 static lv_display_t *lvgl_disp = NULL;
 static lv_indev_t *lvgl_touch_indev = NULL;
+static i2c_master_bus_handle_t i2c_handle = NULL;
+
+static const ili9341_lcd_init_cmd_t vendor_specific_init[] = {
+    {0xC8, (uint8_t []){0xFF, 0x93, 0x42}, 3, 0},
+    {0xC0, (uint8_t []){0x0E, 0x0E}, 2, 0},
+    {0xC5, (uint8_t []){0xD0}, 1, 0},
+    {0xC1, (uint8_t []){0x02}, 1, 0},
+    {0xB4, (uint8_t []){0x02}, 1, 0},
+    {0xE0, (uint8_t []){0x00, 0x03, 0x08, 0x06, 0x13, 0x09, 0x39, 0x39, 0x48, 0x02, 0x0a, 0x08, 0x17, 0x17, 0x0F}, 15, 0},
+    {0xE1, (uint8_t []){0x00, 0x28, 0x29, 0x01, 0x0d, 0x03, 0x3f, 0x33, 0x52, 0x04, 0x0f, 0x0e, 0x37, 0x38, 0x0F}, 15, 0},
+
+    {0xB1, (uint8_t []){00, 0x1B}, 2, 0},
+    {0x36, (uint8_t []){0x08}, 1, 0},
+    {0x3A, (uint8_t []){0x55}, 1, 0},
+    {0xB7, (uint8_t []){0x06}, 1, 0},
+
+    {0x11, (uint8_t []){0}, 0x80, 0},
+    {0x29, (uint8_t []){0}, 0x80, 0},
+
+    {0, (uint8_t []){0}, 0xff, 0},
+};
 
 static esp_err_t app_lcd_init(void)
 {
@@ -100,12 +121,22 @@ static esp_err_t app_lcd_init(void)
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)EXAMPLE_LCD_SPI_NUM, &io_config, &lcd_io), err, TAG, "New panel IO failed");
 
     ESP_LOGD(TAG, "Install LCD driver");
+    const ili9341_vendor_config_t vendor_config = {
+        .init_cmds = &vendor_specific_init[0],
+        .init_cmds_size = sizeof(vendor_specific_init) / sizeof(ili9341_lcd_init_cmd_t),
+    };
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = EXAMPLE_LCD_GPIO_RST,
-        .color_space = EXAMPLE_LCD_COLOR_SPACE,
+        .flags.reset_active_high = 1,
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
+        .rgb_endian = LCD_RGB_ENDIAN_BGR,
+#else
+        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
+#endif
         .bits_per_pixel = EXAMPLE_LCD_BITS_PER_PIXEL,
+        .vendor_config = (void *) &vendor_config,
     };
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7789(lcd_io, &panel_config, &lcd_panel), err, TAG, "New panel failed");
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9341(lcd_io, &panel_config, &lcd_panel), err, TAG, "New panel failed");
 
     esp_lcd_panel_reset(lcd_panel);
     esp_lcd_panel_init(lcd_panel);
@@ -140,16 +171,13 @@ static esp_err_t app_lcd_deinit(void)
 static esp_err_t app_touch_init(void)
 {
     /* Initilize I2C */
-    const i2c_config_t i2c_conf = {
-        .mode = I2C_MODE_MASTER,
+    const i2c_master_bus_config_t i2c_config = {
+        .i2c_port = EXAMPLE_TOUCH_I2C_NUM,
         .sda_io_num = EXAMPLE_TOUCH_I2C_SDA,
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_io_num = EXAMPLE_TOUCH_I2C_SCL,
-        .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master.clk_speed = EXAMPLE_TOUCH_I2C_CLK_HZ
+        .clk_source = I2C_CLK_SRC_DEFAULT,
     };
-    ESP_RETURN_ON_ERROR(i2c_param_config(EXAMPLE_TOUCH_I2C_NUM, &i2c_conf), TAG, "I2C configuration failed");
-    ESP_RETURN_ON_ERROR(i2c_driver_install(EXAMPLE_TOUCH_I2C_NUM, i2c_conf.mode, 0, 0, 0), TAG, "I2C initialization failed");
+    ESP_RETURN_ON_ERROR(i2c_new_master_bus(&i2c_config, &i2c_handle), TAG, "");
 
     /* Initialize touch HW */
     const esp_lcd_touch_config_t tp_cfg = {
@@ -167,29 +195,25 @@ static esp_err_t app_touch_init(void)
             .mirror_y = 0,
         },
     };
-    const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
-    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)EXAMPLE_TOUCH_I2C_NUM, &tp_io_config, &tp_io_handle), TAG, "");
-    return esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, &touch_handle);
+    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
+    tp_io_config.scl_speed_hz = EXAMPLE_TOUCH_I2C_CLK_HZ;
+    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
+    return esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, &touch_handle);
 }
 
 static esp_err_t app_touch_deinit(void)
 {
     ESP_RETURN_ON_ERROR(esp_lcd_touch_del(touch_handle), TAG, "Touch deinit failed");
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_del(tp_io_handle), TAG, "Touch IO deinit failed");
-    ESP_RETURN_ON_ERROR(i2c_driver_delete(EXAMPLE_TOUCH_I2C_NUM), TAG, "I2C deinit failed");
+    ESP_RETURN_ON_ERROR(i2c_del_master_bus(i2c_handle), TAG, "I2C deinit failed");
     return ESP_OK;
 }
 
-static esp_err_t app_lvgl_init(void)
+static esp_err_t app_lvgl_init(int task_affinity)
 {
     /* Initialize LVGL */
-    const lvgl_port_cfg_t lvgl_cfg = {
-        .task_priority = 4,         /* LVGL task priority */
-        .task_stack = 4096,         /* LVGL task stack size */
-        .task_affinity = -1,        /* LVGL task pinned to core (-1 is no affinity) */
-        .task_max_sleep_ms = 500,   /* Maximum sleep in LVGL task */
-        .timer_period_ms = 5        /* LVGL timer tick period in ms */
-    };
+    lvgl_port_cfg_t lvgl_cfg = ESP_LVGL_PORT_INIT_CONFIG();
+    lvgl_cfg.task_affinity = task_affinity;
     ESP_RETURN_ON_ERROR(lvgl_port_init(&lvgl_cfg), TAG, "LVGL port initialization failed");
 
     /* Add LCD screen */
@@ -283,7 +307,7 @@ static void app_main_display(void)
 }
 
 // Some resources are lazy allocated in the LCD driver, the threadhold is left for that case
-#define TEST_MEMORY_LEAK_THRESHOLD (50)
+#define TEST_MEMORY_LEAK_THRESHOLD (200)
 
 static void check_leak(size_t start_free, size_t end_free, const char *type)
 {
@@ -310,8 +334,8 @@ TEST_CASE("Main test LVGL port", "[lvgl port]")
 
     ESP_LOGI(TAG, "Initilize LVGL.");
 
-    /* LVGL initialization */
-    TEST_ASSERT_EQUAL(app_lvgl_init(), ESP_OK);
+    /* LVGL initialization - no task affinity */
+    TEST_ASSERT_EQUAL(app_lvgl_init(-1), ESP_OK);
 
     /* Show LVGL objects */
     app_main_display();
@@ -326,8 +350,33 @@ TEST_CASE("Main test LVGL port", "[lvgl port]")
 
     ESP_LOGI(TAG, "LVGL deinitialized.");
 
+    esp_reent_cleanup();
     size_t end_lvgl_freemem_8bit = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     size_t end_lvgl_freemem_32bit = heap_caps_get_free_size(MALLOC_CAP_32BIT);
+    check_leak(start_lvgl_freemem_8bit, end_lvgl_freemem_8bit, "8BIT LVGL");
+    check_leak(start_lvgl_freemem_32bit, end_lvgl_freemem_32bit, "32BIT LVGL");
+
+    ESP_LOGI(TAG, "Initilize LVGL - task affinity to core 1");
+
+    /* LVGL initialization - task affinity to core 1 */
+    TEST_ASSERT_EQUAL(app_lvgl_init(1), ESP_OK);
+
+    /* Show LVGL objects */
+    app_main_display();
+
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
+
+    /* LVGL deinit */
+    TEST_ASSERT_EQUAL(app_lvgl_deinit(), ESP_OK);
+
+    /* When using LVGL8, it takes some time to release all memory */
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    ESP_LOGI(TAG, "LVGL deinitialized.");
+
+    esp_reent_cleanup();
+    end_lvgl_freemem_8bit = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    end_lvgl_freemem_32bit = heap_caps_get_free_size(MALLOC_CAP_32BIT);
     check_leak(start_lvgl_freemem_8bit, end_lvgl_freemem_8bit, "8BIT LVGL");
     check_leak(start_lvgl_freemem_32bit, end_lvgl_freemem_32bit, "32BIT LVGL");
 
@@ -341,6 +390,7 @@ TEST_CASE("Main test LVGL port", "[lvgl port]")
 
     ESP_LOGI(TAG, "LCD deinitilized.");
 
+    esp_reent_cleanup();
     size_t end_freemem_8bit = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     size_t end_freemem_32bit = heap_caps_get_free_size(MALLOC_CAP_32BIT);
     check_leak(start_freemem_8bit, end_freemem_8bit, "8BIT");

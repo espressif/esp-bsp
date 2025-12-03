@@ -34,9 +34,10 @@ jobs:
           m5stack_core_s3,
           m5_atom_s3,
           m5dial,
+          esp32_p4_eye,
         ]
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v5
 
       - name: Prepare BSP examples
         run: |
@@ -55,7 +56,7 @@ jobs:
   upload_other_components:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v5
       - name: Upload Other components
         uses: espressif/upload-components-ci-action@v2
         with:
@@ -87,10 +88,12 @@ jobs:
             components/lcd/esp_lcd_ssd1681
             components/lcd/esp_lcd_ili9881c
             components/lcd/esp_lcd_lt8912b
+            components/lcd/esp_lcd_nt35510
             components/io_expander/esp_io_expander
             components/io_expander/esp_io_expander_tca9554
             components/io_expander/esp_io_expander_tca95xx_16bit
             components/io_expander/esp_io_expander_ht8574
+            components/io_expander/esp_io_expander_pi4ioe5v6408
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
           dry_run: ${{ github.ref_name != 'master' || github.repository_owner != 'espressif' }}

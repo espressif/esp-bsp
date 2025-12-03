@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -23,6 +23,9 @@ typedef enum {
     REG_INPUT = 0,
     REG_OUTPUT,
     REG_DIRECTION,
+    REG_HIGHZ,
+    REG_PULLUP_EN,
+    REG_PULLUP_SEL,
 } reg_type_t;
 
 static char *TAG = "io_expander";
@@ -126,6 +129,76 @@ esp_err_t esp_io_expander_get_level(esp_io_expander_handle_t handle, uint32_t pi
     return ESP_OK;
 }
 
+esp_err_t esp_io_expander_set_pullupdown(esp_io_expander_handle_t handle, uint32_t pin_num_mask, esp_io_expander_pullupdown_t state)
+{
+    ESP_RETURN_ON_FALSE(handle, ESP_ERR_INVALID_ARG, TAG, "Invalid handle");
+    if (pin_num_mask >= BIT64(VALID_IO_COUNT(handle))) {
+        ESP_LOGW(TAG, "Pin num mask out of range, bit higher than %d won't work", VALID_IO_COUNT(handle) - 1);
+    }
+
+    uint32_t pull_en, pull_set, pull_en_tmp, pull_set_tmp;
+    ESP_RETURN_ON_ERROR(read_reg(handle, REG_PULLUP_EN, &pull_en), TAG, "Read Pull-up enable reg failed");
+    ESP_RETURN_ON_ERROR(read_reg(handle, REG_PULLUP_SEL, &pull_set), TAG, "Read Pull-up select reg failed");
+    pull_en_tmp = pull_en;
+    pull_set_tmp = pull_set;
+
+    if ((state == IO_EXPANDER_PULL_UP && !handle->config.flags.pullup_high_bit_zero) || (state == IO_EXPANDER_PULL_DOWN && handle->config.flags.pullup_high_bit_zero)) {
+        /* 1. High level && Set 1 to output high */
+        /* 2. Low level && Set 1 to output low */
+        pull_set |= pin_num_mask;
+    } else {
+        /* 3. High level && Set 0 to output high */
+        /* 4. Low level && Set 0 to output low */
+        pull_set &= ~pin_num_mask;
+    }
+
+    /* Write to reg only when different */
+    if (pull_set != pull_set_tmp) {
+        ESP_RETURN_ON_ERROR(write_reg(handle, REG_PULLUP_SEL, pull_set), TAG, "Write Pull-up select reg failed");
+    }
+
+    if (state == IO_EXPANDER_PULL_UP || state == IO_EXPANDER_PULL_DOWN) {
+        /* Enable pull-up/pull-down */
+        pull_en |= pin_num_mask;
+    } else {
+        /* Disable pull-up/pull-down */
+        pull_en &= ~pin_num_mask;
+    }
+
+    /* Write to reg only when different */
+    if (pull_en != pull_en_tmp) {
+        ESP_RETURN_ON_ERROR(write_reg(handle, REG_PULLUP_EN, pull_en), TAG, "Write Pull-up enable reg failed");
+    }
+
+    return ESP_OK;
+}
+
+esp_err_t esp_io_expander_set_output_mode(esp_io_expander_handle_t handle, uint32_t pin_num_mask, esp_io_expander_output_mode_t mode)
+{
+    ESP_RETURN_ON_FALSE(handle, ESP_ERR_INVALID_ARG, TAG, "Invalid handle");
+    if (pin_num_mask >= BIT64(VALID_IO_COUNT(handle))) {
+        ESP_LOGW(TAG, "Pin num mask out of range, bit higher than %d won't work", VALID_IO_COUNT(handle) - 1);
+    }
+
+    bool is_highz = (mode == IO_EXPANDER_OUTPUT_MODE_OPEN_DRAIN) ? true : false;
+    uint32_t highz_reg, temp;
+    ESP_RETURN_ON_ERROR(read_reg(handle, REG_HIGHZ, &highz_reg), TAG, "Read High-Z reg failed");
+    temp = highz_reg;
+    if (is_highz) {
+        /* Open drain && Set 1 */
+        highz_reg |= pin_num_mask;
+    } else {
+        /* Push pull && Set 0  */
+        highz_reg &= ~pin_num_mask;
+    }
+    /* Write to reg only when different */
+    if (highz_reg != temp) {
+        ESP_RETURN_ON_ERROR(write_reg(handle, REG_HIGHZ, highz_reg), TAG, "Write High-Z reg failed");
+    }
+
+    return ESP_OK;
+}
+
 esp_err_t esp_io_expander_print_state(esp_io_expander_handle_t handle)
 {
     ESP_RETURN_ON_FALSE(handle, ESP_ERR_INVALID_ARG, TAG, "Invalid handle");
@@ -190,6 +263,15 @@ static esp_err_t write_reg(esp_io_expander_handle_t handle, reg_type_t reg, uint
     case REG_DIRECTION:
         ESP_RETURN_ON_FALSE(handle->write_direction_reg, ESP_ERR_NOT_SUPPORTED, TAG, "write_direction_reg isn't implemented");
         return handle->write_direction_reg(handle, value);
+    case REG_HIGHZ:
+        ESP_RETURN_ON_FALSE(handle->write_highz_reg, ESP_ERR_NOT_SUPPORTED, TAG, "write_highz_reg isn't implemented");
+        return handle->write_highz_reg(handle, value);
+    case REG_PULLUP_EN:
+        ESP_RETURN_ON_FALSE(handle->write_pullup_en_reg, ESP_ERR_NOT_SUPPORTED, TAG, "write_pullup_en_reg isn't implemented");
+        return handle->write_pullup_en_reg(handle, value);
+    case REG_PULLUP_SEL:
+        ESP_RETURN_ON_FALSE(handle->write_pullup_sel_reg, ESP_ERR_NOT_SUPPORTED, TAG, "write_pullup_sel_reg isn't implemented");
+        return handle->write_pullup_sel_reg(handle, value);
     default:
         return ESP_ERR_NOT_SUPPORTED;
     }
@@ -220,6 +302,15 @@ static esp_err_t read_reg(esp_io_expander_handle_t handle, reg_type_t reg, uint3
     case REG_DIRECTION:
         ESP_RETURN_ON_FALSE(handle->read_direction_reg, ESP_ERR_NOT_SUPPORTED, TAG, "read_direction_reg isn't implemented");
         return handle->read_direction_reg(handle, value);
+    case REG_HIGHZ:
+        ESP_RETURN_ON_FALSE(handle->read_highz_reg, ESP_ERR_NOT_SUPPORTED, TAG, "read_highz_reg isn't implemented");
+        return handle->read_highz_reg(handle, value);
+    case REG_PULLUP_EN:
+        ESP_RETURN_ON_FALSE(handle->read_pullup_en_reg, ESP_ERR_NOT_SUPPORTED, TAG, "read_pullup_en_reg isn't implemented");
+        return handle->read_pullup_en_reg(handle, value);
+    case REG_PULLUP_SEL:
+        ESP_RETURN_ON_FALSE(handle->read_pullup_sel_reg, ESP_ERR_NOT_SUPPORTED, TAG, "read_pullup_sel_reg isn't implemented");
+        return handle->read_pullup_sel_reg(handle, value);
     default:
         return ESP_ERR_NOT_SUPPORTED;
     }

@@ -15,6 +15,10 @@
 #include "bsp_err_check.h"
 #include "button_gpio.h"
 #include "button_adc.h"
+#include "led_indicator_strips.h"
+#include "led_indicator_gpio.h"
+#include "led_indicator_ledc.h"
+#include "led_indicator_rgb.h"
 
 #if CONFIG_BSP_DISPLAY_ENABLED
 #include "driver/spi_master.h"
@@ -283,65 +287,12 @@ static led_indicator_rgb_config_t bsp_leds_rgb_config = {
 
 #endif // CONFIG_BSP_LED_TYPE_RGB
 
-static const led_indicator_config_t bsp_leds_config[BSP_LED_NUM] = {
-#if CONFIG_BSP_LED_TYPE_RGB
-    {
-        .mode = LED_STRIPS_MODE,
-        .led_indicator_strips_config = &bsp_leds_rgb_config,
-        .blink_lists = bsp_led_blink_defaults_lists,
-        .blink_list_num = BSP_LED_MAX,
-    },
-#elif CONFIG_BSP_LED_TYPE_RGB_CLASSIC
-    {
-        .mode = LED_RGB_MODE,
-        .led_indicator_rgb_config = &bsp_leds_rgb_config,
-        .blink_lists = bsp_led_blink_defaults_lists,
-        .blink_list_num = BSP_LED_MAX,
-    },
-#elif CONFIG_BSP_LED_TYPE_GPIO
-
 #if CONFIG_BSP_LEDS_NUM > 0
-    {
-        .mode = LED_GPIO_MODE,
-        .led_indicator_gpio_config = &bsp_leds_gpio_config[0],
-        .blink_lists = bsp_led_blink_defaults_lists,
-        .blink_list_num = BSP_LED_MAX,
-    },
-#endif  // CONFIG_BSP_LEDS_NUM > 0
-#if CONFIG_BSP_LEDS_NUM > 1
-    {
-        .mode = LED_GPIO_MODE,
-        .led_indicator_gpio_config = &bsp_leds_gpio_config[1],
-        .blink_lists = bsp_led_blink_defaults_lists,
-        .blink_list_num = BSP_LED_MAX,
-    },
-#endif  // CONFIG_BSP_LEDS_NUM > 1
-#if CONFIG_BSP_LEDS_NUM > 2
-    {
-        .mode = LED_GPIO_MODE,
-        .led_indicator_gpio_config = &bsp_leds_gpio_config[2],
-        .blink_lists = bsp_led_blink_defaults_lists,
-        .blink_list_num = BSP_LED_MAX,
-    },
-#endif  // CONFIG_BSP_LEDS_NUM > 2
-#if CONFIG_BSP_LEDS_NUM > 3
-    {
-        .mode = LED_GPIO_MODE,
-        .led_indicator_gpio_config = &bsp_leds_gpio_config[3],
-        .blink_lists = bsp_led_blink_defaults_lists,
-        .blink_list_num = BSP_LED_MAX,
-    },
-#endif  // CONFIG_BSP_LEDS_NUM > 3
-#if CONFIG_BSP_LEDS_NUM > 4
-    {
-        .mode = LED_GPIO_MODE,
-        .led_indicator_gpio_config = &bsp_leds_gpio_config[4],
-        .blink_lists = bsp_led_blink_defaults_lists,
-        .blink_list_num = BSP_LED_MAX,
-    },
-#endif  // CONFIG_BSP_LEDS_NUM > 4
-#endif // CONFIG_BSP_LED_TYPE_RGB/CONFIG_BSP_LED_TYPE_GPIO
+static const led_indicator_config_t bsp_leds_config = {
+    .blink_lists = bsp_led_blink_defaults_lists,
+    .blink_list_num = BSP_LED_MAX,
 };
+#endif // CONFIG_BSP_LEDS_NUM > 0
 
 esp_err_t bsp_i2c_init(void)
 {
@@ -557,7 +508,7 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
     ESP_LOGD(TAG, "Install LCD driver");
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = BSP_LCD_RST,
-        .color_space = BSP_LCD_COLOR_SPACE,
+        .rgb_ele_order = BSP_LCD_COLOR_SPACE,
         .bits_per_pixel = BSP_LCD_BITS_PER_PIXEL,
     };
 #if CONFIG_BSP_DISPLAY_DRIVER_ST7789
@@ -817,11 +768,14 @@ esp_err_t bsp_led_indicator_create(led_indicator_handle_t led_array[], int *led_
         *led_cnt = 0;
     }
     for (int i = 0; i < BSP_LED_NUM; i++) {
-        led_array[i] = led_indicator_create(&bsp_leds_config[i]);
-        if (led_array[i] == NULL) {
-            ret = ESP_FAIL;
-            break;
-        }
+#if CONFIG_BSP_LED_TYPE_GPIO
+        ret = led_indicator_new_gpio_device(&bsp_leds_config, &bsp_leds_gpio_config[i], &led_array[i]);
+#elif CONFIG_BSP_LED_TYPE_RGB
+        ret = led_indicator_new_strips_device(&bsp_leds_config, &bsp_leds_rgb_config, &led_array[i]);
+#elif CONFIG_BSP_LED_TYPE_RGB_CLASSIC
+        ret = led_indicator_new_rgb_device(&bsp_leds_config, &bsp_leds_rgb_config, &led_array[i]);
+#endif
+        BSP_ERROR_CHECK_RETURN_ERR(ret);
         if (led_cnt) {
             (*led_cnt)++;
         }

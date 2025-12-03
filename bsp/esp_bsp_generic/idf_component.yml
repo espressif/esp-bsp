@@ -1,5 +1,5 @@
 
-version: "3.0.0~2"
+version: "3.0.2"
 description: Generic Board Support Package (BSP)
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp_bsp_generic
 
@@ -8,20 +8,36 @@ tags:
 
 dependencies:
   idf: ">=5.2"
-  esp_lcd_touch_tt21100:  "^1"
-  esp_lcd_touch_gt1151:   "^1"
-  esp_lcd_touch_gt911:    "^1"
-  esp_lcd_touch_cst816s:  "^1"
-  esp_lcd_touch_ft5x06:   "^1"
-  esp_lcd_ili9341:  "^1"
-  esp_lcd_gc9a01:   "^1"
+  esp_lcd_touch_tt21100:  
+    version: "^1"
+    override_path: "../../components/lcd_touch/esp_lcd_touch_tt21100"
+  esp_lcd_touch_gt1151:
+    version: "^1"
+    override_path: "../../components/lcd_touch/esp_lcd_touch_gt1151"
+  esp_lcd_touch_gt911: 
+    version: "^1"
+    override_path: "../../components/lcd_touch/esp_lcd_touch_gt911"
+  esp_lcd_touch_cst816s: 
+    version: "^1"
+    override_path: "../../components/lcd_touch/esp_lcd_touch_cst816s"
+  esp_lcd_touch_ft5x06:   
+    version: "^1"
+    override_path: "../../components/lcd_touch/esp_lcd_touch_ft5x06"
+  esp_lcd_ili9341: 
+    version: "^2.0.1"
+    override_path: "../../components/lcd/esp_lcd_ili9341"
+
+  espressif/esp_lcd_gc9a01:
+    version:  "^2"
+    public: true
+    override_path: "../../components/lcd/esp_lcd_gc9a01"
 
   button:
     version: "^4"
     public: true
 
   led_indicator:
-    version: "^1"
+    version: "~2.0"
     public: true
 
   espressif/esp_lvgl_port:
