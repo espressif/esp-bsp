@@ -120,7 +120,7 @@ Each BSP defines an identifier macro in the form of `BSP_BOARD_*`.
 
 | Type | Name |
 | ---: | :--- |
-| define  | [**BSP\_BOARD\_ESP32\_P4\_FUNCTION\_EV\_BOARD**](#define-bsp_board_esp32_p4_function_ev_board)  <br> |
+| define  | [**BSP\_BOARD\_M5STACK\_TAB5**](#define-bsp_board_m5stack_tab5)  <br> |
 
 
 
@@ -147,10 +147,13 @@ You can use these macros to conditionally compile code depending on feature avai
 | define  | [**BSP\_CAPS\_AUDIO**](#define-bsp_caps_audio)  1<br> |
 | define  | [**BSP\_CAPS\_AUDIO\_MIC**](#define-bsp_caps_audio_mic)  1<br> |
 | define  | [**BSP\_CAPS\_AUDIO\_SPEAKER**](#define-bsp_caps_audio_speaker)  1<br> |
+| define  | [**BSP\_CAPS\_BAT**](#define-bsp_caps_bat)  0<br> |
 | define  | [**BSP\_CAPS\_BUTTONS**](#define-bsp_caps_buttons)  0<br> |
 | define  | [**BSP\_CAPS\_CAMERA**](#define-bsp_caps_camera)  1<br> |
 | define  | [**BSP\_CAPS\_DISPLAY**](#define-bsp_caps_display)  1<br> |
 | define  | [**BSP\_CAPS\_IMU**](#define-bsp_caps_imu)  0<br> |
+| define  | [**BSP\_CAPS\_KNOB**](#define-bsp_caps_knob)  0<br> |
+| define  | [**BSP\_CAPS\_LED**](#define-bsp_caps_led)  0<br> |
 | define  | [**BSP\_CAPS\_SDCARD**](#define-bsp_caps_sdcard)  1<br> |
 | define  | [**BSP\_CAPS\_TOUCH**](#define-bsp_caps_touch)  1<br> |
 
@@ -180,8 +183,8 @@ You can use these macros to conditionally compile code depending on feature avai
 | Type | Name |
 | ---: | :--- |
 | define  | [**BSP\_I2C\_NUM**](#define-bsp_i2c_num)  CONFIG\_BSP\_I2C\_NUM<br> |
-| define  | [**BSP\_I2C\_SCL**](#define-bsp_i2c_scl)  (GPIO\_NUM\_8)<br> |
-| define  | [**BSP\_I2C\_SDA**](#define-bsp_i2c_sda)  (GPIO\_NUM\_7)<br> |
+| define  | [**BSP\_I2C\_SCL**](#define-bsp_i2c_scl)  (GPIO\_NUM\_32)<br> |
+| define  | [**BSP\_I2C\_SDA**](#define-bsp_i2c_sda)  (GPIO\_NUM\_31)<br> |
 
 
 
@@ -327,7 +330,7 @@ sdmmc_card_print_info(stdout, sdcard);
 |  esp\_err\_t | [**bsp\_sdcard\_sdmmc\_mount**](#function-bsp_sdcard_sdmmc_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (MMC mode)_ |
 |  void | [**bsp\_sdcard\_sdspi\_get\_slot**](#function-bsp_sdcard_sdspi_get_slot) (const spi\_host\_device\_t spi\_host, sdspi\_device\_config\_t \*config) <br>_Get SD card SPI slot config._ |
 |  esp\_err\_t | [**bsp\_sdcard\_sdspi\_mount**](#function-bsp_sdcard_sdspi_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (SPI mode)_ |
-|  esp\_err\_t | [**bsp\_sdcard\_unmount**](#function-bsp_sdcard_unmount) (void) <br>_Unmount microSD card from virtual file system._ |
+|  esp\_err\_t | [**bsp\_sdcard\_unmount**](#function-bsp_sdcard_unmount) (void) <br>_Unmount micorSD card from virtual file system._ |
 |  esp\_err\_t | [**bsp\_spiffs\_mount**](#function-bsp_spiffs_mount) (void) <br>_Mount SPIFFS to virtual file system._ |
 |  esp\_err\_t | [**bsp\_spiffs\_unmount**](#function-bsp_spiffs_unmount) (void) <br>_Unmount SPIFFS from virtual file system._ |
 
@@ -335,13 +338,14 @@ sdmmc_card_print_info(stdout, sdcard);
 
 | Type | Name |
 | ---: | :--- |
-| define  | [**BSP\_SDSPI\_HOST**](#define-bsp_sdspi_host)  (SDSPI\_DEFAULT\_HOST)<br> |
+| define  | [**BSP\_SDSPI\_HOST**](#define-bsp_sdspi_host)  (SPI3\_HOST)<br> |
 | define  | [**BSP\_SD\_CLK**](#define-bsp_sd_clk)  (GPIO\_NUM\_43)<br> |
 | define  | [**BSP\_SD\_CMD**](#define-bsp_sd_cmd)  (GPIO\_NUM\_44)<br> |
 | define  | [**BSP\_SD\_D0**](#define-bsp_sd_d0)  (GPIO\_NUM\_39)<br> |
 | define  | [**BSP\_SD\_D1**](#define-bsp_sd_d1)  (GPIO\_NUM\_40)<br> |
 | define  | [**BSP\_SD\_D2**](#define-bsp_sd_d2)  (GPIO\_NUM\_41)<br> |
 | define  | [**BSP\_SD\_D3**](#define-bsp_sd_d3)  (GPIO\_NUM\_42)<br> |
+| define  | [**BSP\_SD\_DET**](#define-bsp_sd_det)  (GPIO\_NUM\_NC)<br> |
 | define  | [**BSP\_SD\_MOUNT\_POINT**](#define-bsp_sd_mount_point)  CONFIG\_BSP\_SD\_MOUNT\_POINT<br> |
 | define  | [**BSP\_SD\_SPI\_CLK**](#define-bsp_sd_spi_clk)  (GPIO\_NUM\_43)<br> |
 | define  | [**BSP\_SD\_SPI\_CS**](#define-bsp_sd_spi_cs)  (GPIO\_NUM\_42)<br> |
@@ -432,8 +436,8 @@ esp_err_t bsp_sdcard_mount (
 
 * ESP\_OK on success
 * ESP\_ERR\_INVALID\_STATE if esp\_vfs\_fat\_sdmmc\_mount was already called
-* ESP\_ERR\_NO\_MEM if memory cannot be allocated
-* ESP\_FAIL if partition cannot be mounted
+* ESP\_ERR\_NO\_MEM if memory can not be allocated
+* ESP\_FAIL if partition can not be mounted
 * other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
 ### function `bsp_sdcard_sdmmc_get_slot`
 
@@ -519,7 +523,7 @@ esp_err_t bsp_sdcard_sdspi_mount (
 * other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
 ### function `bsp_sdcard_unmount`
 
-_Unmount microSD card from virtual file system._
+_Unmount micorSD card from virtual file system._
 ```c
 esp_err_t bsp_sdcard_unmount (
     void
@@ -667,18 +671,20 @@ esp_codec_dev_close(mic_codec_dev);
 | ---: | :--- |
 |  esp\_codec\_dev\_handle\_t | [**bsp\_audio\_codec\_microphone\_init**](#function-bsp_audio_codec_microphone_init) (void) <br>_Initialize microphone codec device._ |
 |  esp\_codec\_dev\_handle\_t | [**bsp\_audio\_codec\_speaker\_init**](#function-bsp_audio_codec_speaker_init) (void) <br>_Initialize speaker codec device._ |
+|  const audio\_codec\_data\_if\_t \* | [**bsp\_audio\_get\_codec\_itf**](#function-bsp_audio_get_codec_itf) (void) <br>_Get codec I2S interface (initialized in bsp\_audio\_init)_ |
 |  esp\_err\_t | [**bsp\_audio\_init**](#function-bsp_audio_init) (const i2s\_std\_config\_t \*i2s\_config) <br>_Init audio._ |
 
 ## Macros
 
 | Type | Name |
 | ---: | :--- |
-| define  | [**BSP\_I2S\_DOUT**](#define-bsp_i2s_dout)  (GPIO\_NUM\_9)<br> |
-| define  | [**BSP\_I2S\_DSIN**](#define-bsp_i2s_dsin)  (GPIO\_NUM\_11)<br> |
-| define  | [**BSP\_I2S\_LCLK**](#define-bsp_i2s_lclk)  (GPIO\_NUM\_10)<br> |
-| define  | [**BSP\_I2S\_MCLK**](#define-bsp_i2s_mclk)  (GPIO\_NUM\_13)<br> |
-| define  | [**BSP\_I2S\_SCLK**](#define-bsp_i2s_sclk)  (GPIO\_NUM\_12)<br> |
-| define  | [**BSP\_POWER\_AMP\_IO**](#define-bsp_power_amp_io)  (GPIO\_NUM\_53)<br> |
+| define  | [**BSP\_I2S\_DOUT**](#define-bsp_i2s_dout)  (GPIO\_NUM\_26)<br> |
+| define  | [**BSP\_I2S\_DSIN**](#define-bsp_i2s_dsin)  (GPIO\_NUM\_28)<br> |
+| define  | [**BSP\_I2S\_LCLK**](#define-bsp_i2s_lclk)  (GPIO\_NUM\_29)<br> |
+| define  | [**BSP\_I2S\_MCLK**](#define-bsp_i2s_mclk)  (GPIO\_NUM\_30)<br> |
+| define  | [**BSP\_I2S\_SCLK**](#define-bsp_i2s_sclk)  (GPIO\_NUM\_27)<br> |
+| define  | [**BSP\_POWER\_AMP\_IO**](#define-bsp_power_amp_io)  (GPIO\_NUM\_NC)<br> |
+| define  | [**BSP\_SPEAKER\_EN**](#define-bsp_speaker_en)  (IO\_EXPANDER\_PIN\_NUM\_1)<br> |
 
 
 
@@ -710,6 +716,21 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init (
 **Returns:**
 
 Pointer to codec device handle or NULL when error occurred
+### function `bsp_audio_get_codec_itf`
+
+_Get codec I2S interface (initialized in bsp\_audio\_init)_
+```c
+const audio_codec_data_if_t * bsp_audio_get_codec_itf (
+    void
+) 
+```
+
+
+**Returns:**
+
+
+
+* Pointer to codec I2S interface handle or NULL when error occurred
 ### function `bsp_audio_init`
 
 _Init audio._
@@ -726,16 +747,10 @@ There is no deinit audio function. Users can free audio resources by calling i2s
 
 
 
-**Warning:**
-
-The type of i2s\_config param is depending on IDF version. 
-
-
-
 **Parameters:**
 
 
-* `i2s_config` I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz) 
+* `i2s_config` I2S configuration. Pass NULL to use default values 
 
 
 **Returns:**
@@ -869,7 +884,6 @@ Below are some of the most relevant predefined constants:
 | ---: | :--- |
 | struct | [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) <br>_BSP display configuration structure._ |
 | struct | [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) <br>_BSP display configuration structure._ |
-| enum  | [**bsp\_hdmi\_resolution\_t**](#enum-bsp_hdmi_resolution_t)  <br>_BSP HDMI resolution types._ |
 | struct | [**bsp\_lcd\_handles\_t**](#struct-bsp_lcd_handles_t) <br>_BSP display return handles._ |
 | struct | [**bsp\_touch\_config\_t**](#struct-bsp_touch_config_t) <br>_BSP touch configuration structure._ |
 
@@ -883,6 +897,8 @@ Below are some of the most relevant predefined constants:
 |  esp\_err\_t | [**bsp\_display\_brightness\_init**](#function-bsp_display_brightness_init) (void) <br>_Initialize display's brightness._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_set**](#function-bsp_display_brightness_set) (int brightness\_percent) <br>_Set display's brightness._ |
 |  void | [**bsp\_display\_delete**](#function-bsp_display_delete) (void) <br>_Delete display panel._ |
+|  esp\_err\_t | [**bsp\_display\_enter\_sleep**](#function-bsp_display_enter_sleep) (void) <br>_Set display enter sleep mode._ |
+|  esp\_err\_t | [**bsp\_display\_exit\_sleep**](#function-bsp_display_exit_sleep) (void) <br>_Set display exit sleep mode._ |
 |  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)_ |
 |  bool | [**bsp\_display\_lock**](#function-bsp_display_lock) (uint32\_t timeout\_ms) <br>_Take LVGL mutex._ |
 |  esp\_err\_t | [**bsp\_display\_new**](#function-bsp_display_new) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, esp\_lcd\_panel\_handle\_t \*ret\_panel, esp\_lcd\_panel\_io\_handle\_t \*ret\_io) <br>_Create new display panel._ |
@@ -890,32 +906,28 @@ Below are some of the most relevant predefined constants:
 |  void | [**bsp\_display\_rotate**](#function-bsp_display_rotate) (lv\_display\_t \*disp, lv\_disp\_rotation\_t rotation) <br>_Rotate screen._ |
 |  lv\_display\_t \* | [**bsp\_display\_start**](#function-bsp_display_start) (void) <br>_Initialize display._ |
 |  lv\_display\_t \* | [**bsp\_display\_start\_with\_config**](#function-bsp_display_start_with_config) (const [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) \*cfg) <br>_Initialize display._ |
-|  void | [**bsp\_display\_stop**](#function-bsp_display_stop) (lv\_display\_t \*display) <br>_Deinitialize display._ |
 |  void | [**bsp\_display\_unlock**](#function-bsp_display_unlock) (void) <br>_Give LVGL mutex._ |
-|  void | [**bsp\_touch\_delete**](#function-bsp_touch_delete) (void) <br>_Deinitialize touch._ |
 |  esp\_err\_t | [**bsp\_touch\_new**](#function-bsp_touch_new) (const [**bsp\_touch\_config\_t**](#struct-bsp_touch_config_t) \*config, esp\_lcd\_touch\_handle\_t \*ret\_touch) <br>_Create new touchscreen._ |
 
 ## Macros
 
 | Type | Name |
 | ---: | :--- |
-| define  | [**BSP\_LCD\_BACKLIGHT**](#define-bsp_lcd_backlight)  (GPIO\_NUM\_23)<br> |
+| define  | [**BSP\_LCD\_BACKLIGHT**](#define-bsp_lcd_backlight)  (GPIO\_NUM\_22)<br> |
 | define  | [**BSP\_LCD\_BIGENDIAN**](#define-bsp_lcd_bigendian)  (0)<br> |
 | define  | [**BSP\_LCD\_BITS\_PER\_PIXEL**](#define-bsp_lcd_bits_per_pixel)  (16)<br> |
 | define  | [**BSP\_LCD\_COLOR\_FORMAT**](#define-bsp_lcd_color_format)  (ESP\_LCD\_COLOR\_FORMAT\_RGB565)<br> |
 | define  | [**BSP\_LCD\_COLOR\_SPACE**](#define-bsp_lcd_color_space)  (LCD\_RGB\_ELEMENT\_ORDER\_RGB)<br> |
-| define  | [**BSP\_LCD\_DRAW\_BUFF\_DOUBLE**](#define-bsp_lcd_draw_buff_double)  (0)<br> |
-| define  | [**BSP\_LCD\_DRAW\_BUFF\_SIZE**](#define-bsp_lcd_draw_buff_size)  (BSP\_LCD\_H\_RES \* 50)<br> |
-| define  | [**BSP\_LCD\_H\_RES**](#define-bsp_lcd_h_res)  (800)<br> |
+| define  | [**BSP\_LCD\_EN**](#define-bsp_lcd_en)  (IO\_EXPANDER\_PIN\_NUM\_4)<br> |
+| define  | [**BSP\_LCD\_H\_RES**](#define-bsp_lcd_h_res)  (720)<br> |
 | define  | [**BSP\_LCD\_MIPI\_DSI\_LANE\_BITRATE\_MBPS**](#define-bsp_lcd_mipi_dsi_lane_bitrate_mbps)  (1000)<br> |
 | define  | [**BSP\_LCD\_MIPI\_DSI\_LANE\_NUM**](#define-bsp_lcd_mipi_dsi_lane_num)  (2)<br> |
-| define  | [**BSP\_LCD\_PIXEL\_CLOCK\_MHZ**](#define-bsp_lcd_pixel_clock_mhz)  (80)<br> |
 | define  | [**BSP\_LCD\_RST**](#define-bsp_lcd_rst)  (GPIO\_NUM\_NC)<br> |
 | define  | [**BSP\_LCD\_TOUCH\_INT**](#define-bsp_lcd_touch_int)  (GPIO\_NUM\_NC)<br> |
-| define  | [**BSP\_LCD\_TOUCH\_RST**](#define-bsp_lcd_touch_rst)  (GPIO\_NUM\_NC)<br> |
 | define  | [**BSP\_LCD\_V\_RES**](#define-bsp_lcd_v_res)  (1280)<br> |
 | define  | [**BSP\_MIPI\_DSI\_PHY\_PWR\_LDO\_CHAN**](#define-bsp_mipi_dsi_phy_pwr_ldo_chan)  (3)<br> |
 | define  | [**BSP\_MIPI\_DSI\_PHY\_PWR\_LDO\_VOLTAGE\_MV**](#define-bsp_mipi_dsi_phy_pwr_ldo_voltage_mv)  (2500)<br> |
+| define  | [**BSP\_TOUCH\_EN**](#define-bsp_touch_en)  (IO\_EXPANDER\_PIN\_NUM\_5)<br> |
 | define  | [**ESP\_LCD\_COLOR\_FORMAT\_RGB565**](#define-esp_lcd_color_format_rgb565)  (1)<br> |
 | define  | [**ESP\_LCD\_COLOR\_FORMAT\_RGB888**](#define-esp_lcd_color_format_rgb888)  (2)<br> |
 
@@ -938,8 +950,6 @@ Variables:
 
 -  struct [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) flags  
 
--  [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) hw_cfg  <br>Display HW configuration
-
 -  lvgl\_port\_cfg\_t lvgl_port_cfg  <br>LVGL port configuration
 
 -  unsigned int sw_rotate  <br>Use software rotation (slower), The feature is unavailable under avoid-tear mode
@@ -952,25 +962,9 @@ Variables:
 
 -  struct [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) dsi_bus  
 
--  [**bsp\_hdmi\_resolution\_t**](#enum-bsp_hdmi_resolution_t) hdmi_resolution  <br>HDMI resolution selection
-
 -  uint32\_t lane_bit_rate_mbps  <br>DSI bus config - lane bit rate
 
 -  mipi\_dsi\_phy\_clock\_source\_t phy_clk_src  <br>DSI bus config - clock source
-
-### enum `bsp_hdmi_resolution_t`
-
-_BSP HDMI resolution types._
-```c
-enum bsp_hdmi_resolution_t {
-    BSP_HDMI_RES_NONE = 0,
-    BSP_HDMI_RES_800x600,
-    BSP_HDMI_RES_1024x768,
-    BSP_HDMI_RES_1280x720,
-    BSP_HDMI_RES_1280x800,
-    BSP_HDMI_RES_1920x1080
-};
-```
 
 ### struct `bsp_lcd_handles_t`
 
@@ -1046,6 +1040,13 @@ esp_err_t bsp_display_brightness_deinit (
 ) 
 ```
 
+
+**Returns:**
+
+
+
+* ESP\_OK On success
+* ESP\_ERR\_INVALID\_ARG Parameter error
 ### function `bsp_display_brightness_init`
 
 _Initialize display's brightness._
@@ -1101,6 +1102,46 @@ void bsp_display_delete (
 ) 
 ```
 
+### function `bsp_display_enter_sleep`
+
+_Set display enter sleep mode._
+```c
+esp_err_t bsp_display_enter_sleep (
+    void
+) 
+```
+
+
+All the display (LCD, backlight, touch) will enter sleep mode.
+
+
+
+**Returns:**
+
+
+
+* ESP\_OK on success
+* ESP\_ERR\_NOT\_SUPPORTED if this function is not supported by the panel
+### function `bsp_display_exit_sleep`
+
+_Set display exit sleep mode._
+```c
+esp_err_t bsp_display_exit_sleep (
+    void
+) 
+```
+
+
+All the display (LCD, backlight, touch) will exit sleep mode.
+
+
+
+**Returns:**
+
+
+
+* ESP\_OK on success
+* ESP\_ERR\_NOT\_SUPPORTED if this function is not supported by the panel
 ### function `bsp_display_get_input_dev`
 
 _Get pointer to input device (touch, buttons, ...)_
@@ -1165,7 +1206,7 @@ If you want to free resources allocated by this function, you can use esp\_lcd A
 ````cpp
 esp_lcd_panel_del(panel);
 esp_lcd_panel_io_del(io);
-esp_lcd_del_dsi_bus(mipi_dsi_bus);
+spi_bus_free(spi_num_from_configuration);
 ````
 
 
@@ -1253,13 +1294,13 @@ lv_display_t * bsp_display_start (
 ```
 
 
-This function initializes MIPI-DSI, display controller and starts LVGL handling task. LCD backlight must be enabled separately by calling [**bsp\_display\_brightness\_set()**](#function-bsp_display_brightness_set)
+This function initializes SPI, display controller and starts LVGL handling task. LCD backlight must be enabled separately by calling [**bsp\_display\_brightness\_set()**](#function-bsp_display_brightness_set)
 
 
 
 **Returns:**
 
-Pointer to LVGL display or NULL when error occured
+Pointer to LVGL display or NULL when error occurred
 ### function `bsp_display_start_with_config`
 
 _Initialize display._
@@ -1270,7 +1311,7 @@ lv_display_t * bsp_display_start_with_config (
 ```
 
 
-This function initializes MIPI-DSI, display controller and starts LVGL handling task. LCD backlight must be enabled separately by calling [**bsp\_display\_brightness\_set()**](#function-bsp_display_brightness_set)
+This function initializes SPI, display controller and starts LVGL handling task. LCD backlight must be enabled separately by calling [**bsp\_display\_brightness\_set()**](#function-bsp_display_brightness_set)
 
 
 
@@ -1282,39 +1323,12 @@ This function initializes MIPI-DSI, display controller and starts LVGL handling 
 
 **Returns:**
 
-Pointer to LVGL display or NULL when error occured
-### function `bsp_display_stop`
-
-_Deinitialize display._
-```c
-void bsp_display_stop (
-    lv_display_t *display
-) 
-```
-
-
-This function deinitializes MIPI-DSI, display controller and stops LVGL.
-
-
-
-**Parameters:**
-
-
-* `display` Pointer to LVGL display
+Pointer to LVGL display or NULL when error occurred
 ### function `bsp_display_unlock`
 
 _Give LVGL mutex._
 ```c
 void bsp_display_unlock (
-    void
-) 
-```
-
-### function `bsp_touch_delete`
-
-_Deinitialize touch._
-```c
-void bsp_touch_delete (
     void
 ) 
 ```
@@ -1330,11 +1344,11 @@ esp_err_t bsp_touch_new (
 ```
 
 
-If you want to free resources allocated by this function, you can use API:
+If you want to free resources allocated by this function, you can use esp\_lcd\_touch API, ie.:
 
 
 ````cpp
-bsp_touch_delete();
+esp_lcd_touch_del(tp);
 ````
 
 
@@ -1398,6 +1412,7 @@ For more USB-related APIs and configuration options, check the corresponding BSP
 
 | Type | Name |
 | ---: | :--- |
+| define  | [**BSP\_USB\_EN**](#define-bsp_usb_en)  (IO\_EXPANDER\_PIN\_NUM\_3)<br> |
 | define  | [**BSP\_USB\_NEG**](#define-bsp_usb_neg)  (GPIO\_NUM\_19)<br> |
 | define  | [**BSP\_USB\_POS**](#define-bsp_usb_pos)  (GPIO\_NUM\_20)<br> |
 
@@ -1509,8 +1524,9 @@ Camera usage can be quite complex. For a complete example, refer to the [`displa
 | Type | Name |
 | ---: | :--- |
 | define  | [**BSP\_CAMERA\_DEVICE**](#define-bsp_camera_device)  (ESP\_VIDEO\_MIPI\_CSI\_DEVICE\_NAME)<br> |
+| define  | [**BSP\_CAMERA\_EN**](#define-bsp_camera_en)  (IO\_EXPANDER\_PIN\_NUM\_6)<br> |
 | define  | [**BSP\_CAMERA\_GPIO\_XCLK**](#define-bsp_camera_gpio_xclk)  (GPIO\_NUM\_NC)<br> |
-| define  | [**BSP\_CAMERA\_ROTATION**](#define-bsp_camera_rotation)  (0)<br> |
+| define  | [**BSP\_CAMERA\_ROTATION**](#define-bsp_camera_rotation)  (270)<br> |
 | define  | [**BSP\_CAMERA\_RST**](#define-bsp_camera_rst)  (GPIO\_NUM\_NC)<br> |
 
 
@@ -1538,6 +1554,98 @@ esp_err_t bsp_camera_start (
 
 
 Camera sensor initialization.
+
+
+
+
+
+
+
+
+### Others API Reference
+
+## Structures and Types
+
+| Type | Name |
+| ---: | :--- |
+| enum  | [**bsp\_feature\_t**](#enum-bsp_feature_t)  <br> |
+
+## Functions
+
+| Type | Name |
+| ---: | :--- |
+|  esp\_err\_t | [**bsp\_feature\_enable**](#function-bsp_feature_enable) (bsp\_feature\_t feature, bool enable) <br>_Enable selected feature._ |
+|  esp\_io\_expander\_handle\_t | [**bsp\_io\_expander\_init**](#function-bsp_io_expander_init) (void) <br>_Init IO expander._ |
+
+## Macros
+
+| Type | Name |
+| ---: | :--- |
+| define  | [**BSP\_IO\_EXPANDER\_ADDRESS**](#define-bsp_io_expander_address)  (ESP\_IO\_EXPANDER\_I2C\_PI4IOE5V6408\_ADDRESS\_LOW)<br> |
+| define  | [**BSP\_IO\_EXPANDER\_ADDRESS\_1**](#define-bsp_io_expander_address_1)  (ESP\_IO\_EXPANDER\_I2C\_PI4IOE5V6408\_ADDRESS\_HIGH)<br> |
+
+
+## Structures and Types Documentation
+
+### enum `bsp_feature_t`
+
+```c
+enum bsp_feature_t {
+    BSP_FEATURE_LCD,
+    BSP_FEATURE_TOUCH,
+    BSP_FEATURE_SPEAKER,
+    BSP_FEATURE_CAMERA,
+    BSP_FEATURE_USB,
+    BSP_FEATURE_WIFI
+};
+```
+
+
+## Functions Documentation
+
+### function `bsp_feature_enable`
+
+_Enable selected feature._
+```c
+esp_err_t bsp_feature_enable (
+    bsp_feature_t feature,
+    bool enable
+) 
+```
+
+
+**Parameters:**
+
+
+* `feature` Feature for enablement 
+* `enable` Enable/disable selected feature 
+
+
+**Returns:**
+
+
+
+* ESP\_OK Success
+* ESP\_ERR\_INVALID\_ARG Parameter error
+### function `bsp_io_expander_init`
+
+_Init IO expander._
+```c
+esp_io_expander_handle_t bsp_io_expander_init (
+    void
+) 
+```
+
+
+**Note:**
+
+If the device was already initialized, users can also call it to get handle
+
+
+
+**Returns:**
+
+Pointer to device handle or NULL when error occurred
 
 
 

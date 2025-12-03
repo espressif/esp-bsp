@@ -24,12 +24,6 @@ typedef enum {
     APP_VIDEO_FMT_YUV420 = V4L2_PIX_FMT_YUV420,
 } video_fmt_t;
 
-#define EXAMPLE_CAM_DEV_PATH                (ESP_VIDEO_MIPI_CSI_DEVICE_NAME)
-#define EXAMPLE_CAM_BUF_NUM                 (2)
-
-#define APP_VIDEO_FMT                       (APP_VIDEO_FMT_RGB565)
-
-
 typedef void (*app_video_frame_operation_cb_t)(uint8_t *camera_buf, uint8_t camera_buf_index, uint32_t camera_buf_hes, uint32_t camera_buf_ves, size_t camera_buf_len);
 
 /**
@@ -74,16 +68,6 @@ esp_err_t app_video_set_bufs(int video_fd, uint32_t fb_num, const void **fb);
  * @return ESP_OK on success, or ESP_FAIL on failure.
  */
 esp_err_t app_video_get_bufs(int fb_num, void **fb);
-
-/**
- * @brief Get the size of the video buffer.
- *
- * Calculates and returns the size of the video buffer based on the
- * camera's width, height, and pixel format (RGB565 or RGB888).
- *
- * @return Size of the video buffer in bytes.
- */
-uint32_t app_video_get_buf_size(void);
 
 /**
  * @brief Start the video stream task.
