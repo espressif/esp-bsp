@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -41,6 +41,7 @@ typedef struct {
     uint8_t fb_bits_per_pixel;
     uint8_t madctl_val; // save current value of LCD_CMD_MADCTL register
     uint8_t colmod_val; // save current value of LCD_CMD_COLMOD register
+    ili9341_lcd_init_cmds_t init_cmds_sel;
     const ili9341_lcd_init_cmd_t *init_cmds;
     uint16_t init_cmds_size;
 } ili9341_panel_t;
@@ -117,7 +118,9 @@ esp_err_t esp_lcd_new_panel_ili9341(const esp_lcd_panel_io_handle_t io, const es
     ili9341->io = io;
     ili9341->reset_gpio_num = panel_dev_config->reset_gpio_num;
     ili9341->reset_level = panel_dev_config->flags.reset_active_high;
+    ili9341->init_cmds_sel = ILI9341_LCD_INIT_CMD_1; // Default init commands
     if (panel_dev_config->vendor_config) {
+        ili9341->init_cmds_sel = ((ili9341_vendor_config_t *)panel_dev_config->vendor_config)->init_cmds_sel;
         ili9341->init_cmds = ((ili9341_vendor_config_t *)panel_dev_config->vendor_config)->init_cmds;
         ili9341->init_cmds_size = ((ili9341_vendor_config_t *)panel_dev_config->vendor_config)->init_cmds_size;
     }
@@ -183,7 +186,7 @@ static esp_err_t panel_ili9341_reset(esp_lcd_panel_t *panel)
     return ESP_OK;
 }
 
-static const ili9341_lcd_init_cmd_t vendor_specific_init_default[] = {
+static const ili9341_lcd_init_cmd_t vendor_specific_init_default_1[] = {
 //  {cmd, { data }, data_size, delay_ms}
     /* Power contorl B, power control = 0, DC_ENA = 1 */
     {0xCF, (uint8_t []){0x00, 0xAA, 0XE0}, 3, 0},
@@ -231,6 +234,65 @@ static const ili9341_lcd_init_cmd_t vendor_specific_init_default[] = {
     {0xB6, (uint8_t []){0x08, 0x82, 0x27}, 3, 0},
 };
 
+static const ili9341_lcd_init_cmd_t vendor_specific_init_default_2[] = {
+    //  {cmd, { data }, data_size, delay_ms}
+    /* Power control B */
+    {0xCF, (uint8_t []){0x00, 0xC1, 0x30}, 3, 0},
+    /* Power on sequence control */
+    {0xED, (uint8_t []){0x64, 0x03, 0x12, 0x81}, 4, 0},
+    /* Driver timing control A */
+    {0xE8, (uint8_t []){0x85, 0x00, 0x78}, 3, 0},
+    /* Power control A */
+    {0xCB, (uint8_t []){0x39, 0x2C, 0x00, 0x34, 0x02}, 5, 0},
+    /* Pump ratio control */
+    {0xF7, (uint8_t []){0x20}, 1, 0},
+    /* Driver timing control */
+    {0xEA, (uint8_t []){0x00, 0x00}, 2, 0},
+    /* Power control 1 */
+    {0xC0, (uint8_t []){0x10}, 1, 0},
+    /* Power control 2 */
+    {0xC1, (uint8_t []){0x00}, 1, 0},
+    /* VCOM control 1 */
+    {0xC5, (uint8_t []){0x30, 0x30}, 2, 0},
+    /* VCOM control 2 */
+    {0xC7, (uint8_t []){0xB7}, 1, 0},
+    /* Frame rate control */
+    {0xB1, (uint8_t []){0x00, 0x1A}, 2, 0},
+    /* Enable 3G */
+    {0xF2, (uint8_t []){0x00}, 1, 0},
+    /* Gamma set */
+    {0x26, (uint8_t []){0x01}, 1, 0},
+    /* Positive gamma correction */
+    {0xE0, (uint8_t []){0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, 0x4E, 0xF1, 0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00}, 15, 0}, // Adjusted for ILI9341_2_DRIVER
+    /* Negative gamma correction */
+    {0xE1, (uint8_t []){0x00, 0x0E, 0x14, 0x03, 0x11, 0x07, 0x31, 0xC1, 0x48, 0x08, 0x0F, 0x0C, 0x31, 0x36, 0x0F}, 15, 0}, // Adjusted for ILI9341_2_DRIVER
+    /* Entry mode set */
+    {0xB7, (uint8_t []){0x07}, 1, 0},
+    /* Display function control */
+    {0xB6, (uint8_t []){0x08, 0x82, 0x27}, 3, 0},
+};
+
+/* Init commands used in ESP-BOX-3 */
+static const ili9341_lcd_init_cmd_t vendor_specific_init_default_3[] = {
+    {0xC8, (uint8_t []){0xFF, 0x93, 0x42}, 3, 0},
+    {0xC0, (uint8_t []){0x0E, 0x0E}, 2, 0},
+    {0xC5, (uint8_t []){0xD0}, 1, 0},
+    {0xC1, (uint8_t []){0x02}, 1, 0},
+    {0xB4, (uint8_t []){0x02}, 1, 0},
+    {0xE0, (uint8_t []){0x00, 0x03, 0x08, 0x06, 0x13, 0x09, 0x39, 0x39, 0x48, 0x02, 0x0a, 0x08, 0x17, 0x17, 0x0F}, 15, 0},
+    {0xE1, (uint8_t []){0x00, 0x28, 0x29, 0x01, 0x0d, 0x03, 0x3f, 0x33, 0x52, 0x04, 0x0f, 0x0e, 0x37, 0x38, 0x0F}, 15, 0},
+
+    {0xB1, (uint8_t []){00, 0x1B}, 2, 0},
+    {0x36, (uint8_t []){0x08}, 1, 0},
+    {0x3A, (uint8_t []){0x55}, 1, 0},
+    {0xB7, (uint8_t []){0x06}, 1, 0},
+
+    {0x11, (uint8_t []){0}, 0x80, 0},
+    {0x29, (uint8_t []){0}, 0x80, 0},
+
+    {0, (uint8_t []){0}, 0xff, 0},
+};
+
 static esp_err_t panel_ili9341_init(esp_lcd_panel_t *panel)
 {
     ili9341_panel_t *ili9341 = __containerof(panel, ili9341_panel_t, base);
@@ -248,12 +310,31 @@ static esp_err_t panel_ili9341_init(esp_lcd_panel_t *panel)
 
     const ili9341_lcd_init_cmd_t *init_cmds = NULL;
     uint16_t init_cmds_size = 0;
-    if (ili9341->init_cmds) {
+
+    if (ili9341->init_cmds != NULL && ili9341->init_cmds_size > 0) {
+        /* Vendor init commands */
+        ESP_LOGI(TAG, "Using LCD init commands: external vendor");
         init_cmds = ili9341->init_cmds;
         init_cmds_size = ili9341->init_cmds_size;
     } else {
-        init_cmds = vendor_specific_init_default;
-        init_cmds_size = sizeof(vendor_specific_init_default) / sizeof(ili9341_lcd_init_cmd_t);
+        /* Predefined init commands */
+        switch (ili9341->init_cmds_sel) {
+        case ILI9341_LCD_INIT_CMD_1:
+            ESP_LOGI(TAG, "Using LCD init commands: Default 1");
+            init_cmds = vendor_specific_init_default_1;
+            init_cmds_size = sizeof(vendor_specific_init_default_1) / sizeof(ili9341_lcd_init_cmd_t);
+            break;
+        case ILI9341_LCD_INIT_CMD_2:
+            ESP_LOGI(TAG, "Using LCD init commands: Default 2");
+            init_cmds = vendor_specific_init_default_2;
+            init_cmds_size = sizeof(vendor_specific_init_default_2) / sizeof(ili9341_lcd_init_cmd_t);
+            break;
+        case ILI9341_LCD_INIT_CMD_3:
+            ESP_LOGI(TAG, "Using LCD init commands: Default 3");
+            init_cmds = vendor_specific_init_default_3;
+            init_cmds_size = sizeof(vendor_specific_init_default_3) / sizeof(ili9341_lcd_init_cmd_t);
+            break;
+        }
     }
 
     bool is_cmd_overwritten = false;
