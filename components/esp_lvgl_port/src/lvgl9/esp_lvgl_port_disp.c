@@ -60,6 +60,7 @@ typedef struct {
     lv_display_t              *disp_drv;      /* LVGL display driver */
     lv_display_rotation_t     current_rotation;
     SemaphoreHandle_t         trans_sem;      /* Idle transfer mutex */
+    lvgl_port_rounder_cb_t    rounder_cb;     /* Rounder callback for display area */
 #if LVGL_PORT_PPA
     lvgl_port_ppa_handle_t    ppa_handle;
 #endif //LVGL_PORT_PPA
@@ -297,6 +298,7 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
     disp_ctx->flags.swap_bytes = disp_cfg->flags.swap_bytes;
     disp_ctx->flags.sw_rotate = disp_cfg->flags.sw_rotate;
     disp_ctx->current_rotation = LV_DISPLAY_ROTATION_0;
+    disp_ctx->rounder_cb = disp_cfg->rounder_cb;
 
     uint32_t buff_caps = 0;
 #if SOC_PSRAM_DMA_CAPABLE == 0
@@ -751,6 +753,12 @@ static void lvgl_port_disp_size_update_callback(lv_event_t *e)
 
 static void lvgl_port_display_invalidate_callback(lv_event_t *e)
 {
+    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_event_get_user_data(e);
+    lv_area_t *area = (lv_area_t *)lv_event_get_param(e);
+    if (area != NULL && disp_ctx != NULL && disp_ctx->rounder_cb != NULL) {
+        disp_ctx->rounder_cb(area);
+    }
+
     /* Wake LVGL task, if needed */
     lvgl_port_task_wake(LVGL_PORT_EVENT_DISPLAY, NULL);
 }
