@@ -1,0 +1,5 @@
+version: "1.0.0"
+description: Selector of BSP
+url: https://github.com/espressif/esp-bsp/tree/master/components/bsp_selector
+dependencies:
+  idf : ">=5.3"
