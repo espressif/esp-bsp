@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -34,6 +34,11 @@ typedef struct {
 } lvgl_port_rotation_cfg_t;
 
 /**
+ * @brief Rounder callback
+ */
+typedef void (*lvgl_port_rounder_cb_t)(lv_area_t *area);
+
+/**
  * @brief Configuration display structure
  */
 typedef struct {
@@ -51,6 +56,7 @@ typedef struct {
     bool        monochrome;     /*!< True, if display is monochrome and using 1bit for 1px */
 
     lvgl_port_rotation_cfg_t rotation;      /*!< Default values of the screen rotation (Only HW state. Not supported for default SW rotation!) */
+    lvgl_port_rounder_cb_t   rounder_cb;      /*!< Rounder callback for display area */
 #if LVGL_VERSION_MAJOR >= 9
     lv_color_format_t        color_format;  /*!< The color format of the display */
 #endif
