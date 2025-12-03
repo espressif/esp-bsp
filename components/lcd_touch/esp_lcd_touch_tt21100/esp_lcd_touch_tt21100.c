@@ -24,6 +24,7 @@ static const char *TAG = "TT21100";
 *******************************************************************************/
 static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp);
 static bool esp_lcd_touch_tt21100_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+static esp_err_t esp_lcd_touch_tt21100_get_track_id(esp_lcd_touch_handle_t tp, uint8_t *track_id, uint8_t max_point_num);
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
 static esp_err_t esp_lcd_touch_tt21100_get_button_state(esp_lcd_touch_handle_t tp, uint8_t n, uint8_t *state);
 #endif
@@ -62,6 +63,7 @@ esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_panel_io_handle_t io, cons
     /* Only supported callbacks are set */
     esp_lcd_touch_tt21100->read_data = esp_lcd_touch_tt21100_read_data;
     esp_lcd_touch_tt21100->get_xy = esp_lcd_touch_tt21100_get_xy;
+    esp_lcd_touch_tt21100->get_track_id = esp_lcd_touch_tt21100_get_track_id;
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
     esp_lcd_touch_tt21100->get_button_state = esp_lcd_touch_tt21100_get_button_state;
 #endif
@@ -142,11 +144,11 @@ static esp_err_t esp_lcd_touch_tt21100_exit_sleep(esp_lcd_touch_handle_t tp)
 static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
 {
     typedef struct {
-        uint8_t : 5;
         uint8_t touch_type: 3;
-        uint8_t tip: 1;
-        uint8_t event_id: 2;
+        uint8_t : 5;
         uint8_t touch_id: 5;
+        uint8_t event_id: 2;
+        uint8_t tip: 1;
         uint16_t x;
         uint16_t y;
         uint8_t pressure;
@@ -158,12 +160,12 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
         uint16_t data_len;
         uint8_t report_id;
         uint16_t time_stamp;
-        uint8_t : 2;
-        uint8_t large_object : 1;
         uint8_t record_num : 5;
-        uint8_t report_counter: 2;
-        uint8_t : 3;
+        uint8_t large_object : 1;
+        uint8_t : 2;
         uint8_t noise_efect: 3;
+        uint8_t : 3;
+        uint8_t report_counter: 2;
         touch_record_struct_t touch_record[0];
     } __attribute__((packed)) touch_report_struct_t;
 
@@ -227,7 +229,7 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
             tp_num = (data_len - sizeof(touch_report_struct_t)) / sizeof(touch_record_struct_t);
 
             /* Number of touched points */
-            tp_num = (tp_num > CONFIG_ESP_LCD_TOUCH_MAX_POINTS ? CONFIG_ESP_LCD_TOUCH_MAX_POINTS : tp_num);
+            tp_num = p_report_data->record_num;
 
             portENTER_CRITICAL(&tp->data.lock);
 
@@ -237,9 +239,12 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
             for (i = 0; i < tp_num; i++) {
                 p_touch_data = &p_report_data->touch_record[i];
 
-                tp->data.coords[i].x = p_touch_data->x;
-                tp->data.coords[i].y = p_touch_data->y;
-                tp->data.coords[i].strength = p_touch_data->pressure;
+                if (p_touch_data->touch_type == 0) {
+                    tp->data.coords[i].x = p_touch_data->x;
+                    tp->data.coords[i].y = p_touch_data->y;
+                    tp->data.coords[i].strength = p_touch_data->pressure;
+                    tp->data.coords[i].track_id = p_touch_data->touch_id;
+                }
             }
 
             portEXIT_CRITICAL(&tp->data.lock);
@@ -282,6 +287,23 @@ static bool esp_lcd_touch_tt21100_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x,
     portEXIT_CRITICAL(&tp->data.lock);
 
     return (*point_num > 0);
+}
+
+static esp_err_t esp_lcd_touch_tt21100_get_track_id(esp_lcd_touch_handle_t tp, uint8_t *track_id, uint8_t max_point_num)
+{
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler pointer can't be NULL");
+    ESP_RETURN_ON_FALSE(track_id != NULL, ESP_ERR_INVALID_ARG, TAG, "Track ID array pointer can't be NULL");
+    ESP_RETURN_ON_FALSE(max_point_num > 0, ESP_ERR_INVALID_ARG, TAG, "Array size must be at least 1");
+
+    portENTER_CRITICAL(&tp->data.lock);
+
+    for (int i = 0; i < max_point_num; i++) {
+        track_id[i] = tp->data.coords[i].track_id;
+    }
+
+    portEXIT_CRITICAL(&tp->data.lock);
+
+    return ESP_OK;
 }
 
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
