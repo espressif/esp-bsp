@@ -55,7 +55,7 @@ for base_dir in target_dirs:
                 version = "N/A"
                 release_date = "?"
                 changes_since_version = "N/A"
-                commit_count = "?"
+                commit_count = "0"
 
                 if component_name in deprecated:
                     continue
@@ -70,7 +70,7 @@ for base_dir in target_dirs:
                 if version != "N/A":
                     try:
                         rel_yml_path = os.path.relpath(yml_path, repo_path).replace("\\", "/")
-                        log_output = run_git_command(["log", "-p", "--", rel_yml_path], cwd=repo_path)
+                        log_output = run_git_command(["log", "-p", "-m", "--", rel_yml_path], cwd=repo_path)
 
                         current_commit = None
                         current_date = None
@@ -142,7 +142,7 @@ for base_dir in target_dirs:
                                 changes_since_version = "✔️ No "
 
                             # count_output = run_git_command(["rev-list", f"{commit_hash}..HEAD", "--count", rel_component_path], cwd=repo_path)
-                            commit_count = len(changed_paths) if changed_paths else "?"
+                            commit_count = len(changed_paths) if changed_paths else "0"
 
                     except Exception as e:
                         print(f"Chyba: {e}")
