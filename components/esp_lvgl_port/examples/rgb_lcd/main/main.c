@@ -103,7 +103,11 @@ static esp_err_t app_lcd_init(void)
         .dma_burst_size = 64,
 #endif
         .data_width = 16,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6,0,0)
+        .in_color_format = LCD_COLOR_FMT_RGB565,
+#else
         .bits_per_pixel = 16,
+#endif
         .de_gpio_num = EXAMPLE_LCD_GPIO_DE,
         .pclk_gpio_num = EXAMPLE_LCD_GPIO_PCLK,
         .vsync_gpio_num = EXAMPLE_LCD_GPIO_VSYNC,

@@ -252,7 +252,7 @@ static void lvgl_port_task(void *arg)
     lvgl_port_task_deinit();
 
     /* Close task */
-    vTaskDelete( NULL );
+    vTaskDeleteWithCaps( NULL );
 }
 
 static void lvgl_port_task_deinit(void)
@@ -274,10 +274,9 @@ static void lvgl_port_task_deinit(void)
         vEventGroupDelete(lvgl_port_ctx.lvgl_events);
     }
     memset(&lvgl_port_ctx, 0, sizeof(lvgl_port_ctx));
-#if LV_ENABLE_GC || !LV_MEM_CUSTOM
+
     /* Deinitialize LVGL */
     lv_deinit();
-#endif
 }
 
 static void lvgl_port_tick_increment(void *arg)
