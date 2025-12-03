@@ -1,0 +1,190 @@
+menu "BSP Selector"
+
+    # Hidden variables to drive Conditional Dependencies
+    
+    config ESP_BSP_DEVKIT
+        int
+        default 1 if BSP_SELECT_ESP_BSP_DEVKIT
+        default 0
+    
+    config ESP_BSP_GENERIC
+        int
+        default 1 if BSP_SELECT_ESP_BSP_GENERIC
+        default 0
+    
+    config ESP_WROVER_KIT
+        int
+        default 1 if BSP_SELECT_ESP_WROVER_KIT
+        default 0
+    
+    config ESP32_C3_LCDKIT
+        int
+        default 1 if BSP_SELECT_ESP32_C3_LCDKIT
+        default 0
+    
+    config ESP32_LYRAT
+        int
+        default 1 if BSP_SELECT_ESP32_LYRAT
+        default 0
+    
+    config ESP32_P4_EYE
+        int
+        default 1 if BSP_SELECT_ESP32_P4_EYE
+        default 0
+    
+    config ESP32_P4_FUNCTION_EV_BOARD
+        int
+        default 1 if BSP_SELECT_ESP32_P4_FUNCTION_EV_BOARD
+        default 0
+    
+    config ESP32_S3_EYE
+        int
+        default 1 if BSP_SELECT_ESP32_S3_EYE
+        default 0
+    
+    config ESP32_S3_KORVO_1
+        int
+        default 1 if BSP_SELECT_ESP32_S3_KORVO_1
+        default 0
+    
+    config ESP32_S3_KORVO_2
+        int
+        default 1 if BSP_SELECT_ESP32_S3_KORVO_2
+        default 0
+    
+    config ESP32_S3_LCD_EV_BOARD
+        int
+        default 1 if BSP_SELECT_ESP32_S3_LCD_EV_BOARD
+        default 0
+    
+    config ESP32_S3_USB_OTG
+        int
+        default 1 if BSP_SELECT_ESP32_S3_USB_OTG
+        default 0
+    
+    config ESP_BOX_3
+        int
+        default 1 if BSP_SELECT_ESP_BOX_3
+        default 0
+    
+    config M5_ATOM_S3
+        int
+        default 1 if BSP_SELECT_M5_ATOM_S3
+        default 0
+    
+    config M5DIAL
+        int
+        default 1 if BSP_SELECT_M5DIAL
+        default 0
+    
+    config M5STACK_CORE
+        int
+        default 1 if BSP_SELECT_M5STACK_CORE
+        default 0
+    
+    config M5STACK_CORE_2
+        int
+        default 1 if BSP_SELECT_M5STACK_CORE_2
+        default 0
+    
+    config M5STACK_CORE_S3
+        int
+        default 1 if BSP_SELECT_M5STACK_CORE_S3
+        default 0
+    
+    config M5STACK_TAB5
+        int
+        default 1 if BSP_SELECT_M5STACK_TAB5
+        default 0
+        
+
+    choice BSP_SELECT
+        prompt "Select BSP"
+        default BSP_SELECT_ESP_WROVER_KIT if IDF_TARGET_ESP32
+        default BSP_SELECT_ESP32_S2_KALUGA_KIT if IDF_TARGET_ESP32S2
+        default BSP_SELECT_ESP_BOX_3 if IDF_TARGET_ESP32S3
+        default BSP_SELECT_ESP32_P4_FUNCTION_EV_BOARD if IDF_TARGET_ESP32P4
+        default BSP_SELECT_ESP32_C3_LCDKIT if IDF_TARGET_ESP32C3
+        help
+            Select which BSP will be used in project.
+            
+        config BSP_SELECT_NONE
+            bool "ESP_BSP_NONE"
+            
+        config BSP_SELECT_ESP_BSP_DEVKIT
+            bool "ESP_BSP_DEVKIT"
+            
+        config BSP_SELECT_ESP_BSP_GENERIC
+            bool "ESP_BSP_GENERIC"
+        
+        config BSP_SELECT_ESP_WROVER_KIT
+            depends on IDF_TARGET_ESP32
+            bool "ESP_WROVER_KIT"
+            
+        config BSP_SELECT_ESP32_C3_LCDKIT
+            depends on IDF_TARGET_ESP32C3
+            bool "ESP32_C3_LCDKIT"
+            
+        config BSP_SELECT_ESP32_LYRAT
+            depends on IDF_TARGET_ESP32
+            bool "ESP32_LYRAT"
+            
+        config BSP_SELECT_ESP32_P4_EYE
+            depends on IDF_TARGET_ESP32P4
+            bool "ESP32_P4_EYE"
+            
+        config BSP_SELECT_ESP32_P4_FUNCTION_EV_BOARD
+            depends on IDF_TARGET_ESP32P4
+            bool "ESP32_P4_FUNCTION_EV_BOARD"
+            
+        config BSP_SELECT_ESP32_S3_EYE
+            depends on IDF_TARGET_ESP32S3
+            bool "ESP32_S3_EYE"
+            
+        config BSP_SELECT_ESP32_S3_KORVO_1
+            depends on IDF_TARGET_ESP32S3
+            bool "ESP32_S3_KORVO_1"
+            
+        config BSP_SELECT_ESP32_S3_KORVO_2
+            depends on IDF_TARGET_ESP32S3
+            bool "ESP32_S3_KORVO_2"
+            
+        config BSP_SELECT_ESP32_S3_LCD_EV_BOARD
+            depends on IDF_TARGET_ESP32S3
+            bool "ESP32_S3_LCD_EV_BOARD"
+            
+        config BSP_SELECT_ESP32_S3_USB_OTG
+            depends on IDF_TARGET_ESP32S3
+            bool "ESP32_S3_USB_OTG"
+            
+        config BSP_SELECT_ESP_BOX_3
+            depends on IDF_TARGET_ESP32S3
+            bool "ESP_BOX_3"
+            
+        config BSP_SELECT_M5_ATOM_S3
+            depends on IDF_TARGET_ESP32S3
+            bool "M5_ATOM_S3"
+            
+        config BSP_SELECT_M5DIAL
+            depends on IDF_TARGET_ESP32S3
+            bool "M5DIAL"
+            
+        config BSP_SELECT_M5STACK_CORE
+            depends on IDF_TARGET_ESP32
+            bool "M5STACK_CORE"
+            
+        config BSP_SELECT_M5STACK_CORE_2
+            depends on IDF_TARGET_ESP32
+            bool "M5STACK_CORE_2"
+            
+        config BSP_SELECT_M5STACK_CORE_S3
+            depends on IDF_TARGET_ESP32S3
+            bool "M5STACK_CORE_S3"
+            
+        config BSP_SELECT_M5STACK_TAB5
+            depends on IDF_TARGET_ESP32P4
+            bool "M5STACK_TAB5"
+            
+   endchoice     
+
+endmenu

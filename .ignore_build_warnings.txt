@@ -3,3 +3,4 @@ warning: unknown kconfig symbol 'TOUCH_SUPPRESS_DEPRECATE_WARN' assigned to*
 warning: ignoring attribute 'section .+' because it conflicts with previous 'section .+
 warning: #warning "This set of Touch APIs has been deprecated*
 Warning: The smallest app partition is nearly full*
+warning: unknown kconfig symbol*

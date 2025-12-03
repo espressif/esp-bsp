@@ -69,6 +69,7 @@ jobs:
         uses: espressif/upload-components-ci-action@v2
         with:
           components: |
+            components/bsp_selector
             components/bh1750
             components/ds18b20
             components/es8311

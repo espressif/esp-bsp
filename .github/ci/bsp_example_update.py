@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -89,6 +89,12 @@ def main():
             continue
 
         manifest = load_yaml_file(example_main_yml)
+
+        # Try to remove BSP Selector
+        try:
+            del manifest['dependencies']["bsp_selector"]
+        except KeyError:
+            print("{}: could not remove bsp_selector".format(str(bsp_path)))
 
         # Remove all BSPs
         for dep in list(manifest['dependencies']):

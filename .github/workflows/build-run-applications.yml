@@ -34,7 +34,7 @@ concurrency:
 jobs:
   build:
     env:
-      component_manager_ver: "2.2.*"
+      component_manager_ver: "2.4.*"
       idf_build_apps_ver: "2.10.1"
     outputs:
       ignored_failure: ${{ steps.ignored-failure.outputs.failed }}

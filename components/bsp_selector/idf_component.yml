@@ -1,0 +1,126 @@
+version: "1.0.0"
+description: Selector of BSP
+url: https://github.com/espressif/esp-bsp/tree/master/components/bsp_selector
+
+tags:
+   - bsp
+
+dependencies:
+  idf : ">=5.3"
+
+  esp_bsp_devkit:
+    version: "*"
+    override_path: "../../bsp/esp_bsp_devkit"
+    matches:
+      - if: $CONFIG{ESP_BSP_DEVKIT} == 1
+
+  esp_bsp_generic:
+    version: "*"
+    override_path: "../../bsp/esp_bsp_generic"
+    matches:
+      - if: $CONFIG{ESP_BSP_GENERIC} == 1
+
+  esp_wrover_kit:
+    version: "*"
+    override_path: "../../bsp/esp_wrover_kit"
+    matches:
+      - if: $CONFIG{ESP_WROVER_KIT} == 1
+
+  esp32_c3_lcdkit:
+    version: "*"
+    override_path: "../../bsp/esp32_c3_lcdkit"
+    matches:
+      - if: $CONFIG{ESP32_C3_LCDKIT} == 1
+
+  esp32_lyrat:
+    version: "*"
+    override_path: "../../bsp/esp32_lyrat"
+    matches:
+      - if: $CONFIG{ESP32_LYRAT} == 1
+
+  esp32_p4_eye:
+    version: "*"
+    override_path: "../../bsp/esp32_p4_eye"
+    matches:
+      - if: $CONFIG{ESP32_P4_EYE} == 1
+
+  esp32_p4_function_ev_board:
+    version: "*"
+    override_path: "../../bsp/esp32_p4_function_ev_board"
+    matches:
+      - if: $CONFIG{ESP32_P4_FUNCTION_EV_BOARD} == 1
+
+  esp32_s3_eye:
+    version: "*"
+    override_path: "../../bsp/esp32_s3_eye"
+    matches:
+      - if: $CONFIG{ESP32_S3_EYE} == 1
+
+  esp32_s3_korvo_1:
+    version: "*"
+    override_path: "../../bsp/esp32_s3_korvo_1"
+    matches:
+      - if: $CONFIG{ESP32_S3_KORVO_1} == 1
+
+  esp32_s3_korvo_2:
+    version: "*"
+    override_path: "../../bsp/esp32_s3_korvo_2"
+    matches:
+      - if: $CONFIG{ESP32_S3_KORVO_2} == 1
+
+  esp32_s3_lcd_ev_board:
+    version: "*"
+    override_path: "../../bsp/esp32_s3_lcd_ev_board"
+    matches:
+      - if: $CONFIG{ESP32_S3_LCD_EV_BOARD} == 1
+
+  esp32_s3_usb_otg:
+    version: "*"
+    override_path: "../../bsp/esp32_s3_usb_otg"
+    matches:
+      - if: $CONFIG{ESP32_S3_USB_OTG} == 1
+
+  esp-box-3:
+    version: "*"
+    override_path: "../../bsp/esp-box-3"
+    matches:
+      - if: $CONFIG{ESP_BOX_3} == 1
+
+  m5_atom_s3:
+    version: "*"
+    override_path: "../../bsp/m5_atom_s3"
+    matches:
+      - if: $CONFIG{M5_ATOM_S3} == 1
+
+  m5dial:
+    version: "*"
+    override_path: "../../bsp/m5dial"
+    matches:
+      - if: $CONFIG{M5DIAL} == 1
+
+  m5stack_core:
+    version: "*"
+    override_path: "../../bsp/m5stack_core"
+    matches:
+      - if: $CONFIG{M5STACK_CORE} == 1
+
+  m5stack_core_2:
+    version: "*"
+    override_path: "../../bsp/m5stack_core_2"
+    matches:
+      - if: $CONFIG{M5STACK_CORE_2} == 1
+
+  m5stack_core_s3:
+    version: "*"
+    override_path: "../../bsp/m5stack_core_s3"
+    matches:
+      - if: $CONFIG{M5STACK_CORE_S3} == 1
+
+  m5stack_tab5:
+    version: "*"
+    override_path: "../../bsp/m5stack_tab5"
+    matches:
+      - if: $CONFIG{M5STACK_TAB5} == 1
+
+examples:
+  - path: ../../examples/display

@@ -1,5 +1,6 @@
 description: BSP Display rotation example
+
 dependencies:
-  esp32_p4_function_ev_board:
+  bsp_selector:
     version: '*'
-    override_path: ../../../bsp/esp32_p4_function_ev_board
+    override_path: ../../../components/bsp_selector
