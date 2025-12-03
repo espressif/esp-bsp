@@ -33,12 +33,10 @@ typedef struct {
     bool mirror_y; /*!< LCD Screen mirrored Y (in esp_lcd driver) */
 } lvgl_port_rotation_cfg_t;
 
-#if LVGL_VERSION_MAJOR >= 9
 /**
  * @brief Rounder callback
  */
 typedef void (*lvgl_port_rounder_cb_t)(lv_area_t *area);
-#endif
 
 /**
  * @brief Configuration display structure
@@ -58,9 +56,9 @@ typedef struct {
     bool        monochrome;     /*!< True, if display is monochrome and using 1bit for 1px */
 
     lvgl_port_rotation_cfg_t rotation;      /*!< Default values of the screen rotation (Only HW state. Not supported for default SW rotation!) */
+    lvgl_port_rounder_cb_t   rounder_cb;      /*!< Rounder callback for display area */
 #if LVGL_VERSION_MAJOR >= 9
     lv_color_format_t        color_format;  /*!< The color format of the display */
-    lvgl_port_rounder_cb_t   rounder_cb;      /*!< Rounder callback for display area */
 #endif
     struct {
         unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
