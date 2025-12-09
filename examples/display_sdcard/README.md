@@ -1,8 +1,15 @@
 # Display and SD card example
 
-This example shows how you can interact with a display and perform reads and writes to an SD card.
+<table>
+<tr><td valign="top">
 
+This example shows how you can interact with a display and perform reads and writes to an SD card.
 By default, the SD card is interfaced using the SDMMC inteface.
+
+</td><td width="200" valign="top">
+  <img src="/examples/display_sdcard/doc/pic.webp">
+</td></tr>
+</table>
 
 ### Hardware Required
 
