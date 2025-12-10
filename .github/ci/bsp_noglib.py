@@ -71,7 +71,7 @@ def remove_examples(bsp_path):
 
 def add_notice_to_readme(bsp_path):
     readme_path = bsp_path / 'README.md'
-    bsp_name = bsp_path.parts[-1].rstrip("_noglib")
+    bsp_name = bsp_path.parts[-1].removesuffix("_noglib")
     try:
         with open(readme_path, encoding='utf-8', mode='r') as readme:
             content = readme.readlines()
