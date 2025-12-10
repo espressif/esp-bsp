@@ -50,7 +50,7 @@ static void touch_callback(esp_lcd_touch_handle_t tp)
 
 Initialization of the touch component.
 
-```
+``` c
     esp_lcd_panel_io_i2c_config_t io_config = ESP_LCD_TOUCH_IO_I2C_CST816S_CONFIG();
 
     esp_lcd_touch_config_t tp_cfg = {
@@ -76,19 +76,17 @@ Initialization of the touch component.
 
 Read data from the touch controller and store it in RAM memory. It should be called regularly in poll.
 
-```
+``` c
     if (xSemaphoreTake(touch_mux, 0) == pdTRUE) {
         esp_lcd_touch_read_data(tp); // read only when ISR was triggled
     }
 ```
 
-Get one X and Y coordinates with strength of touch.
+Get attributes of a single touch point.
 
-```
-    uint16_t touch_x[1];
-    uint16_t touch_y[1];
-    uint16_t touch_strength[1];
+``` c
+    esp_lcd_touch_point_data_t touch_point_data[1];
     uint8_t touch_cnt = 0;
 
-    bool touchpad_pressed = esp_lcd_touch_get_coordinates(tp, touch_x, touch_y, touch_strength, &touch_cnt, 1);
+    ESP_ERROR_CHECK(esp_lcd_touch_get_data(tp, touch_point_data, &touch_cnt, 1));
 ```

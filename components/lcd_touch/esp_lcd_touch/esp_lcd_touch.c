@@ -31,7 +31,7 @@ static const char *TAG = "TP";
 
 esp_err_t esp_lcd_touch_enter_sleep(esp_lcd_touch_handle_t tp)
 {
-    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler can't be NULL");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
     if (tp->enter_sleep == NULL) {
         ESP_LOGE(TAG, "Sleep mode not supported!");
         return ESP_FAIL;
@@ -42,7 +42,7 @@ esp_err_t esp_lcd_touch_enter_sleep(esp_lcd_touch_handle_t tp)
 
 esp_err_t esp_lcd_touch_exit_sleep(esp_lcd_touch_handle_t tp)
 {
-    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler can't be NULL");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
     if (tp->exit_sleep == NULL) {
         ESP_LOGE(TAG, "Sleep mode not supported!");
         return ESP_FAIL;
@@ -53,8 +53,8 @@ esp_err_t esp_lcd_touch_exit_sleep(esp_lcd_touch_handle_t tp)
 
 esp_err_t esp_lcd_touch_read_data(esp_lcd_touch_handle_t tp)
 {
-    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler can't be NULL");
-    assert(tp->read_data != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(tp->read_data != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller must be initialized");
 
     return tp->read_data(tp);
 }
@@ -63,10 +63,12 @@ bool esp_lcd_touch_get_coordinates(esp_lcd_touch_handle_t tp, uint16_t *x, uint1
 {
     bool touched = false;
 
-    ESP_RETURN_ON_FALSE(tp != NULL, false, TAG, "Touch point handler can't be NULL");
-    ESP_RETURN_ON_FALSE(x != NULL, false, TAG, "X coordinates data array can't be NULL");
-    ESP_RETURN_ON_FALSE(y != NULL, false, TAG, "Y coordinates data array can't be NULL");
-    ESP_RETURN_ON_FALSE(tp->get_xy != NULL, false, TAG, "Touch driver must be initialized");
+    ESP_RETURN_ON_FALSE(tp != NULL, false, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(x != NULL, false, TAG, "Pointer to the x coordinates array can't be NULL");
+    ESP_RETURN_ON_FALSE(y != NULL, false, TAG, "Pointer to the y coordinates array can't be NULL");
+    ESP_RETURN_ON_FALSE(point_num != NULL, false, TAG, "Pointer to number of touch points can't be NULL");
+    ESP_RETURN_ON_FALSE(max_point_num > 0, false, TAG, "Array size must be equal or larger than 1");
+    ESP_RETURN_ON_FALSE(tp->get_xy != NULL, false, TAG, "Touch controller must be initialized");
 
     touched = tp->get_xy(tp, x, y, strength, point_num, max_point_num);
     if (!touched) {
@@ -109,11 +111,11 @@ bool esp_lcd_touch_get_coordinates(esp_lcd_touch_handle_t tp, uint16_t *x, uint1
 
 esp_err_t esp_lcd_touch_get_data(esp_lcd_touch_handle_t tp, esp_lcd_touch_point_data_t *data, uint8_t *point_cnt, uint8_t max_point_cnt)
 {
-    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler can't be NULL");
-    ESP_RETURN_ON_FALSE(data != NULL, ESP_ERR_INVALID_ARG, TAG, "Data array can't be NULL");
-    ESP_RETURN_ON_FALSE(point_cnt != NULL, ESP_ERR_INVALID_ARG, TAG, "Point count pointer can't be NULL");
-    ESP_RETURN_ON_FALSE(tp->get_xy != NULL, ESP_ERR_INVALID_STATE, TAG, "Touch driver must be initialized");
-    ESP_RETURN_ON_FALSE(max_point_cnt > 0, ESP_ERR_INVALID_ARG, TAG, "Array size must be at least 1");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(data != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the data array can't be NULL");
+    ESP_RETURN_ON_FALSE(point_cnt != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the count of touch points can't be NULL");
+    ESP_RETURN_ON_FALSE(tp->get_xy != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller must be initialized");
+    ESP_RETURN_ON_FALSE(max_point_cnt > 0, ESP_ERR_INVALID_ARG, TAG, "Array size must be equal or larger than 1");
 
     uint16_t x[max_point_cnt];
     uint16_t y[max_point_cnt];
@@ -180,8 +182,8 @@ esp_err_t esp_lcd_touch_get_data(esp_lcd_touch_handle_t tp, esp_lcd_touch_point_
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
 esp_err_t esp_lcd_touch_get_button_state(esp_lcd_touch_handle_t tp, uint8_t n, uint8_t *state)
 {
-    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler can't be NULL");
-    ESP_RETURN_ON_FALSE(state != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to an argument can't be NULL");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(state != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the state array can't be NULL");
 
     *state = 0;
 
@@ -197,7 +199,7 @@ esp_err_t esp_lcd_touch_get_button_state(esp_lcd_touch_handle_t tp, uint8_t n, u
 
 esp_err_t esp_lcd_touch_set_swap_xy(esp_lcd_touch_handle_t tp, bool swap)
 {
-    assert(tp != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
 
     tp->config.flags.swap_xy = swap;
 
@@ -211,8 +213,8 @@ esp_err_t esp_lcd_touch_set_swap_xy(esp_lcd_touch_handle_t tp, bool swap)
 
 esp_err_t esp_lcd_touch_get_swap_xy(esp_lcd_touch_handle_t tp, bool *swap)
 {
-    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler can't be NULL");
-    ESP_RETURN_ON_FALSE(swap != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to an argument can't be NULL");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(swap != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the swap variable can't be NULL");
 
     /* Is swap supported by HW? */
     if (tp->get_swap_xy) {
@@ -226,7 +228,7 @@ esp_err_t esp_lcd_touch_get_swap_xy(esp_lcd_touch_handle_t tp, bool *swap)
 
 esp_err_t esp_lcd_touch_set_mirror_x(esp_lcd_touch_handle_t tp, bool mirror)
 {
-    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler can't be NULL");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
 
     tp->config.flags.mirror_x = mirror;
 
@@ -240,8 +242,8 @@ esp_err_t esp_lcd_touch_set_mirror_x(esp_lcd_touch_handle_t tp, bool mirror)
 
 esp_err_t esp_lcd_touch_get_mirror_x(esp_lcd_touch_handle_t tp, bool *mirror)
 {
-    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler can't be NULL");
-    ESP_RETURN_ON_FALSE(mirror != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to an argument can't be NULL");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(mirror != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the mirror variable can't be NULL");
 
     /* Is swap supported by HW? */
     if (tp->get_mirror_x) {
@@ -255,7 +257,7 @@ esp_err_t esp_lcd_touch_get_mirror_x(esp_lcd_touch_handle_t tp, bool *mirror)
 
 esp_err_t esp_lcd_touch_set_mirror_y(esp_lcd_touch_handle_t tp, bool mirror)
 {
-    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler can't be NULL");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
 
     tp->config.flags.mirror_y = mirror;
 
@@ -269,8 +271,8 @@ esp_err_t esp_lcd_touch_set_mirror_y(esp_lcd_touch_handle_t tp, bool mirror)
 
 esp_err_t esp_lcd_touch_get_mirror_y(esp_lcd_touch_handle_t tp, bool *mirror)
 {
-    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler can't be NULL");
-    ESP_RETURN_ON_FALSE(mirror != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to an argument can't be NULL");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(mirror != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the mirror variable can't be NULL");
 
     /* Is swap supported by HW? */
     if (tp->get_mirror_y) {
@@ -296,7 +298,7 @@ esp_err_t esp_lcd_touch_del(esp_lcd_touch_handle_t tp)
 esp_err_t esp_lcd_touch_register_interrupt_callback(esp_lcd_touch_handle_t tp, esp_lcd_touch_interrupt_callback_t callback)
 {
     esp_err_t ret = ESP_OK;
-    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler can't be NULL");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
 
     /* Interrupt pin is not selected */
     if (tp->config.int_gpio_num == GPIO_NUM_NC) {
@@ -330,7 +332,7 @@ esp_err_t esp_lcd_touch_register_interrupt_callback(esp_lcd_touch_handle_t tp, e
 
 esp_err_t esp_lcd_touch_register_interrupt_callback_with_data(esp_lcd_touch_handle_t tp, esp_lcd_touch_interrupt_callback_t callback, void *user_data)
 {
-    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch point handler can't be NULL");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
 
     tp->config.user_data = user_data;
     return esp_lcd_touch_register_interrupt_callback(tp, callback);

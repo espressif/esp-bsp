@@ -25,7 +25,7 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
 
 Initialization of the touch component.
 
-```
+``` c
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     esp_lcd_panel_io_spi_config_t tp_io_config = ESP_LCD_TOUCH_IO_SPI_STMPE610_CONFIG(EXAMPLE_PIN_NUM_TOUCH_CS);
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)SPI2_HOST, &tp_io_config, &tp_io_handle));
@@ -48,17 +48,15 @@ Initialization of the touch component.
 
 Read data from the touch controller and store it in RAM memory. It should be called regularly in poll.
 
-```
+``` c
     esp_lcd_touch_read_data(tp);
 ```
 
-Get one X and Y coordinates with strength of touch.
+Get attributes of a single touch point.
 
-```
-    uint16_t touch_x[1];
-    uint16_t touch_y[1];
-    uint16_t touch_strength[1];
+``` c
+    esp_lcd_touch_point_data_t touch_point_data[1];
     uint8_t touch_cnt = 0;
 
-    bool touchpad_pressed = esp_lcd_touch_get_coordinates(tp, touch_x, touch_y, touch_strength, &touch_cnt, 1);
+    ESP_ERROR_CHECK(esp_lcd_touch_get_data(tp, touch_point_data, &touch_cnt, 1));
 ```

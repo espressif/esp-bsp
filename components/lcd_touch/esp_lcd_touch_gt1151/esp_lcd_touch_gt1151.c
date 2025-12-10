@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -28,21 +28,22 @@ static const char *TAG = "gt1151";
 #define DATA_BUFF_LEN(touch_num)    (1 + 8 * (touch_num) + 2)
 #define IS_NUM_OR_CHAR(x)           (((x) >= 'A' && (x) <= 'Z') || ((x) >= '0' && (x) <= '9'))
 
-static esp_err_t read_data(esp_lcd_touch_handle_t tp);
-static bool get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
-static esp_err_t del(esp_lcd_touch_handle_t tp);
+static esp_err_t esp_lcd_touch_gt1151_read_data(esp_lcd_touch_handle_t tp);
+static bool esp_lcd_touch_gt1151_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+static esp_err_t esp_lcd_touch_gt1151_get_track_id(esp_lcd_touch_handle_t tp, uint8_t *track_id, uint8_t max_point_num);
+static esp_err_t esp_lcd_touch_gt1151_del(esp_lcd_touch_handle_t tp);
 
-static esp_err_t i2c_read_bytes(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint8_t len);
-static esp_err_t i2c_write_byte(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t data);
+static esp_err_t touch_gt1151_i2c_read_bytes(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint8_t len);
+static esp_err_t touch_gt1151_i2c_write_byte(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t data);
 
-static esp_err_t reset(esp_lcd_touch_handle_t tp);
-static esp_err_t read_product_id(esp_lcd_touch_handle_t tp);
+static esp_err_t touch_gt1151_reset(esp_lcd_touch_handle_t tp);
+static esp_err_t touch_gt1151_read_product_id(esp_lcd_touch_handle_t tp);
 
 esp_err_t esp_lcd_touch_new_i2c_gt1151(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *tp)
 {
-    ESP_RETURN_ON_FALSE(io, ESP_ERR_INVALID_ARG, TAG, "Invalid io");
-    ESP_RETURN_ON_FALSE(config, ESP_ERR_INVALID_ARG, TAG, "Invalid config");
-    ESP_RETURN_ON_FALSE(tp, ESP_ERR_INVALID_ARG, TAG, "Invalid touch handle");
+    ESP_RETURN_ON_FALSE(io != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller io handle can't be NULL");
+    ESP_RETURN_ON_FALSE(config != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the touch controller configuration can't be NULL");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the touch controller handle can't be NULL");
 
     /* Prepare main structure */
     esp_err_t ret = ESP_OK;
@@ -52,9 +53,10 @@ esp_err_t esp_lcd_touch_new_i2c_gt1151(const esp_lcd_panel_io_handle_t io, const
     /* Communication interface */
     gt1151->io = io;
     /* Only supported callbacks are set */
-    gt1151->read_data = read_data;
-    gt1151->get_xy = get_xy;
-    gt1151->del = del;
+    gt1151->read_data = esp_lcd_touch_gt1151_read_data;
+    gt1151->get_xy = esp_lcd_touch_gt1151_get_xy;
+    gt1151->get_track_id = esp_lcd_touch_gt1151_get_track_id;
+    gt1151->del = esp_lcd_touch_gt1151_del;
     /* Mutex */
     gt1151->data.lock.owner = portMUX_FREE_VAL;
     /* Save config */
@@ -83,22 +85,24 @@ esp_err_t esp_lcd_touch_new_i2c_gt1151(const esp_lcd_panel_io_handle_t io, const
         ESP_GOTO_ON_ERROR(gpio_config(&rst_gpio_config), err, TAG, "GPIO reset config failed");
     }
     /* Reset controller */
-    ESP_GOTO_ON_ERROR(reset(gt1151), err, TAG, "Reset failed");
+    ESP_GOTO_ON_ERROR(touch_gt1151_reset(gt1151), err, TAG, "Reset failed");
     /* Read product id */
-    ESP_GOTO_ON_ERROR(read_product_id(gt1151), err, TAG, "Read product id failed");
+    ESP_GOTO_ON_ERROR(touch_gt1151_read_product_id(gt1151), err, TAG, "Read product id failed");
     *tp = gt1151;
 
     return ESP_OK;
 err:
     if (gt1151) {
-        del(gt1151);
+        esp_lcd_touch_gt1151_del(gt1151);
     }
     ESP_LOGE(TAG, "Initialization failed!");
     return ret;
 }
 
-static esp_err_t read_data(esp_lcd_touch_handle_t tp)
+static esp_err_t esp_lcd_touch_gt1151_read_data(esp_lcd_touch_handle_t tp)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+
     typedef struct {
         uint8_t touch_id : 4;
         uint8_t : 4;
@@ -115,19 +119,19 @@ static esp_err_t read_data(esp_lcd_touch_handle_t tp)
     } __attribute__((packed)) touch_report_t;
 
     uint8_t touch_cnt;
-    ESP_RETURN_ON_ERROR(i2c_read_bytes(tp, READ_XY_REG, &touch_cnt, sizeof(touch_cnt)), TAG, "I2C read failed!");
+    ESP_RETURN_ON_ERROR(touch_gt1151_i2c_read_bytes(tp, READ_XY_REG, &touch_cnt, sizeof(touch_cnt)), TAG, "I2C read failed!");
     touch_cnt &= 0x0f;
     /* Any touch data? */
     if (touch_cnt > MAX_TOUCH_NUM || touch_cnt == 0) {
-        i2c_write_byte(tp, READ_XY_REG, 0);
+        touch_gt1151_i2c_write_byte(tp, READ_XY_REG, 0);
         return ESP_OK;
     }
 
     uint8_t buf[DATA_BUFF_LEN(MAX_TOUCH_NUM)];
     /* Read all points */
-    ESP_RETURN_ON_ERROR( i2c_read_bytes(tp, READ_XY_REG, buf, DATA_BUFF_LEN(touch_cnt)), TAG, "I2C read failed");
+    ESP_RETURN_ON_ERROR( touch_gt1151_i2c_read_bytes(tp, READ_XY_REG, buf, DATA_BUFF_LEN(touch_cnt)), TAG, "I2C read failed");
     /* Clear all */
-    i2c_write_byte(tp, READ_XY_REG, 0);
+    touch_gt1151_i2c_write_byte(tp, READ_XY_REG, 0);
     /* Caculate checksum */
     uint8_t checksum = 0;
     for (int i = 0; i < DATA_BUFF_LEN(touch_cnt); i++) {
@@ -146,14 +150,21 @@ static esp_err_t read_data(esp_lcd_touch_handle_t tp)
         tp->data.coords[i].x = touch_report->touch_record[i].x;
         tp->data.coords[i].y = touch_report->touch_record[i].y;
         tp->data.coords[i].strength = touch_report->touch_record[i].strength;
+        tp->data.coords[i].track_id = touch_report->touch_record[i].touch_id;
     }
     portEXIT_CRITICAL(&tp->data.lock);
 
     return ESP_OK;
 }
 
-static bool get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)
+static bool esp_lcd_touch_gt1151_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, false, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(x != NULL, false, TAG, "Pointer to the x coordinates array can't be NULL");
+    ESP_RETURN_ON_FALSE(y != NULL, false, TAG, "Pointer to the y coordinates array can't be NULL");
+    ESP_RETURN_ON_FALSE(point_num != NULL, false, TAG, "Pointer to number of touch points can't be NULL");
+    ESP_RETURN_ON_FALSE(max_point_num > 0, false, TAG, "Array size must be equal or larger than 1");
+
     portENTER_CRITICAL(&tp->data.lock);
     /* Count of points */
     *point_num = (tp->data.points > max_point_num ? max_point_num : tp->data.points);
@@ -172,8 +183,27 @@ static bool get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t
     return (*point_num > 0);
 }
 
-static esp_err_t del(esp_lcd_touch_handle_t tp)
+static esp_err_t esp_lcd_touch_gt1151_get_track_id(esp_lcd_touch_handle_t tp, uint8_t *track_id, uint8_t max_point_num)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(track_id != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the track ID array can't be NULL");
+    ESP_RETURN_ON_FALSE(max_point_num > 0, ESP_ERR_INVALID_ARG, TAG, "Array size must be equal or larger than 1");
+
+    portENTER_CRITICAL(&tp->data.lock);
+
+    for (int i = 0; i < max_point_num; i++) {
+        track_id[i] = tp->data.coords[i].track_id;
+    }
+
+    portEXIT_CRITICAL(&tp->data.lock);
+
+    return ESP_OK;
+}
+
+static esp_err_t esp_lcd_touch_gt1151_del(esp_lcd_touch_handle_t tp)
+{
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+
     /* Reset GPIO pin settings */
     if (tp->config.int_gpio_num != GPIO_NUM_NC) {
         gpio_reset_pin(tp->config.int_gpio_num);
@@ -190,8 +220,10 @@ static esp_err_t del(esp_lcd_touch_handle_t tp)
     return ESP_OK;
 }
 
-static esp_err_t reset(esp_lcd_touch_handle_t tp)
+static esp_err_t touch_gt1151_reset(esp_lcd_touch_handle_t tp)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+
     if (tp->config.rst_gpio_num != GPIO_NUM_NC) {
         ESP_RETURN_ON_ERROR(gpio_set_level(tp->config.rst_gpio_num, tp->config.levels.reset), TAG, "GPIO set level failed");
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -202,11 +234,14 @@ static esp_err_t reset(esp_lcd_touch_handle_t tp)
     return ESP_OK;
 }
 
-static esp_err_t read_product_id(esp_lcd_touch_handle_t tp)
+static esp_err_t touch_gt1151_read_product_id(esp_lcd_touch_handle_t tp)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+
     uint8_t buf[11] = {0};
     uint8_t checksum = 0;
-    ESP_RETURN_ON_ERROR(i2c_read_bytes(tp, PRODUCT_ID_REG, buf, sizeof(buf)), TAG, "I2C read failed");
+
+    ESP_RETURN_ON_ERROR(touch_gt1151_i2c_read_bytes(tp, PRODUCT_ID_REG, buf, sizeof(buf)), TAG, "I2C read failed");
     for (int i = 0; i < sizeof(buf); i++) {
         checksum += buf[i];
     }
@@ -228,15 +263,18 @@ static esp_err_t read_product_id(esp_lcd_touch_handle_t tp)
     return ESP_OK;
 }
 
-static esp_err_t i2c_read_bytes(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint8_t len)
+static esp_err_t touch_gt1151_i2c_read_bytes(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint8_t len)
 {
-    ESP_RETURN_ON_FALSE(data, ESP_ERR_INVALID_ARG, TAG, "Invalid data");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(data != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the data array can't be NULL");
 
     return esp_lcd_panel_io_rx_param(tp->io, reg, data, len);
 }
 
-static esp_err_t i2c_write_byte(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t data)
+static esp_err_t touch_gt1151_i2c_write_byte(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t data)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+
     // *INDENT-OFF*
     return esp_lcd_panel_io_tx_param(tp->io, reg, (uint8_t[]){data}, 1);
     // *INDENT-ON*

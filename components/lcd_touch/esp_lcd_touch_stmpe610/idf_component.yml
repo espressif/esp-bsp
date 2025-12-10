@@ -1,9 +1,9 @@
-version: "1.0.7"
+version: "1.0.8"
 description: ESP LCD Touch STMPE610 - touch controller STMPE610
 url: https://github.com/espressif/esp-bsp/tree/master/components/esp_lcd_touch_stmpe610
 dependencies:
   idf: ">=5.0"
   esp_lcd_touch:
-    version: "^1.0.4"
+    version: "^1.2.0"
     public: true
     override_path: ../esp_lcd_touch

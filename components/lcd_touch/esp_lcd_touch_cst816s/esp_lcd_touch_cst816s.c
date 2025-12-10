@@ -24,20 +24,20 @@
 
 static const char *TAG = "CST816S";
 
-static esp_err_t read_data(esp_lcd_touch_handle_t tp);
-static bool get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
-static esp_err_t del(esp_lcd_touch_handle_t tp);
+static esp_err_t esp_lcd_touch_cst816s_read_data(esp_lcd_touch_handle_t tp);
+static bool esp_lcd_touch_cst816s_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+static esp_err_t esp_lcd_touch_cst816s_del(esp_lcd_touch_handle_t tp);
 
-static esp_err_t i2c_read_bytes(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint8_t len);
+static esp_err_t touch_cst816s_i2c_read(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint8_t len);
 
-static esp_err_t reset(esp_lcd_touch_handle_t tp);
-static esp_err_t read_id(esp_lcd_touch_handle_t tp);
+static esp_err_t touch_cst816s_reset(esp_lcd_touch_handle_t tp);
+static esp_err_t touch_cst816s_read_id(esp_lcd_touch_handle_t tp);
 
 esp_err_t esp_lcd_touch_new_i2c_cst816s(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *tp)
 {
-    ESP_RETURN_ON_FALSE(io, ESP_ERR_INVALID_ARG, TAG, "Invalid io");
-    ESP_RETURN_ON_FALSE(config, ESP_ERR_INVALID_ARG, TAG, "Invalid config");
-    ESP_RETURN_ON_FALSE(tp, ESP_ERR_INVALID_ARG, TAG, "Invalid touch handle");
+    ESP_RETURN_ON_FALSE(io != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller io handle can't be NULL");
+    ESP_RETURN_ON_FALSE(config != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the touch controller configuration can't be NULL");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the touch controller handle can't be NULL");
 
     /* Prepare main structure */
     esp_err_t ret = ESP_OK;
@@ -47,9 +47,9 @@ esp_err_t esp_lcd_touch_new_i2c_cst816s(const esp_lcd_panel_io_handle_t io, cons
     /* Communication interface */
     cst816s->io = io;
     /* Only supported callbacks are set */
-    cst816s->read_data = read_data;
-    cst816s->get_xy = get_xy;
-    cst816s->del = del;
+    cst816s->read_data = esp_lcd_touch_cst816s_read_data;
+    cst816s->get_xy = esp_lcd_touch_cst816s_get_xy;
+    cst816s->del = esp_lcd_touch_cst816s_del;
     /* Mutex */
     cst816s->data.lock.owner = portMUX_FREE_VAL;
     /* Save config */
@@ -78,26 +78,28 @@ esp_err_t esp_lcd_touch_new_i2c_cst816s(const esp_lcd_panel_io_handle_t io, cons
         ESP_GOTO_ON_ERROR(gpio_config(&rst_gpio_config), err, TAG, "GPIO reset config failed");
     }
     /* Reset controller */
-    ESP_GOTO_ON_ERROR(reset(cst816s), err, TAG, "Reset failed");
+    ESP_GOTO_ON_ERROR(touch_cst816s_reset(cst816s), err, TAG, "Reset failed");
     /* Read product id */
 #ifdef CONFIG_ESP_LCD_TOUCH_CST816S_DISABLE_READ_ID
     ESP_LOGI(TAG, "Read ID disabled");
 #else
-    ESP_GOTO_ON_ERROR(read_id(cst816s), err, TAG, "Read ID failed");
+    ESP_GOTO_ON_ERROR(touch_cst816s_read_id(cst816s), err, TAG, "Read ID failed");
 #endif
     *tp = cst816s;
 
     return ESP_OK;
 err:
     if (cst816s) {
-        del(cst816s);
+        esp_lcd_touch_cst816s_del(cst816s);
     }
     ESP_LOGE(TAG, "Initialization failed!");
     return ret;
 }
 
-static esp_err_t read_data(esp_lcd_touch_handle_t tp)
+static esp_err_t esp_lcd_touch_cst816s_read_data(esp_lcd_touch_handle_t tp)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+
     typedef struct {
         uint8_t num;
         uint8_t x_h : 4;
@@ -109,7 +111,7 @@ static esp_err_t read_data(esp_lcd_touch_handle_t tp)
     } data_t;
 
     data_t point;
-    ESP_RETURN_ON_ERROR(i2c_read_bytes(tp, DATA_START_REG, (uint8_t *)&point, sizeof(data_t)), TAG, "I2C read failed");
+    ESP_RETURN_ON_ERROR(touch_cst816s_i2c_read(tp, DATA_START_REG, (uint8_t *)&point, sizeof(data_t)), TAG, "I2C read failed");
 
     portENTER_CRITICAL(&tp->data.lock);
     point.num = (point.num > POINT_NUM_MAX ? POINT_NUM_MAX : point.num);
@@ -124,8 +126,14 @@ static esp_err_t read_data(esp_lcd_touch_handle_t tp)
     return ESP_OK;
 }
 
-static bool get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)
+static bool esp_lcd_touch_cst816s_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, false, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(x != NULL, false, TAG, "Pointer to the x coordinates array can't be NULL");
+    ESP_RETURN_ON_FALSE(y != NULL, false, TAG, "Pointer to the y coordinates array can't be NULL");
+    ESP_RETURN_ON_FALSE(point_num != NULL, false, TAG, "Pointer to number of touch points can't be NULL");
+    ESP_RETURN_ON_FALSE(max_point_num > 0, false, TAG, "Array size must be equal or larger than 1");
+
     portENTER_CRITICAL(&tp->data.lock);
     /* Count of points */
     *point_num = (tp->data.points > max_point_num ? max_point_num : tp->data.points);
@@ -144,8 +152,10 @@ static bool get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t
     return (*point_num > 0);
 }
 
-static esp_err_t del(esp_lcd_touch_handle_t tp)
+static esp_err_t esp_lcd_touch_cst816s_del(esp_lcd_touch_handle_t tp)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+
     /* Reset GPIO pin settings */
     if (tp->config.int_gpio_num != GPIO_NUM_NC) {
         gpio_reset_pin(tp->config.int_gpio_num);
@@ -162,8 +172,10 @@ static esp_err_t del(esp_lcd_touch_handle_t tp)
     return ESP_OK;
 }
 
-static esp_err_t reset(esp_lcd_touch_handle_t tp)
+static esp_err_t touch_cst816s_reset(esp_lcd_touch_handle_t tp)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+
     if (tp->config.rst_gpio_num != GPIO_NUM_NC) {
         ESP_RETURN_ON_ERROR(gpio_set_level(tp->config.rst_gpio_num, tp->config.levels.reset), TAG, "GPIO set level failed");
         vTaskDelay(pdMS_TO_TICKS(200));
@@ -175,18 +187,21 @@ static esp_err_t reset(esp_lcd_touch_handle_t tp)
 }
 
 #ifndef CONFIG_ESP_LCD_TOUCH_CST816S_DISABLE_READ_ID
-static esp_err_t read_id(esp_lcd_touch_handle_t tp)
+static esp_err_t touch_cst816s_read_id(esp_lcd_touch_handle_t tp)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+
     uint8_t id;
-    ESP_RETURN_ON_ERROR(i2c_read_bytes(tp, CHIP_ID_REG, &id, 1), TAG, "I2C read failed");
+    ESP_RETURN_ON_ERROR(touch_cst816s_i2c_read(tp, CHIP_ID_REG, &id, 1), TAG, "I2C read failed");
     ESP_LOGI(TAG, "IC id: %d", id);
     return ESP_OK;
 }
 #endif
 
-static esp_err_t i2c_read_bytes(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint8_t len)
+static esp_err_t touch_cst816s_i2c_read(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint8_t len)
 {
-    ESP_RETURN_ON_FALSE(data, ESP_ERR_INVALID_ARG, TAG, "Invalid data");
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(data != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the data array can't be NULL");
 
     return esp_lcd_panel_io_rx_param(tp->io, reg, data, len);
 }
