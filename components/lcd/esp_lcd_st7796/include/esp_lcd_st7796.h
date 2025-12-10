@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -198,7 +198,9 @@ esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp
             .vsync_pulse_width = 10,                     \
             .vsync_front_porch = 10,                     \
         },                                               \
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
         .flags.use_dma2d = true,                         \
+#endif
     }
 
 #ifdef __cplusplus

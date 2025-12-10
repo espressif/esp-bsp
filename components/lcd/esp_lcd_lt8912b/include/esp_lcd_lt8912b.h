@@ -10,12 +10,21 @@
 
 #pragma once
 
+#include "esp_idf_version.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_mipi_dsi.h"
 #include "esp_lcd_panel_interface.h"
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+// Helper macro for DMA2D flags based on IDF version
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
+#define ESP_LCD_DPI_PANEL_DMA2D_FLAGS() \
+    .flags.use_dma2d = true,
+#else
+#define ESP_LCD_DPI_PANEL_DMA2D_FLAGS()
 #endif
 
 /**
@@ -170,7 +179,7 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
             .vsync_pulse_width = 4,                        \
             .vsync_front_porch = 1,                        \
         },                                                 \
-        .flags.use_dma2d = true,                           \
+        ESP_LCD_DPI_PANEL_DMA2D_FLAGS()                    \
         .flags.disable_lp = true,                          \
     }
 
@@ -215,7 +224,7 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
             .vsync_pulse_width = 4,                        \
             .vsync_front_porch = 3,                        \
         },                                                 \
-        .flags.use_dma2d = true,                           \
+        ESP_LCD_DPI_PANEL_DMA2D_FLAGS()                    \
         .flags.disable_lp = true,                          \
     }
 
@@ -260,7 +269,7 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
             .vsync_pulse_width = 5,                        \
             .vsync_front_porch = 3,                        \
         },                                                 \
-        .flags.use_dma2d = true,                           \
+        ESP_LCD_DPI_PANEL_DMA2D_FLAGS()                    \
         .flags.disable_lp = true,                          \
     }
 
@@ -305,7 +314,7 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
             .vsync_pulse_width = 6,                        \
             .vsync_front_porch = 3,                        \
         },                                                 \
-        .flags.use_dma2d = true,                           \
+        ESP_LCD_DPI_PANEL_DMA2D_FLAGS()                    \
         .flags.disable_lp = true,                          \
     }
 
@@ -350,7 +359,7 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
             .vsync_pulse_width = 5,                        \
             .vsync_front_porch = 3,                        \
         },                                                 \
-        .flags.use_dma2d = true,                           \
+        ESP_LCD_DPI_PANEL_DMA2D_FLAGS()                    \
         .flags.disable_lp = true,                          \
     }
 
@@ -398,7 +407,7 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
             .vsync_pulse_width = 5,                        \
             .vsync_front_porch = 3,                        \
         },                                                 \
-        .flags.use_dma2d = true,                           \
+        ESP_LCD_DPI_PANEL_DMA2D_FLAGS()                    \
         .flags.disable_lp = true,                          \
     }
 

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -14,6 +14,7 @@
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_commands.h"
+#include "esp_lcd_mipi_dsi.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "esp_check.h"
@@ -214,6 +215,12 @@ esp_err_t esp_lcd_new_panel_lt8912b(const esp_lcd_panel_lt8912b_io_t *io, const 
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_dpi(vendor_config->mipi_config.dsi_bus, vendor_config->mipi_config.dpi_config, ret_panel), err, TAG,
                       "create MIPI DPI panel failed");
     ESP_LOGD(TAG, "new MIPI DPI panel @%p", *ret_panel);
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+    // Enable DMA2D for ESP-IDF 6.0+
+    ESP_GOTO_ON_ERROR(esp_lcd_dpi_panel_enable_dma2d(*ret_panel), err, TAG,
+                      "enable DMA2D failed");
+#endif
 
     // Save the original functions of MIPI DPI panel
     lt8912b->del = (*ret_panel)->del;

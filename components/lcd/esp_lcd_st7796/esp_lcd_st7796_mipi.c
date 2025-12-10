@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -103,6 +103,12 @@ esp_err_t esp_lcd_new_panel_st7796_mipi(const esp_lcd_panel_io_handle_t io, cons
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_dpi(vendor_config->mipi_config.dsi_bus, vendor_config->mipi_config.dpi_config, &panel_handle), err, TAG,
                       "create MIPI DPI panel failed");
     ESP_LOGD(TAG, "new MIPI DPI panel @%p", panel_handle);
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+    // Enable DMA2D for ESP-IDF 6.0+
+    ESP_GOTO_ON_ERROR(esp_lcd_dpi_panel_enable_dma2d(panel_handle), err, TAG,
+                      "enable DMA2D failed");
+#endif
 
     // Save the original functions of MIPI DPI panel
     st7796->del = panel_handle->del;
