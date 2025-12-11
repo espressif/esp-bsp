@@ -48,6 +48,7 @@ typedef struct {
     lv_color_t                *trans_buf;   /* Buffer send to driver */
     uint32_t                  trans_size;   /* Maximum size for one transport */
     SemaphoreHandle_t         trans_sem;    /* Idle transfer mutex */
+    lvgl_port_rounder_cb_t    rounder_cb;     /* Rounder callback for display area */
 } lvgl_port_display_ctx_t;
 
 /*******************************************************************************
@@ -66,6 +67,7 @@ static bool lvgl_port_flush_dpi_vsync_ready_callback(esp_lcd_panel_handle_t pane
 #endif
 #endif
 static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map);
+static void lvgl_port_rounder_callback(lv_disp_drv_t *drv, lv_area_t *area);
 static void lvgl_port_update_callback(lv_disp_drv_t *drv);
 static void lvgl_port_pix_monochrome_callback(lv_disp_drv_t *drv, uint8_t *buf, lv_coord_t buf_w, lv_coord_t x, lv_coord_t y, lv_color_t color, lv_opa_t opa);
 
@@ -309,6 +311,12 @@ static lv_disp_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp_cf
     disp_ctx->disp_drv.draw_buf = disp_buf;
     disp_ctx->disp_drv.user_data = disp_ctx;
 
+    /* Add rounder_cb */
+    if (disp_cfg->rounder_cb) {
+        disp_ctx->rounder_cb = disp_cfg->rounder_cb;
+        disp_ctx->disp_drv.rounder_cb = lvgl_port_rounder_callback;
+    }
+
     disp_ctx->disp_drv.sw_rotate = disp_cfg->flags.sw_rotate;
     if (disp_ctx->disp_drv.sw_rotate == false) {
         disp_ctx->disp_drv.drv_update_cb = lvgl_port_update_callback;
@@ -501,6 +509,17 @@ static void lvgl_port_flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, 
             y_start_tmp += max_line;
             xSemaphoreTake(disp_ctx->trans_sem, portMAX_DELAY);
         }
+    }
+}
+
+static void lvgl_port_rounder_callback(lv_disp_drv_t *drv, lv_area_t *area)
+{
+    assert(drv != NULL);
+    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)drv->user_data;
+    assert(disp_ctx != NULL);
+
+    if (disp_ctx->rounder_cb) {
+        disp_ctx->rounder_cb(area);
     }
 }
 
