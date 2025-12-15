@@ -15,14 +15,13 @@ C driver for Invensense ICM42607/ICM42670 6-axis gyroscope and accelerometer bas
 ## Limitations
 
 - Only I2C communication is supported.
-- Driver has not been tested with ICM42670 yet.
 
 ## Get Started
 
 This driver, along with many other components from this repository, can be used as a package from [Espressif's IDF Component Registry](https://components.espressif.com). To include this driver in your project, run the following idf.py from the project's root directory:
 
 ```
-    idf.py add-dependency "espressif/icm42670==1.0.0"
+    idf.py add-dependency "espressif/icm42670==*"
 ```
 
 Another option is to manually create a `idf_component.yml` file. You can find more about using .yml files for components from [Espressif's documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html).

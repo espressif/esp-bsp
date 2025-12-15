@@ -12,11 +12,12 @@
 #include "esp_system.h"
 #include "esp_check.h"
 #include "esp_rom_sys.h"
+#include "esp_timer.h"
 #include "icm42670.h"
 
 #define I2C_CLK_SPEED 400000
 
-#define ALPHA                       0.99f        /*!< Weight of gyroscope */
+#define ALPHA                       0.97f        /*!< Weight of gyroscope */
 #define RAD_TO_DEG                  57.27272727f /*!< Radians to degrees */
 
 #define ICM42607_ID 0x60
@@ -50,9 +51,9 @@
 
 typedef struct {
     i2c_master_dev_handle_t i2c_handle;
-    uint32_t counter;
-    float dt;  /*!< delay time between two measurements, dt should be small (ms level) */
-    struct timeval *timer;
+    bool initialized_filter;
+    uint64_t previous_measurement_us;
+    complimentary_angle_t previous_measurement;
 } icm42670_dev_t;
 
 /*******************************************************************************
@@ -78,9 +79,7 @@ esp_err_t icm42670_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_add
 
     // Allocate memory and init the driver object
     icm42670_dev_t *sensor = (icm42670_dev_t *) calloc(1, sizeof(icm42670_dev_t));
-    struct timeval *timer = (struct timeval *) calloc(1, sizeof(struct timeval));
-    ESP_RETURN_ON_FALSE(sensor != NULL && timer != NULL, ESP_ERR_NO_MEM, TAG, "Not enough memory");
-    sensor->timer = timer;
+    ESP_RETURN_ON_FALSE(sensor != NULL, ESP_ERR_NO_MEM, TAG, "Not enough memory");
 
     // Add new I2C device
     const i2c_device_config_t i2c_dev_cfg = {
@@ -110,10 +109,6 @@ void icm42670_delete(icm42670_handle_t sensor)
 
     if (sens->i2c_handle) {
         i2c_master_bus_rm_device(sens->i2c_handle);
-    }
-
-    if (sens->timer) {
-        free(sens->timer);
     }
 
     free(sens);
@@ -381,37 +376,36 @@ static esp_err_t icm42670_read(icm42670_handle_t sensor, const uint8_t reg_start
 esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670_value_t *const acce_value,
                                         const icm42670_value_t *const gyro_value, complimentary_angle_t *const complimentary_angle)
 {
-    float acce_angle[2];
-    float gyro_angle[2];
-    float gyro_rate[2];
     icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
+    float measurement_delta;
+    uint64_t current_time_us;
+    float acc_roll_angle;
+    float acc_pitch_angle;
+    float gyro_roll_angle;
+    float gyro_pitch_angle;
 
-    sens->counter++;
-    if (sens->counter == 1) {
-        acce_angle[0] = (atan2(acce_value->y, acce_value->z) * RAD_TO_DEG);
-        acce_angle[1] = (atan2(acce_value->x, acce_value->z) * RAD_TO_DEG);
-        complimentary_angle->roll = acce_angle[0];
-        complimentary_angle->pitch = acce_angle[1];
-        gettimeofday(sens->timer, NULL);
-        return ESP_OK;
+    acc_roll_angle = (atan2(acce_value->y, sqrt(acce_value->x * acce_value->x + acce_value->z * acce_value->z)) * RAD_TO_DEG);
+    acc_pitch_angle = (atan2(-acce_value->x, sqrt(acce_value->y * acce_value->y + acce_value->z * acce_value->z)) * RAD_TO_DEG);
+
+    if (!sens->initialized_filter) {
+        sens->initialized_filter = true;
+        sens->previous_measurement_us = esp_timer_get_time();
+        sens->previous_measurement.roll = acc_roll_angle;
+        sens->previous_measurement.pitch = acc_pitch_angle;
     }
 
-    struct timeval now, dt_t;
-    gettimeofday(&now, NULL);
-    timersub(&now, sens->timer, &dt_t);
-    sens->dt = (float) (dt_t.tv_sec) + (float)dt_t.tv_usec / 1000000;
-    gettimeofday(sens->timer, NULL);
+    current_time_us = esp_timer_get_time();
+    measurement_delta = (current_time_us - sens->previous_measurement_us) / 1000000.0f;
+    sens->previous_measurement_us = current_time_us;
 
-    acce_angle[0] = (atan2(acce_value->y, acce_value->z) * RAD_TO_DEG);
-    acce_angle[1] = (atan2(acce_value->x, acce_value->z) * RAD_TO_DEG);
+    gyro_roll_angle = gyro_value->x * measurement_delta;
+    gyro_pitch_angle = gyro_value->y * measurement_delta;
 
-    gyro_rate[0] = gyro_value->x;
-    gyro_rate[1] = gyro_value->y;
-    gyro_angle[0] = gyro_rate[0] * sens->dt;
-    gyro_angle[1] = gyro_rate[1] * sens->dt;
+    complimentary_angle->roll = (ALPHA * (sens->previous_measurement.roll + gyro_roll_angle)) + ((1 - ALPHA) * acc_roll_angle);
+    complimentary_angle->pitch = (ALPHA * (sens->previous_measurement.pitch + gyro_pitch_angle)) + ((1 - ALPHA) * acc_pitch_angle);
 
-    complimentary_angle->roll = (ALPHA * (complimentary_angle->roll + gyro_angle[0])) + ((1 - ALPHA) * acce_angle[0]);
-    complimentary_angle->pitch = (ALPHA * (complimentary_angle->pitch + gyro_angle[1])) + ((1 - ALPHA) * acce_angle[1]);
+    sens->previous_measurement.roll = complimentary_angle->roll;
+    sens->previous_measurement.pitch = complimentary_angle->pitch;
 
     return ESP_OK;
 }
