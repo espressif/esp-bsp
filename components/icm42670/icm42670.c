@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -327,7 +327,7 @@ esp_err_t icm42670_get_temp_value(icm42670_handle_t sensor, float *value)
     ret = icm42670_get_temp_raw_value(sensor, &raw_value);
     ESP_RETURN_ON_ERROR(ret, TAG, "Get raw value error!");
 
-    *value = ((float)raw_value / 128.0) + 25.0;
+    *value = ((int16_t)raw_value / 128.0f) + 25.0f;
 
     return ESP_OK;
 }
