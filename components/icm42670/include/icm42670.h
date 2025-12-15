@@ -225,7 +225,7 @@ esp_err_t icm42670_get_gyro_sensitivity(icm42670_handle_t sensor, float *sensiti
  *     - ESP_OK Success
  *     - ESP_FAIL Fail
  */
-esp_err_t icm42670_get_temp_raw_value(icm42670_handle_t sensor, uint16_t *value);
+esp_err_t icm42670_get_temp_raw_value(icm42670_handle_t sensor, int16_t *value);
 
 /**
  * @brief Read raw accelerometer measurements

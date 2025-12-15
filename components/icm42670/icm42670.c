@@ -238,7 +238,7 @@ esp_err_t icm42670_get_gyro_sensitivity(icm42670_handle_t sensor, float *sensiti
     return ret;
 }
 
-esp_err_t icm42670_get_temp_raw_value(icm42670_handle_t sensor, uint16_t *value)
+esp_err_t icm42670_get_temp_raw_value(icm42670_handle_t sensor, int16_t *value)
 {
     esp_err_t ret = ESP_FAIL;
     uint8_t data[2];
@@ -318,7 +318,7 @@ esp_err_t icm42670_get_gyro_value(icm42670_handle_t sensor, icm42670_value_t *va
 esp_err_t icm42670_get_temp_value(icm42670_handle_t sensor, float *value)
 {
     esp_err_t ret;
-    uint16_t raw_value;
+    int16_t raw_value;
 
     assert(value != NULL);
 
