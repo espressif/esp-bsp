@@ -1,0 +1,5 @@
+dependencies:
+  espressif/led_strip: ^3.0.0
+  espressif/icm42670:
+    version: "*"
+    override_path: "../../../components/icm42670"
