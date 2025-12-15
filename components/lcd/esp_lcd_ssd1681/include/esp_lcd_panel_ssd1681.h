@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -40,6 +40,8 @@ typedef struct {
     int busy_gpio_num;         /*!< GPIO num of the BUSY pin */
     bool non_copy_mode;        /*!< If the bitmap would be copied or not.
                                 *   Image rotation and mirror is limited when enabling. */
+    int display_x;
+    int display_y;
 } esp_lcd_ssd1681_config_t;
 
 /**

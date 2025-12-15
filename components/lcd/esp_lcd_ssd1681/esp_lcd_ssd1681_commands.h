@@ -14,11 +14,12 @@
 #define SSD1681_CMD_SWRST                   0x12
 // --- Driver output control
 #define SSD1681_CMD_OUTPUT_CTRL             0x01
-#define SSD1681_PARAM_OUTPUT_CTRL           ((uint8_t[]) {0xc7, 0x00, 0x00})
+// Chipset wants (total row count - 1) i.e. 250 rows = 249 here
+#define SSD1681_PARAM_OUTPUT_CTRL(rows)     ((uint8_t[]) {(rows-1) & 0xFF, (rows-1) >> 8, 0x00})
 // --- Data Entry Sequence Setting
 #define SSD1681_CMD_DATA_ENTRY_MODE         0x11
 // A [1:0] = ID[1:0], A[2] = AM
-// the address counter is updated in the X direction
+// AM = 0, the address counter is updated in the X direction
 // 000 - Y decrement, X decrement
 #define SSD1681_PARAM_DATA_ENTRY_MODE_0       0x00
 // 001 – Y decrement, X increment
@@ -26,8 +27,8 @@
 // 010 - Y increment, X decrement
 #define SSD1681_PARAM_DATA_ENTRY_MODE_2       0x02
 // 011 - Y increment, X increment
-// AM = 1, the address counter is updated in the Y direction
 #define SSD1681_PARAM_DATA_ENTRY_MODE_3       0x03
+// AM = 1, the address counter is updated in the Y direction
 // 100 - Y decrement, X decrement
 #define SSD1681_PARAM_DATA_ENTRY_MODE_4       0x04
 // 101 – Y decrement, X increment

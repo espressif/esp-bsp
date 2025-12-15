@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -7,6 +7,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sdkconfig.h"
+
 #if CONFIG_LCD_ENABLE_DEBUG_LOG
 // The local log level must be defined before including esp_log.h
 // Set the maximum log level for this source file
@@ -23,10 +24,8 @@
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_ssd1681_commands.h"
 
+// TODO: valid for 1.54 inch 200x200 display. Might not be valid for others.
 #define SSD1681_LUT_SIZE                   159
-#define SSD1681_EPD_1IN54_V2_WIDTH         200
-#define SSD1681_EPD_1IN54_V2_HEIGHT        200
-
 
 static const char *TAG = "lcd_panel.epaper";
 
@@ -45,6 +44,8 @@ typedef struct {
     // Configurations from epaper_ssd1681_conf
     int busy_gpio_num;
     bool full_refresh;
+    int display_x;  // width in pixels
+    int display_y;  // height in pixels
     // Configurations from interface functions
     int gap_x;
     int gap_y;
@@ -150,6 +151,8 @@ static esp_err_t epaper_set_lut(esp_lcd_panel_io_handle_t io, const uint8_t *lut
 
 static esp_err_t epaper_set_cursor(esp_lcd_panel_io_handle_t io, uint32_t cur_x, uint32_t cur_y)
 {
+    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    ESP_LOGD(TAG, "set_cursor: x,y = %lu, %lu", cur_x, cur_y);
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SET_INIT_X_ADDR_COUNTER, (uint8_t[]) {
         (uint8_t)((cur_x >> 3) & 0xff)
     }, 1), TAG, "SSD1681_CMD_SET_INIT_X_ADDR_COUNTER err");
@@ -164,12 +167,13 @@ static esp_err_t epaper_set_cursor(esp_lcd_panel_io_handle_t io, uint32_t cur_x,
 
 static esp_err_t epaper_set_area(esp_lcd_panel_io_handle_t io, uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y)
 {
+    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    ESP_LOGD(TAG, "epaper_set_area: start_xy=(%lu,%lu), end_xy=(%lu,%lu)", start_x, start_y, end_x, end_y);
     // --- Set RAMX Start/End Position
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SET_RAMX_START_END_POS, (uint8_t[]) {
         (start_x >> 3) & 0xff,  // start_x
         (end_x >> 3) & 0xff     // end_x
     }, 2), TAG, "SSD1681_CMD_SET_RAMX_START_END_POS err");
-
     // --- Set RAMY Start/End Position
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SET_RAMY_START_END_POS, (uint8_t[]) {
         (start_y) & 0xff,          // start_y[7:0]
@@ -192,6 +196,9 @@ static esp_err_t panel_epaper_wait_busy(esp_lcd_panel_t *panel)
 
 esp_err_t panel_epaper_set_vram(esp_lcd_panel_io_handle_t io, uint8_t *bw_bitmap, uint8_t *red_bitmap, size_t size)
 {
+    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    ESP_LOGD(TAG, "panel_epaper_set_vram: size = %u", size);
+
     // Note: the screen region to be used to draw bitmap had been defined
     // The region of BLACK VRAM and RED VRAM are set by the same series of command, the two bitmaps will be drawn at
     // the same region, so the two bitmaps can share a same size.
@@ -242,9 +249,7 @@ esp_err_t
 esp_lcd_new_panel_ssd1681(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *const panel_dev_config,
                           esp_lcd_panel_handle_t *const ret_panel)
 {
-#if CONFIG_LCD_ENABLE_DEBUG_LOG
     esp_log_level_set(TAG, ESP_LOG_DEBUG);
-#endif
     ESP_RETURN_ON_FALSE(io && panel_dev_config && ret_panel, ESP_ERR_INVALID_ARG, TAG, "1 or more args is NULL");
     esp_lcd_ssd1681_config_t *epaper_ssd1681_conf = panel_dev_config->vendor_config;
     esp_err_t ret = ESP_OK;
@@ -270,6 +275,8 @@ esp_lcd_new_panel_ssd1681(const esp_lcd_panel_io_handle_t io, const esp_lcd_pane
     epaper_panel->busy_gpio_num = epaper_ssd1681_conf->busy_gpio_num;
     epaper_panel->reset_level = panel_dev_config->flags.reset_active_high;
     epaper_panel->_non_copy_mode = epaper_ssd1681_conf->non_copy_mode;
+    epaper_panel->display_x = epaper_ssd1681_conf->display_x;
+    epaper_panel->display_y = epaper_ssd1681_conf->display_y;
     // functions
     epaper_panel->base.del = epaper_panel_del;
     epaper_panel->base.reset = epaper_panel_reset;
@@ -283,7 +290,7 @@ esp_lcd_new_panel_ssd1681(const esp_lcd_panel_io_handle_t io, const esp_lcd_pane
     *ret_panel = &(epaper_panel->base);
     // --- Init framebuffer
     if (!(epaper_panel->_non_copy_mode)) {
-        epaper_panel->_framebuffer = heap_caps_malloc(SSD1681_EPD_1IN54_V2_WIDTH * SSD1681_EPD_1IN54_V2_HEIGHT / 8,
+        epaper_panel->_framebuffer = heap_caps_malloc(epaper_panel->display_x * epaper_panel->display_y / 8,
                                      MALLOC_CAP_DMA);
         ESP_RETURN_ON_FALSE(epaper_panel->_framebuffer, ESP_ERR_NO_MEM, TAG, "epaper_panel_draw_bitmap allocating buffer memory err");
     }
@@ -328,6 +335,7 @@ err:
 
 static esp_err_t epaper_panel_del(esp_lcd_panel_t *panel)
 {
+    esp_log_level_set(TAG, ESP_LOG_DEBUG);
     epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
     // --- Reset used GPIO pins
     if ((epaper_panel->reset_gpio_num) >= 0) {
@@ -335,8 +343,8 @@ static esp_err_t epaper_panel_del(esp_lcd_panel_t *panel)
     }
     gpio_reset_pin(epaper_panel->busy_gpio_num);
     // --- Free allocated RAM
+    // Do not free if buffer is not allocated by driver (non_copy_mode==True)
     if ((epaper_panel->_framebuffer) && (!(epaper_panel->_non_copy_mode))) {
-        // Should not free if buffer is not allocated by driver
         free(epaper_panel->_framebuffer);
     }
     ESP_LOGD(TAG, "del ssd1681 epaper panel @%p", epaper_panel);
@@ -381,9 +389,9 @@ static esp_err_t epaper_panel_init(esp_lcd_panel_t *panel)
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SWRST, NULL, 0), TAG,
                         "param SSD1681_CMD_SWRST err");
     panel_epaper_wait_busy(panel);
-    // --- Driver Output Control
+    // --- Driver Output Control: prescribe the length of a row
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_OUTPUT_CTRL,
-                        SSD1681_PARAM_OUTPUT_CTRL, 3), TAG, "SSD1681_CMD_OUTPUT_CTRL err");
+                        SSD1681_PARAM_OUTPUT_CTRL(epaper_panel->display_y), 3), TAG, "SSD1681_CMD_OUTPUT_CTRL err");
 
     // --- Border Waveform Control
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_SET_BORDER_WAVEFORM, (uint8_t[]) {
@@ -413,6 +421,8 @@ static esp_err_t epaper_panel_init(esp_lcd_panel_t *panel)
 static esp_err_t
 epaper_panel_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end, const void *color_data)
 {
+    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    ESP_LOGD(TAG, "epaper_panel_draw_bitmap: xy_start=(%d,%d), end=(%d,%d)", x_start, y_start, x_end, y_end);
     epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
     if (gpio_get_level(epaper_panel->busy_gpio_num)) {
         return ESP_ERR_NOT_FINISHED;
@@ -442,55 +452,75 @@ epaper_panel_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x
             ESP_LOGW(TAG, "Bitmap not DMA capable, use DMA capable memory to avoid additional data copy.");
         }
     } else {
-        // Copy & convert image according to configuration
+        // Copy & convert image according to configuration.
+        // Loads the panel framebuffer with image, possibly mirroring about X and/or Y axes.
         process_bitmap(panel, len_x, len_y, buffer_size, color_data);
     }
     // --- Set cursor & data entry sequence
+    // NO MIRROR
     if ((!(epaper_panel->_mirror_x)) && (!(epaper_panel->_mirror_y))) {
         // --- Cursor Settings
+        ESP_LOGD(TAG, "epaper_panel_draw_bitmap, no_mirror: x0,y0 = %d,%d, x1,y1=%d,%d", x_start, y_start, x_end, y_end);
         ESP_RETURN_ON_ERROR(epaper_set_area(epaper_panel->io, x_start, y_start, x_end, y_end), TAG,
                             "epaper_set_area() error");
         ESP_RETURN_ON_ERROR(epaper_set_cursor(epaper_panel->io, x_start, y_start), TAG,
                             "epaper_set_cursor() error");
-        // --- Data Entry Sequence Setting
+        // --- Data Entry Sequence Setting: staqrt on first row and increment Y
         ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_DATA_ENTRY_MODE, (uint8_t[]) {
             SSD1681_PARAM_DATA_ENTRY_MODE_3
         }, 1), TAG, "SSD1681_CMD_DATA_ENTRY_MODE err");
     }
-    if ((!(epaper_panel->_mirror_x)) && (epaper_panel->_mirror_y)) {
+    // Y MIRROR
+    else if ((!(epaper_panel->_mirror_x)) && (epaper_panel->_mirror_y)) {
+        if (epaper_panel->display_x == epaper_panel->display_y) {
+            y_end = y_end + len_y - 1;  // code for square panel
+        } else {
+            y_end = 0;  // code for rectangular panels
+        }
+        ESP_LOGD(TAG, "epaper_panel_draw_bitmap, mirror Y: x0,y0 = %d,%d, x1,y1=%d,%d", x_start, y_start + len_y - 1, x_end, y_end);
         // --- Cursor Settings
-        ESP_RETURN_ON_ERROR(epaper_set_area(epaper_panel->io, x_start, y_start + len_y - 1, x_end, y_end + len_y - 1), TAG,
+        ESP_RETURN_ON_ERROR(epaper_set_area(epaper_panel->io, x_start, y_start + len_y - 1, x_end, y_end), TAG,
                             "epaper_set_area() error");
         ESP_RETURN_ON_ERROR(epaper_set_cursor(epaper_panel->io, x_start, y_start + len_y - 1), TAG,
                             "epaper_set_cursor() error");
-        // --- Data Entry Sequence Setting
+        // --- Data Entry Sequence Setting: staqrt on last row and decrement Y
         ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_DATA_ENTRY_MODE, (uint8_t[]) {
             SSD1681_PARAM_DATA_ENTRY_MODE_1
         }, 1), TAG, "SSD1681_CMD_DATA_ENTRY_MODE err");
     }
-    if (((epaper_panel->_mirror_x)) && (!(epaper_panel->_mirror_y))) {
+    // X MIRROR
+    else if (((epaper_panel->_mirror_x)) && (!(epaper_panel->_mirror_y))) {
+        if (epaper_panel->display_x == epaper_panel->display_y) {
+            y_end = y_end + len_y - 1;  // code for square panel
+        } else {
+            y_end = 0;  // code for rectangular panels
+        }
+        ESP_LOGD(TAG, "epaper_panel_draw_bitmap, mirror X: x0,y0 = %d,%d, x1,y1=%d,%d", x_start, y_start + len_y - 1, x_end, y_end);
         // --- Cursor Settings
-        ESP_RETURN_ON_ERROR(epaper_set_area(epaper_panel->io, x_start, y_start + len_y - 1, x_end, y_end + len_y - 1), TAG,
+        ESP_RETURN_ON_ERROR(epaper_set_area(epaper_panel->io, x_start, y_start + len_y - 1, x_end, y_end), TAG,
                             "epaper_set_area() error");
         ESP_RETURN_ON_ERROR(epaper_set_cursor(epaper_panel->io, x_start, y_start + len_y - 1), TAG,
                             "epaper_set_cursor() error");
-        // --- Data Entry Sequence Setting
+        // --- Data Entry Sequence Setting: start on last row and decrement Y
         ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_DATA_ENTRY_MODE, (uint8_t[]) {
             SSD1681_PARAM_DATA_ENTRY_MODE_1
         }, 1), TAG, "SSD1681_CMD_DATA_ENTRY_MODE err");
     }
-    if (((epaper_panel->_mirror_x)) && (epaper_panel->_mirror_y)) {
+    // XY MIRROR
+    else if (((epaper_panel->_mirror_x)) && (epaper_panel->_mirror_y)) {
+        ESP_LOGD(TAG, "epaper_panel_draw_bitmap, mirror XY: x0,y0 = %d,%d, x1,y1=%d,%d", x_start, y_start, x_end, y_end);
         // --- Cursor Settings
         ESP_RETURN_ON_ERROR(epaper_set_area(epaper_panel->io, x_start, y_start, x_end, y_end), TAG,
                             "epaper_set_area() error");
         ESP_RETURN_ON_ERROR(epaper_set_cursor(epaper_panel->io, x_start, y_start), TAG,
                             "epaper_set_cursor() error");
-        // --- Data Entry Sequence Setting
+        // --- Data Entry Sequence Setting: staqrt on first row and increment Y
         ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_DATA_ENTRY_MODE, (uint8_t[]) {
             SSD1681_PARAM_DATA_ENTRY_MODE_3
         }, 1), TAG, "SSD1681_CMD_DATA_ENTRY_MODE err");
     }
     // --- Send bitmap to e-Paper VRAM
+    ESP_LOGD(TAG, "epaper_panel_draw_bitmap, call set_vram: len_x, len_y = %d, %d", len_x, len_y);
     if (epaper_panel->bitmap_color == SSD1681_EPAPER_BITMAP_BLACK) {
         ESP_RETURN_ON_ERROR(panel_epaper_set_vram(epaper_panel->io, (uint8_t *) (epaper_panel->_framebuffer), NULL,
                             (len_x * len_y / 8)),
@@ -502,7 +532,7 @@ epaper_panel_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x
     }
     // --- Refresh the display, show image in VRAM
     // tx_param will wait until DMA transaction finishes, so it is safe to call panel_epaper_refresh_screen at once.
-    // The driver will not call the `epaper_panel_refresh_screen` automatically, please call it manually.
+    // The driver will not call the `epaper_panel_refresh_screen` automatically, please call it after return from this function.
     return ESP_OK;
 }
 
@@ -575,63 +605,80 @@ static esp_err_t epaper_panel_disp_on_off(esp_lcd_panel_t *panel, bool on_off)
 
 static esp_err_t process_bitmap(esp_lcd_panel_t *panel, int len_x, int len_y, int buffer_size, const void *color_data)
 {
+    esp_log_level_set(TAG, ESP_LOG_DEBUG);
     epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
     // --- Convert image according to configuration
+    // NO MIRROR
     if ((!(epaper_panel->_mirror_x)) && (!(epaper_panel->_mirror_y))) {
         if (!(epaper_panel->_non_copy_mode)) {
             if (epaper_panel->_swap_xy) {
-                memset(epaper_panel->_framebuffer, 0, 200 * 200 / 8);
+                memset(epaper_panel->_framebuffer, 0, epaper_panel->display_x * epaper_panel->display_y / 8);
                 for (int i = 0; i < buffer_size * 8; i++) {
                     uint8_t bitmap_byte = ((uint8_t *) (color_data))[i / 8];
                     uint8_t bitmap_pixel = (bitmap_byte & (0x01 << (7 - (i % 8)))) ? 0x01 : 0x00;
                     (epaper_panel->_framebuffer)[((i * len_y / 8) % buffer_size) + (i / 8 / len_x)] |= (bitmap_pixel << (7 - ((i / len_x) % 8)));
                 }
             } else {
+                ESP_LOGD(TAG, "process_bitmap, no mirror, no swap: buffer_size = %d", buffer_size);
                 for (int i = 0; i < buffer_size; i++) {
                     (epaper_panel->_framebuffer)[i] = ((uint8_t *) (color_data))[i];
                 }
             }
         }
     }
+    // MIRROR Y
     if ((!(epaper_panel->_mirror_x)) && (epaper_panel->_mirror_y)) {
         if (epaper_panel->_swap_xy) {
-            memset((epaper_panel->_framebuffer), 0, 200 * 200 / 8);
+            memset((epaper_panel->_framebuffer), 0, epaper_panel->display_x * epaper_panel->display_y / 8);
             for (int i = 0; i < buffer_size * 8; i++) {
                 uint8_t bitmap_byte = ((uint8_t *) (color_data))[i / 8];
                 uint8_t bitmap_pixel = (bitmap_byte & (0x01 << (7 - (i % 8)))) ? 0x01 : 0x00;
                 (epaper_panel->_framebuffer)[buffer_size - (((i * len_y / 8) % buffer_size) + (i / 8 / len_x)) - 1] |= (bitmap_pixel << (((i / len_x) % 8)));
             }
         } else {
+            ESP_LOGD(TAG, "process_bitmap, mirror Y, no swap: buffer_size = %d", buffer_size);
+            // Copy to framebuffer: image ends up with X & Y axes mirrored. When epaper_panel_draw_bitmap is called,
+            // image is transferred to panel by starting at Y=end and decrementing with each row,
+            // thereby undoing the X mirror.
             for (int i = 0; i < buffer_size; i++) {
                 (epaper_panel->_framebuffer)[buffer_size - i - 1] = byte_reverse(((uint8_t *)(color_data))[i]);
             }
         }
     }
+    // MIRROR_X
     if (((epaper_panel->_mirror_x)) && (!(epaper_panel->_mirror_y))) {
         if (!(epaper_panel->_non_copy_mode)) {
             if (epaper_panel->_swap_xy) {
-                memset((epaper_panel->_framebuffer), 0, 200 * 200 / 8);
+                memset((epaper_panel->_framebuffer), 0, epaper_panel->display_x * epaper_panel->display_y / 8);
                 for (int i = 0; i < buffer_size * 8; i++) {
                     uint8_t bitmap_byte = ((uint8_t *) (color_data))[i / 8];
                     uint8_t bitmap_pixel = (bitmap_byte & (0x01 << (7 - (i % 8)))) ? 0x01 : 0x00;
                     (epaper_panel->_framebuffer)[((i * len_y / 8) % buffer_size) + (i / 8 / len_x)] |= (bitmap_pixel << (7 - ((i / len_x) % 8)));
                 }
             } else {
+                // Straight copy to framebuffer. When epaper_panel_draw_bitmap is called,
+                // image is transferred to panel by starting at Y=end and decrementing with each row,
+                // thereby mirroring about the X axis.
+                ESP_LOGD(TAG, "process_bitmap, mirror X, no swap: buffer_size = %d", buffer_size);
                 for (int i = 0; i < buffer_size; i++) {
                     (epaper_panel->_framebuffer)[i] = ((uint8_t *) (color_data))[i];
                 }
             }
         }
     }
+    // MIRROR_XY
     if (((epaper_panel->_mirror_x)) && (epaper_panel->_mirror_y)) {
         if (epaper_panel->_swap_xy) {
-            memset((epaper_panel->_framebuffer), 0, 200 * 200 / 8);
+            memset((epaper_panel->_framebuffer), 0, epaper_panel->display_x * epaper_panel->display_y / 8);
             for (int i = 0; i < buffer_size * 8; i++) {
                 uint8_t bitmap_byte = ((uint8_t *) (color_data))[i / 8];
                 uint8_t bitmap_pixel = (bitmap_byte & (0x01 << (7 - (i % 8)))) ? 0x01 : 0x00;
                 (epaper_panel->_framebuffer)[buffer_size - (((i * len_y / 8) % buffer_size) + (i / 8 / len_x)) - 1] |= (bitmap_pixel << (((i / len_x) % 8)));
             }
         } else {
+            // Copy to framebuffer: image ends up with X & Y axes mirrored. When epaper_panel_draw_bitmap is called,
+            // image is transferred to panel by starting at Y=0 and incrementing with each row.
+            ESP_LOGD(TAG, "process_bitmap, mirror XY, no swap: buffer_size = %d", buffer_size);
             for (int i = 0; i < buffer_size; i++) {
                 (epaper_panel->_framebuffer)[buffer_size - i - 1] = byte_reverse(((uint8_t *)(color_data))[i]);
             }
@@ -641,6 +688,17 @@ static esp_err_t process_bitmap(esp_lcd_panel_t *panel, int len_x, int len_y, in
     return ESP_OK;
 }
 
+esp_err_t set_panel_size(esp_lcd_panel_t *panel, int len_x, int len_y)
+{
+    epaper_panel_t *epaper_panel = __containerof(panel, epaper_panel_t, base);
+    esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    ESP_LOGD(TAG, "set_panel_size: x,y = %d, %d", len_x, len_y);
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_OUTPUT_CTRL,
+                        SSD1681_PARAM_OUTPUT_CTRL(len_x), 0), TAG, "SSD1681_CMD_OUTPUT_CTRL err");
+    return ESP_OK;
+}
+
+// If MIRROR Y, then bytes must be reversed.
 static inline uint8_t byte_reverse(uint8_t data)
 {
     static uint8_t _4bit_reverse_lut[] =  {
