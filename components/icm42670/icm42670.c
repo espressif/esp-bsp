@@ -14,6 +14,7 @@
 #include "esp_rom_sys.h"
 #include "esp_timer.h"
 #include "icm42670.h"
+#include "iot_sensor_hub.h"
 
 #define I2C_CLK_SPEED 400000
 
@@ -472,3 +473,63 @@ esp_err_t icm42670_write_mreg_register(icm42670_handle_t sensor, uint8_t mreg, u
 
     return ESP_OK;
 }
+
+    icm42670_handle_t sensor_hub_icm42670_handle;
+
+    esp_err_t icm42670_impl_init(bus_handle_t bus_handle, uint8_t addr) {
+        ESP_RETURN_ON_ERROR(icm42670_create(bus_handle, addr, &sensor_hub_icm42670_handle), TAG, "Failed to initialize ICM42670");
+        if (sensor_hub_icm42670_handle) {
+            /* Configuration of the accelerometer and gyroscope */
+            const icm42670_cfg_t icm42670_cfg = {
+                .acce_fs = ACCE_FS_2G,
+                .acce_odr = ACCE_ODR_400HZ,
+                .gyro_fs = GYRO_FS_2000DPS,
+                .gyro_odr = GYRO_ODR_400HZ,
+            };
+            ESP_RETURN_ON_ERROR(icm42670_config(sensor_hub_icm42670_handle, &icm42670_cfg), TAG, "Failed to initialize ICM42670");
+
+            /* Set accelerometer and gyroscope to ON */
+            icm42670_acce_set_pwr(sensor_hub_icm42670_handle, ACCE_PWR_LOWNOISE);
+            icm42670_gyro_set_pwr(sensor_hub_icm42670_handle, GYRO_PWR_LOWNOISE);
+            return ESP_OK;
+        }
+        return ESP_FAIL;
+    }
+
+    esp_err_t icm42670_impl_deinit(void) {
+        icm42670_delete(sensor_hub_icm42670_handle);
+        return ESP_OK;
+    }
+
+    esp_err_t icm42670_impl_test (void) {
+        uint8_t device_id;
+        return icm42670_get_deviceid(sensor_hub_icm42670_handle, &device_id);
+    }
+    
+    esp_err_t icm42670_impl_acquire_acce (float *acce_x, float *acce_y, float *acce_z) {
+        icm42670_value_t value;
+        ESP_RETURN_ON_ERROR(icm42670_get_acce_value(sensor_hub_icm42670_handle, &value), TAG, "Failed to read acceleration data");
+        *acce_x = value.x;
+        *acce_y = value.y;
+        *acce_z = value.z;
+        return ESP_OK;
+    }
+
+    esp_err_t icm42670_impl_acquire_gyro(float *gyro_x, float *gyro_y, float *gyro_z) {
+        icm42670_value_t value;
+        ESP_RETURN_ON_ERROR(icm42670_get_gyro_value(sensor_hub_icm42670_handle, &value), TAG, "Failed to read acceleration data");
+        *gyro_x = value.x;
+        *gyro_y = value.y;
+        *gyro_z = value.z;
+        return ESP_OK;
+    }
+
+static imu_impl_t icm42670_impl = {
+    .init = icm42670_impl_init,
+    .deinit = icm42670_impl_deinit,
+    .test = icm42670_impl_test,
+    .acquire_acce = icm42670_impl_acquire_acce,
+    .acquire_gyro = icm42670_impl_acquire_gyro,
+};
+
+SENSOR_HUB_DETECT_FN(IMU_ID, virtual_icm42670, &icm42670_impl);

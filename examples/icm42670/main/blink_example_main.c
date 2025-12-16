@@ -17,6 +17,8 @@
 #include "driver/i2c_types.h"
 #include "icm42670.h"
 
+#include "iot_sensor_hub.h"
+
 static const char *TAG = "example";
 
 /* Use project configuration menu (idf.py menuconfig) to choose the GPIO to blink,
@@ -29,7 +31,9 @@ static const char *TAG = "example";
 
 static led_strip_handle_t led_strip;
 
-static icm42670_handle_t imu = NULL;
+static sensor_handle_t sensor_handle = NULL;
+
+static i2c_master_bus_handle_t bus_handle;
 
 static void configure_led(void)
 {
@@ -48,6 +52,44 @@ static void configure_led(void)
     led_strip_clear(led_strip);
 }
 
+void sensor_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data) {
+    sensor_data_t *sensor_data = (sensor_data_t *)event_data;
+
+    switch (id) {
+    case SENSOR_STARTED:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x STARTED",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr);
+        break;
+    case SENSOR_STOPED:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x STOPPED",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr);
+        break;
+    case SENSOR_ACCE_DATA_READY:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x ACCE_DATA_READY - "
+                 "acce_x=%.2f, acce_y=%.2f, acce_z=%.2f\n",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr,
+                 sensor_data->acce.x, sensor_data->acce.y, sensor_data->acce.z);
+        break;
+    case SENSOR_GYRO_DATA_READY:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x GYRO_DATA_READY - "
+                 "gyro_x=%.2f, gyro_y=%.2f, gyro_z=%.2f\n",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr,
+                 sensor_data->gyro.x, sensor_data->gyro.y, sensor_data->gyro.z);
+        break;
+    default:
+        ESP_LOGI(TAG, "Timestamp = %" PRIi64 " - event id = %" PRIi32, sensor_data->timestamp, id);
+        break;
+    }
+}
+
 static void imu_init (void) {
 
     i2c_master_bus_config_t i2c_bus_config = {
@@ -59,44 +101,20 @@ static void imu_init (void) {
         .flags.enable_internal_pullup = true,
     };
 
-    i2c_master_bus_handle_t bus_handle;
-
     ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_bus_config, &bus_handle));
 
-    ESP_ERROR_CHECK(icm42670_create(bus_handle, ICM42670_I2C_ADDRESS, &imu));
-    if (imu) {
-        /* Configuration of the accelerometer and gyroscope */
-        const icm42670_cfg_t imu_cfg = {
-            .acce_fs = ACCE_FS_2G,
-            .acce_odr = ACCE_ODR_400HZ,
-            .gyro_fs = GYRO_FS_2000DPS,
-            .gyro_odr = GYRO_ODR_400HZ,
-        };
-        ESP_ERROR_CHECK(icm42670_config(imu, &imu_cfg));
+    const sensor_config_t config = {
+        .bus = bus_handle,            /*which bus sensors will connect to*/
+        .type = IMU_ID,               /*sensor type*/
+        .addr = ICM42670_I2C_ADDRESS, /*sensor addr*/
+        .mode = MODE_POLLING,              /*data acquire mode*/
+        .min_delay = 100         /*data acquire period*/
+    };
 
-        /* Set accelerometer and gyroscope to ON */
-        icm42670_acce_set_pwr(imu, ACCE_PWR_LOWNOISE);
-        icm42670_gyro_set_pwr(imu, GYRO_PWR_LOWNOISE);
-    }
-}
-
-static void imu_read(void)
-{
-    icm42670_value_t acce_val;
-    icm42670_get_acce_value(imu, &acce_val);
-    ESP_LOGI(TAG, "ACCE val: %.2f, %.2f, %.2f", acce_val.x, acce_val.y, acce_val.z);
-
-    icm42670_value_t gyro_val;
-    icm42670_get_gyro_value(imu, &gyro_val);
-    ESP_LOGI(TAG, "GYRO val: %.2f, %.2f, %.2f", gyro_val.x, gyro_val.y, gyro_val.z);
-
-    float val;
-    icm42670_get_temp_value(imu, &val);
-    ESP_LOGI(TAG, "TEMP val: %.2f", val);
-
-    complimentary_angle_t angle;
-    icm42670_complimentory_filter(imu, &acce_val, &gyro_val, &angle);
-    ESP_LOGI(TAG, "Angle roll: %.2f pitch: %.2f ", angle.roll, angle.pitch);
+    iot_sensor_create("virtual_icm42670", &config, &sensor_handle);
+    iot_sensor_handler_register(sensor_handle, sensor_event_handler, NULL);
+    iot_sensor_start(sensor_handle);
+    
 }
 
 void app_main(void)
@@ -107,7 +125,6 @@ void app_main(void)
     imu_init();
 
     while (1) {
-        imu_read();
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }

@@ -3,3 +3,4 @@ dependencies:
   espressif/icm42670:
     version: "*"
     override_path: "../../../components/icm42670"
+  sensor_hub: "*"
