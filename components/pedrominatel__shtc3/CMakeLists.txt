@@ -3,3 +3,5 @@ idf_component_register(
     INCLUDE_DIRS "include"
     REQUIRES "driver"
 )
+
+target_link_libraries(${COMPONENT_LIB} INTERFACE "-u shtc3_impl_init")

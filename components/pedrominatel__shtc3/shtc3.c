@@ -14,6 +14,7 @@
 #include "esp_check.h"
 #include "include/shtc3.h"
 #include "shtc3.h"
+#include "iot_sensor_hub.h"
 
 static const char *TAG = "SHTC3";
 
@@ -99,3 +100,47 @@ esp_err_t shtc3_get_id(i2c_master_dev_handle_t dev_handle, uint8_t *id)
 
     return ret;
 }
+
+    i2c_master_dev_handle_t shtc3_dev_handle;
+
+    esp_err_t shtc3_impl_init(bus_handle_t bus_handle, uint8_t addr) {
+        
+        // TODO: What if the I2C speed here differs???
+        shtc3_dev_handle = shtc3_device_create(bus_handle, addr, 400000);
+        return ESP_OK;
+    }
+
+    esp_err_t shtc3_impl_deinit(void) {
+        return shtc3_device_delete(shtc3_dev_handle);
+    }
+
+    esp_err_t shtc3_impl_test (void) {
+        uint8_t device_id;
+        ESP_RETURN_ON_ERROR(shtc3_get_id(shtc3_dev_handle, &device_id), TAG, "Failed to get the SHTC3 ID");
+        // TODO: Add proper device ID to check against
+        // The device id is zero
+        if (device_id != 0) {
+            return ESP_OK;
+        }
+        return ESP_OK;
+    }
+    
+    esp_err_t shtc3_impl_acquire_humidity (float *humidity) {
+        float temperature;
+        return shtc3_get_th(shtc3_dev_handle, SHTC3_REG_T_CSE_LM, &temperature, humidity);
+    }
+
+    esp_err_t shtc3_impl_acquire_temperature (float *temperature) {
+        float humidity;
+        return shtc3_get_th(shtc3_dev_handle, SHTC3_REG_T_CSE_LM, temperature, &humidity);
+    }
+
+static humiture_impl_t shtc3_impl = {
+    .init = shtc3_impl_init,
+    .deinit = shtc3_impl_deinit,
+    .test = shtc3_impl_test,
+    .acquire_humidity = shtc3_impl_acquire_humidity,
+    .acquire_temperature = shtc3_impl_acquire_temperature,
+};
+
+SENSOR_HUB_DETECT_FN(HUMITURE_ID, virtual_shtc3, &shtc3_impl);

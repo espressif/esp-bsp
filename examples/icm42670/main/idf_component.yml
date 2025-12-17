@@ -3,4 +3,7 @@ dependencies:
   espressif/icm42670:
     version: "*"
     override_path: "../../../components/icm42670"
+  pedrominatel/shtc3:
+    version: '*'
+    override_path: "../../../components/pedrominatel__shtc3"
   sensor_hub: "*"

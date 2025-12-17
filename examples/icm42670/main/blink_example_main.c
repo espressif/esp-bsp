@@ -16,6 +16,7 @@
 
 #include "driver/i2c_types.h"
 #include "icm42670.h"
+#include "shtc3.h"
 
 #include "iot_sensor_hub.h"
 
@@ -31,7 +32,9 @@ static const char *TAG = "example";
 
 static led_strip_handle_t led_strip;
 
-static sensor_handle_t sensor_handle = NULL;
+static sensor_handle_t imu_sensor_handle = NULL;
+
+static sensor_handle_t humiture_sensor_handle = NULL;
 
 static i2c_master_bus_handle_t bus_handle;
 
@@ -68,6 +71,22 @@ void sensor_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
                  sensor_data->sensor_name,
                  sensor_data->sensor_addr);
         break;
+    case SENSOR_HUMI_DATA_READY:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x HUMI_DATA_READY - "
+                 "humiture=%.2f",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr,
+                 sensor_data->humidity);
+        break;
+    case SENSOR_TEMP_DATA_READY:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x TEMP_DATA_READY - "
+                 "temperature=%.2f\n",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr,
+                 sensor_data->temperature);
+        break;
     case SENSOR_ACCE_DATA_READY:
         ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x ACCE_DATA_READY - "
                  "acce_x=%.2f, acce_y=%.2f, acce_z=%.2f\n",
@@ -83,6 +102,30 @@ void sensor_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
                  sensor_data->sensor_name,
                  sensor_data->sensor_addr,
                  sensor_data->gyro.x, sensor_data->gyro.y, sensor_data->gyro.z);
+        break;
+    case SENSOR_LIGHT_DATA_READY:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x LIGHT_DATA_READY - "
+                 "light=%.2f",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr,
+                 sensor_data->light);
+        break;
+    case SENSOR_RGBW_DATA_READY:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x RGBW_DATA_READY - "
+                 "r=%.2f, g=%.2f, b=%.2f, w=%.2f\n",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr,
+                 sensor_data->rgbw.r, sensor_data->rgbw.r, sensor_data->rgbw.b, sensor_data->rgbw.w);
+        break;
+    case SENSOR_UV_DATA_READY:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x UV_DATA_READY - "
+                 "uv=%.2f, uva=%.2f, uvb=%.2f\n",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr,
+                 sensor_data->uv.uv, sensor_data->uv.uva, sensor_data->uv.uvb);
         break;
     default:
         ESP_LOGI(TAG, "Timestamp = %" PRIi64 " - event id = %" PRIi32, sensor_data->timestamp, id);
@@ -111,9 +154,25 @@ static void imu_init (void) {
         .min_delay = 100         /*data acquire period*/
     };
 
-    iot_sensor_create("virtual_icm42670", &config, &sensor_handle);
-    iot_sensor_handler_register(sensor_handle, sensor_event_handler, NULL);
-    iot_sensor_start(sensor_handle);
+    iot_sensor_create("virtual_icm42670", &config, &imu_sensor_handle);
+    iot_sensor_handler_register(imu_sensor_handle, sensor_event_handler, NULL);
+    iot_sensor_start(imu_sensor_handle);
+    
+}
+
+static void humiture_init (void) {
+
+    const sensor_config_t config = {
+        .bus = bus_handle,            /*which bus sensors will connect to*/
+        .type = HUMITURE_ID,          /*sensor type*/
+        .addr = SHTC3_I2C_ADDR,       /*sensor addr*/
+        .mode = MODE_POLLING,         /*data acquire mode*/
+        .min_delay = 500         /*data acquire period*/
+    };
+
+    iot_sensor_create("virtual_shtc3", &config, &humiture_sensor_handle);
+    iot_sensor_handler_register(humiture_sensor_handle, sensor_event_handler, NULL);
+    iot_sensor_start(humiture_sensor_handle);
     
 }
 
@@ -123,6 +182,7 @@ void app_main(void)
     /* Configure the peripheral according to the LED type */
     configure_led();
     imu_init();
+    humiture_init();
 
     while (1) {
         vTaskDelay(100 / portTICK_PERIOD_MS);

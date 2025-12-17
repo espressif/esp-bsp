@@ -1,5 +1,6 @@
 dependencies:
   idf: '>=5.3'
+  sensor_hub: "*"
 description: SHTC3 Temperature and humidity sensor driver for ESP-IDF
 issues: https://github.com/pedrominatel/esp-components/issues
 maintainers:
