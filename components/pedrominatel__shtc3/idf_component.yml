@@ -1,0 +1,28 @@
+dependencies:
+  idf: '>=5.3'
+description: SHTC3 Temperature and humidity sensor driver for ESP-IDF
+issues: https://github.com/pedrominatel/esp-components/issues
+maintainers:
+- Pedro Minatel <pminatel@gmail.com>
+repository: git://github.com/pedrominatel/esp-components.git
+repository_info:
+  commit_sha: 86bacbae1bc3835e4a441e42a62ef0867c229355
+  path: shtc3
+tags:
+- shtc3
+- sensor
+- temperature
+- humidity
+- i2c
+- driver
+targets:
+- esp32
+- esp32s2
+- esp32s3
+- esp32c3
+- esp32c2
+- esp32c6
+- esp32h2
+- esp32p4
+url: https://github.com/pedrominatel/esp-components/tree/main/shtc3
+version: 1.2.1
