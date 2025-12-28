@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.0.1"
 description: ESP IO Expander - CH422G
 url: https://github.com/espressif/esp-bsp/tree/master/components/io_expander/esp_io_expander_ch422g
 dependencies:

@@ -68,19 +68,19 @@ esp_err_t esp_io_expander_new_i2c_ch422g(i2c_master_bus_handle_t i2c_bus, esp_io
         .device_address = GENERAL_PURPOSE_OUTPUT_ADDR,
         .scl_speed_hz = I2C_CLK_SPEED,
     };
-    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg1, &ch422g->i2c_gpo_handle), err, TAG, "Add new I2C device failed");
+    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg1, &ch422g->i2c_gpo_handle), err, TAG, "Add new I2C device (GENERAL_PURPOSE_OUTPUT_ADDR) failed");
 
     const i2c_device_config_t i2c_dev_cfg2 = {
         .device_address = SET_IO_ADDR,
         .scl_speed_hz = I2C_CLK_SPEED,
     };
-    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg2, &ch422g->i2c_set_io_handle), err, TAG, "Add new I2C device failed");
+    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg2, &ch422g->i2c_set_io_handle), err, TAG, "Add new I2C device (SET_IO_ADDR) failed");
 
         const i2c_device_config_t i2c_dev_cfg3 = {
         .device_address = READ_IO_ADDR,
         .scl_speed_hz = I2C_CLK_SPEED,
     };
-    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg3, &ch422g->i2c_read_io_handle), err, TAG, "Add new I2C device failed");
+    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg3, &ch422g->i2c_read_io_handle), err, TAG, "Add new I2C device (READ_IO_ADDR) failed");
 
     ch422g->base.config.io_count = IO_COUNT;
     ch422g->base.config.flags.dir_out_bit_zero = 0;
@@ -171,9 +171,9 @@ static esp_err_t del(esp_io_expander_t *handle)
 {
     esp_io_expander_ch422g_t *ch422g = (esp_io_expander_ch422g_t *)__containerof(handle, esp_io_expander_ch422g_t, base);
 
-    ESP_RETURN_ON_ERROR(i2c_master_bus_rm_device(ch422g->i2c_gpo_handle), TAG, "Remove I2C device failed");
-    ESP_RETURN_ON_ERROR(i2c_master_bus_rm_device(ch422g->i2c_set_io_handle), TAG, "Remove I2C device failed");
-    ESP_RETURN_ON_ERROR(i2c_master_bus_rm_device(ch422g->i2c_read_io_handle), TAG, "Remove I2C device failed");
+    ESP_RETURN_ON_ERROR(i2c_master_bus_rm_device(ch422g->i2c_gpo_handle), TAG, "Remove I2C device (GENERAL_PURPOSE_OUTPUT_ADDR) failed");
+    ESP_RETURN_ON_ERROR(i2c_master_bus_rm_device(ch422g->i2c_set_io_handle), TAG, "Remove I2C device (SET_IO_ADDR) failed");
+    ESP_RETURN_ON_ERROR(i2c_master_bus_rm_device(ch422g->i2c_read_io_handle), TAG, "Remove I2C device (READ_IO_ADDR) failed");
     free(ch422g);
     return ESP_OK;
 }
