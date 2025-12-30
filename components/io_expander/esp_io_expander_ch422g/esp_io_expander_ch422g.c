@@ -44,7 +44,7 @@ typedef struct {
     } regs;
 } esp_io_expander_ch422g_t;
 
-static char *TAG = "ch422g";
+static const char *TAG = "ch422g";
 
 static esp_err_t read_input_reg(esp_io_expander_handle_t handle, uint32_t *value);
 static esp_err_t write_output_reg(esp_io_expander_handle_t handle, uint32_t value);
@@ -76,7 +76,7 @@ esp_err_t esp_io_expander_new_i2c_ch422g(i2c_master_bus_handle_t i2c_bus, esp_io
     };
     ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg2, &ch422g->i2c_set_io_handle), err, TAG, "Add new I2C device (SET_IO_ADDR) failed");
 
-        const i2c_device_config_t i2c_dev_cfg3 = {
+    const i2c_device_config_t i2c_dev_cfg3 = {
         .device_address = READ_IO_ADDR,
         .scl_speed_hz = I2C_CLK_SPEED,
     };
@@ -93,18 +93,18 @@ esp_err_t esp_io_expander_new_i2c_ch422g(i2c_master_bus_handle_t i2c_bus, esp_io
     ch422g->base.reset = reset;
 
     /* Reset configuration and register status */
-    ESP_GOTO_ON_ERROR(reset(&ch422g->base), err1, TAG, "Reset failed");
+    ESP_GOTO_ON_ERROR(reset(&ch422g->base), err, TAG, "Reset failed");
 
     *handle_ret = &ch422g->base;
     return ESP_OK;
-err1:
+err:
     if (ch422g->i2c_gpo_handle)
         i2c_master_bus_rm_device(ch422g->i2c_gpo_handle);
     if (ch422g->i2c_set_io_handle)
         i2c_master_bus_rm_device(ch422g->i2c_set_io_handle);
     if (ch422g->i2c_read_io_handle)
         i2c_master_bus_rm_device(ch422g->i2c_read_io_handle);
-err:
+
     free(ch422g);
     return ret;
 }
@@ -114,7 +114,7 @@ static esp_err_t read_input_reg(esp_io_expander_handle_t handle, uint32_t *value
     esp_io_expander_ch422g_t *ch422g = (esp_io_expander_ch422g_t *)__containerof(handle, esp_io_expander_ch422g_t, base);
 
     uint8_t temp = 0;
-    ESP_RETURN_ON_ERROR(i2c_master_receive(ch422g->i2c_set_io_handle, &temp, sizeof(temp), I2C_TIMEOUT_MS), TAG, "Read input reg failed");
+    ESP_RETURN_ON_ERROR(i2c_master_receive(ch422g->i2c_read_io_handle, &temp, sizeof(temp), I2C_TIMEOUT_MS), TAG, "Read input reg failed");
     *value = temp;
     return ESP_OK;
 }
@@ -143,12 +143,21 @@ static esp_err_t write_direction_reg(esp_io_expander_handle_t handle, uint32_t v
     esp_io_expander_ch422g_t *ch422g = (esp_io_expander_ch422g_t *)__containerof(handle, esp_io_expander_ch422g_t, base);
     value &= 0xff;
 
-    uint8_t data[] = {0};
-    if (value != 0) {
+    /* CH422G limitation: all bidirectional I/Os must be inputs or outputs together.
+     * Accept only 0x00 (all inputs) or 0xFF (all outputs) and reject mixed masks.
+     */
+    if (value != 0x00 && value != 0xFF) {
+        ESP_LOGE(TAG, "Invalid direction mask 0x%02" PRIx32 ", CH422G only supports all-input (0x00) or all-output (0xFF)", value);
+        return ESP_ERR_INVALID_ARG;
+    }
+    uint8_t data[] = {0x00};
+    if (value == 0xFF) {
+        /* Any non-zero config means 'all outputs' for the device; use 0x01 as per datasheet/README. */
         data[0] = 0x01;
     }
     ESP_RETURN_ON_ERROR(i2c_master_transmit(ch422g->i2c_gpo_handle, data, sizeof(data), I2C_TIMEOUT_MS), TAG, "Write direction reg failed");
-    ch422g->regs.direction = value == 0 ? 0 : 0xff;
+    /* Cache the logical direction as a full mask for higher layers: 0x00 = all in, 0xFF = all out. */
+    ch422g->regs.direction = (value == 0x00) ? 0x00 : 0xFF;
     return ESP_OK;
 }
 

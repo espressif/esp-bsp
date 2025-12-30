@@ -21,6 +21,9 @@
 extern "C" {
 #endif
 
+#define IO_EXPANDER_ALL_PINS (IO_EXPANDER_PIN_NUM_0 | IO_EXPANDER_PIN_NUM_1 | IO_EXPANDER_PIN_NUM_2 | IO_EXPANDER_PIN_NUM_3 | \
+                              IO_EXPANDER_PIN_NUM_4 | IO_EXPANDER_PIN_NUM_5 | IO_EXPANDER_PIN_NUM_6 | IO_EXPANDER_PIN_NUM_7)
+
 /**
  * @brief Create a CH422G IO expander object
  *

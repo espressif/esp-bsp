@@ -38,7 +38,7 @@ Creation of the component.
 
 ```c
     esp_io_expander_handle_t io_expander = NULL;
-    esp_io_expander_new_i2c_ch422g(i2c_handle, ESP_IO_EXPANDER_I2C_CH422G, &io_expander);
+    esp_io_expander_new_i2c_ch422g(i2c_handle, &io_expander);
 ```
 
 Print all pins's status to the log:
@@ -47,17 +47,17 @@ Print all pins's status to the log:
     esp_io_expander_print_state(io_expander);
 ```
 
-Set pin 0 and pin 1 with output dircetion and low level:
+Set pin 0 and pin 1 with output direction and low level:
 
 ```c
-    esp_io_expander_set_dir(io_expander, IO_EXPANDER_PIN_NUM_0 | IO_EXPANDER_PIN_NUM_1, IO_EXPANDER_OUTPUT);
+    esp_io_expander_set_dir(io_expander, IO_EXPANDER_ALL_PINS, IO_EXPANDER_OUTPUT);
     esp_io_expander_set_level(io_expander, IO_EXPANDER_PIN_NUM_0 | IO_EXPANDER_PIN_NUM_1, 0);
 ```
 
-Set pin 2 and pin 3 with input dircetion:
+Set pin 2 and pin 3 with input direction:
 
 ```c
     uint32_t pin_levels = 0;
-    esp_io_expander_set_dir(io_expander, IO_EXPANDER_PIN_NUM_2 | IO_EXPANDER_PIN_NUM_3, IO_EXPANDER_INPUT);
+    esp_io_expander_set_dir(io_expander, IO_EXPANDER_ALL_PINS, IO_EXPANDER_INPUT);
     esp_io_expander_get_level(io_expander, IO_EXPANDER_PIN_NUM_2 | IO_EXPANDER_PIN_NUM_3, &pin_levels);
 ```
