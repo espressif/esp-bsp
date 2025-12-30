@@ -71,7 +71,7 @@ menu "Board Support Package(m5stack_tab5)"
         help
             LEDC channel is used to generate PWM signal that controls display brightness.
             Set LEDC index that should be used.
-                
+
         config BSP_LCD_DRAW_BUF_HEIGHT
         int "LCD framebuf height"
         default 50
@@ -107,6 +107,13 @@ menu "Board Support Package(m5stack_tab5)"
             config BSP_DISPLAY_LVGL_DIRECT_MODE
                 bool "Direct mode"
         endchoice
+
+        config BSP_LCD_USE_DMA2D
+            bool "Select whether to use DMA2D"
+            default "y"
+            help
+                Select whether to use DMA2D to draw the bitmap.
+
     endmenu
     config BSP_I2S_NUM
         int "I2S peripheral index"

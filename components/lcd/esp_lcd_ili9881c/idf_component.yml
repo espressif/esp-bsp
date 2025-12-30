@@ -1,4 +1,4 @@
-version: "1.0.3"
+version: "1.1.0"
 targets:
   - esp32p4
 description: ESP LCD ILI9881C (MIPI DSI)

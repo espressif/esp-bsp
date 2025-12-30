@@ -617,7 +617,9 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
             .vsync_pulse_width = 4,
             .vsync_front_porch = 20,
         },
+#if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0))
         .flags.use_dma2d = true,
+#endif
     };
     dpi_config.num_fbs = CONFIG_BSP_LCD_DPI_BUFFER_NUMS;
 
@@ -640,6 +642,9 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     };
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9881c(ret_handles->io, (const esp_lcd_panel_dev_config_t *)&panel_config, &ret_handles->panel), err, TAG, "New panel failed");
     disp_handles.panel = ret_handles->panel;
+#if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0))
+    ESP_GOTO_ON_ERROR(esp_lcd_dpi_panel_enable_dma2d(ret_handles->panel), err, TAG, "LCD panel enable DMA2D failed");
+#endif
 
     esp_lcd_panel_reset(ret_handles->panel);
     esp_lcd_panel_init(ret_handles->panel);
@@ -685,7 +690,7 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
     esp_lcd_panel_io_handle_t io_handle = NULL;
     const bsp_display_config_t bsp_disp_cfg = {
         .dsi_bus = {
-            .phy_clk_src = MIPI_DSI_PHY_CLK_SRC_DEFAULT,
+            .phy_clk_src = 0, // let the driver to choose the default clock source
             .lane_bit_rate_mbps = BSP_LCD_MIPI_DSI_LANE_BITRATE_MBPS,
         }
     };

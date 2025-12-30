@@ -606,6 +606,10 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
 #endif
     dpi_config.num_fbs = CONFIG_BSP_LCD_DPI_BUFFER_NUMS;
 
+#if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0))
+    dpi_config.flags.use_dma2d = true;
+#endif
+
     ek79007_vendor_config_t vendor_config = {
         .mipi_config = {
             .dsi_bus = mipi_dsi_bus,
@@ -619,6 +623,11 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
         .vendor_config = &vendor_config,
     };
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ek79007(io, &lcd_dev_config, &disp_panel), err, TAG, "New LCD panel EK79007 failed");
+
+#if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0))
+    ESP_GOTO_ON_ERROR(esp_lcd_dpi_panel_enable_dma2d(disp_panel), err, TAG, "LCD panel enable DMA2D failed");
+#endif
+
     ESP_GOTO_ON_ERROR(esp_lcd_panel_reset(disp_panel), err, TAG, "LCD panel reset failed");
     ESP_GOTO_ON_ERROR(esp_lcd_panel_init(disp_panel), err, TAG, "LCD panel init failed");
 #elif CONFIG_BSP_LCD_TYPE_1280_800
@@ -630,6 +639,10 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     esp_lcd_dpi_panel_config_t dpi_config = ILI9881C_800_1280_PANEL_60HZ_DPI_CONFIG_CF(LCD_COLOR_FMT_RGB565);
 #endif
     dpi_config.num_fbs = CONFIG_BSP_LCD_DPI_BUFFER_NUMS;
+
+#if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0))
+    dpi_config.flags.use_dma2d = true;
+#endif
 
     ili9881c_vendor_config_t vendor_config = {
         .mipi_config = {
@@ -645,6 +658,11 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
         .vendor_config = &vendor_config,
     };
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9881c(io, &lcd_dev_config, &disp_panel), err, TAG, "New LCD panel ILI9881C failed");
+
+#if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0))
+    ESP_GOTO_ON_ERROR(esp_lcd_dpi_panel_enable_dma2d(disp_panel), err, TAG, "LCD panel enable DMA2D failed");
+#endif
+
     ESP_GOTO_ON_ERROR(esp_lcd_panel_reset(disp_panel), err, TAG, "LCD panel reset failed");
     ESP_GOTO_ON_ERROR(esp_lcd_panel_init(disp_panel), err, TAG, "LCD panel init failed");
     ESP_GOTO_ON_ERROR(esp_lcd_panel_disp_on_off(disp_panel, true), err, TAG, "LCD panel ON failed");
@@ -671,13 +689,19 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     esp_lcd_panel_io_i2c_config_t io_config_avi = LT8912B_IO_CFG(CONFIG_BSP_I2C_CLK_SPEED_HZ, LT8912B_IO_I2C_AVI_ADDRESS);
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_handle, &io_config_avi, &io_avi));
 
-    const esp_lcd_dpi_panel_config_t dpi_configs[] = {
+    esp_lcd_dpi_panel_config_t dpi_configs[] = {
         LT8912B_800x600_PANEL_60HZ_DPI_CONFIG_WITH_FBS(CONFIG_BSP_LCD_DPI_BUFFER_NUMS),
         LT8912B_1024x768_PANEL_60HZ_DPI_CONFIG_WITH_FBS(CONFIG_BSP_LCD_DPI_BUFFER_NUMS),
         LT8912B_1280x720_PANEL_60HZ_DPI_CONFIG_WITH_FBS(CONFIG_BSP_LCD_DPI_BUFFER_NUMS),
         LT8912B_1280x800_PANEL_60HZ_DPI_CONFIG_WITH_FBS(CONFIG_BSP_LCD_DPI_BUFFER_NUMS),
         LT8912B_1920x1080_PANEL_30HZ_DPI_CONFIG_WITH_FBS(CONFIG_BSP_LCD_DPI_BUFFER_NUMS)
     };
+
+#if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0))
+    for (int i = 0; i < sizeof(dpi_configs) / sizeof(dpi_configs[0]); i++) {
+        dpi_configs[i].flags.use_dma2d = true;
+    }
+#endif
 
     const esp_lcd_panel_lt8912b_video_timing_t video_timings[] = {
         ESP_LCD_LT8912B_VIDEO_TIMING_800x600_60Hz(),
@@ -736,6 +760,11 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
         .avi = io_avi,
     };
     ESP_ERROR_CHECK(esp_lcd_new_panel_lt8912b(&io_all, &panel_config, &disp_panel));
+
+#if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0))
+    ESP_GOTO_ON_ERROR(esp_lcd_dpi_panel_enable_dma2d(disp_panel), err, TAG, "LCD panel enable DMA2D failed");
+#endif
+
     ESP_GOTO_ON_ERROR(esp_lcd_panel_reset(disp_panel), err, TAG, "LCD panel reset failed");
     ESP_GOTO_ON_ERROR(esp_lcd_panel_init(disp_panel), err, TAG, "LCD panel init failed");
 
@@ -977,7 +1006,7 @@ lv_display_t *bsp_display_start(void)
             .hdmi_resolution = BSP_HDMI_RES_NONE,
 #endif
             .dsi_bus = {
-                .phy_clk_src = MIPI_DSI_PHY_CLK_SRC_DEFAULT,
+                .phy_clk_src = 0, // let the driver to choose the default clock source
                 .lane_bit_rate_mbps = BSP_LCD_MIPI_DSI_LANE_BITRATE_MBPS,
             }
         },

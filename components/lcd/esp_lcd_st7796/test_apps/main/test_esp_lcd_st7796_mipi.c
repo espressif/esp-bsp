@@ -108,6 +108,9 @@ static void test_init_lcd(void)
         .vendor_config = &vendor_config,
     };
     TEST_ESP_OK(esp_lcd_new_panel_st7796(mipi_dbi_io, &panel_config, &panel_handle));
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+    TEST_ESP_OK(esp_lcd_dpi_panel_enable_dma2d(panel_handle));
+#endif
     TEST_ESP_OK(esp_lcd_panel_reset(panel_handle));
     TEST_ESP_OK(esp_lcd_panel_init(panel_handle));
     TEST_ESP_OK(esp_lcd_panel_disp_on_off(panel_handle, true));
