@@ -3,4 +3,16 @@ dependencies:
   esp32_s3_lcd_ev_board:
     version: '*'
     override_path: ../../../bsp/esp32_s3_lcd_ev_board
+    rules:
+      - if: target == "esp32s3"
+  m5stack_core_2:
+    version: '*'
+    override_path: ../../../bsp/m5stack_core_2
+    rules:
+      - if: target == "esp32"
+  m5stack_tab5:
+    version: '*'
+    override_path: ../../../bsp/m5stack_tab5
+    rules:
+      - if: target == "esp32p4"
   esp_jpeg: '*'
