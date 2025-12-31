@@ -16,6 +16,11 @@ dependencies:
     version: "~1.5"
     public:  true
 
+  espressif/esp_io_expander:
+    version: "*"
+    public:  true
+    override_path: "../../components/io_expander/esp_io_expander"
+
   espressif/esp_io_expander_pi4ioe5v6408:
     version: "*"
     public:  false
@@ -38,7 +43,7 @@ dependencies:
   esp_video:
     version: "~1.4"
     public:  true
-  
+
   usb:
     version: "^1"
     public:  true

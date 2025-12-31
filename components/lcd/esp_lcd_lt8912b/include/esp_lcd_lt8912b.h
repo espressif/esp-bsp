@@ -170,7 +170,6 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
             .vsync_pulse_width = 4,                        \
             .vsync_front_porch = 1,                        \
         },                                                 \
-        .flags.use_dma2d = true,                           \
         .flags.disable_lp = true,                          \
     }
 
@@ -215,7 +214,6 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
             .vsync_pulse_width = 4,                        \
             .vsync_front_porch = 3,                        \
         },                                                 \
-        .flags.use_dma2d = true,                           \
         .flags.disable_lp = true,                          \
     }
 
@@ -260,7 +258,6 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
             .vsync_pulse_width = 5,                        \
             .vsync_front_porch = 3,                        \
         },                                                 \
-        .flags.use_dma2d = true,                           \
         .flags.disable_lp = true,                          \
     }
 
@@ -305,7 +302,6 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
             .vsync_pulse_width = 6,                        \
             .vsync_front_porch = 3,                        \
         },                                                 \
-        .flags.use_dma2d = true,                           \
         .flags.disable_lp = true,                          \
     }
 
@@ -350,7 +346,6 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
             .vsync_pulse_width = 5,                        \
             .vsync_front_porch = 3,                        \
         },                                                 \
-        .flags.use_dma2d = true,                           \
         .flags.disable_lp = true,                          \
     }
 
@@ -398,7 +393,6 @@ bool esp_lcd_panel_lt8912b_is_ready(esp_lcd_panel_t *panel);
             .vsync_pulse_width = 5,                        \
             .vsync_front_porch = 3,                        \
         },                                                 \
-        .flags.use_dma2d = true,                           \
         .flags.disable_lp = true,                          \
     }
 

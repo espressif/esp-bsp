@@ -121,6 +121,12 @@ menu "Board Support Package (ESP32-P4)"
                 bool "RGB888"
         endchoice   
             
+        config BSP_LCD_USE_DMA2D
+            bool "Select whether to use DMA2D"
+            default "y"
+            help
+                Select whether to use DMA2D to draw the bitmap.
+
         choice BSP_LCD_TYPE
             prompt "Select LCD type"
             default BSP_LCD_TYPE_1024_600
