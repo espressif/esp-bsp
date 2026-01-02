@@ -63,6 +63,11 @@ jobs:
         with:
           separator: ';' # idf-build-apps expects files seprated with semicolon
 
+      - name: Install system deps
+        run: |
+          apt-get update
+          apt-get install -y python3-dev build-essential
+
       - name: Build ESP-BSP applications
         id: buildapps
         continue-on-error: ${{ github.event_name == 'pull_request' && matrix.allow_fail == true }}
