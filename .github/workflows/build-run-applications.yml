@@ -41,16 +41,13 @@ jobs:
           - "release-v5.4"
           - "release-v5.3"
           - "release-v5.2"
-          - "release-v5.1"
-        parallel_index: [1, 2, 3, 4, 5]
+        parallel_index: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         include:
           # Default values for all versions
-          - parallel_count: 5
+          - parallel_count: 10
             allow_fail: false
           - idf_ver: "latest"
             allow_fail: true  # Do not fail CI, when fail "latest" build
-          - idf_ver: "release-v6.0" # TODO: Remove this section, when "release-v6.0" will be stable
-            allow_fail: true  # Do not fail CI, when fail "release-v6.0" build
     runs-on: ubuntu-latest
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:

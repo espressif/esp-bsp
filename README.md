@@ -18,9 +18,9 @@ This repository provides **Board Support Packages (BSPs)** for various Espressif
 
 The following table shows the compatibility of this BSP with different ESP-IDF versions:
 
-| 4.x | 5.0 |         5.1        |         5.2        |         5.3        |         5.4        |         5.5        |
-| :-: | :-: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
-| :x: | :x: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| 4.x | 5.0 | 5.1 |         5.2        |         5.3        |         5.4        |         5.5        |         6.0        |
+| :-: | :-: | :-: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
+| :x: | :x: | :x: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 
 ## Supported Boards
 <!-- START_SUPPORTED_BOARDS -->
