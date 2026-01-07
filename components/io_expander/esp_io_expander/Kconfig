@@ -1,0 +1,9 @@
+menu "ESP IO Expander"
+
+    config IO_EXPANDER_ENABLE_GPIO_API_WRAPPER
+        bool "Enable GPIO API wrapper"
+        default n
+        help
+            If enabled, ESP-IDF GPIO APIs can be used to control the IOs of IO expander.
+
+endmenu
