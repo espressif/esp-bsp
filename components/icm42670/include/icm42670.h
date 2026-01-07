@@ -219,7 +219,7 @@ esp_err_t icm42670_get_gyro_sensitivity(icm42670_handle_t sensor, float *sensiti
  * @brief Read raw temperature measurements
  *
  * @param sensor object handle of icm42670
- * @param value raw temperature measurements
+ * @param value raw value of a temperature measurement in two's complement
  *
  * @return
  *     - ESP_OK Success

@@ -4,4 +4,4 @@ else()
     set(REQ driver)
 endif()
 
-idf_component_register(SRCS "icm42670.c" INCLUDE_DIRS "include" REQUIRES ${REQ})
+idf_component_register(SRCS "icm42670.c" INCLUDE_DIRS "include" REQUIRES ${REQ} esp_timer)
