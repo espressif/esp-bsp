@@ -13,4 +13,4 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v2
-      - uses: mattnotmitt/doxygen-action@v1.9.5
+      - uses: mattnotmitt/doxygen-action@v1.12.0
