@@ -6,9 +6,13 @@ name: Build ESP-BSP apps
 on:
   pull_request:
     types: [opened, reopened, synchronize, labeled]
+    paths-ignore:
+      - '*.md'
   push:
     branches:
       - master
+    paths-ignore:
+      - '*.md'
   schedule:
     - cron: '0 0 * * *'  # every day at midnight
   workflow_dispatch:

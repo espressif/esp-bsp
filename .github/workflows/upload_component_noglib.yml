@@ -4,8 +4,12 @@ on:
   push:
     branches:
       - master
+    paths: 
+      - 'bsp/**'
   pull_request:
     types: [opened, reopened, synchronize]
+    paths: 
+      - 'bsp/**'
 
 jobs:
   upload_components:
