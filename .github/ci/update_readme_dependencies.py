@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 
 """
@@ -291,13 +291,6 @@ def get_examples_table(bsp_name):
     return active_table
 
 
-def index_regexp(yourlist, yourstring):
-    for i, line in enumerate(yourlist):
-        if yourstring in line:
-            return i
-    return -1
-
-
 def check_bsp_readme(bsp_path) -> Any:
     # Get list of capabilities and dependencies of this BSP
     bsp_name = bsp_path.stem if not bsp_path.stem.endswith('_noglib') else bsp_path.stem[:-7]
@@ -362,7 +355,7 @@ def check_bsp_readme(bsp_path) -> Any:
         # UPDATE BENCHMARK TABLE
         try:
             benchmark_path = BENCHMARK_RELEASE_URL + "benchmark_" + bsp_name.replace('-', '_') + ".md"
-            with urllib.request.urlopen(benchmark_path) as response:
+            with urllib.request.urlopen(benchmark_path, timeout=10) as response:
                 benchmark_content = response.read().decode("utf-8")
             pattern = re.compile(
                 rf"{BENCHMARK_START}.*?{BENCHMARK_END}", re.DOTALL
@@ -382,6 +375,8 @@ def check_bsp_readme(bsp_path) -> Any:
                 print(f"Markers benchmark not in {bsp_name} README.md")
         except urllib.error.HTTPError:
             print(f"Benchmarks for {bsp_name} does not exist")
+        except (urllib.error.URLError, TimeoutError) as e:
+            print(f"[WARNING] Could not fetch benchmarks for {bsp_name} (Network/Timeout): {e}")
         except Exception as e:
             print(f"[WARNING] Failed to update benchmarks: {e}")
 
