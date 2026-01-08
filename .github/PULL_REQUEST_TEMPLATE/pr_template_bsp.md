@@ -9,6 +9,7 @@
 - [ ] New BSP definitions added to [bsp_ext.py](../examples/bsp_ext.py)
 - [ ] BSP was added to [SquareLine](https://github.com/espressif/esp-bsp/tree/master/SquareLine/common)
 - [ ] BSP was added to [.pre-commit-config.yaml](.pre-commit-config.yaml) doxybook list
+- [ ] BSP was added to BSP Selector [Kconfig](components/bsp_selector/Kconfig) and [idf_component.yml](components/bsp_selector/idf_component.yml)
 - [ ] _Optional:_ Component contains unit tests
 - [ ] _Optional:_ BSP was added to Runner ([pytest.ini](pytest.ini), [conftest.py](conftest.py), [build-run-applications.yml](.github/workflows/build-run-applications.yml))
 - [ ] CI passing
