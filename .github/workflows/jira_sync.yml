@@ -1,15 +1,21 @@
-name: Sync issues to Jira
+name: Sync Jira with Github
 
-# This workflow will be triggered when a new issue is opened
-on: issues
+on:
+  schedule:
+    # TODO: Could be removed?
+    # Triggered every 6 hours
+    - cron: "0 */6 * * *"
+  issues:
+    types: [opened]
+  issue_comment:
 
 jobs:
-  sync_issues_to_jira:
-    name: Sync issues to Jira
+  jira_sync:
+    name: Sync Jira with Github
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Sync GitHub issues to Jira project
+      - name: Sync Jira with Github
         uses: espressif/sync-jira-actions@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
