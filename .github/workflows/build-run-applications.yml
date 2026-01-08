@@ -36,6 +36,8 @@ jobs:
     env:
       component_manager_ver: "2.2.*"
       idf_build_apps_ver: "2.10.1"
+    outputs:
+      ignored_failure: ${{ steps.ignored-failure.outputs.failed }}
     strategy:
       matrix:
         idf_ver:
@@ -81,25 +83,14 @@ jobs:
           idf-build-apps find ${{env.ALL_CHANGED_FILES}}
           idf-build-apps build --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }} ${{env.ALL_CHANGED_FILES}} --collect-app-info build_info_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}.json
 
-      # Warning, if failed with master
-      - name: Warn if latest build failed
+      - name: Save and write the outcome of an ignored failing job
+        id: ignored-failure
         if: ${{ github.event_name == 'pull_request' && steps.buildapps.outcome == 'failure' && matrix.allow_fail == true }}
         run: |
+          echo "failed=true" >> "$GITHUB_OUTPUT"
           echo "::warning::Build failed for idf_ver=${{ matrix.idf_ver }} (ignored because it's '${{ matrix.idf_ver }}')"
           echo "### ⚠️ Build failed for idf_ver=${{ matrix.idf_ver }}" >> $GITHUB_STEP_SUMMARY
           echo "This failure was ignored (continue-on-error enabled)." >> $GITHUB_STEP_SUMMARY
-
-      # Warning, if failed with master
-      - name: Warn if latest build failed Comment PR
-        if: ${{ github.event_name == 'pull_request' && steps.buildapps.outcome == 'failure' && matrix.allow_fail == true }}
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          comment-tag: build_warning_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}
-          mode: recreate
-          message: |
-            ### ⚠️ Build failed for idf_ver=${{ matrix.idf_ver }} index=${{ matrix.parallel_index }}
-            This failure was ignored (continue-on-error enabled).
-            See details: [View build logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#step:${{ github.job }})
 
       - uses: actions/upload-artifact@v4
         if: github.repository_owner == 'espressif' # && needs.prepare.outputs.build_only == '0'
@@ -112,6 +103,25 @@ jobs:
             examples/*/build_*/flasher_args.json
             examples/*/build_*/config/sdkconfig.json
             build_info*.json
+
+  comment-failure:
+    name: Comment on the PR about the ignored failure
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: python:3.11-bookworm
+    env:
+      IGNORED_FAILURE: ${{needs.build.outputs.ignored_failure}}
+    steps:
+      - name: Write a comment
+        if: ${{ env.IGNORED_FAILURE == 'true' }}
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          comment-tag: build_warning_latest_failed
+          mode: recreate
+          message: |
+            ### ⚠️ Build failure was ignored (continue-on-error enabled).
+            See details: [View build logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#step:build)
 
   run-target:
     name: Run apps
