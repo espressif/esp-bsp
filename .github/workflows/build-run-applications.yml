@@ -114,7 +114,9 @@ jobs:
       IGNORED_FAILURE: ${{needs.build.outputs.ignored_failure}}
     steps:
       - name: Write a comment
-        if: ${{ env.IGNORED_FAILURE == 'true' }}
+        if: |
+          env.IGNORED_FAILURE == 'true' &&
+          contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association)
         uses: thollander/actions-comment-pull-request@v3
         with:
           comment-tag: build_warning_latest_failed
