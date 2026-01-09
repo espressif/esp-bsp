@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -56,19 +56,22 @@ lvgl_port_ppa_handle_t lvgl_port_ppa_create(const lvgl_port_ppa_cfg_t *cfg)
     }
 
     ppa_ctx->buffer_size = ALIGN_UP(cfg->buffer_size, CONFIG_CACHE_L2_CACHE_LINE_SIZE);
-    ppa_ctx->buffer = heap_caps_aligned_calloc(CONFIG_CACHE_L2_CACHE_LINE_SIZE, ppa_ctx->buffer_size, sizeof(uint8_t), buffer_caps);
+    ppa_ctx->buffer = heap_caps_aligned_calloc(CONFIG_CACHE_L2_CACHE_LINE_SIZE, ppa_ctx->buffer_size, sizeof(uint8_t),
+                      buffer_caps);
     assert(ppa_ctx->buffer != NULL);
 
     ppa_client_config_t ppa_client_config = {
         .oper_type = PPA_OPERATION_SRM,
     };
-    ESP_GOTO_ON_ERROR(ppa_register_client(&ppa_client_config, &ppa_ctx->srm_handle), err, TAG, "Error when registering PPA client!");
+    ESP_GOTO_ON_ERROR(ppa_register_client(&ppa_client_config, &ppa_ctx->srm_handle), err, TAG,
+                      "Error when registering PPA client!");
 
 #if PPA_LCD_ENABLE_CB
     ppa_event_callbacks_t ppa_cbs = {
         .on_trans_done = _lvgl_port_ppa_callback,
     };
-    ESP_GOTO_ON_ERROR(ppa_client_register_event_callbacks(ppa_ctx->srm_handle, &ppa_cbs), err, TAG, "Error when registering PPA callbacks!");
+    ESP_GOTO_ON_ERROR(ppa_client_register_event_callbacks(ppa_ctx->srm_handle, &ppa_cbs), err, TAG,
+                      "Error when registering PPA callbacks!");
 #endif
 
     ppa_ctx->color_type_id = COLOR_TYPE_ID(cfg->color_space, cfg->pixel_format);

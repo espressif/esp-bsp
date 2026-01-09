@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -433,7 +433,8 @@ esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config)
     const i2s_pdm_rx_config_t pdm_rx_cfg_default = BSP_I2S_PDM_RX_DUPLEX_CFG(16000);
 
     if (i2s_rx_chan != NULL) {
-        ESP_GOTO_ON_ERROR(i2s_channel_init_pdm_rx_mode(i2s_rx_chan, &pdm_rx_cfg_default), err, TAG, "I2S channel initialization failed");
+        ESP_GOTO_ON_ERROR(i2s_channel_init_pdm_rx_mode(i2s_rx_chan, &pdm_rx_cfg_default), err, TAG,
+                          "I2S channel initialization failed");
         ESP_GOTO_ON_ERROR(i2s_channel_enable(i2s_rx_chan), err, TAG, "I2S channel initialization failed");
     }
 
@@ -541,7 +542,8 @@ esp_err_t bsp_display_backlight_on(void)
     return bsp_display_brightness_set(100);
 }
 
-esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
+esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
+                          esp_lcd_panel_io_handle_t *ret_io)
 {
     esp_err_t ret = ESP_OK;
     assert(config != NULL && config->max_transfer_sz > 0);
@@ -570,7 +572,8 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
         .spi_mode = 0,
         .trans_queue_depth = 10,
     };
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, ret_io), err, TAG, "New panel IO failed");
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, ret_io), err, TAG,
+                      "New panel IO failed");
     ESP_LOGD(TAG, "Install LCD driver");
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = BSP_LCD_RST,
@@ -578,7 +581,8 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
         .rgb_ele_order = BSP_LCD_COLOR_SPACE,
         .bits_per_pixel = BSP_LCD_BITS_PER_PIXEL,
     };
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7789(*ret_io, (const esp_lcd_panel_dev_config_t *)&panel_config, ret_panel), err, TAG, "New panel failed");
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7789(*ret_io, (const esp_lcd_panel_dev_config_t *)&panel_config, ret_panel), err,
+                      TAG, "New panel failed");
 
     esp_lcd_panel_reset(*ret_panel);
     esp_lcd_panel_init(*ret_panel);

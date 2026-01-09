@@ -97,7 +97,8 @@ esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config)
         ESP_GOTO_ON_ERROR(i2s_channel_enable(i2s_tx_chan), err, TAG, "I2S enabling failed");
     }
     if (i2s_rx_chan != NULL) {
-        ESP_GOTO_ON_ERROR(i2s_channel_init_tdm_mode(i2s_rx_chan, &tdm_cfg_default), err, TAG, "I2S channel initialization failed");
+        ESP_GOTO_ON_ERROR(i2s_channel_init_tdm_mode(i2s_rx_chan, &tdm_cfg_default), err, TAG,
+                          "I2S channel initialization failed");
         ESP_GOTO_ON_ERROR(i2s_channel_enable(i2s_rx_chan), err, TAG, "I2S enabling failed");
     }
 

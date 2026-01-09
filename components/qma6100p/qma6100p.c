@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -48,7 +48,8 @@ const uint8_t QMA6100P_FIFO_FULL_INT_BIT =     (uint8_t) BIT5;
 // FIFO watermark interrupt
 const uint8_t QMA6100P_FIFO_WM_INT_BIT =       (uint8_t) BIT6;
 const uint8_t QMA6100P_FIFO_OF_INT_BIT =       (uint8_t) BIT7;
-const uint8_t QMA6100P_ALL_INTERRUPTS = (QMA6100P_DATA_RDY_INT_BIT | QMA6100P_FIFO_FULL_INT_BIT | QMA6100P_FIFO_WM_INT_BIT | QMA6100P_FIFO_OF_INT_BIT);
+const uint8_t QMA6100P_ALL_INTERRUPTS = (QMA6100P_DATA_RDY_INT_BIT | QMA6100P_FIFO_FULL_INT_BIT |
+                                        QMA6100P_FIFO_WM_INT_BIT | QMA6100P_FIFO_OF_INT_BIT);
 
 static const char *TAG = "QMA6100P";
 
@@ -68,7 +69,8 @@ static esp_err_t qma6100p_write(qma6100p_handle_t sensor, const uint8_t reg_star
     return i2c_master_transmit(sens->i2c_handle, write_buff, 2, -1);
 }
 
-static esp_err_t qma6100p_read(qma6100p_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf, const uint8_t data_len)
+static esp_err_t qma6100p_read(qma6100p_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf,
+                               const uint8_t data_len)
 {
     qma6100p_dev_t *sens = (qma6100p_dev_t *) sensor;
 
@@ -92,7 +94,8 @@ esp_err_t qma6100p_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_add
         .device_address = dev_addr,
         .scl_speed_hz = I2C_CLK_SPEED,
     };
-    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg, &sensor->i2c_handle), err, TAG, "Failed to add new I2C device");
+    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg, &sensor->i2c_handle), err, TAG,
+                      "Failed to add new I2C device");
     assert(sensor->i2c_handle);
 
     *handle_ret = sensor;
@@ -266,7 +269,8 @@ esp_err_t qma6100p_map_interrupts(qma6100p_handle_t sensor, int int_num, uint8_t
     return ret;
 }
 
-esp_err_t qma6100p_config_interrupt(qma6100p_handle_t sensor, int int_num, const qma6100p_int_config_t *const interrupt_configuration)
+esp_err_t qma6100p_config_interrupt(qma6100p_handle_t sensor, int int_num,
+                                    const qma6100p_int_config_t *const interrupt_configuration)
 {
     esp_err_t ret = ESP_OK;
 

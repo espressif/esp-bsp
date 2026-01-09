@@ -29,7 +29,8 @@ extern "C" {
  *      - ESP_OK                    on success
  *      - ESP_ERR_NO_MEM            if there is no memory for allocating main structure
  */
-esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *out_touch);
+esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config,
+                                        esp_lcd_touch_handle_t *out_touch);
 
 /**
  * @brief I2C address of the TT21100 controller

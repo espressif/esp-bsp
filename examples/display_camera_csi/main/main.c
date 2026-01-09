@@ -110,7 +110,8 @@ static void calc_aspect_fit(
     }
 }
 
-static void camera_video_frame_operation(uint8_t *camera_buf, uint8_t camera_buf_index, uint32_t camera_buf_hes, uint32_t camera_buf_ves, size_t camera_buf_len)
+static void camera_video_frame_operation(uint8_t *camera_buf, uint8_t camera_buf_index, uint32_t camera_buf_hes,
+        uint32_t camera_buf_ves, size_t camera_buf_len)
 {
     ppa_srm_rotation_angle_t rotation = PPA_SRM_ROTATION_ANGLE_0;
     uint32_t out_w, out_h;

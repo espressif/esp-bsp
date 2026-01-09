@@ -67,28 +67,28 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 
 ## LVGL Benchmark
 
-**DATE:** 07.11.2025 09:03
+**DATE:** 08.01.2026 01:35
 
 **LVGL version:** 9.4.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
 | Empty screen | 94%  | 29  | 30  | 6  | 24  |
-| Moving wallpaper | 94%  | 29  | 31  | 8  | 23  |
-| Single rectangle | 21%  | 93  | 0  | 0  | 0  |
-| Multiple rectangles | 83%  | 56  | 15  | 7  | 8  |
-| Multiple RGB images | 25%  | 89  | 1  | 1  | 0  |
-| Multiple ARGB images | 24%  | 90  | 2  | 2  | 0  |
-| Rotated ARGB images | 77%  | 51  | 17  | 15  | 2  |
-| Multiple labels | 90%  | 74  | 9  | 8  | 1  |
-| Screen sized text | 97%  | 21  | 42  | 40  | 2  |
-| Multiple arcs | 24%  | 92  | 1  | 1  | 0  |
-| Containers | 38%  | 73  | 16  | 8  | 8  |
-| Containers with overlay | 92%  | 28  | 32  | 21  | 11  |
-| Containers with opa | 43%  | 71  | 16  | 11  | 5  |
-| Containers with opa_layer | 59%  | 52  | 27  | 22  | 5  |
-| Containers with scrolling | 94%  | 26  | 33  | 23  | 10  |
-| Widgets demo | 96%  | 25  | 22  | 19  | 3  |
+| Moving wallpaper | 95%  | 30  | 30  | 8  | 22  |
+| Single rectangle | 23%  | 94  | 0  | 0  | 0  |
+| Multiple rectangles | 83%  | 56  | 14  | 7  | 7  |
+| Multiple RGB images | 28%  | 90  | 1  | 1  | 0  |
+| Multiple ARGB images | 25%  | 89  | 3  | 3  | 0  |
+| Rotated ARGB images | 78%  | 50  | 18  | 15  | 3  |
+| Multiple labels | 85%  | 77  | 9  | 9  | 0  |
+| Screen sized text | 96%  | 22  | 41  | 39  | 2  |
+| Multiple arcs | 29%  | 92  | 1  | 1  | 0  |
+| Containers | 36%  | 73  | 16  | 8  | 8  |
+| Containers with overlay | 86%  | 28  | 31  | 21  | 10  |
+| Containers with opa | 46%  | 72  | 17  | 11  | 6  |
+| Containers with opa_layer | 57%  | 55  | 27  | 22  | 5  |
+| Containers with scrolling | 94%  | 26  | 33  | 22  | 11  |
+| Widgets demo | 97%  | 26  | 22  | 19  | 3  |
 | All scenes avg. | 65%  | 56  | 18  | 12  | 6  |
 
 

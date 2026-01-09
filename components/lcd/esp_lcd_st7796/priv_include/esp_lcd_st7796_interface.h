@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -23,7 +23,8 @@ extern "C" {
  *      - ESP_OK:    Success
  *      - Otherwise: Fail
  */
-esp_err_t esp_lcd_new_panel_st7796_general(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
+esp_err_t esp_lcd_new_panel_st7796_general(const esp_lcd_panel_io_handle_t io,
+        const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
 
 #if SOC_MIPI_DSI_SUPPORTED
 /**
@@ -36,7 +37,8 @@ esp_err_t esp_lcd_new_panel_st7796_general(const esp_lcd_panel_io_handle_t io, c
  *      - ESP_OK:    Success
  *      - Otherwise: Fail
  */
-esp_err_t esp_lcd_new_panel_st7796_mipi(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config,
+esp_err_t esp_lcd_new_panel_st7796_mipi(const esp_lcd_panel_io_handle_t io,
+                                        const esp_lcd_panel_dev_config_t *panel_dev_config,
                                         esp_lcd_panel_handle_t *ret_panel);
 #endif
 

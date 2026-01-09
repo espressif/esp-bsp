@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -25,7 +25,8 @@
 static const char *TAG = "CST816S";
 
 static esp_err_t esp_lcd_touch_cst816s_read_data(esp_lcd_touch_handle_t tp);
-static bool esp_lcd_touch_cst816s_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+static bool esp_lcd_touch_cst816s_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength,
+        uint8_t *point_num, uint8_t max_point_num);
 static esp_err_t esp_lcd_touch_cst816s_del(esp_lcd_touch_handle_t tp);
 
 static esp_err_t touch_cst816s_i2c_read(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint8_t len);
@@ -33,10 +34,12 @@ static esp_err_t touch_cst816s_i2c_read(esp_lcd_touch_handle_t tp, uint16_t reg,
 static esp_err_t touch_cst816s_reset(esp_lcd_touch_handle_t tp);
 static esp_err_t touch_cst816s_read_id(esp_lcd_touch_handle_t tp);
 
-esp_err_t esp_lcd_touch_new_i2c_cst816s(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *tp)
+esp_err_t esp_lcd_touch_new_i2c_cst816s(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config,
+                                        esp_lcd_touch_handle_t *tp)
 {
     ESP_RETURN_ON_FALSE(io != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller io handle can't be NULL");
-    ESP_RETURN_ON_FALSE(config != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the touch controller configuration can't be NULL");
+    ESP_RETURN_ON_FALSE(config != NULL, ESP_ERR_INVALID_ARG, TAG,
+                        "Pointer to the touch controller configuration can't be NULL");
     ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the touch controller handle can't be NULL");
 
     /* Prepare main structure */
@@ -111,7 +114,8 @@ static esp_err_t esp_lcd_touch_cst816s_read_data(esp_lcd_touch_handle_t tp)
     } data_t;
 
     data_t point;
-    ESP_RETURN_ON_ERROR(touch_cst816s_i2c_read(tp, DATA_START_REG, (uint8_t *)&point, sizeof(data_t)), TAG, "I2C read failed");
+    ESP_RETURN_ON_ERROR(touch_cst816s_i2c_read(tp, DATA_START_REG, (uint8_t *)&point, sizeof(data_t)), TAG,
+                        "I2C read failed");
 
     portENTER_CRITICAL(&tp->data.lock);
     point.num = (point.num > POINT_NUM_MAX ? POINT_NUM_MAX : point.num);
@@ -126,7 +130,8 @@ static esp_err_t esp_lcd_touch_cst816s_read_data(esp_lcd_touch_handle_t tp)
     return ESP_OK;
 }
 
-static bool esp_lcd_touch_cst816s_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)
+static bool esp_lcd_touch_cst816s_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength,
+        uint8_t *point_num, uint8_t max_point_num)
 {
     ESP_RETURN_ON_FALSE(tp != NULL, false, TAG, "Touch controller handle can't be NULL");
     ESP_RETURN_ON_FALSE(x != NULL, false, TAG, "Pointer to the x coordinates array can't be NULL");

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -82,7 +82,8 @@ static void drdy_task(void *args)
     vTaskDelete(NULL);
 }
 
-static esp_err_t hts221_write(hts221_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *const data_buf, const uint8_t data_len)
+static esp_err_t hts221_write(hts221_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *const data_buf,
+                              const uint8_t data_len)
 {
     hts221_dev_t *sens = (hts221_dev_t *) sensor;
     esp_err_t  ret;
@@ -108,7 +109,8 @@ static inline esp_err_t hts221_write_byte(hts221_handle_t sensor, uint8_t const 
     return hts221_write(sensor, reg_addr, &data, 1);
 }
 
-static esp_err_t hts221_read(hts221_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf, const uint8_t data_len)
+static esp_err_t hts221_read(hts221_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf,
+                             const uint8_t data_len)
 {
     hts221_dev_t *sens = (hts221_dev_t *) sensor;
     esp_err_t ret;
@@ -243,7 +245,8 @@ esp_err_t hts221_get_config(hts221_handle_t sensor, hts221_config_t *const hts22
     return ESP_OK;
 }
 
-static esp_err_t hts221_set_reg_field(hts221_handle_t sensor, const uint8_t reg_addr, const uint8_t mask, const uint8_t shift, const uint8_t val)
+static esp_err_t hts221_set_reg_field(hts221_handle_t sensor, const uint8_t reg_addr, const uint8_t mask,
+                                      const uint8_t shift, const uint8_t val)
 {
     uint8_t tmp;
 
@@ -311,8 +314,10 @@ esp_err_t hts221_get_humidity(hts221_handle_t sensor, int16_t *const humidity)
     assert(ESP_OK == ret);
     int16_t h_out = (int16_t)(((uint16_t)buffer[1]) << 8) | (uint16_t)buffer[0];
 
-    int32_t tmp_32 = ((int32_t)(h_out - dev->calibration_data.h0_t0_out)) * ((int32_t)(dev->calibration_data.h1_rh - dev->calibration_data.h0_rh) * 10);
-    *humidity = tmp_32 / (int32_t)(dev->calibration_data.h1_t0_out - dev->calibration_data.h0_t0_out)  + dev->calibration_data.h0_rh * 10;
+    int32_t tmp_32 = ((int32_t)(h_out - dev->calibration_data.h0_t0_out)) * ((int32_t)(dev->calibration_data.h1_rh -
+                     dev->calibration_data.h0_rh) * 10);
+    *humidity = tmp_32 / (int32_t)(dev->calibration_data.h1_t0_out - dev->calibration_data.h0_t0_out)  +
+                dev->calibration_data.h0_rh * 10;
     if (*humidity > 1000) {
         *humidity = 1000;
     }
@@ -333,8 +338,10 @@ esp_err_t hts221_get_temperature(hts221_handle_t sensor, int16_t *const temperat
     assert(ESP_OK == ret);
     int16_t t_out = (((uint16_t)buffer[1]) << 8) | (uint16_t)buffer[0];
 
-    int32_t tmp_32 = ((int32_t)(t_out - dev->calibration_data.t0_out)) * ((int32_t)(dev->calibration_data.t1_degc - dev->calibration_data.t0_degc) * 10);
-    *temperature = tmp_32 / (int32_t)(dev->calibration_data.t1_out - dev->calibration_data.t0_out) + dev->calibration_data.t0_degc * 10;
+    int32_t tmp_32 = ((int32_t)(t_out - dev->calibration_data.t0_out)) * ((int32_t)(dev->calibration_data.t1_degc -
+                     dev->calibration_data.t0_degc) * 10);
+    *temperature = tmp_32 / (int32_t)(dev->calibration_data.t1_out - dev->calibration_data.t0_out) +
+                   dev->calibration_data.t0_degc * 10;
     return ret;
 }
 

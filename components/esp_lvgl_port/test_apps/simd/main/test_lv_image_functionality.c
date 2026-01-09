@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -77,7 +77,8 @@ static const test_matrix_lv_image_params_t default_test_matrix_image_blend = {
  * @param[in] test_matrix Pointer to structure defining test matrix - all the test combinations
  * @param[in] test_case Pointer ot structure defining functionality test case
  */
-static void functionality_test_matrix(test_matrix_lv_image_params_t *test_matrix, func_test_case_lv_image_params_t *test_case);
+static void functionality_test_matrix(test_matrix_lv_image_params_t *test_matrix,
+                                      func_test_case_lv_image_params_t *test_case);
 
 /**
  * @brief Fill test buffers for image functionality test
@@ -166,7 +167,8 @@ TEST_CASE("LV Image functionality RGB888 blend to RGB888", "[image][functionalit
 
 // ------------------------------------------------ Static test functions ----------------------------------------------
 
-static void functionality_test_matrix(test_matrix_lv_image_params_t *test_matrix, func_test_case_lv_image_params_t *test_case)
+static void functionality_test_matrix(test_matrix_lv_image_params_t *test_matrix,
+                                      func_test_case_lv_image_params_t *test_case)
 {
     // Step destination array width
     for (int dest_w = test_matrix->min_w; dest_w <= test_matrix->max_w; dest_w++) {
@@ -181,10 +183,12 @@ static void functionality_test_matrix(test_matrix_lv_image_params_t *test_matrix
                 for (int dest_stride = dest_w; dest_stride <= dest_w * 2; dest_stride += test_matrix->dest_stride_step) {
 
                     // Step source array unalignment
-                    for (int src_unalign_byte = test_matrix->src_min_unalign_byte; src_unalign_byte <= test_matrix->src_max_unalign_byte; src_unalign_byte += test_matrix->src_unalign_step) {
+                    for (int src_unalign_byte = test_matrix->src_min_unalign_byte; src_unalign_byte <= test_matrix->src_max_unalign_byte;
+                            src_unalign_byte += test_matrix->src_unalign_step) {
 
                         // Step destination array unalignment
-                        for (int dest_unalign_byte = test_matrix->dest_min_unalign_byte; dest_unalign_byte <= test_matrix->dest_max_unalign_byte; dest_unalign_byte += test_matrix->dest_unalign_step) {
+                        for (int dest_unalign_byte = test_matrix->dest_min_unalign_byte;
+                                dest_unalign_byte <= test_matrix->dest_max_unalign_byte; dest_unalign_byte += test_matrix->dest_unalign_step) {
 
                             // Call functionality test
                             UPDATE_TEST_CASE(test_case, dest_w, dest_h, src_stride, dest_stride, src_unalign_byte, dest_unalign_byte);
@@ -238,8 +242,10 @@ static void lv_image_functionality(func_test_case_lv_image_params_t *test_case)
     test_case->buf.p_dest_ansi -= test_case->canary_pixels * test_case->dest_data_type_size;
 
     // Evaluate the results
-    sprintf(test_msg_buf, "Test case: dest_w = %d, dest_h = %d, dest_stride = %d, src_stride = %d, dest_unalign_byte = %d, src_unalign_byte = %d\n",
-            test_case->dest_w, test_case->dest_h, test_case->dest_stride, test_case->src_stride, test_case->dest_unalign_byte, test_case->src_unalign_byte);
+    sprintf(test_msg_buf,
+            "Test case: dest_w = %d, dest_h = %d, dest_stride = %d, src_stride = %d, dest_unalign_byte = %d, src_unalign_byte = %d\n",
+            test_case->dest_w, test_case->dest_h, test_case->dest_stride, test_case->src_stride, test_case->dest_unalign_byte,
+            test_case->src_unalign_byte);
 #if DBG_PRINT_OUTPUT
     printf("%s\n", test_msg_buf);
 #endif
@@ -263,11 +269,16 @@ static void lv_image_functionality(func_test_case_lv_image_params_t *test_case)
 
 static void fill_test_bufs(func_test_case_lv_image_params_t *test_case)
 {
-    const size_t src_data_type_size = test_case->src_data_type_size;        // sizeof() of used data type in the source buffer
-    const size_t dest_data_type_size = test_case->dest_data_type_size;      // sizeof() of used data type in the destination buffer
-    const size_t src_buf_len = test_case->src_buf_len;                      // Total source buffer length, data part of the source buffer including matrix padding (no Canary pixels are used for source buffer)
-    const size_t total_dest_buf_len = test_case->total_dest_buf_len;        // Total destination buffer length, data part of the destination buffer including the Canary pixels and matrix padding
-    const size_t active_dest_buf_len = test_case->active_dest_buf_len;      // Length of the data part of the destination buffer including matrix padding
+    const size_t src_data_type_size =
+        test_case->src_data_type_size;        // sizeof() of used data type in the source buffer
+    const size_t dest_data_type_size =
+        test_case->dest_data_type_size;      // sizeof() of used data type in the destination buffer
+    const size_t src_buf_len =
+        test_case->src_buf_len;                      // Total source buffer length, data part of the source buffer including matrix padding (no Canary pixels are used for source buffer)
+    const size_t total_dest_buf_len =
+        test_case->total_dest_buf_len;        // Total destination buffer length, data part of the destination buffer including the Canary pixels and matrix padding
+    const size_t active_dest_buf_len =
+        test_case->active_dest_buf_len;      // Length of the data part of the destination buffer including matrix padding
     const size_t canary_pixels = test_case->canary_pixels;                  // Canary pixels, according to the data type
     const unsigned int src_unalign_byte = test_case->src_unalign_byte;      // Unalignment bytes for source buffer
     const unsigned int dest_unalign_byte = test_case->dest_unalign_byte;    // Unalignment bytes for destination buffer
@@ -353,7 +364,8 @@ static void fill_test_bufs(func_test_case_lv_image_params_t *test_case)
 #if DBG_PRINT_OUTPUT
     printf("Destination buffers fill:\n");
     for (uint32_t i = 0; i < test_case->active_dest_buf_len; i++) {
-        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx16" \t asm = %8"PRIx16" \n", i, ((i < 10) ? (" ") : ("")), ((uint16_t *)test_case->buf.p_dest_ansi)[i], ((uint16_t *)test_case->buf.p_dest_asm)[i]);
+        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx16" \t asm = %8"PRIx16" \n", i, ((i < 10) ? (" ") : ("")),
+               ((uint16_t *)test_case->buf.p_dest_ansi)[i], ((uint16_t *)test_case->buf.p_dest_asm)[i]);
     }
     printf("\n");
 
@@ -372,7 +384,9 @@ static void test_eval_image_16bit_data(func_test_case_lv_image_params_t *test_ca
 #if DBG_PRINT_OUTPUT
     printf("\nEval\nDestination buffers fill:\n");
     for (uint32_t i = 0; i < test_case->total_dest_buf_len; i++) {
-        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx16" \t asm = %8"PRIx16"   %s \n", i, ((i < 10) ? (" ") : ("")), ((uint16_t *)test_case->buf.p_dest_ansi)[i], ((uint16_t *)test_case->buf.p_dest_asm)[i], (((uint16_t *)test_case->buf.p_dest_ansi)[i] == ((uint16_t *)test_case->buf.p_dest_asm)[i]) ? ("OK") : ("FAIL"));
+        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx16" \t asm = %8"PRIx16"   %s \n", i, ((i < 10) ? (" ") : ("")),
+               ((uint16_t *)test_case->buf.p_dest_ansi)[i], ((uint16_t *)test_case->buf.p_dest_asm)[i],
+               (((uint16_t *)test_case->buf.p_dest_ansi)[i] == ((uint16_t *)test_case->buf.p_dest_asm)[i]) ? ("OK") : ("FAIL"));
     }
     printf("\n");
 
@@ -389,7 +403,8 @@ static void test_eval_image_16bit_data(func_test_case_lv_image_params_t *test_ca
     TEST_ASSERT_EACH_EQUAL_UINT16_MESSAGE(0, (uint16_t *)test_case->buf.p_dest_asm, canary_pixels, test_msg_buf);
 
     // dest_buf_asm and dest_buf_ansi must be equal
-    TEST_ASSERT_EQUAL_UINT16_ARRAY_MESSAGE((uint16_t *)test_case->buf.p_dest_ansi + canary_pixels, (uint16_t *)test_case->buf.p_dest_asm + canary_pixels, test_case->active_dest_buf_len, test_msg_buf);
+    TEST_ASSERT_EQUAL_UINT16_ARRAY_MESSAGE((uint16_t *)test_case->buf.p_dest_ansi + canary_pixels,
+                                           (uint16_t *)test_case->buf.p_dest_asm + canary_pixels, test_case->active_dest_buf_len, test_msg_buf);
 
     // Data part of the destination buffer and source buffer (not considering matrix padding) must be equal
     uint16_t *dest_row_begin = (uint16_t *)test_case->buf.p_dest_asm + canary_pixels;
@@ -401,8 +416,10 @@ static void test_eval_image_16bit_data(func_test_case_lv_image_params_t *test_ca
     }
 
     // Canary pixels area must stay 0
-    TEST_ASSERT_EACH_EQUAL_UINT16_MESSAGE(0, (uint16_t *)test_case->buf.p_dest_ansi + (test_case->total_dest_buf_len - canary_pixels), canary_pixels, test_msg_buf);
-    TEST_ASSERT_EACH_EQUAL_UINT16_MESSAGE(0, (uint16_t *)test_case->buf.p_dest_asm + (test_case->total_dest_buf_len - canary_pixels), canary_pixels, test_msg_buf);
+    TEST_ASSERT_EACH_EQUAL_UINT16_MESSAGE(0,
+                                          (uint16_t *)test_case->buf.p_dest_ansi + (test_case->total_dest_buf_len - canary_pixels), canary_pixels, test_msg_buf);
+    TEST_ASSERT_EACH_EQUAL_UINT16_MESSAGE(0,
+                                          (uint16_t *)test_case->buf.p_dest_asm + (test_case->total_dest_buf_len - canary_pixels), canary_pixels, test_msg_buf);
 }
 
 static void test_eval_image_24bit_data(func_test_case_lv_image_params_t *test_case)
@@ -420,7 +437,8 @@ static void test_eval_image_24bit_data(func_test_case_lv_image_params_t *test_ca
         uint32_t asm_value  = ((uint8_t *)test_case->buf.p_dest_asm)[i * dest_data_type_size]
                               | (((uint8_t *)test_case->buf.p_dest_asm)[i * dest_data_type_size + 1] << 8)
                               | (((uint8_t *)test_case->buf.p_dest_asm)[i * dest_data_type_size + 2] << 16);
-        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx32" \t asm = %8"PRIx32" \n", i, ((i < 10) ? (" ") : ("")), ansi_value, asm_value);
+        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx32" \t asm = %8"PRIx32" \n", i, ((i < 10) ? (" ") : ("")), ansi_value,
+               asm_value);
     }
     printf("\n");
 
@@ -442,7 +460,8 @@ static void test_eval_image_24bit_data(func_test_case_lv_image_params_t *test_ca
     TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0, (uint8_t *)test_case->buf.p_dest_asm, canary_pixels * 3, test_msg_buf);
 
     // dest_buf_asm and dest_buf_ansi must be equal
-    TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE((uint8_t *)test_case->buf.p_dest_ansi + (canary_pixels * 3), (uint8_t *)test_case->buf.p_dest_asm + (canary_pixels * 3), test_case->active_dest_buf_len, test_msg_buf);
+    TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE((uint8_t *)test_case->buf.p_dest_ansi + (canary_pixels * 3),
+                                          (uint8_t *)test_case->buf.p_dest_asm + (canary_pixels * 3), test_case->active_dest_buf_len, test_msg_buf);
 
     // Data part of the destination buffer and source buffer (not considering matrix padding) must be equal
     uint8_t *dest_row_begin = (uint8_t *)test_case->buf.p_dest_asm + (canary_pixels * 3);
@@ -454,6 +473,10 @@ static void test_eval_image_24bit_data(func_test_case_lv_image_params_t *test_ca
     }
 
     // Canary pixels area must stay 0
-    TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0, (uint8_t *)test_case->buf.p_dest_ansi + ((test_case->total_dest_buf_len * 3) - (canary_pixels * 3)), canary_pixels * 3, test_msg_buf);
-    TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0, (uint8_t *)test_case->buf.p_dest_asm + ((test_case->total_dest_buf_len * 3) - (canary_pixels * 3)), canary_pixels * 3, test_msg_buf);
+    TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0,
+                                         (uint8_t *)test_case->buf.p_dest_ansi + ((test_case->total_dest_buf_len * 3) - (canary_pixels * 3)), canary_pixels * 3,
+                                         test_msg_buf);
+    TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0,
+                                         (uint8_t *)test_case->buf.p_dest_asm + ((test_case->total_dest_buf_len * 3) - (canary_pixels * 3)), canary_pixels * 3,
+                                         test_msg_buf);
 }

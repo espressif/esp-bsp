@@ -191,7 +191,8 @@ esp_err_t qma6100p_get_acce_sensitivity(qma6100p_handle_t sensor, float *const a
  *      - ESP_ERR_INVALID_ARG A parameter is NULL or incorrect
  *      - ESP_FAIL Failed to configure INT pin on qma6100p
  */
-esp_err_t qma6100p_config_interrupt(qma6100p_handle_t sensor, int int_num, const qma6100p_int_config_t *const interrupt_configuration);
+esp_err_t qma6100p_config_interrupt(qma6100p_handle_t sensor, int int_num,
+                                    const qma6100p_int_config_t *const interrupt_configuration);
 
 /**
  * @brief Enable specific interrupts from qma6100p

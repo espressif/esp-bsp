@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -31,7 +31,8 @@ const uint8_t MPU6050_DATA_RDY_INT_BIT =      (uint8_t) BIT0;
 const uint8_t MPU6050_I2C_MASTER_INT_BIT =    (uint8_t) BIT3;
 const uint8_t MPU6050_FIFO_OVERFLOW_INT_BIT = (uint8_t) BIT4;
 const uint8_t MPU6050_MOT_DETECT_INT_BIT =    (uint8_t) BIT6;
-const uint8_t MPU6050_ALL_INTERRUPTS = (MPU6050_DATA_RDY_INT_BIT | MPU6050_I2C_MASTER_INT_BIT | MPU6050_FIFO_OVERFLOW_INT_BIT | MPU6050_MOT_DETECT_INT_BIT);
+const uint8_t MPU6050_ALL_INTERRUPTS = (MPU6050_DATA_RDY_INT_BIT | MPU6050_I2C_MASTER_INT_BIT |
+                                        MPU6050_FIFO_OVERFLOW_INT_BIT | MPU6050_MOT_DETECT_INT_BIT);
 
 typedef struct {
     i2c_port_t bus;
@@ -42,7 +43,8 @@ typedef struct {
     struct timeval *timer;
 } mpu6050_dev_t;
 
-static esp_err_t mpu6050_write(mpu6050_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *const data_buf, const uint8_t data_len)
+static esp_err_t mpu6050_write(mpu6050_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *const data_buf,
+                               const uint8_t data_len)
 {
     mpu6050_dev_t *sens = (mpu6050_dev_t *) sensor;
     esp_err_t  ret;
@@ -64,7 +66,8 @@ static esp_err_t mpu6050_write(mpu6050_handle_t sensor, const uint8_t reg_start_
     return ret;
 }
 
-static esp_err_t mpu6050_read(mpu6050_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf, const uint8_t data_len)
+static esp_err_t mpu6050_read(mpu6050_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf,
+                              const uint8_t data_len)
 {
     mpu6050_dev_t *sens = (mpu6050_dev_t *) sensor;
     esp_err_t  ret;

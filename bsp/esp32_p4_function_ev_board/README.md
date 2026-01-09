@@ -96,29 +96,29 @@ This BSP supports HDMI converter Lontium LT8912B. Follow these rules for using i
 
 ## LVGL Benchmark
 
-**DATE:** 07.11.2025 09:03
+**DATE:** 08.01.2026 01:35
 
 **LVGL version:** 9.4.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 61%  | 88  | 5  | 3  | 2  |
-| Moving wallpaper | 89%  | 71  | 10  | 7  | 3  |
-| Single rectangle | 23%  | 88  | 1  | 1  | 0  |
-| Multiple rectangles | 39%  | 90  | 2  | 2  | 0  |
-| Multiple RGB images | 31%  | 96  | 2  | 2  | 0  |
-| Multiple ARGB images | 58%  | 93  | 6  | 6  | 0  |
-| Rotated ARGB images | 87%  | 61  | 14  | 14  | 0  |
-| Multiple labels | 92%  | 61  | 12  | 12  | 0  |
-| Screen sized text | 99%  | 13  | 70  | 67  | 3  |
-| Multiple arcs | 98%  | 47  | 18  | 16  | 2  |
-| Containers | 29%  | 87  | 2  | 2  | 0  |
-| Containers with overlay | 88%  | 28  | 32  | 30  | 2  |
-| Containers with opa | 41%  | 89  | 4  | 4  | 0  |
-| Containers with opa_layer | 62%  | 72  | 12  | 12  | 0  |
-| Containers with scrolling | 96%  | 29  | 30  | 28  | 2  |
-| Widgets demo | 99%  | 17  | 49  | 48  | 1  |
-| All scenes avg. | 68%  | 64  | 15  | 15  | 0  |
+| Empty screen | 57%  | 81  | 5  | 5  | 0  |
+| Moving wallpaper | 96%  | 70  | 11  | 8  | 3  |
+| Single rectangle | 30%  | 99  | 0  | 0  | 0  |
+| Multiple rectangles | 43%  | 89  | 2  | 1  | 1  |
+| Multiple RGB images | 33%  | 96  | 1  | 1  | 0  |
+| Multiple ARGB images | 58%  | 85  | 5  | 5  | 0  |
+| Rotated ARGB images | 88%  | 59  | 14  | 14  | 0  |
+| Multiple labels | 99%  | 61  | 12  | 11  | 1  |
+| Screen sized text | 100%  | 13  | 69  | 66  | 3  |
+| Multiple arcs | 98%  | 46  | 17  | 15  | 2  |
+| Containers | 33%  | 89  | 3  | 3  | 0  |
+| Containers with overlay | 92%  | 28  | 31  | 30  | 1  |
+| Containers with opa | 39%  | 91  | 4  | 4  | 0  |
+| Containers with opa_layer | 66%  | 71  | 13  | 13  | 0  |
+| Containers with scrolling | 98%  | 29  | 30  | 29  | 1  |
+| Widgets demo | 99%  | 17  | 49  | 47  | 2  |
+| All scenes avg. | 70%  | 64  | 15  | 15  | 0  |
 
 
 

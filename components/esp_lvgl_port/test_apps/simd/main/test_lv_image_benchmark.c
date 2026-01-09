@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -176,12 +176,14 @@ static void lv_image_benchmark_init(bench_test_case_lv_image_params_t *test_para
         // Run benchmark with the most ideal input parameters
         float cycles = lv_image_benchmark_run(test_params, &dsc);        // Call Benchmark cycle
         float per_sample = cycles / ((float)(dsc.dest_w * dsc.dest_h));
-        ESP_LOGI(TAG_LV_IMAGE_BENCH, " %s ideal case: %.3f cycles for %"PRIi32"x%"PRIi32" matrix, %.3f cycles per sample", asm_ansi_func[i], cycles, dsc.dest_w, dsc.dest_h, per_sample);
+        ESP_LOGI(TAG_LV_IMAGE_BENCH, " %s ideal case: %.3f cycles for %"PRIi32"x%"PRIi32" matrix, %.3f cycles per sample",
+                 asm_ansi_func[i], cycles, dsc.dest_w, dsc.dest_h, per_sample);
 
         // Run benchmark with the corner case input parameters
         cycles = lv_image_benchmark_run(test_params, &dsc_cc);           // Call Benchmark cycle
         per_sample = cycles / ((float)(dsc_cc.dest_w * dsc_cc.dest_h));
-        ESP_LOGI(TAG_LV_IMAGE_BENCH, " %s corner case: %.3f cycles for %"PRIi32"x%"PRIi32" matrix, %.3f cycles per sample\n", asm_ansi_func[i], cycles, dsc_cc.dest_w, dsc_cc.dest_h, per_sample);
+        ESP_LOGI(TAG_LV_IMAGE_BENCH, " %s corner case: %.3f cycles for %"PRIi32"x%"PRIi32" matrix, %.3f cycles per sample\n",
+                 asm_ansi_func[i], cycles, dsc_cc.dest_w, dsc_cc.dest_h, per_sample);
 
         // change to ANSI
         dsc.use_asm = false;

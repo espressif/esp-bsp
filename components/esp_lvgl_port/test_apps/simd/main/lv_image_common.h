@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -47,14 +47,22 @@ typedef struct {
     unsigned int min_h;                                       /*!< Minimum height of the test array */
     unsigned int max_w;                                       /*!< Maximum width of the test array */
     unsigned int max_h;                                       /*!< Maximum height of the test array */
-    unsigned int src_min_unalign_byte;                        /*!< Minimum amount of unaligned bytes of the source test array */
-    unsigned int dest_min_unalign_byte;                       /*!< Minimum amount of unaligned bytes of the destination test array */
-    unsigned int src_max_unalign_byte;                        /*!< Maximum amount of unaligned bytes of the source test array */
-    unsigned int dest_max_unalign_byte;                       /*!< Maximum amount of unaligned bytes of the destination test array */
-    unsigned int src_unalign_step;                            /*!< Increment step in bytes unalignment of the source test array */
-    unsigned int dest_unalign_step;                           /*!< Increment step in bytes unalignment of the destination test array */
-    unsigned int src_stride_step;                             /*!< Increment step in destination stride of the source test array */
-    unsigned int dest_stride_step;                            /*!< Increment step in destination stride of the destination test array */
+    unsigned int
+    src_min_unalign_byte;                        /*!< Minimum amount of unaligned bytes of the source test array */
+    unsigned int
+    dest_min_unalign_byte;                       /*!< Minimum amount of unaligned bytes of the destination test array */
+    unsigned int
+    src_max_unalign_byte;                        /*!< Maximum amount of unaligned bytes of the source test array */
+    unsigned int
+    dest_max_unalign_byte;                       /*!< Maximum amount of unaligned bytes of the destination test array */
+    unsigned int
+    src_unalign_step;                            /*!< Increment step in bytes unalignment of the source test array */
+    unsigned int
+    dest_unalign_step;                           /*!< Increment step in bytes unalignment of the destination test array */
+    unsigned int
+    src_stride_step;                             /*!< Increment step in destination stride of the source test array */
+    unsigned int
+    dest_stride_step;                            /*!< Increment step in destination stride of the destination test array */
     unsigned int test_combinations_count;                     /*!< Count of fest combinations */
 } test_matrix_lv_image_params_t;
 
@@ -72,7 +80,8 @@ typedef struct {
         void *p_dest_ansi_alloc;                              /*!< pointer to the beginning of the memory allocated for the destination ANSI test buf, used in free() */
     } buf;
     void (*blend_api_func)(_lv_draw_sw_blend_image_dsc_t *);                    /*!< pointer to LVGL API function */
-    void (*blend_api_func_px_size)(_lv_draw_sw_blend_image_dsc_t *, uint32_t);  /*!< pointer to LVGL API function, with additional parameter: pixel size */
+    void (*blend_api_func_px_size)(_lv_draw_sw_blend_image_dsc_t *,
+                                   uint32_t);  /*!< pointer to LVGL API function, with additional parameter: pixel size */
     lv_color_format_t color_format;                           /*!< LV color format */
     size_t src_data_type_size;                                /*!< Used data type size in the source buffer, eg sizeof(src_buff[0]) */
     size_t dest_data_type_size;                               /*!< Used data type size in the destination buffer, eg sizeof(dest_buff[0]) */
@@ -107,7 +116,8 @@ typedef struct {
     void *dest_array_align16;                                 /*!< Destination test array with 16 byte alignment - testing most ideal case */
     void *dest_array_align1;                                  /*!< Destination test array with 1 byte alignment - testing worst case */
     void (*blend_api_func)(_lv_draw_sw_blend_image_dsc_t *);                     /*!< pointer to LVGL API function */
-    void (*blend_api_func_px_size)(_lv_draw_sw_blend_image_dsc_t *, uint32_t);   /*!< pointer to LVGL API function, with additional parameter: pixel size */
+    void (*blend_api_func_px_size)(_lv_draw_sw_blend_image_dsc_t *,
+                                   uint32_t);   /*!< pointer to LVGL API function, with additional parameter: pixel size */
     lv_color_format_t color_format;                           /*!< LV color format */
 } bench_test_case_lv_image_params_t;
 

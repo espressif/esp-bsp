@@ -70,7 +70,8 @@ TEST_CASE("Sensor hts221 test", "[hts221][iot][sensor]")
 
     ret = hts221_get_deviceid(hts221, &hts221_deviceid);
     TEST_ASSERT_EQUAL(ESP_OK, ret);
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(HTS221_WHO_AM_I_VAL, hts221_deviceid, "Who Am I register does not contain expected data");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(HTS221_WHO_AM_I_VAL, hts221_deviceid,
+                                    "Who Am I register does not contain expected data");
 
     ret = hts221_init(hts221, &hts221_config_write);
     TEST_ASSERT_EQUAL(ESP_OK, ret);

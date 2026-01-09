@@ -4,39 +4,46 @@ on:
   push:
     branches:
       - master
+    paths: 
+      - '.github/**'
+      - 'bsp/**'
+      - 'components/**'
   pull_request:
     types: [opened, reopened, synchronize]
+    paths: 
+      - '.github/**'
+      - 'bsp/**'
+      - 'components/**'
 
 jobs:
   upload_bsp_components:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        bsp: [
-          esp32_azure_iot_kit,
-          esp32_s2_kaluga_kit,
-          esp_wrover_kit,
-          esp-box,
-          esp-box-3,
-          esp-box-lite,
-          esp32_s3_usb_otg,
-          esp32_s3_eye,
-          esp32_s3_lcd_ev_board,
-          esp32_s3_korvo_1,
-          esp32_s3_korvo_2,
-          esp32_lyrat,
-          esp32_c3_lcdkit,
-          esp_bsp_generic,
-          esp_bsp_devkit,
-          esp32_p4_function_ev_board,
-          m5stack_core,
-          m5stack_core_2,
-          m5stack_core_s3,
-          m5_atom_s3,
-          m5dial,
-          esp32_p4_eye,
-          m5stack_tab5,
-        ]
+        bsp:
+          - esp32_azure_iot_kit
+          - esp32_s2_kaluga_kit
+          - esp_wrover_kit
+          - esp-box
+          - esp-box-3
+          - esp-box-lite
+          - esp32_s3_usb_otg
+          - esp32_s3_eye
+          - esp32_s3_lcd_ev_board
+          - esp32_s3_korvo_1
+          - esp32_s3_korvo_2
+          - esp32_lyrat
+          - esp32_c3_lcdkit
+          - esp_bsp_generic
+          - esp_bsp_devkit
+          - esp32_p4_function_ev_board
+          - m5stack_core
+          - m5stack_core_2
+          - m5stack_core_s3
+          - m5_atom_s3
+          - m5dial
+          - esp32_p4_eye
+          - m5stack_tab5
     steps:
       - uses: actions/checkout@v5
 

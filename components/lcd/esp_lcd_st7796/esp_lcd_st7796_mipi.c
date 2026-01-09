@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -45,12 +45,14 @@ static esp_err_t panel_st7796_invert_color(esp_lcd_panel_t *panel, bool invert_c
 static esp_err_t panel_st7796_mirror(esp_lcd_panel_t *panel, bool mirror_x, bool mirror_y);
 static esp_err_t panel_st7796_disp_on_off(esp_lcd_panel_t *panel, bool on_off);
 
-esp_err_t esp_lcd_new_panel_st7796_mipi(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config,
+esp_err_t esp_lcd_new_panel_st7796_mipi(const esp_lcd_panel_io_handle_t io,
+                                        const esp_lcd_panel_dev_config_t *panel_dev_config,
                                         esp_lcd_panel_handle_t *ret_panel)
 {
     ESP_RETURN_ON_FALSE(io && panel_dev_config && ret_panel, ESP_ERR_INVALID_ARG, TAG, "invalid arguments");
     st7796_vendor_config_t *vendor_config = (st7796_vendor_config_t *)panel_dev_config->vendor_config;
-    ESP_RETURN_ON_FALSE(vendor_config && vendor_config->mipi_config.dpi_config && vendor_config->mipi_config.dsi_bus, ESP_ERR_INVALID_ARG, TAG,
+    ESP_RETURN_ON_FALSE(vendor_config && vendor_config->mipi_config.dpi_config
+                        && vendor_config->mipi_config.dsi_bus, ESP_ERR_INVALID_ARG, TAG,
                         "invalid vendor config");
 
     esp_err_t ret = ESP_OK;
@@ -126,7 +128,8 @@ esp_err_t esp_lcd_new_panel_st7796_mipi(const esp_lcd_panel_io_handle_t io, cons
 
     // Create MIPI DPI panel
     esp_lcd_panel_handle_t panel_handle = NULL;
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_dpi(vendor_config->mipi_config.dsi_bus, vendor_config->mipi_config.dpi_config, &panel_handle), err, TAG,
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_dpi(vendor_config->mipi_config.dsi_bus, vendor_config->mipi_config.dpi_config,
+                                            &panel_handle), err, TAG,
                       "create MIPI DPI panel failed");
     ESP_LOGD(TAG, "new MIPI DPI panel @%p", panel_handle);
 
@@ -230,7 +233,8 @@ static esp_err_t panel_st7796_init(esp_lcd_panel_t *panel)
 
     for (int i = 0; i < init_cmds_size; i++) {
         // Send command
-        ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, init_cmds[i].cmd, init_cmds[i].data, init_cmds[i].data_bytes), TAG, "send command failed");
+        ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, init_cmds[i].cmd, init_cmds[i].data, init_cmds[i].data_bytes), TAG,
+                            "send command failed");
         vTaskDelay(pdMS_TO_TICKS(init_cmds[i].delay_ms));
     }
     ESP_LOGD(TAG, "send init commands success");

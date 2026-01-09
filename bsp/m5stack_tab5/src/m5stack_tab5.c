@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -559,7 +559,8 @@ static esp_err_t bsp_enable_dsi_phy_power(void)
     return ESP_OK;
 }
 
-esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
+esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
+                          esp_lcd_panel_io_handle_t *ret_io)
 {
     esp_err_t ret = ESP_OK;
     bsp_lcd_handles_t handles;
@@ -597,7 +598,8 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
         .lcd_cmd_bits = 8,   // according to the LCD spec
         .lcd_param_bits = 8, // according to the LCD spec
     };
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_dbi(ret_handles->mipi_dsi_bus, &dbi_config, &ret_handles->io), err, TAG, "New panel IO failed");
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_dbi(ret_handles->mipi_dsi_bus, &dbi_config, &ret_handles->io), err, TAG,
+                      "New panel IO failed");
     disp_handles.io = ret_handles->io;
 
     esp_lcd_dpi_panel_config_t dpi_config = {
@@ -640,7 +642,8 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
         .bits_per_pixel = BSP_LCD_BITS_PER_PIXEL,
         .vendor_config = &vendor_config,
     };
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9881c(ret_handles->io, (const esp_lcd_panel_dev_config_t *)&panel_config, &ret_handles->panel), err, TAG, "New panel failed");
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9881c(ret_handles->io, (const esp_lcd_panel_dev_config_t *)&panel_config,
+                      &ret_handles->panel), err, TAG, "New panel failed");
     disp_handles.panel = ret_handles->panel;
 #if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0))
     ESP_GOTO_ON_ERROR(esp_lcd_dpi_panel_enable_dma2d(ret_handles->panel), err, TAG, "LCD panel enable DMA2D failed");
@@ -788,10 +791,12 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
     tp_io_config.dev_addr = ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS_BACKUP;
-    tp_io_config.scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ; // This parameter was introduced together with I2C Driver-NG in IDF v5.2
+    tp_io_config.scl_speed_hz =
+        CONFIG_BSP_I2C_CLK_SPEED_HZ; // This parameter was introduced together with I2C Driver-NG in IDF v5.2
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
 
-    ESP_RETURN_ON_ERROR(esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, ret_touch), TAG, "New touch driver initialization failed");
+    ESP_RETURN_ON_ERROR(esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, ret_touch), TAG,
+                        "New touch driver initialization failed");
 
     return ESP_OK;
 }

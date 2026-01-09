@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -72,8 +72,10 @@ static void epaper_driver_gpio_isr_handler(void *arg);
 // --- IO wrapper functions, simply send command/param/buffer
 static esp_err_t epaper_set_lut(esp_lcd_panel_io_handle_t io, const uint8_t *lut);
 static esp_err_t epaper_set_cursor(esp_lcd_panel_io_handle_t io, uint32_t cur_x, uint32_t cur_y);
-static esp_err_t epaper_set_area(esp_lcd_panel_io_handle_t io, uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y);
-static esp_err_t panel_epaper_set_vram(esp_lcd_panel_io_handle_t io, uint8_t *bw_bitmap, uint8_t *red_bitmap, size_t size);
+static esp_err_t epaper_set_area(esp_lcd_panel_io_handle_t io, uint32_t start_x, uint32_t start_y, uint32_t end_x,
+                                 uint32_t end_y);
+static esp_err_t panel_epaper_set_vram(esp_lcd_panel_io_handle_t io, uint8_t *bw_bitmap, uint8_t *red_bitmap,
+                                       size_t size);
 // --- SSD1681 specific functions, exported to user in public header file
 // extern esp_err_t esp_lcd_new_panel_ssd1681(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config,
 //                                            esp_lcd_panel_handle_t *ret_panel);
@@ -85,7 +87,8 @@ static esp_err_t panel_epaper_set_vram(esp_lcd_panel_io_handle_t io, uint8_t *bw
 static esp_err_t epaper_panel_del(esp_lcd_panel_t *panel);
 static esp_err_t epaper_panel_reset(esp_lcd_panel_t *panel);
 static esp_err_t epaper_panel_init(esp_lcd_panel_t *panel);
-static esp_err_t epaper_panel_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end, const void *color_data);
+static esp_err_t epaper_panel_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end,
+        const void *color_data);
 static esp_err_t epaper_panel_invert_color(esp_lcd_panel_t *panel, bool invert_color_data);
 static esp_err_t epaper_panel_mirror(esp_lcd_panel_t *panel, bool mirror_x, bool mirror_y);
 static esp_err_t epaper_panel_swap_xy(esp_lcd_panel_t *panel, bool swap_axes);
@@ -101,7 +104,8 @@ static void epaper_driver_gpio_isr_handler(void *arg)
 
     // --- Call user callback func
     if (epaper_panel->epaper_refresh_done_isr_callback.callback_ptr) {
-        (epaper_panel->epaper_refresh_done_isr_callback.callback_ptr)(&(epaper_panel->base), NULL, epaper_panel->epaper_refresh_done_isr_callback.args);
+        (epaper_panel->epaper_refresh_done_isr_callback.callback_ptr)(&(epaper_panel->base), NULL,
+                epaper_panel->epaper_refresh_done_isr_callback.args);
     }
 }
 
@@ -127,7 +131,8 @@ esp_err_t epaper_panel_set_custom_lut(esp_lcd_panel_t *panel, uint8_t *lut, size
 
 static esp_err_t epaper_set_lut(esp_lcd_panel_io_handle_t io, const uint8_t *lut)
 {
-    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SET_LUT_REG, lut, 153), TAG, "SSD1681_CMD_OUTPUT_CTRL err");
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SET_LUT_REG, lut, 153), TAG,
+                        "SSD1681_CMD_OUTPUT_CTRL err");
 
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SET_DISP_UPDATE_CTRL, (uint8_t[]) {
         lut[153]
@@ -162,7 +167,8 @@ static esp_err_t epaper_set_cursor(esp_lcd_panel_io_handle_t io, uint32_t cur_x,
     return ESP_OK;
 }
 
-static esp_err_t epaper_set_area(esp_lcd_panel_io_handle_t io, uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y)
+static esp_err_t epaper_set_area(esp_lcd_panel_io_handle_t io, uint32_t start_x, uint32_t start_y, uint32_t end_x,
+                                 uint32_t end_y)
 {
     // --- Set RAMX Start/End Position
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SET_RAMX_START_END_POS, (uint8_t[]) {
@@ -285,7 +291,8 @@ esp_lcd_new_panel_ssd1681(const esp_lcd_panel_io_handle_t io, const esp_lcd_pane
     if (!(epaper_panel->_non_copy_mode)) {
         epaper_panel->_framebuffer = heap_caps_malloc(SSD1681_EPD_1IN54_V2_WIDTH * SSD1681_EPD_1IN54_V2_HEIGHT / 8,
                                      MALLOC_CAP_DMA);
-        ESP_RETURN_ON_FALSE(epaper_panel->_framebuffer, ESP_ERR_NO_MEM, TAG, "epaper_panel_draw_bitmap allocating buffer memory err");
+        ESP_RETURN_ON_FALSE(epaper_panel->_framebuffer, ESP_ERR_NO_MEM, TAG,
+                            "epaper_panel_draw_bitmap allocating buffer memory err");
     }
     // --- Init GPIO
     // init RST GPIO
@@ -423,11 +430,14 @@ epaper_panel_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x
     y_end += epaper_panel->gap_y;
     // --- Assert & check configuration
     if (epaper_panel->_non_copy_mode) {
-        ESP_RETURN_ON_FALSE(!(epaper_panel->_swap_xy), ESP_ERR_INVALID_ARG, TAG, "swap-xy is unavailable when enabling non-copy mode");
-        ESP_RETURN_ON_FALSE(!(epaper_panel->_mirror_y), ESP_ERR_INVALID_ARG, TAG, "mirror_y is unavailable when enabling non-copy mode");
+        ESP_RETURN_ON_FALSE(!(epaper_panel->_swap_xy), ESP_ERR_INVALID_ARG, TAG,
+                            "swap-xy is unavailable when enabling non-copy mode");
+        ESP_RETURN_ON_FALSE(!(epaper_panel->_mirror_y), ESP_ERR_INVALID_ARG, TAG,
+                            "mirror_y is unavailable when enabling non-copy mode");
     }
     ESP_RETURN_ON_FALSE(color_data, ESP_ERR_INVALID_ARG, TAG, "bitmap is null");
-    ESP_RETURN_ON_FALSE((x_start < x_end) && (y_start < y_end), ESP_ERR_INVALID_ARG, TAG, "start position must be smaller than end position");
+    ESP_RETURN_ON_FALSE((x_start < x_end)
+                        && (y_start < y_end), ESP_ERR_INVALID_ARG, TAG, "start position must be smaller than end position");
     // --- Calculate coordinates & sizes
     int len_x = abs(x_start - x_end);
     int len_y = abs(y_start - y_end);
@@ -584,7 +594,8 @@ static esp_err_t process_bitmap(esp_lcd_panel_t *panel, int len_x, int len_y, in
                 for (int i = 0; i < buffer_size * 8; i++) {
                     uint8_t bitmap_byte = ((uint8_t *) (color_data))[i / 8];
                     uint8_t bitmap_pixel = (bitmap_byte & (0x01 << (7 - (i % 8)))) ? 0x01 : 0x00;
-                    (epaper_panel->_framebuffer)[((i * len_y / 8) % buffer_size) + (i / 8 / len_x)] |= (bitmap_pixel << (7 - ((i / len_x) % 8)));
+                    (epaper_panel->_framebuffer)[((i * len_y / 8) % buffer_size) + (i / 8 / len_x)] |= (bitmap_pixel << (7 - ((
+                                i / len_x) % 8)));
                 }
             } else {
                 for (int i = 0; i < buffer_size; i++) {
@@ -599,7 +610,8 @@ static esp_err_t process_bitmap(esp_lcd_panel_t *panel, int len_x, int len_y, in
             for (int i = 0; i < buffer_size * 8; i++) {
                 uint8_t bitmap_byte = ((uint8_t *) (color_data))[i / 8];
                 uint8_t bitmap_pixel = (bitmap_byte & (0x01 << (7 - (i % 8)))) ? 0x01 : 0x00;
-                (epaper_panel->_framebuffer)[buffer_size - (((i * len_y / 8) % buffer_size) + (i / 8 / len_x)) - 1] |= (bitmap_pixel << (((i / len_x) % 8)));
+                (epaper_panel->_framebuffer)[buffer_size - (((i * len_y / 8) % buffer_size) + (i / 8 / len_x)) - 1] |=
+                    (bitmap_pixel << (((i / len_x) % 8)));
             }
         } else {
             for (int i = 0; i < buffer_size; i++) {
@@ -614,7 +626,8 @@ static esp_err_t process_bitmap(esp_lcd_panel_t *panel, int len_x, int len_y, in
                 for (int i = 0; i < buffer_size * 8; i++) {
                     uint8_t bitmap_byte = ((uint8_t *) (color_data))[i / 8];
                     uint8_t bitmap_pixel = (bitmap_byte & (0x01 << (7 - (i % 8)))) ? 0x01 : 0x00;
-                    (epaper_panel->_framebuffer)[((i * len_y / 8) % buffer_size) + (i / 8 / len_x)] |= (bitmap_pixel << (7 - ((i / len_x) % 8)));
+                    (epaper_panel->_framebuffer)[((i * len_y / 8) % buffer_size) + (i / 8 / len_x)] |= (bitmap_pixel << (7 - ((
+                                i / len_x) % 8)));
                 }
             } else {
                 for (int i = 0; i < buffer_size; i++) {
@@ -629,7 +642,8 @@ static esp_err_t process_bitmap(esp_lcd_panel_t *panel, int len_x, int len_y, in
             for (int i = 0; i < buffer_size * 8; i++) {
                 uint8_t bitmap_byte = ((uint8_t *) (color_data))[i / 8];
                 uint8_t bitmap_pixel = (bitmap_byte & (0x01 << (7 - (i % 8)))) ? 0x01 : 0x00;
-                (epaper_panel->_framebuffer)[buffer_size - (((i * len_y / 8) % buffer_size) + (i / 8 / len_x)) - 1] |= (bitmap_pixel << (((i / len_x) % 8)));
+                (epaper_panel->_framebuffer)[buffer_size - (((i * len_y / 8) % buffer_size) + (i / 8 / len_x)) - 1] |=
+                    (bitmap_pixel << (((i / len_x) % 8)));
             }
         } else {
             for (int i = 0; i < buffer_size; i++) {

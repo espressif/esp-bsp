@@ -46,7 +46,8 @@ void gesture_cb(lv_event_t *e)
             // Read current pinch scale and convert it from float to image scale
             uint32_t pinch_scale_rel = lv_event_get_pinch_scale(e) * LV_SCALE_NONE;
             // Cutoff negative results at 0
-            uint32_t pinch_scale_abs = logo_scale + pinch_scale_rel < LV_SCALE_NONE ? 0 : logo_scale + ((int32_t)pinch_scale_rel - LV_SCALE_NONE);
+            uint32_t pinch_scale_abs = logo_scale + pinch_scale_rel < LV_SCALE_NONE ? 0 : logo_scale + ((
+                                           int32_t)pinch_scale_rel - LV_SCALE_NONE);
             lv_img_set_zoom(img_logo, pinch_scale_abs);
             // Save the resulting image scale after the gesture ends
             if (state == LV_INDEV_GESTURE_STATE_ENDED) {

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2021-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2021-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -34,7 +34,8 @@ typedef struct {
  *
  */
 typedef struct {
-    const gc9a01_lcd_init_cmd_t *init_cmds;     /*!< Pointer to initialization commands array. Set to NULL if using default commands.
+    const gc9a01_lcd_init_cmd_t
+    *init_cmds;     /*!< Pointer to initialization commands array. Set to NULL if using default commands.
                                                  *   The array should be declared as `static const` and positioned outside the function.
                                                  *   Please refer to `vendor_specific_init_default` in source file.
                                                  */
@@ -54,7 +55,8 @@ typedef struct {
  *          - ESP_ERR_NO_MEM        if out of memory
  *          - ESP_OK                on success
  */
-esp_err_t esp_lcd_new_panel_gc9a01(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
+esp_err_t esp_lcd_new_panel_gc9a01(const esp_lcd_panel_io_handle_t io,
+                                   const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
 
 /**
  * @brief LCD panel bus configuration structure

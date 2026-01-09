@@ -6,20 +6,37 @@ repos:
     rev: v1.0.5
     hooks:
       - id: astyle_py
-        args: ['--style=otbs', '--attach-namespaces', '--attach-classes', '--indent=spaces=4', '--convert-tabs', '--align-pointer=name', '--align-reference=name', '--keep-one-line-statements', '--pad-header', '--pad-oper']
+        args:
+          - '--style=otbs'
+          - '--attach-namespaces'
+          - '--attach-classes'
+          - '--indent=spaces=4'
+          - '--convert-tabs'
+          - '--align-pointer=name'
+          - '--align-reference=name'
+          - '--keep-one-line-statements'
+          - '--pad-header'
+          - '--pad-oper'
+          - '--max-code-length=120'
 
   - repo: https://github.com/espressif/check-copyright/
     rev: v1.0.3
     hooks:
       - id: check-copyright
-        args: ['--config', 'check_copyright_config.yaml']
+        args:
+          - '--config'
+          - 'check_copyright_config.yaml'
 
   - repo: https://github.com/PyCQA/flake8
     rev: 5.0.4
     hooks:
       - id: flake8
-        types: [python]
-        args: ['--config=.flake8', '--tee', '--benchmark']
+        types:
+          - python
+        args:
+          - '--config=.flake8'
+          - '--tee'
+          - '--benchmark'
 
   - repo: local
     hooks:
@@ -27,7 +44,8 @@ repos:
         name: Update BSP README with dependencies section
         entry: .github/ci/update_readme_dependencies.py
         language: python
-        files: 'bsp/.*/include/bsp/.*\.h|bsp/.*/idf_component\.yml|bsp/.*/README\.md' # All idf_component.yml, README.md and .h files in bsp directory
+        # All idf_component.yml, README.md and .h files in bsp directory
+        files: '^bsp/.*/(idf_component\.yml|README\.md|include/bsp/.*\.h)$'
         additional_dependencies:
           - idf_component_manager==2.4.1
           - py-markdown-table
@@ -55,13 +73,21 @@ repos:
     rev: v4.3.0
     hooks:
       - id: trailing-whitespace
-        types_or: [c, c++]
+        types_or:
+          - c
+          - c++
       - id: end-of-file-fixer
-        types_or: [c, c++]
+        types_or:
+          - c
+          - c++
       - id: check-merge-conflict
       - id: mixed-line-ending
-        types_or: [c, c++, text]
-        args: ['--fix=lf']
+        types_or:
+          - c
+          - c++
+          - text
+        args:
+          - '--fix=lf'
         description: Forces to replace line ending by the UNIX 'lf' character
 
   - repo: https://github.com/espressif/doxybook
@@ -69,43 +95,64 @@ repos:
     hooks:
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp_wrover_kit", "-i", "bsp/esp_wrover_kit/doxygen/xml", "-o", "bsp/esp_wrover_kit/API.md"]
+        files: ^bsp/esp_wrover_kit/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_azure_iot_kit", "-i", "bsp/esp32_azure_iot_kit/doxygen/xml", "-o", "bsp/esp32_azure_iot_kit/API.md"]
+        files: ^bsp/esp32_azure_iot_kit/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_c3_lcdkit", "-i", "bsp/esp32_c3_lcdkit/doxygen/xml", "-o", "bsp/esp32_c3_lcdkit/API.md"]
+        files: ^bsp/esp32_c3_lcdkit/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_lyrat", "-i", "bsp/esp32_lyrat/doxygen/xml", "-o", "bsp/esp32_lyrat/API.md"]
+        files: ^bsp/esp32_lyrat/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_p4_function_ev_board", "-i", "bsp/esp32_p4_function_ev_board/doxygen/xml", "-o", "bsp/esp32_p4_function_ev_board/API.md"]
+        files: ^bsp/esp32_p4_function_ev_board/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_s2_kaluga_kit", "-i", "bsp/esp32_s2_kaluga_kit/doxygen/xml", "-o", "bsp/esp32_s2_kaluga_kit/API.md"]
+        files: ^bsp/esp32_s2_kaluga_kit/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_s3_eye", "-i", "bsp/esp32_s3_eye/doxygen/xml", "-o", "bsp/esp32_s3_eye/API.md"]
+        files: ^bsp/esp32_s3_eye/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_s3_korvo_1", "-i", "bsp/esp32_s3_korvo_1/doxygen/xml", "-o", "bsp/esp32_s3_korvo_1/API.md"]
+        files: ^bsp/esp32_s3_korvo_1/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_s3_korvo_2", "-i", "bsp/esp32_s3_korvo_2/doxygen/xml", "-o", "bsp/esp32_s3_korvo_2/API.md"]
+        files: ^bsp/esp32_s3_korvo_2/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_s3_lcd_ev_board", "-i", "bsp/esp32_s3_lcd_ev_board/doxygen/xml", "-o", "bsp/esp32_s3_lcd_ev_board/API.md"]
+        files: ^bsp/esp32_s3_lcd_ev_board/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_s3_usb_otg", "-i", "bsp/esp32_s3_usb_otg/doxygen/xml", "-o", "bsp/esp32_s3_usb_otg/API.md"]
+        files: ^bsp/esp32_s3_usb_otg/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp-box", "-i", "bsp/esp-box/doxygen/xml", "-o", "bsp/esp-box/API.md"]
+        files: ^bsp/esp-box/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp-box-3", "-i", "bsp/esp-box-3/doxygen/xml", "-o", "bsp/esp-box-3/API.md"]
+        files: ^bsp/esp-box-3/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp-box-lite", "-i", "bsp/esp-box-lite/doxygen/xml", "-o", "bsp/esp-box-lite/API.md"]
+        files: ^bsp/esp-box-lite/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/m5_atom_s3", "-i", "bsp/m5_atom_s3/doxygen/xml", "-o", "bsp/m5_atom_s3/API.md"]
+        files: ^bsp/m5_atom_s3/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/m5dial", "-i", "bsp/m5dial/doxygen/xml", "-o", "bsp/m5dial/API.md"]
+        files: ^bsp/m5dial/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/m5stack_core", "-i", "bsp/m5stack_core/doxygen/xml", "-o", "bsp/m5stack_core/API.md"]
+        files: ^bsp/m5stack_core/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/m5stack_core_2", "-i", "bsp/m5stack_core_2/doxygen/xml", "-o", "bsp/m5stack_core_2/API.md"]
+        files: ^bsp/m5stack_core_2/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/m5stack_core_s3", "-i", "bsp/m5stack_core_s3/doxygen/xml", "-o", "bsp/m5stack_core_s3/API.md"]
+        files: ^bsp/m5stack_core_s3/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_p4_eye", "-i", "bsp/esp32_p4_eye/doxygen/xml", "-o", "bsp/esp32_p4_eye/API.md"]
+        files: ^bsp/esp32_p4_eye/
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/m5stack_tab5", "-i", "bsp/m5stack_tab5/doxygen/xml", "-o", "bsp/m5stack_tab5/API.md"]
+        files: ^bsp/m5stack_tab5/

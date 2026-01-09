@@ -96,29 +96,29 @@ Based on the above configurations, there are three different anti-tearing modes 
 
 ## LVGL Benchmark
 
-**DATE:** 07.11.2025 09:03
+**DATE:** 08.01.2026 01:35
 
 **LVGL version:** 9.4.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 96%  | 18  | 51  | 29  | 22  |
-| Moving wallpaper | 100%  | 10  | 85  | 81  | 4  |
-| Single rectangle | 99%  | 35  | 25  | 2  | 23  |
-| Multiple rectangles | 99%  | 32  | 27  | 18  | 9  |
-| Multiple RGB images | 99%  | 29  | 29  | 22  | 7  |
-| Multiple ARGB images | 99%  | 16  | 51  | 35  | 16  |
-| Rotated ARGB images | 100%  | 15  | 58  | 50  | 8  |
-| Multiple labels | 99%  | 18  | 46  | 34  | 12  |
-| Screen sized text | 100%  | 8  | 109  | 88  | 21  |
-| Multiple arcs | 99%  | 35  | 23  | 8  | 15  |
-| Containers | 100%  | 15  | 56  | 42  | 14  |
-| Containers with overlay | 99%  | 9  | 86  | 73  | 13  |
-| Containers with opa | 100%  | 11  | 75  | 57  | 18  |
-| Containers with opa_layer | 100%  | 6  | 145  | 133  | 12  |
+| Empty screen | 97%  | 18  | 51  | 29  | 22  |
+| Moving wallpaper | 98%  | 9  | 95  | 83  | 12  |
+| Single rectangle | 96%  | 35  | 25  | 2  | 23  |
+| Multiple rectangles | 96%  | 32  | 27  | 17  | 10  |
+| Multiple RGB images | 97%  | 29  | 29  | 22  | 7  |
+| Multiple ARGB images | 97%  | 16  | 51  | 35  | 16  |
+| Rotated ARGB images | 98%  | 15  | 57  | 50  | 7  |
+| Multiple labels | 98%  | 18  | 47  | 34  | 13  |
+| Screen sized text | 99%  | 8  | 110  | 88  | 22  |
+| Multiple arcs | 96%  | 35  | 22  | 7  | 15  |
+| Containers | 98%  | 14  | 59  | 44  | 15  |
+| Containers with overlay | 98%  | 9  | 90  | 77  | 13  |
+| Containers with opa | 98%  | 12  | 71  | 56  | 15  |
+| Containers with opa_layer | 99%  | 6  | 145  | 132  | 13  |
 | Containers with scrolling | 99%  | 11  | 81  | 61  | 20  |
-| Widgets demo | 99%  | 7  | 99  | 85  | 14  |
-| All scenes avg. | 99%  | 17  | 65  | 51  | 14  |
+| Widgets demo | 98%  | 7  | 100  | 86  | 14  |
+| All scenes avg. | 97%  | 17  | 65  | 51  | 14  |
 
 
 
