@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -70,12 +70,14 @@ static esp_err_t read_pullup_sel_reg(esp_io_expander_handle_t handle, uint32_t *
 static esp_err_t reset(esp_io_expander_t *handle);
 static esp_err_t del(esp_io_expander_t *handle);
 
-esp_err_t esp_io_expander_new_i2c_pi4ioe5v6408(i2c_master_bus_handle_t i2c_bus, uint32_t dev_addr, esp_io_expander_handle_t *handle_ret)
+esp_err_t esp_io_expander_new_i2c_pi4ioe5v6408(i2c_master_bus_handle_t i2c_bus, uint32_t dev_addr,
+        esp_io_expander_handle_t *handle_ret)
 {
     ESP_RETURN_ON_FALSE(handle_ret != NULL, ESP_ERR_INVALID_ARG, TAG, "Invalid handle_ret");
 
     // Allocate memory for driver object
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)calloc(1, sizeof(esp_io_expander_pi4ioe5v6408_t));
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)calloc(1,
+            sizeof(esp_io_expander_pi4ioe5v6408_t));
     ESP_RETURN_ON_FALSE(pi4ioe != NULL, ESP_ERR_NO_MEM, TAG, "Malloc failed");
 
     // Add new I2C device
@@ -84,7 +86,8 @@ esp_err_t esp_io_expander_new_i2c_pi4ioe5v6408(i2c_master_bus_handle_t i2c_bus, 
         .device_address = dev_addr,
         .scl_speed_hz = I2C_CLK_SPEED,
     };
-    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg, &pi4ioe->i2c_handle), err, TAG, "Add new I2C device failed");
+    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg, &pi4ioe->i2c_handle), err, TAG,
+                      "Add new I2C device failed");
 
     pi4ioe->base.config.io_count = IO_COUNT;
     pi4ioe->base.config.flags.dir_out_bit_zero = 0;  // PI4IOE: 0=input, 1=output
@@ -118,29 +121,34 @@ err:
 
 static esp_err_t read_input_reg(esp_io_expander_handle_t handle, uint32_t *value)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
 
     uint8_t temp = 0;
     uint8_t reg_addr = PI4IO_REG_IN_STA;
-    ESP_RETURN_ON_ERROR(i2c_master_transmit_receive(pi4ioe->i2c_handle, &reg_addr, 1, &temp, sizeof(temp), I2C_TIMEOUT_MS), TAG, "Read input reg failed");
+    ESP_RETURN_ON_ERROR(i2c_master_transmit_receive(pi4ioe->i2c_handle, &reg_addr, 1, &temp, sizeof(temp), I2C_TIMEOUT_MS),
+                        TAG, "Read input reg failed");
     *value = temp;
     return ESP_OK;
 }
 
 static esp_err_t write_output_reg(esp_io_expander_handle_t handle, uint32_t value)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
     value &= 0xff;
 
     uint8_t data[] = {PI4IO_REG_OUT_SET, value};
-    ESP_RETURN_ON_ERROR(i2c_master_transmit(pi4ioe->i2c_handle, data, sizeof(data), I2C_TIMEOUT_MS), TAG, "Write output reg failed");
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(pi4ioe->i2c_handle, data, sizeof(data), I2C_TIMEOUT_MS), TAG,
+                        "Write output reg failed");
     pi4ioe->regs.output = value;
     return ESP_OK;
 }
 
 static esp_err_t read_output_reg(esp_io_expander_handle_t handle, uint32_t *value)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
 
     *value = pi4ioe->regs.output;
     return ESP_OK;
@@ -148,18 +156,21 @@ static esp_err_t read_output_reg(esp_io_expander_handle_t handle, uint32_t *valu
 
 static esp_err_t write_direction_reg(esp_io_expander_handle_t handle, uint32_t value)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
     value &= 0xff;
 
     uint8_t data[] = {PI4IO_REG_IO_DIR, value};
-    ESP_RETURN_ON_ERROR(i2c_master_transmit(pi4ioe->i2c_handle, data, sizeof(data), I2C_TIMEOUT_MS), TAG, "Write direction reg failed");
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(pi4ioe->i2c_handle, data, sizeof(data), I2C_TIMEOUT_MS), TAG,
+                        "Write direction reg failed");
     pi4ioe->regs.direction = value;
     return ESP_OK;
 }
 
 static esp_err_t read_direction_reg(esp_io_expander_handle_t handle, uint32_t *value)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
 
     *value = pi4ioe->regs.direction;
     return ESP_OK;
@@ -167,18 +178,21 @@ static esp_err_t read_direction_reg(esp_io_expander_handle_t handle, uint32_t *v
 
 static esp_err_t write_highz_reg(esp_io_expander_handle_t handle, uint32_t value)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
     value &= 0xff;
 
     uint8_t data[] = {PI4IO_REG_OUT_H_IM, value};
-    ESP_RETURN_ON_ERROR(i2c_master_transmit(pi4ioe->i2c_handle, data, sizeof(data), I2C_TIMEOUT_MS), TAG, "Write highz reg failed");
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(pi4ioe->i2c_handle, data, sizeof(data), I2C_TIMEOUT_MS), TAG,
+                        "Write highz reg failed");
     pi4ioe->regs.highz = value;
     return ESP_OK;
 }
 
 static esp_err_t read_highz_reg(esp_io_expander_handle_t handle, uint32_t *value)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
 
     *value = pi4ioe->regs.highz;
     return ESP_OK;
@@ -186,18 +200,21 @@ static esp_err_t read_highz_reg(esp_io_expander_handle_t handle, uint32_t *value
 
 static esp_err_t write_pullup_en_reg(esp_io_expander_handle_t handle, uint32_t value)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
     value &= 0xff;
 
     uint8_t data[] = {PI4IO_REG_PULL_EN, value};
-    ESP_RETURN_ON_ERROR(i2c_master_transmit(pi4ioe->i2c_handle, data, sizeof(data), I2C_TIMEOUT_MS), TAG, "Write highz reg failed");
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(pi4ioe->i2c_handle, data, sizeof(data), I2C_TIMEOUT_MS), TAG,
+                        "Write highz reg failed");
     pi4ioe->regs.pullup_en = value;
     return ESP_OK;
 }
 
 static esp_err_t read_pullup_en_reg(esp_io_expander_handle_t handle, uint32_t *value)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
 
     *value = pi4ioe->regs.pullup_en;
     return ESP_OK;
@@ -205,18 +222,21 @@ static esp_err_t read_pullup_en_reg(esp_io_expander_handle_t handle, uint32_t *v
 
 static esp_err_t write_pullup_sel_reg(esp_io_expander_handle_t handle, uint32_t value)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
     value &= 0xff;
 
     uint8_t data[] = {PI4IO_REG_PULL_SEL, value};
-    ESP_RETURN_ON_ERROR(i2c_master_transmit(pi4ioe->i2c_handle, data, sizeof(data), I2C_TIMEOUT_MS), TAG, "Write highz reg failed");
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(pi4ioe->i2c_handle, data, sizeof(data), I2C_TIMEOUT_MS), TAG,
+                        "Write highz reg failed");
     pi4ioe->regs.pullup_sel = value;
     return ESP_OK;
 }
 
 static esp_err_t read_pullup_sel_reg(esp_io_expander_handle_t handle, uint32_t *value)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
 
     *value = pi4ioe->regs.pullup_sel;
     return ESP_OK;
@@ -224,7 +244,8 @@ static esp_err_t read_pullup_sel_reg(esp_io_expander_handle_t handle, uint32_t *
 
 static esp_err_t reset(esp_io_expander_t *handle)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
 
     // Reset chip
     uint8_t write_buf[2] = {PI4IO_REG_CHIP_RESET, 0xFF};
@@ -233,7 +254,8 @@ static esp_err_t reset(esp_io_expander_t *handle)
     // Read reset status
     uint8_t read_buf[1] = {0};
     write_buf[0] = PI4IO_REG_CHIP_RESET;
-    ESP_RETURN_ON_ERROR(i2c_master_transmit_receive(pi4ioe->i2c_handle, write_buf, 1, read_buf, 1, I2C_TIMEOUT_MS), TAG, "Read reset status failed");
+    ESP_RETURN_ON_ERROR(i2c_master_transmit_receive(pi4ioe->i2c_handle, write_buf, 1, read_buf, 1, I2C_TIMEOUT_MS), TAG,
+                        "Read reset status failed");
 
     // Set default direction (all inputs)
     ESP_RETURN_ON_ERROR(write_direction_reg(handle, DIR_REG_DEFAULT_VAL), TAG, "Write dir reg failed");
@@ -251,7 +273,8 @@ static esp_err_t reset(esp_io_expander_t *handle)
 
 static esp_err_t del(esp_io_expander_t *handle)
 {
-    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle, esp_io_expander_pi4ioe5v6408_t, base);
+    esp_io_expander_pi4ioe5v6408_t *pi4ioe = (esp_io_expander_pi4ioe5v6408_t *)__containerof(handle,
+            esp_io_expander_pi4ioe5v6408_t, base);
 
     ESP_RETURN_ON_ERROR(i2c_master_bus_rm_device(pi4ioe->i2c_handle), TAG, "Remove I2C device failed");
     free(pi4ioe);

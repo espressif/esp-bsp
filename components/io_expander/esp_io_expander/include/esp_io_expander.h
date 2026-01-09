@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -103,10 +103,14 @@ typedef enum {
 typedef struct {
     uint8_t io_count;                       /*!< Count of device's IO, must be less or equal than `IO_COUNT_MAX` */
     struct {
-        uint8_t dir_out_bit_zero : 1;       /*!< If the direction of IO is output, the corresponding bit of the direction register is 0 */
-        uint8_t input_high_bit_zero : 1;    /*!< If the input level of IO is high, the corresponding bit of the input register is 0 */
-        uint8_t output_high_bit_zero : 1;   /*!< If the output level of IO is high, the corresponding bit of the output register is 0 */
-        uint8_t pullup_high_bit_zero : 1;    /*!< If the pullup/down level of IO is high, the corresponding bit of the output register is 0 */
+uint8_t dir_out_bit_zero :
+        1;       /*!< If the direction of IO is output, the corresponding bit of the direction register is 0 */
+uint8_t input_high_bit_zero :
+        1;    /*!< If the input level of IO is high, the corresponding bit of the input register is 0 */
+uint8_t output_high_bit_zero :
+        1;   /*!< If the output level of IO is high, the corresponding bit of the output register is 0 */
+uint8_t pullup_high_bit_zero :
+        1;    /*!< If the pullup/down level of IO is high, the corresponding bit of the output register is 0 */
     } flags;
     /* Don't support with interrupt mode yet, will be added soon */
 } esp_io_expander_config_t;
@@ -304,7 +308,8 @@ struct esp_io_expander_s {
  * @return
  *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
  */
-esp_err_t esp_io_expander_set_dir(esp_io_expander_handle_t handle, uint32_t pin_num_mask, esp_io_expander_dir_t direction);
+esp_err_t esp_io_expander_set_dir(esp_io_expander_handle_t handle, uint32_t pin_num_mask,
+                                  esp_io_expander_dir_t direction);
 
 /**
  * @brief Set the output level of a set of target IOs
@@ -346,7 +351,8 @@ esp_err_t esp_io_expander_get_level(esp_io_expander_handle_t handle, uint32_t pi
  * @return
  *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
  */
-esp_err_t esp_io_expander_set_pullupdown(esp_io_expander_handle_t handle, uint32_t pin_num_mask, esp_io_expander_pullupdown_t state);
+esp_err_t esp_io_expander_set_pullupdown(esp_io_expander_handle_t handle, uint32_t pin_num_mask,
+        esp_io_expander_pullupdown_t state);
 
 
 /**
@@ -361,7 +367,8 @@ esp_err_t esp_io_expander_set_pullupdown(esp_io_expander_handle_t handle, uint32
  * @return
  *      - ESP_OK: Success, otherwise returns ESP_ERR_xxx
  */
-esp_err_t esp_io_expander_set_output_mode(esp_io_expander_handle_t handle, uint32_t pin_num_mask, esp_io_expander_output_mode_t mode);
+esp_err_t esp_io_expander_set_output_mode(esp_io_expander_handle_t handle, uint32_t pin_num_mask,
+        esp_io_expander_output_mode_t mode);
 
 
 /**

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -32,7 +32,8 @@ typedef struct {
     int16_t min[3];
 } mag3110_dev_t;
 
-static esp_err_t mag3110_write(mag3110_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *const data_buf, const uint8_t data_len)
+static esp_err_t mag3110_write(mag3110_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *const data_buf,
+                               const uint8_t data_len)
 {
     mag3110_dev_t *sens = (mag3110_dev_t *) sensor;
     esp_err_t  ret;
@@ -53,7 +54,8 @@ static esp_err_t mag3110_write(mag3110_handle_t sensor, const uint8_t reg_start_
     return ret;
 }
 
-static esp_err_t mag3110_read(mag3110_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf, const uint8_t data_len)
+static esp_err_t mag3110_read(mag3110_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf,
+                              const uint8_t data_len)
 {
     mag3110_dev_t *sens = (mag3110_dev_t *) sensor;
     esp_err_t ret;

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -40,7 +40,8 @@ typedef struct {
  *      - ESP_ERR_NOT_SUPPORTED: Create DS18B20 device failed because the device is unknown (e.g. a wrong family ID code)
  *      - ESP_FAIL: Create DS18B20 device failed due to other reasons
  */
-esp_err_t ds18b20_new_device_from_enumeration(onewire_device_t *device, const ds18b20_config_t *config, ds18b20_device_handle_t *ret_ds18b20);
+esp_err_t ds18b20_new_device_from_enumeration(onewire_device_t *device, const ds18b20_config_t *config,
+        ds18b20_device_handle_t *ret_ds18b20);
 
 /**
  * @brief Create a new DS18B20 device from the 1-Wire bus without enumeration
@@ -56,7 +57,8 @@ esp_err_t ds18b20_new_device_from_enumeration(onewire_device_t *device, const ds
  *      - ESP_ERR_NO_MEM: Create DS18B20 device failed due to out of memory
  *      - ESP_FAIL: Create DS18B20 device failed due to other reasons
  */
-esp_err_t ds18b20_new_device_from_bus(onewire_bus_handle_t bus, const ds18b20_config_t *config, ds18b20_device_handle_t *ret_ds18b20);
+esp_err_t ds18b20_new_device_from_bus(onewire_bus_handle_t bus, const ds18b20_config_t *config,
+                                      ds18b20_device_handle_t *ret_ds18b20);
 
 /**
  * @brief Delete DS18B20 device

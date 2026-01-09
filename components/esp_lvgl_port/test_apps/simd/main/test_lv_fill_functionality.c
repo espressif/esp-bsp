@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -192,7 +192,8 @@ static void functionality_test_matrix(test_matrix_params_t *test_matrix, func_te
             for (int dest_stride = dest_w; dest_stride <= dest_w * 2; dest_stride += test_matrix->dest_stride_step) {
 
                 // Step destination array unalignment
-                for (int unalign_byte = test_matrix->min_unalign_byte; unalign_byte <= test_matrix->max_unalign_byte; unalign_byte += test_matrix->unalign_step) {
+                for (int unalign_byte = test_matrix->min_unalign_byte; unalign_byte <= test_matrix->max_unalign_byte;
+                        unalign_byte += test_matrix->unalign_step) {
 
                     // Call functionality test
                     UPDATE_TEST_CASE(test_case, dest_w, dest_h, dest_stride, unalign_byte);
@@ -239,7 +240,8 @@ static void lv_fill_functionality(func_test_case_params_t *test_case)
     test_case->buf.p_ansi -= CANARY_BYTES * test_case->data_type_size;
 
     // Evaluate the results
-    sprintf(test_msg_buf, "Test case: dest_w = %d, dest_h = %d, dest_stride = %d, unalign_byte = %d\n", test_case->dest_w, test_case->dest_h, test_case->dest_stride, test_case->unalign_byte);
+    sprintf(test_msg_buf, "Test case: dest_w = %d, dest_h = %d, dest_stride = %d, unalign_byte = %d\n", test_case->dest_w,
+            test_case->dest_h, test_case->dest_stride, test_case->unalign_byte);
 
     switch (test_case->color_format) {
     case LV_COLOR_FORMAT_ARGB8888: {
@@ -269,7 +271,8 @@ static void lv_fill_functionality(func_test_case_params_t *test_case)
 static void fill_test_bufs(func_test_case_params_t *test_case)
 {
     const size_t data_type_size = test_case->data_type_size;        // sizeof() of used data type
-    const size_t total_buf_len = test_case->total_buf_len;          // Total buffer length, data part of the buffer including the Canary bytes
+    const size_t total_buf_len =
+        test_case->total_buf_len;          // Total buffer length, data part of the buffer including the Canary bytes
     const size_t active_buf_len = test_case->active_buf_len;        // Length of buffer
     const unsigned int unalign_byte = test_case->unalign_byte;
 
@@ -312,7 +315,8 @@ static void test_eval_32bit_data(func_test_case_params_t *test_case)
     // Print results 32bit data
 #if DBG_PRINT_OUTPUT
     for (uint32_t i = 0; i < test_case->total_buf_len; i++) {
-        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx32" \t asm = %8"PRIx32" \n", i, ((i < 10) ? (" ") : ("")), ((uint32_t *)test_case->buf.p_ansi)[i], ((uint32_t *)test_case->buf.p_asm)[i]);
+        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx32" \t asm = %8"PRIx32" \n", i, ((i < 10) ? (" ") : ("")),
+               ((uint32_t *)test_case->buf.p_ansi)[i], ((uint32_t *)test_case->buf.p_asm)[i]);
     }
     printf("\n");
 #endif
@@ -322,11 +326,14 @@ static void test_eval_32bit_data(func_test_case_params_t *test_case)
     TEST_ASSERT_EACH_EQUAL_UINT32_MESSAGE(0, (uint32_t *)test_case->buf.p_asm, CANARY_BYTES, test_msg_buf);
 
     // dest_buf_asm and dest_buf_ansi must be equal
-    TEST_ASSERT_EQUAL_UINT32_ARRAY_MESSAGE((uint32_t *)test_case->buf.p_asm + CANARY_BYTES, (uint32_t *)test_case->buf.p_ansi + CANARY_BYTES, test_case->active_buf_len, test_msg_buf);
+    TEST_ASSERT_EQUAL_UINT32_ARRAY_MESSAGE((uint32_t *)test_case->buf.p_asm + CANARY_BYTES,
+                                           (uint32_t *)test_case->buf.p_ansi + CANARY_BYTES, test_case->active_buf_len, test_msg_buf);
 
     // Canary bytes area must stay 0
-    TEST_ASSERT_EACH_EQUAL_UINT32_MESSAGE(0, (uint32_t *)test_case->buf.p_ansi + (test_case->total_buf_len - CANARY_BYTES), CANARY_BYTES, test_msg_buf);
-    TEST_ASSERT_EACH_EQUAL_UINT32_MESSAGE(0, (uint32_t *)test_case->buf.p_asm + (test_case->total_buf_len - CANARY_BYTES), CANARY_BYTES, test_msg_buf);
+    TEST_ASSERT_EACH_EQUAL_UINT32_MESSAGE(0, (uint32_t *)test_case->buf.p_ansi + (test_case->total_buf_len - CANARY_BYTES),
+                                          CANARY_BYTES, test_msg_buf);
+    TEST_ASSERT_EACH_EQUAL_UINT32_MESSAGE(0, (uint32_t *)test_case->buf.p_asm + (test_case->total_buf_len - CANARY_BYTES),
+                                          CANARY_BYTES, test_msg_buf);
 }
 
 static void test_eval_16bit_data(func_test_case_params_t *test_case)
@@ -334,7 +341,8 @@ static void test_eval_16bit_data(func_test_case_params_t *test_case)
     // Print results, 16bit data
 #if DBG_PRINT_OUTPUT
     for (uint32_t i = 0; i < test_case->total_buf_len; i++) {
-        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx16" \t asm = %8"PRIx16" \n", i, ((i < 10) ? (" ") : ("")), ((uint16_t *)test_case->buf.p_ansi)[i], ((uint16_t *)test_case->buf.p_asm)[i]);
+        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx16" \t asm = %8"PRIx16" \n", i, ((i < 10) ? (" ") : ("")),
+               ((uint16_t *)test_case->buf.p_ansi)[i], ((uint16_t *)test_case->buf.p_asm)[i]);
     }
     printf("\n");
 #endif
@@ -344,11 +352,14 @@ static void test_eval_16bit_data(func_test_case_params_t *test_case)
     TEST_ASSERT_EACH_EQUAL_UINT16_MESSAGE(0, (uint16_t *)test_case->buf.p_asm, CANARY_BYTES, test_msg_buf);
 
     // dest_buf_asm and dest_buf_ansi must be equal
-    TEST_ASSERT_EQUAL_UINT16_ARRAY_MESSAGE((uint16_t *)test_case->buf.p_asm + CANARY_BYTES, (uint16_t *)test_case->buf.p_ansi + CANARY_BYTES, test_case->active_buf_len, test_msg_buf);
+    TEST_ASSERT_EQUAL_UINT16_ARRAY_MESSAGE((uint16_t *)test_case->buf.p_asm + CANARY_BYTES,
+                                           (uint16_t *)test_case->buf.p_ansi + CANARY_BYTES, test_case->active_buf_len, test_msg_buf);
 
     // Canary bytes area must stay 0
-    TEST_ASSERT_EACH_EQUAL_UINT16_MESSAGE(0, (uint16_t *)test_case->buf.p_ansi + (test_case->total_buf_len - CANARY_BYTES), CANARY_BYTES, test_msg_buf);
-    TEST_ASSERT_EACH_EQUAL_UINT16_MESSAGE(0, (uint16_t *)test_case->buf.p_asm + (test_case->total_buf_len - CANARY_BYTES), CANARY_BYTES, test_msg_buf);
+    TEST_ASSERT_EACH_EQUAL_UINT16_MESSAGE(0, (uint16_t *)test_case->buf.p_ansi + (test_case->total_buf_len - CANARY_BYTES),
+                                          CANARY_BYTES, test_msg_buf);
+    TEST_ASSERT_EACH_EQUAL_UINT16_MESSAGE(0, (uint16_t *)test_case->buf.p_asm + (test_case->total_buf_len - CANARY_BYTES),
+                                          CANARY_BYTES, test_msg_buf);
 }
 
 static void test_eval_24bit_data(func_test_case_params_t *test_case)
@@ -363,7 +374,8 @@ static void test_eval_24bit_data(func_test_case_params_t *test_case)
         uint32_t asm_value  = ((uint8_t *)test_case->buf.p_asm)[i * data_type_size]
                               | (((uint8_t *)test_case->buf.p_asm)[i * data_type_size + 1] << 8)
                               | (((uint8_t *)test_case->buf.p_asm)[i * data_type_size + 2] << 16);
-        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx32" \t asm = %8"PRIx32" \n", i, ((i < 10) ? (" ") : ("")), ansi_value, asm_value);
+        printf("dest_buf[%"PRIi32"] %s ansi = %8"PRIx32" \t asm = %8"PRIx32" \n", i, ((i < 10) ? (" ") : ("")), ansi_value,
+               asm_value);
     }
     printf("\n");
 #endif
@@ -375,9 +387,15 @@ static void test_eval_24bit_data(func_test_case_params_t *test_case)
     TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0, (uint8_t *)test_case->buf.p_asm, canary_bytes_area, test_msg_buf);
 
     // dest_buf_asm and dest_buf_ansi must be equal
-    TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE((uint8_t *)test_case->buf.p_asm + canary_bytes_area, (uint8_t *)test_case->buf.p_ansi + canary_bytes_area, test_case->active_buf_len * test_case->data_type_size, test_msg_buf);
+    TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE((uint8_t *)test_case->buf.p_asm + canary_bytes_area,
+                                          (uint8_t *)test_case->buf.p_ansi + canary_bytes_area, test_case->active_buf_len * test_case->data_type_size,
+                                          test_msg_buf);
 
     // Canary bytes area must stay 0
-    TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0, (uint8_t *)test_case->buf.p_ansi + (test_case->total_buf_len - CANARY_BYTES) * test_case->data_type_size, canary_bytes_area, test_msg_buf);
-    TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0, (uint8_t *)test_case->buf.p_asm + (test_case->total_buf_len - CANARY_BYTES) * test_case->data_type_size, canary_bytes_area, test_msg_buf);
+    TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0,
+                                         (uint8_t *)test_case->buf.p_ansi + (test_case->total_buf_len - CANARY_BYTES) * test_case->data_type_size,
+                                         canary_bytes_area, test_msg_buf);
+    TEST_ASSERT_EACH_EQUAL_UINT8_MESSAGE(0,
+                                         (uint8_t *)test_case->buf.p_asm + (test_case->total_buf_len - CANARY_BYTES) * test_case->data_type_size,
+                                         canary_bytes_area, test_msg_buf);
 }

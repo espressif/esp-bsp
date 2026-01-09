@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -78,7 +78,8 @@ static const char *TAG = "FT5x06";
 * Function definitions
 *******************************************************************************/
 static esp_err_t esp_lcd_touch_ft5x06_read_data(esp_lcd_touch_handle_t tp);
-static bool esp_lcd_touch_ft5x06_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+static bool esp_lcd_touch_ft5x06_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength,
+                                        uint8_t *point_num, uint8_t max_point_num);
 static esp_err_t esp_lcd_touch_ft5x06_get_track_id(esp_lcd_touch_handle_t tp, uint8_t *track_id, uint8_t max_point_num);
 static esp_err_t esp_lcd_touch_ft5x06_del(esp_lcd_touch_handle_t tp);
 
@@ -95,13 +96,16 @@ static esp_err_t touch_ft5x06_reset(esp_lcd_touch_handle_t tp);
 * Public API functions
 *******************************************************************************/
 
-esp_err_t esp_lcd_touch_new_i2c_ft5x06(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *out_touch)
+esp_err_t esp_lcd_touch_new_i2c_ft5x06(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config,
+                                       esp_lcd_touch_handle_t *out_touch)
 {
     esp_err_t ret = ESP_OK;
 
     ESP_RETURN_ON_FALSE(io != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller io handle can't be NULL");
-    ESP_RETURN_ON_FALSE(config != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the touch controller configuration can't be NULL");
-    ESP_RETURN_ON_FALSE(out_touch != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(config != NULL, ESP_ERR_INVALID_ARG, TAG,
+                        "Pointer to the touch controller configuration can't be NULL");
+    ESP_RETURN_ON_FALSE(out_touch != NULL, ESP_ERR_INVALID_ARG, TAG,
+                        "Pointer to the touch controller handle can't be NULL");
 
     /* Prepare main structure */
     esp_lcd_touch_handle_t esp_lcd_touch_ft5x06 = heap_caps_calloc(1, sizeof(esp_lcd_touch_t), MALLOC_CAP_DEFAULT);
@@ -208,7 +212,8 @@ static esp_err_t esp_lcd_touch_ft5x06_read_data(esp_lcd_touch_handle_t tp)
     return ESP_OK;
 }
 
-static bool esp_lcd_touch_ft5x06_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)
+static bool esp_lcd_touch_ft5x06_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength,
+                                        uint8_t *point_num, uint8_t max_point_num)
 {
     ESP_RETURN_ON_FALSE(tp != NULL, false, TAG, "Touch controller handle can't be NULL");
     ESP_RETURN_ON_FALSE(x != NULL, false, TAG, "Pointer to the x coordinates array can't be NULL");

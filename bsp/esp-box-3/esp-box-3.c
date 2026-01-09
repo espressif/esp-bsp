@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -526,7 +526,8 @@ static esp_err_t bsp_lcd_exit_sleep(void)
 }
 #endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
-esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
+esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
+                          esp_lcd_panel_io_handle_t *ret_io)
 {
     esp_err_t ret = ESP_OK;
     assert(config != NULL && config->max_transfer_sz > 0);
@@ -557,7 +558,8 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
         .spi_mode = 0,
         .trans_queue_depth = 10,
     };
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, ret_io), err, TAG, "New panel IO failed");
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, ret_io), err, TAG,
+                      "New panel IO failed");
 
     ESP_LOGD(TAG, "Install LCD driver");
     const ili9341_vendor_config_t vendor_config = {
@@ -573,10 +575,12 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
     };
 
     if (ESP_OK == bsp_i2c_device_probe(ESP_LCD_TOUCH_IO_I2C_TT21100_ADDRESS)) {
-        ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7789(*ret_io, (const esp_lcd_panel_dev_config_t *)&panel_config, ret_panel), err, TAG, "New panel failed");
+        ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7789(*ret_io, (const esp_lcd_panel_dev_config_t *)&panel_config, ret_panel), err,
+                          TAG, "New panel failed");
     } else {
         panel_config.vendor_config = (void *)&vendor_config;
-        ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9341(*ret_io, (const esp_lcd_panel_dev_config_t *)&panel_config, ret_panel), err, TAG, "New panel failed");
+        ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9341(*ret_io, (const esp_lcd_panel_dev_config_t *)&panel_config, ret_panel), err,
+                          TAG, "New panel failed");
     }
 
     esp_lcd_panel_reset(*ret_panel);
@@ -699,7 +703,8 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
         ESP_LOGE(TAG, "Touch not found");
         return ESP_ERR_NOT_FOUND;
     }
-    tp_io_config.scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ; // This parameter was introduced together with I2C Driver-NG in IDF v5.2
+    tp_io_config.scl_speed_hz =
+        CONFIG_BSP_I2C_CLK_SPEED_HZ; // This parameter was introduced together with I2C Driver-NG in IDF v5.2
 
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
     if (ESP_LCD_TOUCH_IO_I2C_TT21100_ADDRESS == tp_io_config.dev_addr) {

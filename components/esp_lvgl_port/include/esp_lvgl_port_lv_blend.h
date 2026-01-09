@@ -133,7 +133,8 @@ static inline lv_result_t _lv_rgb565_blend_normal_to_rgb565_esp(_lv_draw_sw_blen
 
 extern int lv_rgb888_blend_normal_to_rgb888_esp(asm_dsc_t *asm_dsc);
 
-static inline lv_result_t _lv_rgb888_blend_normal_to_rgb888_esp(_lv_draw_sw_blend_image_dsc_t *dsc, uint32_t dest_px_size, uint32_t src_px_size)
+static inline lv_result_t _lv_rgb888_blend_normal_to_rgb888_esp(_lv_draw_sw_blend_image_dsc_t *dsc,
+        uint32_t dest_px_size, uint32_t src_px_size)
 {
     if (!(dest_px_size == 3 && src_px_size == 3)) {
         return LV_RESULT_INVALID;

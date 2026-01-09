@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -33,7 +33,8 @@ static char *TAG = "io_expander";
 static esp_err_t write_reg(esp_io_expander_handle_t handle, reg_type_t reg, uint32_t value);
 static esp_err_t read_reg(esp_io_expander_handle_t handle, reg_type_t reg, uint32_t *value);
 
-esp_err_t esp_io_expander_set_dir(esp_io_expander_handle_t handle, uint32_t pin_num_mask, esp_io_expander_dir_t direction)
+esp_err_t esp_io_expander_set_dir(esp_io_expander_handle_t handle, uint32_t pin_num_mask,
+                                  esp_io_expander_dir_t direction)
 {
     ESP_RETURN_ON_FALSE(handle, ESP_ERR_INVALID_ARG, TAG, "Invalid handle");
     if (pin_num_mask >= BIT64(VALID_IO_COUNT(handle))) {
@@ -129,7 +130,8 @@ esp_err_t esp_io_expander_get_level(esp_io_expander_handle_t handle, uint32_t pi
     return ESP_OK;
 }
 
-esp_err_t esp_io_expander_set_pullupdown(esp_io_expander_handle_t handle, uint32_t pin_num_mask, esp_io_expander_pullupdown_t state)
+esp_err_t esp_io_expander_set_pullupdown(esp_io_expander_handle_t handle, uint32_t pin_num_mask,
+        esp_io_expander_pullupdown_t state)
 {
     ESP_RETURN_ON_FALSE(handle, ESP_ERR_INVALID_ARG, TAG, "Invalid handle");
     if (pin_num_mask >= BIT64(VALID_IO_COUNT(handle))) {
@@ -142,7 +144,8 @@ esp_err_t esp_io_expander_set_pullupdown(esp_io_expander_handle_t handle, uint32
     pull_en_tmp = pull_en;
     pull_set_tmp = pull_set;
 
-    if ((state == IO_EXPANDER_PULL_UP && !handle->config.flags.pullup_high_bit_zero) || (state == IO_EXPANDER_PULL_DOWN && handle->config.flags.pullup_high_bit_zero)) {
+    if ((state == IO_EXPANDER_PULL_UP && !handle->config.flags.pullup_high_bit_zero) || (state == IO_EXPANDER_PULL_DOWN
+            && handle->config.flags.pullup_high_bit_zero)) {
         /* 1. High level && Set 1 to output high */
         /* 2. Low level && Set 1 to output low */
         pull_set |= pin_num_mask;
@@ -173,7 +176,8 @@ esp_err_t esp_io_expander_set_pullupdown(esp_io_expander_handle_t handle, uint32
     return ESP_OK;
 }
 
-esp_err_t esp_io_expander_set_output_mode(esp_io_expander_handle_t handle, uint32_t pin_num_mask, esp_io_expander_output_mode_t mode)
+esp_err_t esp_io_expander_set_output_mode(esp_io_expander_handle_t handle, uint32_t pin_num_mask,
+        esp_io_expander_output_mode_t mode)
 {
     ESP_RETURN_ON_FALSE(handle, ESP_ERR_INVALID_ARG, TAG, "Invalid handle");
     if (pin_num_mask >= BIT64(VALID_IO_COUNT(handle))) {

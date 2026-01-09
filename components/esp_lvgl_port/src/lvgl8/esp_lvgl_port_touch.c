@@ -95,7 +95,8 @@ static void lvgl_port_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *
     esp_lcd_touch_read_data(touch_ctx->handle);
 
     /* Read data from touch controller */
-    bool touchpad_pressed = esp_lcd_touch_get_coordinates(touch_ctx->handle, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 1);
+    bool touchpad_pressed = esp_lcd_touch_get_coordinates(touch_ctx->handle, touchpad_x, touchpad_y, NULL, &touchpad_cnt,
+                            1);
 
     if (touchpad_pressed && touchpad_cnt > 0) {
         data->point.x = touch_ctx->scale.x * touchpad_x[0];

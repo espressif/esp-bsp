@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -25,7 +25,8 @@ static const char *TAG = "st7796_general";
 static esp_err_t panel_st7796_del(esp_lcd_panel_t *panel);
 static esp_err_t panel_st7796_reset(esp_lcd_panel_t *panel);
 static esp_err_t panel_st7796_init(esp_lcd_panel_t *panel);
-static esp_err_t panel_st7796_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end, const void *color_data);
+static esp_err_t panel_st7796_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end,
+        const void *color_data);
 static esp_err_t panel_st7796_invert_color(esp_lcd_panel_t *panel, bool invert_color_data);
 static esp_err_t panel_st7796_mirror(esp_lcd_panel_t *panel, bool mirror_x, bool mirror_y);
 static esp_err_t panel_st7796_swap_xy(esp_lcd_panel_t *panel, bool swap_axes);
@@ -46,7 +47,8 @@ typedef struct {
     uint16_t init_cmds_size;
 } st7796_panel_t;
 
-esp_err_t esp_lcd_new_panel_st7796_general(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel)
+esp_err_t esp_lcd_new_panel_st7796_general(const esp_lcd_panel_io_handle_t io,
+        const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel)
 {
     esp_err_t ret = ESP_OK;
     st7796_panel_t *st7796 = NULL;
@@ -247,10 +249,12 @@ static esp_err_t panel_st7796_init(esp_lcd_panel_t *panel)
         }
 
         if (is_cmd_overwritten) {
-            ESP_LOGW(TAG, "The %02Xh command has been used and will be overwritten by external initialization sequence", init_cmds[i].cmd);
+            ESP_LOGW(TAG, "The %02Xh command has been used and will be overwritten by external initialization sequence",
+                     init_cmds[i].cmd);
         }
 
-        ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, init_cmds[i].cmd, init_cmds[i].data, init_cmds[i].data_bytes), TAG, "send command failed");
+        ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, init_cmds[i].cmd, init_cmds[i].data, init_cmds[i].data_bytes), TAG,
+                            "send command failed");
         vTaskDelay(pdMS_TO_TICKS(init_cmds[i].delay_ms));
     }
     ESP_LOGD(TAG, "send init commands success");
@@ -258,7 +262,8 @@ static esp_err_t panel_st7796_init(esp_lcd_panel_t *panel)
     return ESP_OK;
 }
 
-static esp_err_t panel_st7796_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end, const void *color_data)
+static esp_err_t panel_st7796_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end,
+        const void *color_data)
 {
     st7796_panel_t *st7796 = __containerof(panel, st7796_panel_t, base);
     assert((x_start < x_end) && (y_start < y_end) && "start position must be smaller than end position");

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -41,7 +41,8 @@ typedef struct ds18b20_device_t {
     ds18b20_resolution_t resolution;
 } ds18b20_device_t;
 
-esp_err_t ds18b20_new_device_from_enumeration(onewire_device_t *device, const ds18b20_config_t *config, ds18b20_device_handle_t *ret_ds18b20)
+esp_err_t ds18b20_new_device_from_enumeration(onewire_device_t *device, const ds18b20_config_t *config,
+        ds18b20_device_handle_t *ret_ds18b20)
 {
     ds18b20_device_t *ds18b20 = NULL;
     ESP_RETURN_ON_FALSE(device && config && ret_ds18b20, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
@@ -61,7 +62,8 @@ esp_err_t ds18b20_new_device_from_enumeration(onewire_device_t *device, const ds
     return ESP_OK;
 }
 
-esp_err_t ds18b20_new_device_from_bus(onewire_bus_handle_t bus, const ds18b20_config_t *config, ds18b20_device_handle_t *ret_ds18b20)
+esp_err_t ds18b20_new_device_from_bus(onewire_bus_handle_t bus, const ds18b20_config_t *config,
+                                      ds18b20_device_handle_t *ret_ds18b20)
 {
     ds18b20_device_t *ds18b20 = NULL;
     ESP_RETURN_ON_FALSE(bus && config && ret_ds18b20, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
@@ -110,7 +112,8 @@ esp_err_t ds18b20_set_resolution(ds18b20_device_handle_t ds18b20, ds18b20_resolu
     ESP_RETURN_ON_ERROR(onewire_bus_reset(ds18b20->bus), TAG, "reset bus error");
 
     // send command: DS18B20_CMD_WRITE_SCRATCHPAD
-    ESP_RETURN_ON_ERROR(ds18b20_send_command(ds18b20, DS18B20_CMD_WRITE_SCRATCHPAD), TAG, "send DS18B20_CMD_WRITE_SCRATCHPAD failed");
+    ESP_RETURN_ON_ERROR(ds18b20_send_command(ds18b20, DS18B20_CMD_WRITE_SCRATCHPAD), TAG,
+                        "send DS18B20_CMD_WRITE_SCRATCHPAD failed");
 
     // write new resolution to scratchpad
     const uint8_t resolution_data[] = {0x1F, 0x3F, 0x5F, 0x7F};
@@ -118,7 +121,8 @@ esp_err_t ds18b20_set_resolution(ds18b20_device_handle_t ds18b20, ds18b20_resolu
     tx_buffer[0] = ds18b20->th_user1;
     tx_buffer[1] = ds18b20->tl_user2;
     tx_buffer[2] = resolution_data[resolution];
-    ESP_RETURN_ON_ERROR(onewire_bus_write_bytes(ds18b20->bus, tx_buffer, sizeof(tx_buffer)), TAG, "send new resolution failed");
+    ESP_RETURN_ON_ERROR(onewire_bus_write_bytes(ds18b20->bus, tx_buffer, sizeof(tx_buffer)), TAG,
+                        "send new resolution failed");
 
     ds18b20->resolution = resolution;
     return ESP_OK;
@@ -131,7 +135,8 @@ esp_err_t ds18b20_trigger_temperature_conversion(ds18b20_device_handle_t ds18b20
     ESP_RETURN_ON_ERROR(onewire_bus_reset(ds18b20->bus), TAG, "reset bus error");
 
     // send command: DS18B20_CMD_CONVERT_TEMP
-    ESP_RETURN_ON_ERROR(ds18b20_send_command(ds18b20, DS18B20_CMD_CONVERT_TEMP), TAG, "send DS18B20_CMD_CONVERT_TEMP failed");
+    ESP_RETURN_ON_ERROR(ds18b20_send_command(ds18b20, DS18B20_CMD_CONVERT_TEMP), TAG,
+                        "send DS18B20_CMD_CONVERT_TEMP failed");
 
     // delay proper time based on its resolution
     const uint32_t delays_ms[] = {100, 200, 400, 800};
@@ -149,7 +154,8 @@ esp_err_t ds18b20_trigger_temperature_conversion_for_all(onewire_bus_handle_t bu
 
     // use Skip ROM command to trigger conversion for all sensors
     uint8_t tx_buffer[2] = {ONEWIRE_CMD_SKIP_ROM, DS18B20_CMD_CONVERT_TEMP};
-    ESP_RETURN_ON_ERROR(onewire_bus_write_bytes(bus, tx_buffer, sizeof(tx_buffer)), TAG, "send DS18B20_CMD_CONVERT_TEMP failed");
+    ESP_RETURN_ON_ERROR(onewire_bus_write_bytes(bus, tx_buffer, sizeof(tx_buffer)), TAG,
+                        "send DS18B20_CMD_CONVERT_TEMP failed");
 
     // delay proper time for temperature conversion
     vTaskDelay(pdMS_TO_TICKS(800));
@@ -164,14 +170,16 @@ esp_err_t ds18b20_get_temperature(ds18b20_device_handle_t ds18b20, float *ret_te
     ESP_RETURN_ON_ERROR(onewire_bus_reset(ds18b20->bus), TAG, "reset bus error");
 
     // send command: DS18B20_CMD_READ_SCRATCHPAD
-    ESP_RETURN_ON_ERROR(ds18b20_send_command(ds18b20, DS18B20_CMD_READ_SCRATCHPAD), TAG, "send DS18B20_CMD_READ_SCRATCHPAD failed");
+    ESP_RETURN_ON_ERROR(ds18b20_send_command(ds18b20, DS18B20_CMD_READ_SCRATCHPAD), TAG,
+                        "send DS18B20_CMD_READ_SCRATCHPAD failed");
 
     // read scratchpad data
     ds18b20_scratchpad_t scratchpad;
     ESP_RETURN_ON_ERROR(onewire_bus_read_bytes(ds18b20->bus, (uint8_t *)&scratchpad, sizeof(scratchpad)),
                         TAG, "error while reading scratchpad data");
     // check crc
-    ESP_RETURN_ON_FALSE(onewire_crc8(0, (uint8_t *)&scratchpad, 8) == scratchpad.crc_value, ESP_ERR_INVALID_CRC, TAG, "scratchpad crc error");
+    ESP_RETURN_ON_FALSE(onewire_crc8(0, (uint8_t *)&scratchpad, 8) == scratchpad.crc_value, ESP_ERR_INVALID_CRC, TAG,
+                        "scratchpad crc error");
 
     const uint8_t lsb_mask[4] = {0x07, 0x03, 0x01, 0x00}; // mask bits not used in low resolution
     uint8_t lsb_masked = scratchpad.temp_lsb & (~lsb_mask[scratchpad.configuration >> 5]);

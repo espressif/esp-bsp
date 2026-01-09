@@ -66,27 +66,27 @@ The ESP32-S3-EYE board consists of two parts: the main board (ESP32-S3-EYE-MB) t
 
 ## LVGL Benchmark
 
-**DATE:** 01.10.2025 13:12
+**DATE:** 08.01.2026 01:35
 
-**LVGL version:** 9.3.0
+**LVGL version:** 9.4.0
 
 | Name | Avg. CPU | Avg. FPS | Avg. time | render time | flush time |
 | ---- | :------: | :------: | :-------: | :---------: | :--------: |
-| Empty screen | 92%  | 59  | 14  | 3  | 11  |
-| Moving wallpaper | 61%  | 77  | 9  | 4  | 5  |
-| Single rectangle | 16%  | 92  | 0  | 0  | 0  |
-| Multiple rectangles | 84%  | 68  | 10  | 5  | 5  |
-| Multiple RGB images | 21%  | 90  | 1  | 1  | 0  |
-| Multiple ARGB images | 17%  | 89  | 2  | 2  | 0  |
-| Rotated ARGB images | 69%  | 64  | 14  | 13  | 1  |
-| Multiple labels | 51%  | 97  | 4  | 3  | 1  |
-| Screen sized text | 94%  | 33  | 27  | 16  | 11  |
-| Multiple arcs | 17%  | 94  | 0  | 0  | 0  |
-| Containers | 13%  | 92  | 4  | 4  | 0  |
-| Containers with overlay | 93%  | 40  | 24  | 10  | 14  |
-| Containers with opa | 25%  | 92  | 7  | 6  | 1  |
-| Containers with opa_layer | 31%  | 80  | 13  | 12  | 1  |
-| Containers with scrolling | 94%  | 40  | 22  | 11  | 11  |
+| Empty screen | 93%  | 59  | 14  | 3  | 11  |
+| Moving wallpaper | 60%  | 76  | 8  | 5  | 3  |
+| Single rectangle | 15%  | 92  | 0  | 0  | 0  |
+| Multiple rectangles | 83%  | 68  | 11  | 4  | 7  |
+| Multiple RGB images | 21%  | 87  | 0  | 0  | 0  |
+| Multiple ARGB images | 17%  | 91  | 3  | 3  | 0  |
+| Rotated ARGB images | 69%  | 63  | 15  | 14  | 1  |
+| Multiple labels | 51%  | 98  | 4  | 4  | 0  |
+| Screen sized text | 95%  | 34  | 27  | 16  | 11  |
+| Multiple arcs | 22%  | 96  | 0  | 0  | 0  |
+| Containers | 13%  | 92  | 5  | 5  | 0  |
+| Containers with overlay | 92%  | 39  | 22  | 12  | 10  |
+| Containers with opa | 28%  | 90  | 7  | 6  | 1  |
+| Containers with opa_layer | 31%  | 81  | 14  | 13  | 1  |
+| Containers with scrolling | 93%  | 40  | 22  | 11  | 11  |
 | Widgets demo | 96%  | 42  | 9  | 9  | 0  |
 | All scenes avg. | 54%  | 71  | 9  | 6  | 3  |
 

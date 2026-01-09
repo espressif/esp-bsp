@@ -37,7 +37,8 @@
 static char *TAG = "gc9a01_test";
 static SemaphoreHandle_t refresh_finish = NULL;
 
-IRAM_ATTR static bool test_notify_refresh_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
+IRAM_ATTR static bool test_notify_refresh_ready(esp_lcd_panel_io_handle_t panel_io,
+        esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
 {
     BaseType_t need_yield = pdFALSE;
 

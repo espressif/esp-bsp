@@ -75,7 +75,8 @@ typedef struct {
  *      - ESP_ERR_NO_MEM: Create LCD panel failed because of memory allocation failure
  *      - ESP_FAIL: Create LCD panel failed because of other errors
  */
-esp_err_t esp_lcd_new_panel_lt8912b(const esp_lcd_panel_lt8912b_io_t *io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
+esp_err_t esp_lcd_new_panel_lt8912b(const esp_lcd_panel_lt8912b_io_t *io,
+                                    const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
 
 /**
  * @brief Return true if HDMI is ready

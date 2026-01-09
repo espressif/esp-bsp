@@ -59,8 +59,10 @@ typedef struct {
 /*******************************************************************************
 * Function definitions
 *******************************************************************************/
-static esp_err_t icm42670_write(icm42670_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *data_buf, const uint8_t data_len);
-static esp_err_t icm42670_read(icm42670_handle_t sensor, const uint8_t reg_start_addr, uint8_t *data_buf, const uint8_t data_len);
+static esp_err_t icm42670_write(icm42670_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *data_buf,
+                                const uint8_t data_len);
+static esp_err_t icm42670_read(icm42670_handle_t sensor, const uint8_t reg_start_addr, uint8_t *data_buf,
+                               const uint8_t data_len);
 
 static esp_err_t icm42670_get_raw_value(icm42670_handle_t sensor, uint8_t reg, icm42670_raw_value_t *value);
 
@@ -86,13 +88,15 @@ esp_err_t icm42670_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_add
         .device_address = dev_addr,
         .scl_speed_hz = I2C_CLK_SPEED,
     };
-    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg, &sensor->i2c_handle), err, TAG, "Failed to add new I2C device");
+    ESP_GOTO_ON_ERROR(i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg, &sensor->i2c_handle), err, TAG,
+                      "Failed to add new I2C device");
     assert(sensor->i2c_handle);
 
     // Check device presence
     uint8_t dev_id = 0;
     icm42670_get_deviceid(sensor, &dev_id);
-    ESP_GOTO_ON_FALSE(dev_id == ICM42607_ID || dev_id == ICM42670_ID, ESP_ERR_NOT_FOUND, err, TAG, "Incorrect Device ID (0x%02x).", dev_id);
+    ESP_GOTO_ON_FALSE(dev_id == ICM42607_ID
+                      || dev_id == ICM42670_ID, ESP_ERR_NOT_FOUND, err, TAG, "Incorrect Device ID (0x%02x).", dev_id);
 
     ESP_LOGD(TAG, "Found device %s, ID: 0x%02x", (dev_id == ICM42607_ID ? "ICM42607" : "ICM42670"), dev_id);
     *handle_ret = sensor;
@@ -352,7 +356,8 @@ static esp_err_t icm42670_get_raw_value(icm42670_handle_t sensor, uint8_t reg, i
     return ret;
 }
 
-static esp_err_t icm42670_write(icm42670_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *data_buf, const uint8_t data_len)
+static esp_err_t icm42670_write(icm42670_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *data_buf,
+                                const uint8_t data_len)
 {
     icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
     assert(sens);
@@ -363,7 +368,8 @@ static esp_err_t icm42670_write(icm42670_handle_t sensor, const uint8_t reg_star
     return i2c_master_transmit(sens->i2c_handle, write_buff, data_len + 1, -1);
 }
 
-static esp_err_t icm42670_read(icm42670_handle_t sensor, const uint8_t reg_start_addr, uint8_t *data_buf, const uint8_t data_len)
+static esp_err_t icm42670_read(icm42670_handle_t sensor, const uint8_t reg_start_addr, uint8_t *data_buf,
+                               const uint8_t data_len)
 {
     uint8_t reg_buff[] = {reg_start_addr};
     icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
@@ -384,8 +390,10 @@ esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670
     float gyro_roll_angle;
     float gyro_pitch_angle;
 
-    acc_roll_angle = (atan2(acce_value->y, sqrt(acce_value->x * acce_value->x + acce_value->z * acce_value->z)) * RAD_TO_DEG);
-    acc_pitch_angle = (atan2(-acce_value->x, sqrt(acce_value->y * acce_value->y + acce_value->z * acce_value->z)) * RAD_TO_DEG);
+    acc_roll_angle = (atan2(acce_value->y,
+                            sqrt(acce_value->x * acce_value->x + acce_value->z * acce_value->z)) * RAD_TO_DEG);
+    acc_pitch_angle = (atan2(-acce_value->x,
+                             sqrt(acce_value->y * acce_value->y + acce_value->z * acce_value->z)) * RAD_TO_DEG);
 
     if (!sens->initialized_filter) {
         sens->initialized_filter = true;
@@ -401,8 +409,10 @@ esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670
     gyro_roll_angle = gyro_value->x * measurement_delta;
     gyro_pitch_angle = gyro_value->y * measurement_delta;
 
-    complimentary_angle->roll = (ALPHA * (sens->previous_measurement.roll + gyro_roll_angle)) + ((1 - ALPHA) * acc_roll_angle);
-    complimentary_angle->pitch = (ALPHA * (sens->previous_measurement.pitch + gyro_pitch_angle)) + ((1 - ALPHA) * acc_pitch_angle);
+    complimentary_angle->roll = (ALPHA * (sens->previous_measurement.roll + gyro_roll_angle)) + ((
+                                    1 - ALPHA) * acc_roll_angle);
+    complimentary_angle->pitch = (ALPHA * (sens->previous_measurement.pitch + gyro_pitch_angle)) + ((
+                                     1 - ALPHA) * acc_pitch_angle);
 
     sens->previous_measurement.roll = complimentary_angle->roll;
     sens->previous_measurement.pitch = complimentary_angle->pitch;

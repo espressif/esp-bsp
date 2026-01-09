@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -185,11 +185,14 @@ static const lt8912b_lcd_init_cmd_t cmd_dds_config[] = {
     {0x51, 0x00},
 };
 
-esp_err_t esp_lcd_new_panel_lt8912b(const esp_lcd_panel_lt8912b_io_t *io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel)
+esp_err_t esp_lcd_new_panel_lt8912b(const esp_lcd_panel_lt8912b_io_t *io,
+                                    const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel)
 {
-    ESP_RETURN_ON_FALSE(io && io->main && io->cec_dsi && io->avi && panel_dev_config && ret_panel, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
+    ESP_RETURN_ON_FALSE(io && io->main && io->cec_dsi && io->avi && panel_dev_config
+                        && ret_panel, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
     lt8912b_vendor_config_t *vendor_config = (lt8912b_vendor_config_t *)panel_dev_config->vendor_config;
-    ESP_RETURN_ON_FALSE(vendor_config && vendor_config->mipi_config.dpi_config && vendor_config->mipi_config.dsi_bus, ESP_ERR_INVALID_ARG, TAG, "invalid vendor config");
+    ESP_RETURN_ON_FALSE(vendor_config && vendor_config->mipi_config.dpi_config
+                        && vendor_config->mipi_config.dsi_bus, ESP_ERR_INVALID_ARG, TAG, "invalid vendor config");
 
 
     esp_err_t ret = ESP_OK;
@@ -211,7 +214,8 @@ esp_err_t esp_lcd_new_panel_lt8912b(const esp_lcd_panel_lt8912b_io_t *io, const 
     lt8912b->reset_level = panel_dev_config->flags.reset_active_high;
 
     // Create MIPI DPI panel
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_dpi(vendor_config->mipi_config.dsi_bus, vendor_config->mipi_config.dpi_config, ret_panel), err, TAG,
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_dpi(vendor_config->mipi_config.dsi_bus, vendor_config->mipi_config.dpi_config,
+                                            ret_panel), err, TAG,
                       "create MIPI DPI panel failed");
     ESP_LOGD(TAG, "new MIPI DPI panel @%p", *ret_panel);
 
@@ -288,7 +292,8 @@ static esp_err_t _panel_lt8912b_send_data(esp_lcd_panel_io_handle_t io, uint8_t 
     return ESP_OK;
 }
 
-static esp_err_t _panel_lt8912b_send_data_array(esp_lcd_panel_io_handle_t io, const lt8912b_lcd_init_cmd_t *cmds, uint16_t cmds_size)
+static esp_err_t _panel_lt8912b_send_data_array(esp_lcd_panel_io_handle_t io, const lt8912b_lcd_init_cmd_t *cmds,
+        uint16_t cmds_size)
 {
     for (int i = 0; i < cmds_size; i++) {
         ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io, cmds[i].cmd, cmds[i].data), TAG, "send command failed");
@@ -309,7 +314,8 @@ static esp_err_t _panel_lt8912b_send_mipi_analog(esp_lcd_panel_io_handle_t io_ma
     return ESP_OK;
 }
 
-static esp_err_t _panel_lt8912b_send_mipi_basic_set(esp_lcd_panel_io_handle_t io_cec, uint8_t lane_count, bool lane_swap)
+static esp_err_t _panel_lt8912b_send_mipi_basic_set(esp_lcd_panel_io_handle_t io_cec, uint8_t lane_count,
+        bool lane_swap)
 {
     /* term en */
     ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec, 0x10, 0x01), TAG, "send command failed");
@@ -339,39 +345,55 @@ static esp_err_t _panel_lt8912b_send_video_setup(esp_lcd_panel_t *panel)
     esp_lcd_panel_lt8912b_video_timing_t *video_format = &lt8912b->video_timing;
 
     /* hwidth */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x18, (uint8_t)(video_format->hs % 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x18, (uint8_t)(video_format->hs % 256)), TAG,
+                        "send command failed");
     /* vwidth */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x19, (uint8_t)(video_format->vs % 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x19, (uint8_t)(video_format->vs % 256)), TAG,
+                        "send command failed");
     /* H_active[7:0] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x1c, (uint8_t)(video_format->hact % 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x1c, (uint8_t)(video_format->hact % 256)), TAG,
+                        "send command failed");
     /* H_active[15:8] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x1d, (uint8_t)(video_format->hact / 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x1d, (uint8_t)(video_format->hact / 256)), TAG,
+                        "send command failed");
     /* fifo_buff_length 12 */
     ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x2f, 0x0c), TAG, "send command failed");
     /* H_total[7:0] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x34, (uint8_t)(video_format->htotal % 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x34, (uint8_t)(video_format->htotal % 256)), TAG,
+                        "send command failed");
     /* H_total[15:8] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x35, (uint8_t)(video_format->htotal / 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x35, (uint8_t)(video_format->htotal / 256)), TAG,
+                        "send command failed");
     /* V_total[7:0] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x36, (uint8_t)(video_format->vtotal % 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x36, (uint8_t)(video_format->vtotal % 256)), TAG,
+                        "send command failed");
     /* V_total[15:8] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x37, (uint8_t)(video_format->vtotal / 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x37, (uint8_t)(video_format->vtotal / 256)), TAG,
+                        "send command failed");
     /* VBP[7:0] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x38, (uint8_t)(video_format->vbp % 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x38, (uint8_t)(video_format->vbp % 256)), TAG,
+                        "send command failed");
     /* VBP[15:8] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x39, (uint8_t)(video_format->vbp / 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x39, (uint8_t)(video_format->vbp / 256)), TAG,
+                        "send command failed");
     /* VFP[7:0] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x3a, (uint8_t)(video_format->vfp % 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x3a, (uint8_t)(video_format->vfp % 256)), TAG,
+                        "send command failed");
     /* VFP[15:8] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x3b, (uint8_t)(video_format->vfp / 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x3b, (uint8_t)(video_format->vfp / 256)), TAG,
+                        "send command failed");
     /* HBP[7:0] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x3c, (uint8_t)(video_format->hbp % 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x3c, (uint8_t)(video_format->hbp % 256)), TAG,
+                        "send command failed");
     /* HBP[15:8] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x3d, (uint8_t)(video_format->hbp / 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x3d, (uint8_t)(video_format->hbp / 256)), TAG,
+                        "send command failed");
     /* HFP[7:0] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x3e, (uint8_t)(video_format->hfp % 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x3e, (uint8_t)(video_format->hfp % 256)), TAG,
+                        "send command failed");
     /* HFP[15:8] */
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x3f, (uint8_t)(video_format->hfp / 256)), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x3f, (uint8_t)(video_format->hfp / 256)), TAG,
+                        "send command failed");
 
     return ESP_OK;
 }
@@ -520,30 +542,48 @@ static esp_err_t _panel_lt8912b_send_test(esp_lcd_panel_t *panel)
 
     /************* Pattern resolution set *************/
     ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x72, 0x12), TAG, "read data failed");
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x73, (uint8_t)((video_format->hs + video_format->hbp) % 256)), TAG, "send command failed"); //RGD_PTN_DE_DLY[7:0]
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x74, (uint8_t)((video_format->hs + video_format->hbp) / 256)), TAG, "send command failed"); //RGD_PTN_DE_DLY[11:8]
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x75, (uint8_t)((video_format->vs + video_format->vbp) % 256)), TAG, "send command failed"); //RGD_PTN_DE_TOP[6:0]
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x76, (uint8_t)(video_format->hact % 256)), TAG, "send command failed"); //RGD_PTN_DE_CNT[7:0]
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x77, (uint8_t)(video_format->vact % 256)), TAG, "send command failed"); //RGD_PTN_DE_LIN[7:0]
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x78, ((((uint8_t)(video_format->vact / 256)) << 4) + ((uint8_t)(video_format->hact / 256)))), TAG, "send command failed"); //RGD_PTN_DE_LIN[10:8],RGD_PTN_DE_CNT[11:8]
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x79, (uint8_t)(video_format->htotal % 256)), TAG, "send command failed"); //RGD_PTN_H_TOTAL[7:0]
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x7a, (uint8_t)(video_format->vtotal % 256)), TAG, "send command failed"); //RGD_PTN_V_TOTAL[7:0]
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x7b, ((((uint8_t)(video_format->vtotal / 256)) << 4) + ((uint8_t)(video_format->htotal / 256)))), TAG, "send command failed"); //RGD_PTN_V_TOTAL[10:8],RGD_PTN_H_TOTAL[11:8]
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x7c, (uint8_t)(video_format->hs % 256)), TAG, "send command failed"); //RGD_PTN_HWIDTH[7:0]
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x7d, ((((uint8_t)(video_format->hs / 256)) << 6) + ((uint8_t)(video_format->vs % 256)))), TAG, "send command failed"); //RGD_PTN_HWIDTH[9:8],RGD_PTN_VWIDTH[5:0]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x73, (uint8_t)((video_format->hs + video_format->hbp) % 256)),
+                        TAG, "send command failed"); //RGD_PTN_DE_DLY[7:0]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x74, (uint8_t)((video_format->hs + video_format->hbp) / 256)),
+                        TAG, "send command failed"); //RGD_PTN_DE_DLY[11:8]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x75, (uint8_t)((video_format->vs + video_format->vbp) % 256)),
+                        TAG, "send command failed"); //RGD_PTN_DE_TOP[6:0]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x76, (uint8_t)(video_format->hact % 256)), TAG,
+                        "send command failed"); //RGD_PTN_DE_CNT[7:0]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x77, (uint8_t)(video_format->vact % 256)), TAG,
+                        "send command failed"); //RGD_PTN_DE_LIN[7:0]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x78,
+                        ((((uint8_t)(video_format->vact / 256)) << 4) + ((uint8_t)(video_format->hact / 256)))), TAG,
+                        "send command failed"); //RGD_PTN_DE_LIN[10:8],RGD_PTN_DE_CNT[11:8]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x79, (uint8_t)(video_format->htotal % 256)), TAG,
+                        "send command failed"); //RGD_PTN_H_TOTAL[7:0]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x7a, (uint8_t)(video_format->vtotal % 256)), TAG,
+                        "send command failed"); //RGD_PTN_V_TOTAL[7:0]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x7b,
+                        ((((uint8_t)(video_format->vtotal / 256)) << 4) + ((uint8_t)(video_format->htotal / 256)))), TAG,
+                        "send command failed"); //RGD_PTN_V_TOTAL[10:8],RGD_PTN_H_TOTAL[11:8]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x7c, (uint8_t)(video_format->hs % 256)), TAG,
+                        "send command failed"); //RGD_PTN_HWIDTH[7:0]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x7d,
+                        ((((uint8_t)(video_format->hs / 256)) << 6) + ((uint8_t)(video_format->vs % 256)))), TAG,
+                        "send command failed"); //RGD_PTN_HWIDTH[9:8],RGD_PTN_VWIDTH[5:0]
     ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x70, 0x80), TAG, "send command failed"); //pattern enable
     ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x71, 0x51), TAG, "send command failed");
     ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x42, 0x12), TAG, "send command failed");
     /**************************************************/
 
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x1e, 0x67), TAG, "send command failed"); //h v d pol hdmi sel pll sel
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x1e, 0x67), TAG,
+                        "send command failed"); //h v d pol hdmi sel pll sel
 
 
     /************* Pattern pixl clock set *************/
     uint32_t DDS_initial_value = (uint32_t)(video_format->pclk_mhz * 0x16C16);
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x4e, (uint8_t)(DDS_initial_value & 0x000000ff)), TAG, "send command failed"); //strm_sw_freq_word[ 7: 0]
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x4f, (uint8_t)((DDS_initial_value & 0x0000ff00) >> 8)), TAG, "send command failed"); //strm_sw_freq_word[15: 8]
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x50, (uint8_t)((DDS_initial_value & 0x00ff0000) >> 16)), TAG, "send command failed"); //strm_sw_freq_word[23:16]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x4e, (uint8_t)(DDS_initial_value & 0x000000ff)), TAG,
+                        "send command failed"); //strm_sw_freq_word[ 7: 0]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x4f, (uint8_t)((DDS_initial_value & 0x0000ff00) >> 8)), TAG,
+                        "send command failed"); //strm_sw_freq_word[15: 8]
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x50, (uint8_t)((DDS_initial_value & 0x00ff0000) >> 16)), TAG,
+                        "send command failed"); //strm_sw_freq_word[23:16]
     ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x51, 0x80), TAG, "send command failed");
 
 //  ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data(io_cec_dsi, 0x4e, 0x3E), TAG, "send command failed");  //strm_sw_freq_word[ 7: 0]
@@ -573,7 +613,8 @@ static esp_err_t _panel_lt8912b_read_dds(esp_lcd_panel_t *panel)
         ESP_RETURN_ON_ERROR(esp_lcd_panel_io_rx_param(io_cec_dsi, 0x0f, &reg_920f, 1), TAG, "read data failed");
 
         ESP_LOGI(TAG, "DDS: 0x%02x 0x%02x 0x%02x 0x%02x", reg_920c, reg_920d, reg_920e, reg_920f);
-        if ((reg_920e == 0xd2) && (reg_920d < 0xff) && (reg_920d > 0xd0)) { //shall update threshold here base on actual dds result.
+        if ((reg_920e == 0xd2) && (reg_920d < 0xff)
+                && (reg_920d > 0xd0)) { //shall update threshold here base on actual dds result.
             ESP_LOGI(TAG, "lvds_check_dds: stable!");
         }
     }
@@ -591,7 +632,8 @@ static esp_err_t panel_lt8912b_init(esp_lcd_panel_t *panel)
 
     /* Digital Clock En */
     uint16_t cmds_size = sizeof(cmd_digital_clock_en) / sizeof(lt8912b_lcd_init_cmd_t);
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data_array(io_main, cmd_digital_clock_en, cmds_size), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data_array(io_main, cmd_digital_clock_en, cmds_size), TAG,
+                        "send command failed");
 
     /* Tx Analog */
     cmds_size = sizeof(cmd_tx_analog) / sizeof(lt8912b_lcd_init_cmd_t);
@@ -603,7 +645,8 @@ static esp_err_t panel_lt8912b_init(esp_lcd_panel_t *panel)
 
     /* HDMI Pll Analog */
     cmds_size = sizeof(cmd_hdmi_pll_analog) / sizeof(lt8912b_lcd_init_cmd_t);
-    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data_array(io_main, cmd_hdmi_pll_analog, cmds_size), TAG, "send command failed");
+    ESP_RETURN_ON_ERROR(_panel_lt8912b_send_data_array(io_main, cmd_hdmi_pll_analog, cmds_size), TAG,
+                        "send command failed");
 
     /* Mipi Analog - Set P/N swap */
     ESP_RETURN_ON_ERROR(_panel_lt8912b_send_mipi_analog(io_main, false), TAG, "send command failed");

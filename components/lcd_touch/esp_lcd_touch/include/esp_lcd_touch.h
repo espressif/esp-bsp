@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -59,7 +59,8 @@ typedef struct {
     } flags;
 
     /*!< User callback called after get coordinates from touch controller for apply user adjusting */
-    void (*process_coordinates)(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+    void (*process_coordinates)(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num,
+                                uint8_t max_point_num);
     /*!< User callback called after the touch interrupt occurred */
     esp_lcd_touch_interrupt_callback_t interrupt_callback;
     /*!< User data passed to callback */
@@ -145,7 +146,8 @@ struct esp_lcd_touch_s {
      * @return
      *      - Returns true, when touched and coordinates readed. Otherwise returns false.
      */
-    bool (*get_xy)(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+    bool (*get_xy)(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num,
+                   uint8_t max_point_num);
 
     /**
      * @brief Get track ids of touch points
@@ -298,7 +300,8 @@ esp_err_t esp_lcd_touch_read_data(esp_lcd_touch_handle_t tp);
  *      - ESP_ERR_INVALID_ARG if parameter is invalid
  *      - ESP_ERR_INVALID_STATE if parameter is uninitialized
  */
-esp_err_t esp_lcd_touch_get_data(esp_lcd_touch_handle_t tp, esp_lcd_touch_point_data_t *data, uint8_t *point_cnt, uint8_t max_point_cnt);
+esp_err_t esp_lcd_touch_get_data(esp_lcd_touch_handle_t tp, esp_lcd_touch_point_data_t *data, uint8_t *point_cnt,
+                                 uint8_t max_point_cnt);
 
 /**
  * @brief Read coordinates from touch controller
@@ -314,7 +317,8 @@ esp_err_t esp_lcd_touch_get_data(esp_lcd_touch_handle_t tp, esp_lcd_touch_point_
  *      - Returns true, when touched and coordinates readed. Otherwise returns false.
  */
 [[deprecated("This API will be removed in version 2.0.0. Use esp_lcd_touch_get_data instead!")]]
-bool esp_lcd_touch_get_coordinates(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+bool esp_lcd_touch_get_coordinates(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength,
+                                   uint8_t *point_num, uint8_t max_point_num);
 
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
 /**
@@ -417,7 +421,8 @@ esp_err_t esp_lcd_touch_del(esp_lcd_touch_handle_t tp);
  * @return
  *      - ESP_OK on success
  */
-esp_err_t esp_lcd_touch_register_interrupt_callback(esp_lcd_touch_handle_t tp, esp_lcd_touch_interrupt_callback_t callback);
+esp_err_t esp_lcd_touch_register_interrupt_callback(esp_lcd_touch_handle_t tp,
+        esp_lcd_touch_interrupt_callback_t callback);
 
 /**
  * @brief Register user callback called after the touch interrupt occurred with user data
@@ -429,7 +434,8 @@ esp_err_t esp_lcd_touch_register_interrupt_callback(esp_lcd_touch_handle_t tp, e
  * @return
  *      - ESP_OK on success
  */
-esp_err_t esp_lcd_touch_register_interrupt_callback_with_data(esp_lcd_touch_handle_t tp, esp_lcd_touch_interrupt_callback_t callback, void *user_data);
+esp_err_t esp_lcd_touch_register_interrupt_callback_with_data(esp_lcd_touch_handle_t tp,
+        esp_lcd_touch_interrupt_callback_t callback, void *user_data);
 
 /**
  * @brief Enter sleep mode

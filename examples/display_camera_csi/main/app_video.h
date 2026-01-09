@@ -24,7 +24,8 @@ typedef enum {
     APP_VIDEO_FMT_YUV420 = V4L2_PIX_FMT_YUV420,
 } video_fmt_t;
 
-typedef void (*app_video_frame_operation_cb_t)(uint8_t *camera_buf, uint8_t camera_buf_index, uint32_t camera_buf_hes, uint32_t camera_buf_ves, size_t camera_buf_len);
+typedef void (*app_video_frame_operation_cb_t)(uint8_t *camera_buf, uint8_t camera_buf_index, uint32_t camera_buf_hes,
+        uint32_t camera_buf_ves, size_t camera_buf_len);
 
 /**
  * @brief Opens a specified video capture device and configures its format.

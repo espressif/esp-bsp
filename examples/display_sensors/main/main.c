@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -51,7 +51,8 @@ static void display_show_signs(void)
     bsp_display_lock(0);
     lv_obj_clean(main_screen);
     lv_obj_t *label = lv_label_create(main_screen);
-    lv_label_set_text_static(label, LV_SYMBOL_WIFI"   "LV_SYMBOL_USB"   "LV_SYMBOL_BELL"   "LV_SYMBOL_GPS"   "LV_SYMBOL_BATTERY_EMPTY);
+    lv_label_set_text_static(label,
+                             LV_SYMBOL_WIFI"   "LV_SYMBOL_USB"   "LV_SYMBOL_BELL"   "LV_SYMBOL_GPS"   "LV_SYMBOL_BATTERY_EMPTY);
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_width(label, lv_display_get_physical_horizontal_resolution(disp));
     lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
@@ -166,7 +167,8 @@ static void display_show_magmeter_data(void)
     ESP_LOGI(TAG, "mag_x:%i, mag_y:%i, mag_z:%i", mag_induction.x, mag_induction.y, mag_induction.z);
 
     bsp_display_lock(0);
-    lv_label_set_text_fmt(main_label, "Mag_x: %5i\nMag_y: %5i\nMag_z: %5i", mag_induction.x, mag_induction.y, mag_induction.z);
+    lv_label_set_text_fmt(main_label, "Mag_x: %5i\nMag_y: %5i\nMag_z: %5i", mag_induction.x, mag_induction.y,
+                          mag_induction.z);
     lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_LEFT, 0);
     bsp_display_unlock();
 }

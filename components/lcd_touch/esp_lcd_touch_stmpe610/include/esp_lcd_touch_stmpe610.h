@@ -29,7 +29,8 @@ extern "C" {
  *      - ESP_OK                    on success
  *      - ESP_ERR_NO_MEM            if there is no memory for allocating main structure
  */
-esp_err_t esp_lcd_touch_new_spi_stmpe610(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *out_touch);
+esp_err_t esp_lcd_touch_new_spi_stmpe610(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config,
+        esp_lcd_touch_handle_t *out_touch);
 
 /**
  * @brief Recommended clock for SPI read of the STMPE610
