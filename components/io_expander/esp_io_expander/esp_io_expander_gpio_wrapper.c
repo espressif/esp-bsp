@@ -76,7 +76,7 @@ esp_err_t esp_io_expander_gpio_wrapper_append_handler(esp_io_expander_handle_t h
     uint32_t end = start_io_num + cnt;
     // Pre-allocate node before taking the lock to minimize time spent in critical section
     ioexp_range_node_t *node = (ioexp_range_node_t *)heap_caps_malloc(sizeof(ioexp_range_node_t),
-                                                                      MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+                               MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
     if (node == NULL) {
         return ESP_ERR_NO_MEM;
     }
