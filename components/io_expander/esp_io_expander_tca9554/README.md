@@ -46,14 +46,14 @@ Print all pins's status to the log:
     esp_io_expander_print_state(io_expander);
 ```
 
-Set pin 0 and pin 1 with output dircetion and low level:
+Set pin 0 and pin 1 with output direction and low level:
 
 ```c
     esp_io_expander_set_dir(io_expander, IO_EXPANDER_PIN_NUM_0 | IO_EXPANDER_PIN_NUM_1, IO_EXPANDER_OUTPUT);
     esp_io_expander_set_level(io_expander, IO_EXPANDER_PIN_NUM_0 | IO_EXPANDER_PIN_NUM_1, 0);
 ```
 
-Set pin 2 and pin 3 with input dircetion:
+Set pin 2 and pin 3 with input direction:
 
 ```c
     uint32_t pin_levels = 0;

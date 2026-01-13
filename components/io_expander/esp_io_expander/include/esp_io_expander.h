@@ -74,7 +74,7 @@ typedef enum {
  */
 typedef enum {
     IO_EXPANDER_INPUT,          /*!< Input direction */
-    IO_EXPANDER_OUTPUT,         /*!< Output dircetion */
+    IO_EXPANDER_OUTPUT,         /*!< Output direction */
 } esp_io_expander_dir_t;
 
 /**
