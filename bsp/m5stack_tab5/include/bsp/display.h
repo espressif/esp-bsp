@@ -38,8 +38,16 @@
 /* LCD definition */
 #define BSP_LCD_H_RES              (720)
 #define BSP_LCD_V_RES              (1280)
+
+#define BSP_LCD_MIPI_DSI_LCD_HSYNC (2)
+#define BSP_LCD_MIPI_DSI_LCD_HBP   (40)
+#define BSP_LCD_MIPI_DSI_LCD_HFP   (40)
+#define BSP_LCD_MIPI_DSI_LCD_VSYNC (2)
+#define BSP_LCD_MIPI_DSI_LCD_VBP   (8)
+#define BSP_LCD_MIPI_DSI_LCD_VFP   (220)
+
 #define BSP_LCD_MIPI_DSI_LANE_NUM          (2)    // 2 data lanes
-#define BSP_LCD_MIPI_DSI_LANE_BITRATE_MBPS (1000) // 1Gbps
+#define BSP_LCD_MIPI_DSI_LANE_BITRATE_MBPS (965)  // ST7123 lane bitrate
 
 #define BSP_MIPI_DSI_PHY_PWR_LDO_CHAN       (3)  // LDO_VO3 is connected to VDD_MIPI_DPHY
 #define BSP_MIPI_DSI_PHY_PWR_LDO_VOLTAGE_MV (2500)
