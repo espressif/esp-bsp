@@ -1,0 +1,5 @@
+dependencies:
+  esp_io_expander_tca9554:
+    version: "^2"
+    public: true
+    override_path: "../../../"

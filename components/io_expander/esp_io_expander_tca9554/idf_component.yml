@@ -1,8 +1,8 @@
-version: "2.0.2"
+version: "2.0.3"
 description: ESP IO Expander - TCA9554(A)
 url: https://github.com/espressif/esp-bsp/tree/master/components/io_expander/esp_io_expander_tca9554
 dependencies:
   idf: ">=5.2"
   esp_io_expander:
-    version: "^1.0.1"
+    version: "^1.2.0"
     public: true

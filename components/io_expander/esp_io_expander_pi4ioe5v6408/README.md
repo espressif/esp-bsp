@@ -1,17 +1,19 @@
-# ESP IO Expander Chip HT8574
+# ESP IO Expander Chip PI4IOE5V6408
 
-Implementation of the HT8574 io expander chip with esp_io_expander component.
+[![Component Registry](https://components.espressif.com/components/espressif/esp_io_expander_pi4ioe5v6408/badge.svg)](https://components.espressif.com/components/espressif/esp_io_expander_pi4ioe5v6408)
+
+Implementation of the PI4IOE5V6408 io expander chip with esp_io_expander component.
 
 | Chip             | Communication interface | Component name | Link to datasheet |
 | :--------------: | :---------------------: | :------------: | :---------------: |
-| HT8574           | I2C                     | esp_io_expander_ht8574 | [datasheet](https://datasheet.lcsc.com/lcsc/2109081930_HTCSEMI-HT8574ARTZ_C2895056.pdf) |
+| PI4IOE5V6408       | I2C                     | esp_io_expander_pi4ioe5v6408 | --- |
 
 ## Add to project
 
 Packages from this repository are uploaded to [Espressif's component service](https://components.espressif.com/).
 You can add them to your project via `idf.py add-dependency`, e.g.
 ```
-    idf.py add-dependency esp_io_expander_ht8574==2.0.2
+    idf.py add-dependency esp_io_expander_pi4ioe5v6408==1.0.1
 ```
 
 Alternatively, you can create `idf_component.yml`. More is in [Espressif's documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html).
@@ -35,7 +37,7 @@ Creation of the component.
 
 ```c
     esp_io_expander_handle_t io_expander = NULL;
-    esp_io_expander_new_i2c_ht8574(i2c_handle, ESP_IO_EXPANDER_I2C_HT8574_ADDRESS_000, &io_expander);
+    esp_io_expander_new_i2c_pi4ioe5v6408(i2c_handle, ESP_IO_EXPANDER_I2C_PI4IOE5V6408_ADDRESS_LOW, &io_expander);
 ```
 
 Print all pins's status to the log:
@@ -81,7 +83,7 @@ Set pin 2 and pin 3 with input direction:
 
 ```c
     esp_io_expander_handle_t io_expander = NULL;
-    esp_io_expander_new_i2c_ht8574(i2c_handle, ESP_IO_EXPANDER_I2C_HT8574_ADDRESS_000, &io_expander);
+    esp_io_expander_new_i2c_pi4ioe5v6408(i2c_handle, ESP_IO_EXPANDER_I2C_PI4IOE5V6408_ADDRESS_LOW, &io_expander);
 ```
 
 5. Append IO Expander to GPIO wrapper.
