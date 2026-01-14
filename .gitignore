@@ -9,3 +9,4 @@ doxygen*
 dist
 __pycache__
 gdbinit
+.cache

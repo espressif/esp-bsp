@@ -1,0 +1,24 @@
+{
+	"name": "ESP-IDF v6.0",
+	"build": {
+		"dockerfile": "../Dockerfile",
+		"IDF_VERSION": "release-v6.0"
+	},
+	// Pre-configure ESP-IDF extension
+	"settings": {
+		"idf.showOnboardingOnInit": false,
+		"idf.toolsPath": "/opt/esp",
+		"idf.espIdfPath": "/opt/esp/idf",
+		"terminal.integrated.shell.linux": "/bin/bash"
+	},
+	// Install relevant extensions in the dev container
+	"extensions": [
+		"espressif.esp-idf-extension",
+		"ms-vscode.cmake-tools",
+		"llvm-vs-code-extensions.vscode-clangd"
+	],
+	"userEnvProbe": "loginInteractiveShell",
+	"runArgs": [
+    "--device=/dev/ttyACM0"
+  	]
+}
