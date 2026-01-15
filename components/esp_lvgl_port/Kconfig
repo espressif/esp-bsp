@@ -6,5 +6,10 @@ menu "ESP LVGL PORT"
         default n
         help
             Enables using PPA for screen rotation.
-
+    config LVGL_PORT_INTERNAL_TASK
+        bool "Use an internal task for LVGL management"
+        default y
+        help
+            If true, creates an internal task to handle LVGL management.
+            If false the developer is responsible for initializing the stack and calling functions like `lv_timer_handle` and `lv_tick_inc`.
 endmenu
