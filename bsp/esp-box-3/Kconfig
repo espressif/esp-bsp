@@ -88,8 +88,13 @@ menu "Board Support Package(ESP-BOX-3)"
         default n
         help
             Whether to enable double framebuf.
+        config BSP_LVGL_INIT
+        bool "Initialize LVGL"
+        default n
+        help
+            Initialize LVGL with an internal LVGL task
     endmenu
-    
+
     config BSP_I2S_NUM
         int "I2S peripheral index"
         default 1

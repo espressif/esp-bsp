@@ -734,6 +734,7 @@ static lv_indev_t *bsp_display_indev_init(lv_display_t *disp)
 lv_display_t *bsp_display_start(void)
 {
     bsp_display_cfg_t cfg = {
+        .lvgl_port_init = CONFIG_BSP_LVGL_INIT;
         .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
         .buffer_size = BSP_LCD_H_RES * CONFIG_BSP_LCD_DRAW_BUF_HEIGHT,
 #if CONFIG_BSP_LCD_DRAW_BUF_DOUBLE
@@ -752,7 +753,10 @@ lv_display_t *bsp_display_start(void)
 lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
-    BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
+
+    if(cfg.lvgl_port_init) {
+        BSP_ERROR_CHECK_RETURN_NULL(lvgl_port_init(&cfg->lvgl_port_cfg));
+    }
 
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_brightness_init());
 

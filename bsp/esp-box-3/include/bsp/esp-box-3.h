@@ -492,6 +492,7 @@ esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
  * @brief BSP display configuration structure
  */
 typedef struct {
+    bool lvgl_port_init;
     lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
     uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
     bool            double_buffer;  /*!< True, if should be allocated two buffers */

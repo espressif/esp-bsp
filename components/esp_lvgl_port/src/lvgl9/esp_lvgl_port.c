@@ -26,6 +26,7 @@ static const char *TAG = "LVGL";
 * Types definitions
 *******************************************************************************/
 
+#if CONFIG_LVGL_PORT_INTERNAL_TASK
 typedef struct lvgl_port_ctx_s {
     TaskHandle_t        lvgl_task;
     SemaphoreHandle_t   lvgl_mux;
