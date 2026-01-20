@@ -43,6 +43,8 @@ lv_rgb565_blend_normal_to_rgb565_esp:
     movi.n   a10,   0xf                         // 0xf alignment mask (16-byte alignment)
     slli     a11,   a4,    1                    // a11 - dest_w_bytes = sizeof(uint16_t) * dest_w
 
+    beqz     a4,   _zero_matrix_len_check       // Check if dest_w a4 is zero
+    beqz     a5,   _zero_matrix_len_check       // Check if dest_h a5 is zero
     // No need to convert any colors here, we are copying from rgb565 to rgb565
 
     // Check dest_w length
@@ -370,3 +372,10 @@ lv_rgb565_blend_normal_to_rgb565_esp:
 
     movi.n   a2, 1                                          // Return LV_RESULT_OK = 1
     retw.n                                                  // Return
+
+//**********************************************************************************************************************
+
+    // One of the matrix dimensions is zero, return early
+    _zero_matrix_len_check:
+    movi.n   a2, 1                                      // return LV_RESULT_OK = 1
+    retw.n                                              // return

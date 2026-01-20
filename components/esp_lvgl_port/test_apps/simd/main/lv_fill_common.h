@@ -30,7 +30,7 @@ typedef struct {
     unsigned int unalign_step;              // Increment step in bytes unalignment of the test array
     unsigned int dest_stride_step;          // Increment step in destination stride of the test array
     unsigned int test_combinations_count;   // Count of fest combinations
-} test_matrix_params_t;
+} test_matrix_lv_fill_params_t;
 
 /**
  * @brief Functionality test case parameters
