@@ -61,6 +61,7 @@ typedef struct {
     bool _mirror_x;
     uint8_t *_framebuffer;
     bool _invert_color;
+    int _rows;
 } epaper_panel_t;
 
 // --- Utility functions
@@ -276,7 +277,11 @@ esp_lcd_new_panel_ssd1681(const esp_lcd_panel_io_handle_t io, const esp_lcd_pane
     epaper_panel->busy_gpio_num = epaper_ssd1681_conf->busy_gpio_num;
     epaper_panel->reset_level = panel_dev_config->flags.reset_active_high;
     epaper_panel->_non_copy_mode = epaper_ssd1681_conf->non_copy_mode;
-    // functions
+    epaper_panel->_rows = epaper_ssd1681_conf->rows ?
+        (epaper_ssd1681_conf->rows - 1) : (SSD1681_EPD_1IN54_V2_HEIGHT - 1);
+    if(epaper_panel->_rows != (SSD1681_EPD_1IN54_V2_HEIGHT - 1) &&
+        epaper_panel->_non_copy_mode == false)
+        ESP_LOGE(TAG, "Overridden row count requires non_copy_mode to be true");
     epaper_panel->base.del = epaper_panel_del;
     epaper_panel->base.reset = epaper_panel_reset;
     epaper_panel->base.init = epaper_panel_init;
@@ -390,7 +395,7 @@ static esp_err_t epaper_panel_init(esp_lcd_panel_t *panel)
     panel_epaper_wait_busy(panel);
     // --- Driver Output Control
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_OUTPUT_CTRL,
-                        SSD1681_PARAM_OUTPUT_CTRL, 3), TAG, "SSD1681_CMD_OUTPUT_CTRL err");
+                        SSD1681_PARAM_OUTPUT_CTRL(epaper_panel->_rows), 3), TAG, "SSD1681_CMD_OUTPUT_CTRL err");
 
     // --- Border Waveform Control
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(epaper_panel->io, SSD1681_CMD_SET_BORDER_WAVEFORM, (uint8_t[]) {

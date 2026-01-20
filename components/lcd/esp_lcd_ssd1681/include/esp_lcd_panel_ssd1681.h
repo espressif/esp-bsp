@@ -40,6 +40,7 @@ typedef struct {
     int busy_gpio_num;         /*!< GPIO num of the BUSY pin */
     bool non_copy_mode;        /*!< If the bitmap would be copied or not.
                                 *   Image rotation and mirror is limited when enabling. */
+    int rows;                  /*!< Override rows count (0 = defaults to 200 rows) */
 } esp_lcd_ssd1681_config_t;
 
 /**
