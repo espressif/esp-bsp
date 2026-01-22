@@ -1,0 +1,280 @@
+{
+    "BSP_NAME": "ESP32-S3-EYE",
+    "BSP_URL": "https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_eye",
+    "BSP_HW_LINK": "https://www.espressif.com/en/products/devkits/esp-eye/overview",
+    "BSP_DESC_LONG": "The ESP32-S3-EYE board consists of two parts: the main board (ESP32-S3-EYE-MB) that integrates the ESP32-S3-WROOM-1 module, camera, uSD card slot, digital microphone, USB port, and function buttons; and the sub board (ESP32-S3-EYE-SUB) that contains an LCD display. The main board and sub board are connected through pin headers.\r\n\r\n**The development board has the following features:**\r\n* ESP32-S3 module with built-in 8 MB flash and 8 MB octal RAM\r\n* 1.3-inch 240x240 LCD color screen\r\n* Onboard uSD card slot\r\n* Digital microphone\r\n* Accelerometer\r\n* OV2640 camera",
+    "BSP_MCU": "esp32s3",
+    "BSP_GEN_NOGLIB": "true",
+    "BSP_FEATURES": [
+        {
+            "name": "I2C",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "pins": {
+                "BSP_I2C_SCL": "GPIO_NUM_5",
+                "BSP_I2C_SDA": "GPIO_NUM_4"
+            },
+            "BSP_I2C_PULLUP_EN": "true"
+        },
+        {
+            "name": "I2S",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_I2S_SAMPLE_RATE": "48000",
+            "BSP_I2S_MODE": "STD",
+            "BSP_I2S_SLOT_MODE": "I2S_SLOT_MODE_MONO",
+            "pins": {
+                "BSP_I2S_MCLK": "GPIO_NUM_NC",
+                "BSP_I2S_SCLK": "GPIO_NUM_41",
+                "BSP_I2S_LCLK": "GPIO_NUM_42",
+                "BSP_I2S_DOUT": "GPIO_NUM_NC",
+                "BSP_I2S_DSIN": "GPIO_NUM_2"
+            }
+        },
+        {
+            "name": "ADC",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_ADC_UNIT": "ADC_UNIT_1"
+        },
+        {
+            "name": "SPIFFS",
+            "enabled": [
+                "true",
+                "true"
+            ]
+        },
+        {
+            "name": "SD",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "interface": "MMC",
+            "pins": {
+                "BSP_SD_D0": "GPIO_NUM_40",
+                "BSP_SD_D1": "GPIO_NUM_NC",
+                "BSP_SD_D2": "GPIO_NUM_NC",
+                "BSP_SD_D3": "GPIO_NUM_NC",
+                "BSP_SD_CMD": "GPIO_NUM_38",
+                "BSP_SD_CLK": "GPIO_NUM_39",
+                "BSP_SD_DET": "GPIO_NUM_NC"
+            },
+            "BSP_FEATURE_SD_TYPE": "",
+            "SPI_WIDTH": 1
+        },
+        {
+            "name": "DISPLAY",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "interface": "SPI",
+            "driver": "idf/esp_lcd_st7789",
+            "BSP_LCD_H_RES": "240",
+            "BSP_LCD_V_RES": "240",
+            "BSP_LCD_PIXEL_CLOCK_MHZ": "80",
+            "BSP_LCD_BITS_PER_PIXEL": "16",
+            "BSP_LCD_BIGENDIAN": "true",
+            "BSP_LCD_INVERT_COLORS": "true",
+            "BSP_LCD_COLOR_FORMAT": "ESP_LCD_COLOR_FORMAT_RGB565",
+            "BSP_LCD_COLOR_SPACE": "LCD_RGB_ELEMENT_ORDER_RGB",
+            "BSP_LCD_SPI_NUM": "SPI3_HOST",
+            "pins": {
+                "BSP_LCD_PCLK": "GPIO_NUM_21",
+                "BSP_LCD_DATA0": "GPIO_NUM_47",
+                "BSP_LCD_DC": "GPIO_NUM_43",
+                "BSP_LCD_CS": "GPIO_NUM_44",
+                "BSP_LCD_RST": "GPIO_NUM_NC",
+                "BSP_LCD_BACKLIGHT": "GPIO_NUM_48"
+            },
+            "BSP_LCD_BACKLIGHT_LEVEL": "true",
+            "BSP_LCD_INIT_CMDS": "",
+            "BSP_FEATURE_LCD_TYPE": "",
+            "DRIVER": "st7789",
+            "DRIVER_NAMESPACE": "idf"
+        },
+        {
+            "name": "AUDIO_MIC",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_AUDIO_MIC_CODEC": "NONE",
+            "BSP_FEATURE_MIC_TYPE": "",
+            "CODEC": "none"
+        },
+        {
+            "name": "CAMERA",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "interface": "DVP",
+            "driver": "OV2640",
+            "BSP_CAMERA_XCLK_CLOCK_MHZ": "16",
+            "pins": {
+                "BSP_CAMERA_GPIO_XCLK": "GPIO_NUM_15",
+                "BSP_CAMERA_RST": "GPIO_NUM_NC",
+                "BSP_CAMERA_PCLK": "GPIO_NUM_13",
+                "BSP_CAMERA_VSYNC": "GPIO_NUM_6",
+                "BSP_CAMERA_HSYNC": "GPIO_NUM_7",
+                "BSP_CAMERA_D0": "GPIO_NUM_11",
+                "BSP_CAMERA_D1": "GPIO_NUM_9",
+                "BSP_CAMERA_D2": "GPIO_NUM_8",
+                "BSP_CAMERA_D3": "GPIO_NUM_10",
+                "BSP_CAMERA_D4": "GPIO_NUM_12",
+                "BSP_CAMERA_D5": "GPIO_NUM_18",
+                "BSP_CAMERA_D6": "GPIO_NUM_17",
+                "BSP_CAMERA_D7": "GPIO_NUM_16"
+            },
+            "BSP_CAMERA_VFLIP": "true",
+            "BSP_FEATURE_CAMERA_TYPE": "",
+            "BSP_CAMERA_DEVICE": "ESP_VIDEO_DVP_DEVICE_NAME",
+            "DATA_WIDTH": 8
+        },
+        {
+            "name": "BUTTON",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_BUTTON_NUM": "5",
+            "BSP_BUTTON_ADC_CHANNEL": "ADC_CHANNEL_0",
+            "BSP_BUTTON_1_TYPE": "ADC",
+            "BSP_BUTTON_1_ADC_VALUE": "2410",
+            "BSP_BUTTON_2_TYPE": "ADC",
+            "BSP_BUTTON_2_ADC_VALUE": "1980",
+            "BSP_BUTTON_3_TYPE": "ADC",
+            "BSP_BUTTON_3_ADC_VALUE": "820",
+            "BSP_BUTTON_4_TYPE": "ADC",
+            "BSP_BUTTON_4_ADC_VALUE": "380",
+            "BSP_BUTTON_5_TYPE": "GPIO",
+            "pins": {
+                "BSP_BUTTON_5_IO": "GPIO_NUM_0"
+            }
+        },
+        {
+            "name": "LED",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_LEDS_TYPE": "GPIO",
+            "BSP_LEDS_NUM": "1",
+            "pins": {
+                "BSP_LED_1_IO": "GPIO_NUM_3"
+            },
+            "BSP_LED_1_LEVEL": "true"
+        }
+    ],
+    "I2C_CNT": 2,
+    "I2S_CNT": 2,
+    "BSP_VALID_NAME": "esp32_s3_eye",
+    "BSP_BOARDNAME": "BSP_BOARD_ESP32_S3_EYE",
+    "BSP_CAPS": [
+        {
+            "name": "BSP_CAPS_DISPLAY",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_TOUCH",
+            "enabled": "0"
+        },
+        {
+            "name": "BSP_CAPS_BUTTONS",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_KNOB",
+            "enabled": "0"
+        },
+        {
+            "name": "BSP_CAPS_AUDIO",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_AUDIO_SPEAKER",
+            "enabled": "0"
+        },
+        {
+            "name": "BSP_CAPS_AUDIO_MIC",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_SDCARD",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_LED",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_CAMERA",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_BAT",
+            "enabled": "0"
+        },
+        {
+            "name": "BSP_CAPS_IMU",
+            "enabled": "0"
+        }
+    ],
+    "BSP_DEPENDENCIES": [
+        {
+            "name": "esp_codec_dev",
+            "version": "~1.5",
+            "public": "true",
+            "min_idf": "4.0"
+        },
+        {
+            "name": "espressif/esp_lvgl_port",
+            "version": "^2",
+            "public": "true",
+            "min_idf": "5.1"
+        },
+        {
+            "name": "esp_video",
+            "version": "~1.4",
+            "public": "true",
+            "min_idf": "5.4"
+        },
+        {
+            "name": "button",
+            "version": "^4",
+            "public": "true",
+            "min_idf": "4.0"
+        },
+        {
+            "name": "led_indicator",
+            "version": "^2",
+            "public": "true",
+            "min_idf": "5.0"
+        }
+    ],
+    "BSP_REQUIRES": [
+        "esp_driver_i2c",
+        "esp_driver_i2s",
+        "spiffs",
+        "fatfs",
+        "vfs",
+        "esp_driver_sdspi",
+        "esp_driver_sdmmc"
+    ],
+    "BSP_PRIV_REQUIRES": [
+        "esp_lcd",
+        "esp_driver_ledc"
+    ],
+    "MIN_IDF_VER": "5.4",
+    "BSP_FEATURE_EN": [],
+    "YEAR": 2026,
+    "NOGLIB": 1
+}

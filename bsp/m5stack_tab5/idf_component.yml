@@ -1,5 +1,5 @@
 
-version: "1.0.0"
+version: "1.0.0~1"
 description: Board Support Package (BSP) for m5stack_tab5
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5stack_tab5
 
@@ -53,6 +53,6 @@ examples:
   - path: ../../examples/display_rotation
   - path: ../../examples/display_audio_photo
   - path: ../../examples/display_lvgl_demos
-  - path: ../../examples/display_camera_csi
+  - path: ../../examples/display_camera_video
   - path: ../../examples/display_sdcard
   - path: ../../examples/display_usb_hid

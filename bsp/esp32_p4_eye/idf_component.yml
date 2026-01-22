@@ -1,5 +1,5 @@
 
-version: "2.0.1"
+version: "2.0.1~1"
 description: Board Support Package (BSP) for ESP32-P4-EYE
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_p4_eye
 
@@ -41,5 +41,5 @@ examples:
   - path: ../../examples/display
   - path: ../../examples/display_rotation
   - path: ../../examples/display_lvgl_demos
-  - path: ../../examples/display_camera_csi
+  - path: ../../examples/display_camera_video
 

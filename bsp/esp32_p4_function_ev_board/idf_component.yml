@@ -1,4 +1,4 @@
-version: "5.2.0"
+version: "5.2.0~1"
 description: Board Support Package (BSP) for ESP32-P4 Function EV Board (preview)
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_p4_function_ev_board
 
@@ -50,4 +50,4 @@ examples:
   - path: ../../examples/display_lvgl_benchmark
   - path: ../../examples/display_usb_hid
   - path: ../../examples/display_sdcard
-  - path: ../../examples/display_camera_csi
+  - path: ../../examples/display_camera_video

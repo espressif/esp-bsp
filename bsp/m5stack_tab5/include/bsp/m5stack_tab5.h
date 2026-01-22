@@ -521,7 +521,7 @@ void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
  *
  * Camera interface
  * Supported camera sensors: SC202CS
- * More information in display_camera_csi example
+ * More information in display_camera_video example
  *
  **************************************************************************************************/
 

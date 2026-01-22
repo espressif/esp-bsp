@@ -1,4 +1,5 @@
-version: "5.0.2"
+
+version: "6.0.0"
 description: Board Support Package (BSP) for ESP32-S3-EYE
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_eye
 
@@ -9,32 +10,30 @@ tags:
   - bsp
 
 dependencies:
-  idf: ">=5.4" # I2C Driver-NG is supported in esp32-camera only from IDFv5.4
-
-  espressif/esp_lvgl_port:
-    version: "^2"
-    public: true
-    override_path: "../../components/esp_lvgl_port"
-
-  esp32-camera:
-    version: "^2.0.13"
-    public: true
-
-  button:
-    version: "^4"
-    public: true
+  idf: ">=5.4"
 
   esp_codec_dev:
     version: "~1.5"
-    public: true
+    public:  true
 
-  qma6100p:
+  espressif/esp_lvgl_port:
     version: "^2"
-    override_path: "../../components/qma6100p"
-    public: true
+    public:  true
+
+  esp_video:
+    version: "~1.4"
+    public:  true
+
+  button:
+    version: "^4"
+    public:  true
+
+  led_indicator:
+    version: "^2"
+    public:  true
 
 examples:
   - path: ../../examples/display
-  - path: ../../examples/display_camera
   - path: ../../examples/display_lvgl_demos
   - path: ../../examples/display_lvgl_benchmark
+  - path: ../../examples/display_camera_video
