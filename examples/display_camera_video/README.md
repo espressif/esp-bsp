@@ -1,12 +1,14 @@
 # Display + camera example
 
-This example shows how you can obtain frames from MIPI-CSI camera and display them on LCD.
+This example shows how you can obtain frames from MIPI-CSI / DVP camera and display them on LCD.
 This very simple example continuously fetches image frames from camera and displays them on LCD using LVGL's canvas widget.
 
 ### Hardware Required
 
-Any board with MIPI-CSI camera.
+Any board with MIPI-CSI / DVP camera.
 
+- ESP32-S3-EYE
+    - Camera sensor: OV2640
 - ESP32-P4-EYE
     - Camera sensor: OV2710
 - ESP32-P4-Function-EV-Board

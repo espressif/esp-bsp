@@ -1,15 +1,11 @@
-if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "5.3")
-    set(REQ esp_driver_i2c esp_driver_gpio esp_driver_i2s esp_driver_sdmmc esp_driver_sdspi)
-    set(PRIV_REQ esp_driver_spi esp_driver_ledc)
-else()
-    set(REQ driver)
-    set(PRIV_REQ "")
-endif()
+set(SRC "src/bsp_adc.c" "src/bsp_audio.c" "src/bsp_button.c" "src/bsp_camera.c" "src/bsp_display.c" "src/bsp_i2c.c" "src/bsp_led.c" "src/bsp_storage.c"   "src/led_blink_defaults.c")
+    set(REQ esp_driver_gpio esp_driver_i2c esp_driver_i2s spiffs fatfs vfs esp_driver_sdspi esp_driver_sdmmc )
+    set(PRIV_REQ esp_lcd esp_driver_ledc )
 
 idf_component_register(
-    SRCS "esp32_s3_eye.c" "esp32_s3_eye_idf5.c"
+    SRCS ${SRC}
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "priv_include"
-    REQUIRES ${REQ} fatfs esp_adc
-    PRIV_REQUIRES ${PRIV_REQ} esp_lcd spiffs esp_psram
+    REQUIRES ${REQ}
+    PRIV_REQUIRES esp_psram ${PRIV_REQ}
 )

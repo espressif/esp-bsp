@@ -562,7 +562,7 @@ esp_err_t bsp_usb_host_stop(void);
  *
  * Camera interface
  * Supported camera sensors: OV5647, SC2336
- * More information in display_camera_csi example
+ * More information in display_camera_video example
  *
  **************************************************************************************************/
 

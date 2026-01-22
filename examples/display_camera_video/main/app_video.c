@@ -91,6 +91,31 @@ int app_video_open(char *dev, video_fmt_t init_fmt)
         }
     }
 
+#if defined(BSP_CAMERA_VFLIP) && defined(BSP_CAMERA_HFLIP)
+    bool vflip = BSP_CAMERA_VFLIP;
+    bool hflip = BSP_CAMERA_HFLIP;
+    struct v4l2_ext_control control[1];
+    struct v4l2_ext_controls ctrl = {
+        .ctrl_class = V4L2_CID_USER_CLASS,
+        .count      = 1,
+        .controls   = control,
+    };
+
+    /* Set VFLIP */
+    control[0].id = V4L2_CID_VFLIP;
+    control[0].value = vflip;
+    if (ioctl(fd, VIDIOC_S_EXT_CTRLS, &ctrl) != 0) {
+        ESP_LOGE(TAG, "failed to set vflip");
+    }
+
+    /* Set HFLIP */
+    control[0].id = V4L2_CID_HFLIP;
+    control[0].value = hflip;
+    if (ioctl(fd, VIDIOC_S_EXT_CTRLS, &ctrl) != 0) {
+        ESP_LOGE(TAG, "failed to set hflip");
+    }
+#endif
+
     app_camera_video.video_stop_sem = xSemaphoreCreateBinary();
 
     return fd;
