@@ -54,6 +54,8 @@ jobs:
             allow_fail: false
           - idf_ver: "latest"
             allow_fail: true  # Do not fail CI, when fail "latest" build
+          - idf_ver: "release-v6.0"
+            allow_fail: true  # Do not fail CI, when fail "latest" build
     runs-on: ubuntu-latest
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
