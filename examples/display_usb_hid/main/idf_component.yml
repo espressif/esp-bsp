@@ -1,7 +1,7 @@
 description: BSP Display USB HID Example
+
 dependencies:
-  esp32_s3_usb_otg:
+  bsp_selector:
     version: '*'
-    override_path: ../../../bsp/esp32_s3_usb_otg
-  idf: '>=4.4'
+    override_path: ../../../components/bsp_selector
   usb_host_hid: '^1'

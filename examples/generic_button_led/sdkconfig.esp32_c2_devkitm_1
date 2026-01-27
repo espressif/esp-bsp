@@ -2,6 +2,7 @@
 # Espressif IoT Development Framework (ESP-IDF) Project Minimal Configuration
 #
 CONFIG_IDF_TARGET="esp32c2"
+CONFIG_BSP_SELECT_ESP_BSP_DEVKIT=y
 
 # ESP8684-DevKitM-1 v1.1 Settings
 # Buttons

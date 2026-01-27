@@ -1,10 +1,15 @@
-# SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2023-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import os
 from re import match, compile
 from pathlib import Path
 from click.core import Context
 from typing import List
+
+this_dir = os.path.dirname(os.path.abspath(__file__))
+bsp_dir = os.path.abspath(os.path.join(this_dir, "..", "bsp"))
+# List of supported BSPs
+bsps = {name for name in os.listdir(bsp_dir) if os.path.isdir(os.path.join(bsp_dir, name))}
 
 
 def action_extensions(base_actions, project_path=os.getcwd()):
@@ -41,33 +46,6 @@ def action_extensions(base_actions, project_path=os.getcwd()):
                 bsp = entry.split('.')[-1]
                 break
 
-        # List of supported BSPs
-        bsps = {
-            'esp_wrover_kit',
-            'esp32_azure_iot_kit',
-            'esp32_s2_kaluga_kit',
-            'esp32_s3_eye',
-            'esp32_s3_lcd_ev_board',
-            'esp32_s3_usb_otg',
-            'esp-box',
-            'esp32_s3_korvo_2',
-            'esp-box-lite',
-            'esp32_lyrat',
-            'esp-box-3',
-            'esp32_c3_lcdkit',
-            'esp_bsp_generic',
-            'esp_bsp_devkit',
-            'esp32_s3_korvo_1',
-            'esp32_p4_function_ev_board',
-            'm5stack_core_s3',
-            'm5dial',
-            'm5stack_core_2',
-            'm5stack_core',
-            'm5_atom_s3',
-            'esp32_p4_eye',
-            'm5stack_tab5',
-        }
-
         if bsp == '':
             return
         if bsp not in bsps:
@@ -78,6 +56,12 @@ def action_extensions(base_actions, project_path=os.getcwd()):
         manifest_path  = Path(args['project_dir']) / 'main' / 'idf_component.yml'
         yaml = ruamel.yaml.YAML()
         manifest = yaml.load(manifest_path)
+
+        # Try to remove BSP Selector
+        try:
+            del manifest['dependencies']["bsp_selector"]
+        except KeyError:
+            print("Could not remove bsp_selector")
 
         # Remove all BSPs
         for dep in list(manifest['dependencies']):
