@@ -31,14 +31,13 @@ dependencies:
     public:  true
     override_path: "../../components/esp_lvgl_port"
 
-  espressif/esp_lcd_ili9881c:
+  espressif/esp_lcd_st7123:
     version: "*"
     public:  false
 
-  espressif/esp_lcd_touch_gt911:
+  espressif/esp_lcd_touch_st7123:
     version: "*"
     public:  false
-    override_path: "../../components/lcd_touch/esp_lcd_touch_gt911"
 
   esp_video:
     version: "~1.4"
