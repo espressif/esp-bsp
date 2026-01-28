@@ -50,7 +50,7 @@ capability_dict = {
     'IMU': r'(icm42670$|mpu6050$|qma6100p$)',
     'LED': r'(led_indicator$|^idf$)',  # Provided by led_indicator or idf
     'BAT': r'(^idf$)',  # Battery (ADC driver) is native to ESP-IDF
-    'CAMERA': r'(esp32-camera$)',  # esp32-camera component
+    'CAMERA': r'(esp32-camera$|esp_video$)',  # esp32-camera, esp_video component
     'KNOB': r'(knob$)',  # knob component
     'SENSOR_TEMPERATURE': r'(hts221$|ds18b20$)',
     'SENSOR_HUMIDITY': r'(hts221$)',

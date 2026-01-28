@@ -147,10 +147,13 @@ You can use these macros to conditionally compile code depending on feature avai
 | define  | [**BSP\_CAPS\_AUDIO**](#define-bsp_caps_audio)  1<br> |
 | define  | [**BSP\_CAPS\_AUDIO\_MIC**](#define-bsp_caps_audio_mic)  1<br> |
 | define  | [**BSP\_CAPS\_AUDIO\_SPEAKER**](#define-bsp_caps_audio_speaker)  0<br> |
+| define  | [**BSP\_CAPS\_BAT**](#define-bsp_caps_bat)  0<br> |
 | define  | [**BSP\_CAPS\_BUTTONS**](#define-bsp_caps_buttons)  1<br> |
 | define  | [**BSP\_CAPS\_CAMERA**](#define-bsp_caps_camera)  1<br> |
 | define  | [**BSP\_CAPS\_DISPLAY**](#define-bsp_caps_display)  1<br> |
-| define  | [**BSP\_CAPS\_IMU**](#define-bsp_caps_imu)  1<br> |
+| define  | [**BSP\_CAPS\_IMU**](#define-bsp_caps_imu)  0<br> |
+| define  | [**BSP\_CAPS\_KNOB**](#define-bsp_caps_knob)  0<br> |
+| define  | [**BSP\_CAPS\_LED**](#define-bsp_caps_led)  1<br> |
 | define  | [**BSP\_CAPS\_SDCARD**](#define-bsp_caps_sdcard)  1<br> |
 | define  | [**BSP\_CAPS\_TOUCH**](#define-bsp_caps_touch)  0<br> |
 
@@ -192,6 +195,12 @@ adc_oneshot_unit_handle_t bsp_adc_get_handle (
     void
 ) 
 ```
+
+
+**Note:**
+
+This function is available only in IDF5 and higher
+
 
 
 **Returns:**
@@ -379,7 +388,7 @@ sdmmc_card_print_info(stdout, sdcard);
 |  esp\_err\_t | [**bsp\_sdcard\_sdmmc\_mount**](#function-bsp_sdcard_sdmmc_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (MMC mode)_ |
 |  void | [**bsp\_sdcard\_sdspi\_get\_slot**](#function-bsp_sdcard_sdspi_get_slot) (const spi\_host\_device\_t spi\_host, sdspi\_device\_config\_t \*config) <br>_Get SD card SPI slot config._ |
 |  esp\_err\_t | [**bsp\_sdcard\_sdspi\_mount**](#function-bsp_sdcard_sdspi_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (SPI mode)_ |
-|  esp\_err\_t | [**bsp\_sdcard\_unmount**](#function-bsp_sdcard_unmount) (void) <br>_Unmount microSD card from virtual file system._ |
+|  esp\_err\_t | [**bsp\_sdcard\_unmount**](#function-bsp_sdcard_unmount) (void) <br>_Unmount micorSD card from virtual file system._ |
 |  esp\_err\_t | [**bsp\_spiffs\_mount**](#function-bsp_spiffs_mount) (void) <br>_Mount SPIFFS to virtual file system._ |
 |  esp\_err\_t | [**bsp\_spiffs\_unmount**](#function-bsp_spiffs_unmount) (void) <br>_Unmount SPIFFS from virtual file system._ |
 
@@ -387,10 +396,13 @@ sdmmc_card_print_info(stdout, sdcard);
 
 | Type | Name |
 | ---: | :--- |
-| define  | [**BSP\_SDSPI\_HOST**](#define-bsp_sdspi_host)  (SPI3\_HOST)<br> |
 | define  | [**BSP\_SD\_CLK**](#define-bsp_sd_clk)  (GPIO\_NUM\_39)<br> |
 | define  | [**BSP\_SD\_CMD**](#define-bsp_sd_cmd)  (GPIO\_NUM\_38)<br> |
 | define  | [**BSP\_SD\_D0**](#define-bsp_sd_d0)  (GPIO\_NUM\_40)<br> |
+| define  | [**BSP\_SD\_D1**](#define-bsp_sd_d1)  (GPIO\_NUM\_NC)<br> |
+| define  | [**BSP\_SD\_D2**](#define-bsp_sd_d2)  (GPIO\_NUM\_NC)<br> |
+| define  | [**BSP\_SD\_D3**](#define-bsp_sd_d3)  (GPIO\_NUM\_NC)<br> |
+| define  | [**BSP\_SD\_DET**](#define-bsp_sd_det)  (GPIO\_NUM\_NC)<br> |
 | define  | [**BSP\_SD\_MOUNT\_POINT**](#define-bsp_sd_mount_point)  CONFIG\_BSP\_SD\_MOUNT\_POINT<br> |
 | define  | [**BSP\_SPIFFS\_MOUNT\_POINT**](#define-bsp_spiffs_mount_point)  CONFIG\_BSP\_SPIFFS\_MOUNT\_POINT<br> |
 
@@ -477,8 +489,8 @@ esp_err_t bsp_sdcard_mount (
 
 * ESP\_OK on success
 * ESP\_ERR\_INVALID\_STATE if esp\_vfs\_fat\_sdmmc\_mount was already called
-* ESP\_ERR\_NO\_MEM if memory cannot be allocated
-* ESP\_FAIL if partition cannot be mounted
+* ESP\_ERR\_NO\_MEM if memory can not be allocated
+* ESP\_FAIL if partition can not be mounted
 * other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
 ### function `bsp_sdcard_sdmmc_get_slot`
 
@@ -564,7 +576,7 @@ esp_err_t bsp_sdcard_sdspi_mount (
 * other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
 ### function `bsp_sdcard_unmount`
 
-_Unmount microSD card from virtual file system._
+_Unmount micorSD card from virtual file system._
 ```c
 esp_err_t bsp_sdcard_unmount (
     void
@@ -616,7 +628,11 @@ esp_err_t bsp_spiffs_unmount (
 
 
 * ESP\_OK on success
-* ESP\_ERR\_INVALID\_STATE if already unmounted
+* ESP\_ERR\_NOT\_FOUND if the partition table does not contain SPIFFS partition with given label
+* ESP\_ERR\_INVALID\_STATE if esp\_vfs\_spiffs\_unregister was already called
+* ESP\_ERR\_NO\_MEM if memory can not be allocated
+* ESP\_FAIL if partition can not be mounted
+* other error codes
 
 
 
@@ -714,8 +730,10 @@ esp_codec_dev_close(mic_codec_dev);
 
 | Type | Name |
 | ---: | :--- |
-| define  | [**BSP\_I2S\_DIN**](#define-bsp_i2s_din)  (GPIO\_NUM\_2)<br> |
+| define  | [**BSP\_I2S\_DOUT**](#define-bsp_i2s_dout)  (GPIO\_NUM\_NC)<br> |
+| define  | [**BSP\_I2S\_DSIN**](#define-bsp_i2s_dsin)  (GPIO\_NUM\_2)<br> |
 | define  | [**BSP\_I2S\_LCLK**](#define-bsp_i2s_lclk)  (GPIO\_NUM\_42)<br> |
+| define  | [**BSP\_I2S\_MCLK**](#define-bsp_i2s_mclk)  (GPIO\_NUM\_NC)<br> |
 | define  | [**BSP\_I2S\_SCLK**](#define-bsp_i2s_sclk)  (GPIO\_NUM\_41)<br> |
 
 
@@ -766,16 +784,10 @@ There is no deinit audio function. Users can free audio resources by calling i2s
 
 
 
-**Warning:**
-
-The type of i2s\_config param is depending on IDF version. 
-
-
-
 **Parameters:**
 
 
-* `i2s_config` I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz) 
+* `i2s_config` I2S configuration. Pass NULL to use default values 
 
 
 **Returns:**
@@ -909,6 +921,7 @@ Below are some of the most relevant predefined constants:
 | ---: | :--- |
 | struct | [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) <br>_BSP display configuration structure._ |
 | struct | [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) <br>_BSP display configuration structure._ |
+| struct | [**bsp\_lcd\_handles\_t**](#struct-bsp_lcd_handles_t) <br>_BSP display return handles._ |
 
 ## Functions
 
@@ -916,11 +929,16 @@ Below are some of the most relevant predefined constants:
 | ---: | :--- |
 |  esp\_err\_t | [**bsp\_display\_backlight\_off**](#function-bsp_display_backlight_off) (void) <br>_Turn off display backlight._ |
 |  esp\_err\_t | [**bsp\_display\_backlight\_on**](#function-bsp_display_backlight_on) (void) <br>_Turn on display backlight._ |
+|  esp\_err\_t | [**bsp\_display\_brightness\_deinit**](#function-bsp_display_brightness_deinit) (void) <br>_Deinitialize display's brightness._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_init**](#function-bsp_display_brightness_init) (void) <br>_Initialize display's brightness._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_set**](#function-bsp_display_brightness_set) (int brightness\_percent) <br>_Set display's brightness._ |
+|  void | [**bsp\_display\_delete**](#function-bsp_display_delete) (void) <br>_Delete display panel._ |
+|  esp\_err\_t | [**bsp\_display\_enter\_sleep**](#function-bsp_display_enter_sleep) (void) <br>_Set display enter sleep mode._ |
+|  esp\_err\_t | [**bsp\_display\_exit\_sleep**](#function-bsp_display_exit_sleep) (void) <br>_Set display exit sleep mode._ |
 |  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)_ |
 |  bool | [**bsp\_display\_lock**](#function-bsp_display_lock) (uint32\_t timeout\_ms) <br>_Take LVGL mutex._ |
 |  esp\_err\_t | [**bsp\_display\_new**](#function-bsp_display_new) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, esp\_lcd\_panel\_handle\_t \*ret\_panel, esp\_lcd\_panel\_io\_handle\_t \*ret\_io) <br>_Create new display panel._ |
+|  esp\_err\_t | [**bsp\_display\_new\_with\_handles**](#function-bsp_display_new_with_handles) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, [**bsp\_lcd\_handles\_t**](#struct-bsp_lcd_handles_t) \*ret\_handles) <br>_Create new display panel._ |
 |  void | [**bsp\_display\_rotate**](#function-bsp_display_rotate) (lv\_display\_t \*disp, lv\_disp\_rotation\_t rotation) <br>_Rotate screen._ |
 |  lv\_display\_t \* | [**bsp\_display\_start**](#function-bsp_display_start) (void) <br>_Initialize display._ |
 |  lv\_display\_t \* | [**bsp\_display\_start\_with\_config**](#function-bsp_display_start_with_config) (const [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) \*cfg) <br>_Initialize display._ |
@@ -935,15 +953,13 @@ Below are some of the most relevant predefined constants:
 | define  | [**BSP\_LCD\_BITS\_PER\_PIXEL**](#define-bsp_lcd_bits_per_pixel)  (16)<br> |
 | define  | [**BSP\_LCD\_COLOR\_FORMAT**](#define-bsp_lcd_color_format)  (ESP\_LCD\_COLOR\_FORMAT\_RGB565)<br> |
 | define  | [**BSP\_LCD\_COLOR\_SPACE**](#define-bsp_lcd_color_space)  (LCD\_RGB\_ELEMENT\_ORDER\_RGB)<br> |
+| define  | [**BSP\_LCD\_CS**](#define-bsp_lcd_cs)  (GPIO\_NUM\_44)<br> |
+| define  | [**BSP\_LCD\_DATA0**](#define-bsp_lcd_data0)  (GPIO\_NUM\_47)<br> |
 | define  | [**BSP\_LCD\_DC**](#define-bsp_lcd_dc)  (GPIO\_NUM\_43)<br> |
-| define  | [**BSP\_LCD\_DRAW\_BUFF\_DOUBLE**](#define-bsp_lcd_draw_buff_double)  (0)<br> |
-| define  | [**BSP\_LCD\_DRAW\_BUFF\_SIZE**](#define-bsp_lcd_draw_buff_size)  (BSP\_LCD\_H\_RES \* BSP\_LCD\_V\_RES)<br> |
 | define  | [**BSP\_LCD\_H\_RES**](#define-bsp_lcd_h_res)  (240)<br> |
+| define  | [**BSP\_LCD\_PCLK**](#define-bsp_lcd_pclk)  (GPIO\_NUM\_21)<br> |
 | define  | [**BSP\_LCD\_PIXEL\_CLOCK\_HZ**](#define-bsp_lcd_pixel_clock_hz)  (80 \* 1000 \* 1000)<br> |
 | define  | [**BSP\_LCD\_RST**](#define-bsp_lcd_rst)  (GPIO\_NUM\_NC)<br> |
-| define  | [**BSP\_LCD\_SPI\_CLK**](#define-bsp_lcd_spi_clk)  (GPIO\_NUM\_21)<br> |
-| define  | [**BSP\_LCD\_SPI\_CS**](#define-bsp_lcd_spi_cs)  (GPIO\_NUM\_44)<br> |
-| define  | [**BSP\_LCD\_SPI\_MOSI**](#define-bsp_lcd_spi_mosi)  (GPIO\_NUM\_47)<br> |
 | define  | [**BSP\_LCD\_SPI\_NUM**](#define-bsp_lcd_spi_num)  (SPI3\_HOST)<br> |
 | define  | [**BSP\_LCD\_V\_RES**](#define-bsp_lcd_v_res)  (240)<br> |
 | define  | [**ESP\_LCD\_COLOR\_FORMAT\_RGB565**](#define-esp_lcd_color_format_rgb565)  (1)<br> |
@@ -970,6 +986,8 @@ Variables:
 
 -  lvgl\_port\_cfg\_t lvgl_port_cfg  <br>LVGL port configuration
 
+-  unsigned int sw_rotate  <br>Use software rotation (slower), The feature is unavailable under avoid-tear mode
+
 ### struct `bsp_display_config_t`
 
 _BSP display configuration structure._
@@ -977,6 +995,18 @@ _BSP display configuration structure._
 Variables:
 
 -  int max_transfer_sz  <br>Maximum transfer size, in bytes.
+
+### struct `bsp_lcd_handles_t`
+
+_BSP display return handles._
+
+Variables:
+
+-  esp\_lcd\_panel\_handle\_t control  <br>ESP LCD panel (control) handle
+
+-  esp\_lcd\_panel\_io\_handle\_t io  <br>ESP LCD IO handle
+
+-  esp\_lcd\_panel\_handle\_t panel  <br>ESP LCD panel (color) handle
 
 
 ## Functions Documentation
@@ -1013,6 +1043,22 @@ esp_err_t bsp_display_backlight_on (
 
 Brightness is controlled with PWM signal to a pin controlling backlight. Brightness must be already initialized by calling [**bsp\_display\_brightness\_init()**](#function-bsp_display_brightness_init) or[**bsp\_display\_new()**](#function-bsp_display_new)
 
+
+
+**Returns:**
+
+
+
+* ESP\_OK On success
+* ESP\_ERR\_INVALID\_ARG Parameter error
+### function `bsp_display_brightness_deinit`
+
+_Deinitialize display's brightness._
+```c
+esp_err_t bsp_display_brightness_deinit (
+    void
+) 
+```
 
 
 **Returns:**
@@ -1067,6 +1113,55 @@ Brightness is controlled with PWM signal to a pin controlling backlight. Brightn
 
 * ESP\_OK On success
 * ESP\_ERR\_INVALID\_ARG Parameter error
+### function `bsp_display_delete`
+
+_Delete display panel._
+```c
+void bsp_display_delete (
+    void
+) 
+```
+
+### function `bsp_display_enter_sleep`
+
+_Set display enter sleep mode._
+```c
+esp_err_t bsp_display_enter_sleep (
+    void
+) 
+```
+
+
+All the display (LCD, backlight, touch) will enter sleep mode.
+
+
+
+**Returns:**
+
+
+
+* ESP\_OK on success
+* ESP\_ERR\_NOT\_SUPPORTED if this function is not supported by the panel
+### function `bsp_display_exit_sleep`
+
+_Set display exit sleep mode._
+```c
+esp_err_t bsp_display_exit_sleep (
+    void
+) 
+```
+
+
+All the display (LCD, backlight, touch) will exit sleep mode.
+
+
+
+**Returns:**
+
+
+
+* ESP\_OK on success
+* ESP\_ERR\_NOT\_SUPPORTED if this function is not supported by the panel
 ### function `bsp_display_get_input_dev`
 
 _Get pointer to input device (touch, buttons, ...)_
@@ -1152,6 +1247,43 @@ spi_bus_free(spi_num_from_configuration);
 
 * ESP\_OK On success
 * Else esp\_lcd failure
+### function `bsp_display_new_with_handles`
+
+_Create new display panel._
+```c
+esp_err_t bsp_display_new_with_handles (
+    const bsp_display_config_t *config,
+    bsp_lcd_handles_t *ret_handles
+) 
+```
+
+
+For maximum flexibility, this function performs only reset and initialization of the display. You must turn on the display explicitly by calling esp\_lcd\_panel\_disp\_on\_off(). The display's backlight is not turned on either. You can use bsp\_display\_backlight\_on/off(), [**bsp\_display\_brightness\_set()**](#function-bsp_display_brightness_set) (on supported boards) or implement your own backlight control.
+
+If you want to free resources allocated by this function, you can use API:
+
+
+````cpp
+bsp_display_delete();
+````
+
+
+
+
+
+**Parameters:**
+
+
+* `config` display configuration 
+* `ret_handles` all esp\_lcd handles in one structure 
+
+
+**Returns:**
+
+
+
+* ESP\_OK On success
+* Else esp\_lcd failure
 ### function `bsp_display_rotate`
 
 _Rotate screen._
@@ -1182,7 +1314,7 @@ lv_display_t * bsp_display_start (
 ```
 
 
-This function initializes SPI, display controller and starts LVGL handling task.
+This function initializes SPI, display controller and starts LVGL handling task. LCD backlight must be enabled separately by calling [**bsp\_display\_brightness\_set()**](#function-bsp_display_brightness_set)
 
 
 
@@ -1277,8 +1409,7 @@ static void btn_handler(void *button_handle, void *usr_data)
 
 | Type | Name |
 | ---: | :--- |
-| define  | [**BSP\_BUTTONS\_IO**](#define-bsp_buttons_io)  (GPIO\_NUM\_1)<br> |
-| define  | [**BSP\_BUTTON\_BOOT\_IO**](#define-bsp_button_boot_io)  (GPIO\_NUM\_0)<br> |
+| define  | [**BSP\_BUTTON\_5\_IO**](#define-bsp_button_5_io)  (GPIO\_NUM\_0)<br> |
 
 
 ## Structures and Types Documentation
@@ -1287,11 +1418,11 @@ static void btn_handler(void *button_handle, void *usr_data)
 
 ```c
 enum bsp_button_t {
-    BSP_BUTTON_MENU = 0,
-    BSP_BUTTON_PLAY,
-    BSP_BUTTON_DOWN,
-    BSP_BUTTON_UP,
-    BSP_BUTTON_BOOT,
+    BSP_BUTTON_1,
+    BSP_BUTTON_2,
+    BSP_BUTTON_3,
+    BSP_BUTTON_4,
+    BSP_BUTTON_5,
     BSP_BUTTON_NUM
 };
 ```
@@ -1312,12 +1443,6 @@ esp_err_t bsp_iot_button_create (
 
 
 Returned button handlers must be used with espressif/button component API
-
-
-
-**Note:**
-
-For LCD panel button which is defined as BSP\_BUTTON\_MAIN, bsp\_display\_start should be called before call this function.
 
 
 
@@ -1375,44 +1500,57 @@ led_indicator_start(leds[0], BSP_LED_BREATHE_SLOW);
 
 | Type | Name |
 | ---: | :--- |
+| enum  | [**bsp\_led\_effect\_t**](#enum-bsp_led_effect_t)  <br> |
 | enum  | [**bsp\_led\_t**](#enum-bsp_led_t)  <br> |
-| typedef enum bsp\_led\_t | [**bsp\_led\_t**](#typedef-bsp_led_t)  <br> |
 
 ## Functions
 
 | Type | Name |
 | ---: | :--- |
-|  esp\_err\_t | [**bsp\_led\_set**](#function-bsp_led_set) (const bsp\_led\_t led\_io, const bool on) <br>_Turn LED on/off._ |
-|  esp\_err\_t | [**bsp\_leds\_init**](#function-bsp_leds_init) (void) <br>_Set LED's GPIOs as output push-pull._ |
+|  esp\_err\_t | [**bsp\_led\_indicator\_create**](#function-bsp_led_indicator_create) (led\_indicator\_handle\_t led\_array, int \*led\_cnt, int led\_array\_size) <br>_Initialize all LEDs._ |
+|  esp\_err\_t | [**bsp\_led\_set**](#function-bsp_led_set) (led\_indicator\_handle\_t handle, const bool on) <br>_Turn LED on/off._ |
 
+## Macros
+
+| Type | Name |
+| ---: | :--- |
+| define  | [**BSP\_LED\_1\_IO**](#define-bsp_led_1_io)  (GPIO\_NUM\_3)<br> |
 
 
 ## Structures and Types Documentation
+
+### enum `bsp_led_effect_t`
+
+```c
+enum bsp_led_effect_t {
+    BSP_LED_ON,
+    BSP_LED_OFF,
+    BSP_LED_BLINK_FAST,
+    BSP_LED_BLINK_SLOW,
+    BSP_LED_MAX
+};
+```
 
 ### enum `bsp_led_t`
 
 ```c
 enum bsp_led_t {
-    BSP_LED_GREEN = GPIO_NUM_3
+    BSP_LED_1,
+    BSP_LED_NUM
 };
-```
-
-### typedef `bsp_led_t`
-
-```c
-typedef enum bsp_led_t bsp_led_t;
 ```
 
 
 ## Functions Documentation
 
-### function `bsp_led_set`
+### function `bsp_led_indicator_create`
 
-_Turn LED on/off._
+_Initialize all LEDs._
 ```c
-esp_err_t bsp_led_set (
-    const bsp_led_t led_io,
-    const bool on
+esp_err_t bsp_led_indicator_create (
+    led_indicator_handle_t led_array,
+    int *led_cnt,
+    int led_array_size
 ) 
 ```
 
@@ -1420,8 +1558,9 @@ esp_err_t bsp_led_set (
 **Parameters:**
 
 
-* `led_io` LED io 
-* `on` Switch LED on/off 
+* `led_array` Output LED array 
+* `led_cnt` Number of LED handlers saved to led\_array, can be NULL 
+* `led_array_size` Size of output LED array. Must be at least BSP\_LED\_NUM 
 
 
 **Returns:**
@@ -1430,14 +1569,22 @@ esp_err_t bsp_led_set (
 
 * ESP\_OK Success
 * ESP\_ERR\_INVALID\_ARG Parameter error
-### function `bsp_leds_init`
+### function `bsp_led_set`
 
-_Set LED's GPIOs as output push-pull._
+_Turn LED on/off._
 ```c
-esp_err_t bsp_leds_init (
-    void
+esp_err_t bsp_led_set (
+    led_indicator_handle_t handle,
+    const bool on
 ) 
 ```
+
+
+**Parameters:**
+
+
+* `handle` led handle 
+* `on` Switch LED on/off 
 
 
 **Returns:**
@@ -1454,45 +1601,29 @@ esp_err_t bsp_leds_init (
 
 ## :camera: Camera
 
-There is no dedicated BSP API for camera functionality. Instead, the BSP provides default configuration macros:
-- `BSP_CAMERA_DEFAULT_CONFIG`
-- `BSP_CAMERA_VFLIP`
-- `BSP_CAMERA_HMIRROR`
-
-These macros are designed for use with the [esp32-camera](https://components.espressif.com/components/espressif/esp32-camera) component.
-
-> [!NOTE]
-> Don't forget to initialize I2C (`bsp_i2c_init()`) before using the camera, as some camera modules require I2C for configuration.
+The BSP provides a helper function bsp_camera_start() for initializing the on-board camera module.
+This function sets up the required I2C bus, video subsystem, and camera clock if necessary.
 
 ### Example Usage
 
-```
-/* Initialize I2C bus (required by camera module) */
-bsp_i2c_init();
+Camera usage can be quite complex. For a complete example, refer to the [`display_camera_video`](https://github.com/espressif/esp-bsp/tree/master/examples/display_camera_video) example in the BSP repository, or to the examples provided in the [`esp_video`](https://github.com/espressif/esp-video-components/tree/master/esp_video) component.
 
-/* Initialize the camera using BSP default config */
-const camera_config_t camera_config = BSP_CAMERA_DEFAULT_CONFIG;
-esp_camera_init(&camera_config);
-
-/* Optional: Set camera orientation */
-sensor_t *s = esp_camera_sensor_get();
-s->set_vflip(s, BSP_CAMERA_VFLIP);     // Vertical flip
-s->set_hmirror(s, BSP_CAMERA_HMIRROR); // Horizontal mirror
-
-...
-
-/* Capture a frame */
-camera_fb_t * pic = esp_camera_fb_get();
-if (pic) {
-    /* Access raw image data in pic->buf with size pic->len */
-    process_image(pic->buf, pic->len);  // Replace with your function
-    esp_camera_fb_return(pic);
-}
-```
+> [!NOTE]
+> Please, do not forget select right camera sensor in `menuconfig`
 
 ### Camera API Reference
 
+## Structures and Types
 
+| Type | Name |
+| ---: | :--- |
+| struct | [**bsp\_camera\_cfg\_t**](#struct-bsp_camera_cfg_t) <br>_BSP camera configuration structure (for future use)_ |
+
+## Functions
+
+| Type | Name |
+| ---: | :--- |
+|  esp\_err\_t | [**bsp\_camera\_start**](#function-bsp_camera_start) (const [**bsp\_camera\_cfg\_t**](#struct-bsp_camera_cfg_t) \*cfg) <br>_Initialize camera._ |
 
 ## Macros
 
@@ -1506,16 +1637,41 @@ if (pic) {
 | define  | [**BSP\_CAMERA\_D5**](#define-bsp_camera_d5)  (GPIO\_NUM\_18)<br> |
 | define  | [**BSP\_CAMERA\_D6**](#define-bsp_camera_d6)  (GPIO\_NUM\_17)<br> |
 | define  | [**BSP\_CAMERA\_D7**](#define-bsp_camera_d7)  (GPIO\_NUM\_16)<br> |
-| define  | [**BSP\_CAMERA\_DEFAULT\_CONFIG**](#define-bsp_camera_default_config)  <br>_ESP32-S3-EYE camera default configuration._ |
-| define  | [**BSP\_CAMERA\_HMIRROR**](#define-bsp_camera_hmirror)  0<br> |
+| define  | [**BSP\_CAMERA\_DEVICE**](#define-bsp_camera_device)  (ESP\_VIDEO\_DVP\_DEVICE\_NAME)<br> |
+| define  | [**BSP\_CAMERA\_GPIO\_XCLK**](#define-bsp_camera_gpio_xclk)  (GPIO\_NUM\_15)<br> |
+| define  | [**BSP\_CAMERA\_HFLIP**](#define-bsp_camera_hflip)  (0)<br> |
 | define  | [**BSP\_CAMERA\_HSYNC**](#define-bsp_camera_hsync)  (GPIO\_NUM\_7)<br> |
 | define  | [**BSP\_CAMERA\_PCLK**](#define-bsp_camera_pclk)  (GPIO\_NUM\_13)<br> |
-| define  | [**BSP\_CAMERA\_VFLIP**](#define-bsp_camera_vflip)  1<br> |
+| define  | [**BSP\_CAMERA\_RST**](#define-bsp_camera_rst)  (GPIO\_NUM\_NC)<br> |
+| define  | [**BSP\_CAMERA\_VFLIP**](#define-bsp_camera_vflip)  (1)<br> |
 | define  | [**BSP\_CAMERA\_VSYNC**](#define-bsp_camera_vsync)  (GPIO\_NUM\_6)<br> |
-| define  | [**BSP\_CAMERA\_XCLK**](#define-bsp_camera_xclk)  (GPIO\_NUM\_15)<br> |
+| define  | [**BSP\_CAMERA\_XCLK\_CLOCK\_MHZ**](#define-bsp_camera_xclk_clock_mhz)  (16)<br> |
 
 
+## Structures and Types Documentation
 
+### struct `bsp_camera_cfg_t`
+
+_BSP camera configuration structure (for future use)_
+
+Variables:
+
+-  uint8\_t dummy  
+
+
+## Functions Documentation
+
+### function `bsp_camera_start`
+
+_Initialize camera._
+```c
+esp_err_t bsp_camera_start (
+    const bsp_camera_cfg_t *cfg
+) 
+```
+
+
+Camera sensor initialization.
 
 
 

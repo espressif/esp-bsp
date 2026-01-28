@@ -40,7 +40,7 @@ ESP32-P4-EYE is a vision development board based on the ESP32-P4 chip, mainly ta
 |:heavy_check_mark:| :microphone: AUDIO_MIC |                |                                                                                                      |            |
 |:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                  idf                                                 |    >=5.4   |
 |:heavy_check_mark:|       :bulb: LED       |                |idf<br/>[espressif/led_indicator](https://components.espressif.com/components/espressif/led_indicator)|>=5.4<br/>^2|
-|:heavy_check_mark:|     :camera: CAMERA    |     OV2710     |                                                                                                      |            |
+|:heavy_check_mark:|     :camera: CAMERA    |     OV2710     |        [espressif/esp_video](https://components.espressif.com/components/espressif/esp_video)        |    ~1.4    |
 |:heavy_check_mark:|      :battery: BAT     |                |                                                  idf                                                 |    >=5.4   |
 |        :x:       |    :video_game: IMU    |                |                                                                                                      |            |
 
@@ -55,7 +55,7 @@ ESP32-P4-EYE is a vision development board based on the ESP32-P4 chip, mainly ta
 | Example | Description | Try with ESP Launchpad |
 | ------- | ----------- | ---------------------- |
 | [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
-| [Camera Example (MIPI-CSI)](https://github.com/espressif/esp-bsp/tree/master/examples/display_camera_csi) | Stream camera (MIPI-CSI) output to display (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera-) |
+| [Camera Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_camera_video) | Stream camera output to display (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera_video) |
 | [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos-) |
 | [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-) |
 
