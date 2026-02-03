@@ -48,6 +48,7 @@ capability_dict = {
     # 'AUDIO_MIC' : r'',
     'SDCARD': r'(^idf$)',  # SD card driver is native to ESP-IDF
     'IMU': r'(icm42670$|mpu6050$|qma6100p$)',
+    'HUMITURE': r'(aht30$)',
     'LED': r'(led_indicator$|^idf$)',  # Provided by led_indicator or idf
     'BAT': r'(^idf$)',  # Battery (ADC driver) is native to ESP-IDF
     'CAMERA': r'(esp32-camera$)',  # esp32-camera component
@@ -68,6 +69,7 @@ capability_emojis = {
     "AUDIO_SPEAKER": ":speaker:",
     "SDCARD": ":floppy_disk:",
     "IMU": ":video_game:",
+    "HUMITURE": ":thermometer:",
     "USB": ":electric_plug:",
     "BUTTONS": ":radio_button:",
     "LED": ":bulb:",

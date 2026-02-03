@@ -1,0 +1,14 @@
+# This file was generated using idf.py save-defconfig. It can be edited manually.
+# Espressif IoT Development Framework (ESP-IDF) Project Minimal Configuration
+#
+CONFIG_IDF_TARGET="esp32"
+CONFIG_LV_USE_FLOAT=y
+# CONFIG_LV_BUILD_EXAMPLES is not set
+
+## LVGL9 ##
+CONFIG_LV_CONF_SKIP=y
+
+#CLIB default
+CONFIG_LV_USE_CLIB_MALLOC=y
+CONFIG_LV_USE_CLIB_SPRINTF=y
+CONFIG_LV_USE_CLIB_STRING=y

@@ -5,8 +5,8 @@
 
 
 
-| :1234: [CAPABILITIES](#1234-capabilities) | :floppy_disk: [SD CARD AND SPIFFS](#floppy_disk-sd-card-and-spiffs) | :musical_note: [AUDIO](#musical_note-audio) | :pager: [DISPLAY AND TOUCH](#pager-display-and-touch) | :radio_button: [BUTTONS](#radio_button-buttons) | :electric_plug: [USB](#electric_plug-usb) | 
-| :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | 
+| :1234: [CAPABILITIES](#1234-capabilities) | :floppy_disk: [SD CARD AND SPIFFS](#floppy_disk-sd-card-and-spiffs) | :musical_note: [AUDIO](#musical_note-audio) | :pager: [DISPLAY AND TOUCH](#pager-display-and-touch) | :radio_button: [BUTTONS](#radio_button-buttons) | :electric_plug: [USB](#electric_plug-usb) | :video_game: [SENSORS](#video_game-sensors) | 
+| :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | 
 
 </div>
 
@@ -149,6 +149,7 @@ You can use these macros to conditionally compile code depending on feature avai
 | define  | [**BSP\_CAPS\_AUDIO\_SPEAKER**](#define-bsp_caps_audio_speaker)  1<br> |
 | define  | [**BSP\_CAPS\_BUTTONS**](#define-bsp_caps_buttons)  1<br> |
 | define  | [**BSP\_CAPS\_DISPLAY**](#define-bsp_caps_display)  1<br> |
+| define  | [**BSP\_CAPS\_HUMITURE**](#define-bsp_caps_humiture)  1<br> |
 | define  | [**BSP\_CAPS\_IMU**](#define-bsp_caps_imu)  1<br> |
 | define  | [**BSP\_CAPS\_SDCARD**](#define-bsp_caps_sdcard)  1<br> |
 | define  | [**BSP\_CAPS\_TOUCH**](#define-bsp_caps_touch)  1<br> |
@@ -213,6 +214,8 @@ You can use these macros to conditionally compile code depending on feature avai
 
 | Type | Name |
 | ---: | :--- |
+| define  | [**BSP\_I2C\_DOCK\_SCL**](#define-bsp_i2c_dock_scl)  (GPIO\_NUM\_40)<br> |
+| define  | [**BSP\_I2C\_DOCK\_SDA**](#define-bsp_i2c_dock_sda)  (GPIO\_NUM\_41)<br> |
 | define  | [**BSP\_I2C\_NUM**](#define-bsp_i2c_num)  CONFIG\_BSP\_I2C\_NUM<br> |
 | define  | [**BSP\_I2C\_SCL**](#define-bsp_i2c_scl)  (GPIO\_NUM\_18)<br> |
 | define  | [**BSP\_I2C\_SDA**](#define-bsp_i2c_sda)  (GPIO\_NUM\_8)<br> |
@@ -1464,6 +1467,110 @@ For more USB-related APIs and configuration options, check the corresponding BSP
 
 
 
+
+
+
+
+
+
+## :video_game: Sensors
+
+Boards with integrated sensors (e.g., IMUs, environmental sensors) are abstracted using the sensor hub component.
+The BSP project provides APIs for initializing each sensor and it is up to the integrating platform to provide configuration of the data acquisition and callback handlers.
+
+For practical usage examples and supported sensors on your board, refer to the relevant examples in the BSP repository, such as:
+- `sensors` (for reading sensor data)
+- TODO: `display_rotation` (for IMU setup and orientation control)
+
+### Usage
+
+Create a handler function for sensor hub events
+``` c
+void sensor_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data)
+{
+    ...
+}
+```
+
+Set up a sensor configuration and initialize it
+``` c
+bsp_sensor_config_t imu_config = {
+    .type = IMU_ID,
+    .mode = MODE_POLLING,
+    .period = 1000
+};
+ESP_ERROR_CHECK(bsp_sensor_init(&imu_config, &imu_sensor_handle));
+```
+
+Associate an event handler with the configured sensor
+``` c
+iot_sensor_handler_register(imu_sensor_handle, sensor_event_handler, NULL);
+```
+
+Start the sensor data acquisition
+``` c
+iot_sensor_start(imu_sensor_handle);
+```
+
+**Notes:**
+- More information can be found in [sensor hub documentation page](https://docs.espressif.com/projects/esp-iot-solution/en/latest/sensors/sensor_hub.html).
+
+### Sensors API Reference
+
+## Structures and Types
+
+| Type | Name |
+| ---: | :--- |
+| struct | [**bsp\_sensor\_config\_t**](#struct-bsp_sensor_config_t) <br>_BSP sensor configuration structure._ |
+
+## Functions
+
+| Type | Name |
+| ---: | :--- |
+|  esp\_err\_t | [**bsp\_sensor\_init**](#function-bsp_sensor_init) (const [**bsp\_sensor\_config\_t**](#struct-bsp_sensor_config_t) \*cfg, sensor\_handle\_t \*sensor\_handle) <br>_Initialize a sensor._ |
+
+
+
+## Structures and Types Documentation
+
+### struct `bsp_sensor_config_t`
+
+_BSP sensor configuration structure._
+
+Variables:
+
+-  sensor\_mode\_t mode  
+
+-  uint16\_t period  
+
+-  sensor\_type\_t type  
+
+
+## Functions Documentation
+
+### function `bsp_sensor_init`
+
+_Initialize a sensor._
+```c
+esp_err_t bsp_sensor_init (
+    const bsp_sensor_config_t *cfg,
+    sensor_handle_t *sensor_handle
+) 
+```
+
+
+**Parameters:**
+
+
+* `cfg` Pointer to the sensor configuration 
+* `sensor_handle` Pointer to the outgoing sensor handle 
+
+
+**Returns:**
+
+
+
+* ESP\_OK on success, otherwise returns ESP\_ERR\_xxx
 
 
 

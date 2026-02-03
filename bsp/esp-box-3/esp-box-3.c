@@ -28,7 +28,12 @@
 #include "bsp_err_check.h"
 #include "esp_codec_dev_defaults.h"
 
+#include "icm42670.h"
+#include "aht30.h"
+
 static const char *TAG = "ESP-BOX-3";
+
+#define I2C_CLK_SPEED 400000
 
 /** @cond */
 _Static_assert(CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0, "Touch buttons must be supported for this BSP");
@@ -73,6 +78,7 @@ static bool spi_sd_initialized = false;
  * For IDF 5.2 and 5.3 you must call bsp_i2c_get_handle()
  */
 static i2c_master_bus_handle_t i2c_handle = NULL;
+static i2c_master_bus_handle_t i2c_dock_handle = NULL;
 static bool i2c_initialized = false;
 
 // This is just a wrapper to get function signature for espressif/button API callback
@@ -132,6 +138,24 @@ esp_err_t bsp_i2c_init(void)
     };
     BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
+    const i2c_master_bus_config_t i2c_dock_config = {
+#if BSP_I2C_NUM == 1
+        .i2c_port = 0,
+#else
+        .i2c_port = 1,
+#endif
+        .sda_io_num = BSP_I2C_DOCK_SDA,
+        .scl_io_num = BSP_I2C_DOCK_SCL,
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+    };
+
+    esp_err_t ret = i2c_new_master_bus(&i2c_dock_config, &i2c_dock_handle);
+    if (ret != ESP_OK) {
+        i2c_del_master_bus(i2c_handle);
+        i2c_handle = NULL;
+        return ret;
+    }
+
     i2c_initialized = true;
     return ESP_OK;
 }
@@ -139,6 +163,7 @@ esp_err_t bsp_i2c_init(void)
 esp_err_t bsp_i2c_deinit(void)
 {
     BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_dock_handle));
     i2c_initialized = false;
     return ESP_OK;
 }
@@ -841,4 +866,37 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
         }
     }
     return ret;
+}
+
+esp_err_t bsp_sensor_init(const bsp_sensor_config_t *cfg, sensor_handle_t *sensor_handle)
+{
+    ESP_RETURN_ON_FALSE(cfg != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the sensor config can't be NULL");
+    ESP_RETURN_ON_FALSE(sensor_handle != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the sensor handle can't be NULL");
+
+    esp_err_t err = ESP_OK;
+
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+
+    sensor_config_t config = {
+        .type = cfg->type,
+        .mode = cfg->mode,
+        .min_delay = cfg->period
+    };
+
+    switch (cfg->type) {
+    case IMU_ID:
+        config.bus = i2c_handle;
+        config.addr = ICM42670_I2C_ADDRESS;
+        err = iot_sensor_create("sensor_hub_icm42670", &config, sensor_handle);
+        break;
+    case HUMITURE_ID:
+        config.bus = i2c_dock_handle;
+        config.addr = AHT30_I2C_ADDRESS;
+        err = iot_sensor_create("sensor_hub_aht30", &config, sensor_handle);
+        break;
+    default:
+        return ESP_FAIL;
+    }
+
+    return err;
 }

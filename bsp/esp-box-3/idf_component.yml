@@ -1,4 +1,4 @@
-version: 3.0.3
+version: 3.1.0
 description: Board Support Package (BSP) for ESP32-S3-BOX-3
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box-3
 
@@ -38,6 +38,10 @@ dependencies:
     public: true
     override_path: ../../components/sensors/icm42670
 
+  aht30:
+    version: '^1.0.0'
+    override_path: ../../components/sensors/aht30
+
 examples:
 - path: ../../examples/display
 - path: ../../examples/display_rotation
@@ -45,3 +49,4 @@ examples:
 - path: ../../examples/display_lvgl_demos
 - path: ../../examples/display_lvgl_benchmark
 - path: ../../examples/display_sdcard
+- path: ../../examples/sensors
