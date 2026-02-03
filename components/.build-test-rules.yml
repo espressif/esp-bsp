@@ -41,6 +41,13 @@ components/sensors/icm42670:
     - if: IDF_VERSION < "5.2.0"
       reason: Requires I2C Driver-NG which was introduced in v5.2
 
+components/sensors/aht30:
+  depends_filepatterns:
+    - "components/sensors/aht30/**"
+  disable:
+    - if: IDF_VERSION < "5.2.0"
+      reason: Requires I2C Driver-NG which was introduced in v5.2
+
 components/qma6100p:
   depends_filepatterns:
     - "components/qma6100p/**"

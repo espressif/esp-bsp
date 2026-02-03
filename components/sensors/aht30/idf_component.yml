@@ -1,0 +1,8 @@
+version: 1.0.0
+description: I2C driver for ATH30 temperature and humidity sensor
+url: https://github.com/espressif/esp-bsp/tree/master/components/aht30
+dependencies:
+  idf: ">=5.2"
+  sensor_hub:
+    version: ^0.1.4
+    public: true
