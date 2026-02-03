@@ -4,13 +4,13 @@ on:
   push:
     branches:
       - master
-    paths: 
+    paths:
       - '.github/**'
       - 'bsp/**'
       - 'components/**'
   pull_request:
     types: [opened, reopened, synchronize]
-    paths: 
+    paths:
       - '.github/**'
       - 'bsp/**'
       - 'components/**'
@@ -79,7 +79,6 @@ jobs:
             components/mag3110
             components/mpu6050
             components/esp_lvgl_port
-            components/icm42670
             components/qma6100p
             components/lcd_touch/esp_lcd_touch
             components/lcd_touch/esp_lcd_touch_ft5x06
@@ -103,6 +102,7 @@ jobs:
             components/io_expander/esp_io_expander_tca95xx_16bit
             components/io_expander/esp_io_expander_ht8574
             components/io_expander/esp_io_expander_pi4ioe5v6408
+            components/sensors/icm42670
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
           dry_run: ${{ github.ref_name != 'master' || github.repository_owner != 'espressif' }}

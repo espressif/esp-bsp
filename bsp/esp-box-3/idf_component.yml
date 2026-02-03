@@ -36,7 +36,7 @@ dependencies:
   icm42670:
     version: ^2.0.2
     public: true
-    override_path: "../../components/icm42670"
+    override_path: ../../components/sensors/icm42670
 
 examples:
 - path: ../../examples/display
