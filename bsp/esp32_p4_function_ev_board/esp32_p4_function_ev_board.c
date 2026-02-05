@@ -849,13 +849,8 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
         },
         .flags = {
             .swap_xy = 0,
-#if CONFIG_BSP_LCD_TYPE_1024_600
             .mirror_x = 1,
             .mirror_y = 1,
-#else
-            .mirror_x = 0,
-            .mirror_y = 0,
-#endif
         },
     };
     esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
