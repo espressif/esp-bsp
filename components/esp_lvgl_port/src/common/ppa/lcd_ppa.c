@@ -18,10 +18,10 @@
 #define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
 
 struct lvgl_port_ppa_t {
-    uint8_t             *buffer;
-    uint32_t            buffer_size;
-    ppa_client_handle_t srm_handle;
-    uint32_t            color_type_id;
+    uint8_t              *buffer;
+    uint32_t             buffer_size;
+    ppa_client_handle_t  srm_handle;
+    ppa_srm_color_mode_t color_mode;
 };
 
 static const char *TAG = "PPA";
@@ -74,7 +74,7 @@ lvgl_port_ppa_handle_t lvgl_port_ppa_create(const lvgl_port_ppa_cfg_t *cfg)
                       "Error when registering PPA callbacks!");
 #endif
 
-    ppa_ctx->color_type_id = COLOR_TYPE_ID(cfg->color_space, cfg->pixel_format);
+    ppa_ctx->color_mode = cfg->color_mode;
 
 err:
     if (ret != ESP_OK) {
@@ -169,7 +169,7 @@ esp_err_t lvgl_port_ppa_rotate(lvgl_port_ppa_handle_t handle, lvgl_port_ppa_disp
         .in.block_h = h,
         .in.block_offset_x = 0,
         .in.block_offset_y = 0,
-        .in.srm_cm = ppa_ctx->color_type_id,
+        .in.srm_cm = ppa_ctx->color_mode,
 
         .out.buffer = ppa_ctx->buffer,
         .out.buffer_size = ppa_ctx->buffer_size,
@@ -177,7 +177,7 @@ esp_err_t lvgl_port_ppa_rotate(lvgl_port_ppa_handle_t handle, lvgl_port_ppa_disp
         .out.pic_h = out_h,
         .out.block_offset_x = 0,
         .out.block_offset_y = 0,
-        .out.srm_cm = ppa_ctx->color_type_id,
+        .out.srm_cm = ppa_ctx->color_mode,
 
         .rotation_angle = rotate_cfg->rotation,
         .scale_x = 1.0,

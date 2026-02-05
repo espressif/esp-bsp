@@ -8,6 +8,7 @@
 ### Fixes
 - Fixed deinitialization of the task which was created with caps - https://github.com/espressif/esp-bsp/issues/680
 - Call lv_deinit() - https://github.com/espressif/esp-bsp/issues/635
+- Fixed PPA rotation for IDF6
 
 ## 2.7.0
 

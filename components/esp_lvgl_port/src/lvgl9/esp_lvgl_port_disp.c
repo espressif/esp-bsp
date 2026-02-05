@@ -420,16 +420,15 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
     if (disp_cfg->flags.sw_rotate) {
 #if LVGL_PORT_PPA
         ESP_LOGI(TAG, "Setting PPA context for SW rotation");
-        uint32_t pixel_format = COLOR_PIXEL_RGB565;
+        ppa_srm_color_mode_t color_mode = PPA_SRM_COLOR_MODE_RGB565;
         if (disp_cfg->color_format == LV_COLOR_FORMAT_RGB888) {
-            pixel_format = COLOR_PIXEL_RGB888;
+            color_mode = PPA_SRM_COLOR_MODE_RGB888;
         }
 
         /* Create LCD PPA for rotation */
         lvgl_port_ppa_cfg_t ppa_cfg = {
             .buffer_size = disp_cfg->buffer_size * color_bytes,
-            .color_space = COLOR_SPACE_RGB,
-            .pixel_format = pixel_format,
+            .color_mode = color_mode,
             .flags = {
                 .buff_dma = disp_cfg->flags.buff_dma,
                 .buff_spiram = disp_cfg->flags.buff_spiram,
