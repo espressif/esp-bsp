@@ -1,34 +1,10 @@
-menu "Board Support Package"
+menu "Board Support Package (ESP32-C3-LCDKit)"
 
     config BSP_ERROR_CHECK
         bool "Enable error check in BSP"
         default y
         help
             Error check assert the application before returning the error code.
-
-    menu "Display"
-        config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
-        int "LEDC channel index"
-        default 1
-        range 0 7
-        help
-            LEDC channel is used to generate PWM signal that controls display brightness.
-            Set LEDC index that should be used.
-
-        config BSP_LCD_DRAW_BUF_HEIGHT
-        int "LCD framebuf height"
-        default 100
-        range 10 240
-        help
-            Framebuf is used for lvgl rendering output.
-
-        config BSP_LCD_DRAW_BUF_DOUBLE
-        bool "LCD double framebuf"
-        default n
-        help
-            Whether to enable double framebuf.
-    endmenu
-
     menu "SPIFFS - Virtual File System"
         config BSP_SPIFFS_FORMAT_ON_MOUNT_FAIL
             bool "Format SPIFFS if mounting fails"
@@ -54,5 +30,47 @@ menu "Board Support Package"
             help
                 Supported max files for SPIFFS in the Virtual File System.
     endmenu
+    menu "Display"
+        config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
+        int "LEDC channel index"
+        default 1
+        range 0 7
+        help
+            LEDC channel is used to generate PWM signal that controls display brightness.
+            Set LEDC index that should be used.
+                
+        config BSP_LCD_DRAW_BUF_HEIGHT
+        int "LCD framebuf height"
+        default 100
+        range 10 240
+        help
+            Framebuf is used for lvgl rendering output.
 
+        config BSP_LCD_DRAW_BUF_DOUBLE
+        bool "LCD double framebuf"
+        default y
+        help
+            Whether to enable double framebuf.
+    endmenu
+    menu "LEDs"
+        choice BSP_LED_RGB_BACKEND
+            prompt "Adressable RGB LED backend peripheral"
+            default BSP_LED_RGB_BACKEND_RMT
+            help
+                Select the backend peripheral to drive the LED strip.
+
+            config BSP_LED_RGB_BACKEND_RMT
+                bool "RMT"
+            if BSP_ESP_IDF_VERSION>="5.0"
+                config BSP_LED_RGB_BACKEND_SPI
+                    bool "SPI"
+            endif
+        endchoice
+    endmenu
+    config BSP_I2S_NUM
+        int "I2S peripheral index"
+        default 0
+        range 0 0
+        help
+            Pick the I2S you want to use.
 endmenu

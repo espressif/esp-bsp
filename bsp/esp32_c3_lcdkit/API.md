@@ -5,8 +5,8 @@
 
 
 
-| :1234: [CAPABILITIES](#1234-capabilities) | :floppy_disk: [SD CARD AND SPIFFS](#floppy_disk-sd-card-and-spiffs) | :musical_note: [AUDIO](#musical_note-audio) | :pager: [DISPLAY AND TOUCH](#pager-display-and-touch) | :radio_button: [BUTTONS](#radio_button-buttons) | :bulb: [LEDS](#bulb-leds) | :electric_plug: [USB](#electric_plug-usb) | 
-| :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | 
+| :1234: [CAPABILITIES](#1234-capabilities) | :floppy_disk: [SD CARD AND SPIFFS](#floppy_disk-sd-card-and-spiffs) | :musical_note: [AUDIO](#musical_note-audio) | :pager: [DISPLAY AND TOUCH](#pager-display-and-touch) | :bulb: [LEDS](#bulb-leds) | 
+| :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | :-------------------------: | 
 
 </div>
 
@@ -147,7 +147,9 @@ You can use these macros to conditionally compile code depending on feature avai
 | define  | [**BSP\_CAPS\_AUDIO**](#define-bsp_caps_audio)  1<br> |
 | define  | [**BSP\_CAPS\_AUDIO\_MIC**](#define-bsp_caps_audio_mic)  0<br> |
 | define  | [**BSP\_CAPS\_AUDIO\_SPEAKER**](#define-bsp_caps_audio_speaker)  1<br> |
+| define  | [**BSP\_CAPS\_BAT**](#define-bsp_caps_bat)  0<br> |
 | define  | [**BSP\_CAPS\_BUTTONS**](#define-bsp_caps_buttons)  0<br> |
+| define  | [**BSP\_CAPS\_CAMERA**](#define-bsp_caps_camera)  0<br> |
 | define  | [**BSP\_CAPS\_DISPLAY**](#define-bsp_caps_display)  1<br> |
 | define  | [**BSP\_CAPS\_IMU**](#define-bsp_caps_imu)  0<br> |
 | define  | [**BSP\_CAPS\_KNOB**](#define-bsp_caps_knob)  1<br> |
@@ -378,7 +380,8 @@ esp_codec_dev_close(mic_codec_dev);
 | Type | Name |
 | ---: | :--- |
 |  esp\_codec\_dev\_handle\_t | [**bsp\_audio\_codec\_speaker\_init**](#function-bsp_audio_codec_speaker_init) (void) <br>_Initialize speaker codec device._ |
-|  esp\_err\_t | [**bsp\_audio\_init**](#function-bsp_audio_init) (const i2s\_pdm\_tx\_config\_t \*i2s\_config, i2s\_chan\_handle\_t \*tx\_channel) <br>_Init audio._ |
+|  const audio\_codec\_data\_if\_t \* | [**bsp\_audio\_get\_codec\_itf**](#function-bsp_audio_get_codec_itf) (void) <br>_Get codec I2S interface (initialized in bsp\_audio\_init)_ |
+|  esp\_err\_t | [**bsp\_audio\_init**](#function-bsp_audio_init) (const i2s\_std\_config\_t \*i2s\_config) <br>_Init audio._ |
 
 ## Macros
 
@@ -386,6 +389,8 @@ esp_codec_dev_close(mic_codec_dev);
 | ---: | :--- |
 | define  | [**BSP\_I2S\_CLK**](#define-bsp_i2s_clk)  (GPIO\_NUM\_NC)<br> |
 | define  | [**BSP\_I2S\_DOUT**](#define-bsp_i2s_dout)  (GPIO\_NUM\_3)<br> |
+| define  | [**BSP\_I2S\_DSIN**](#define-bsp_i2s_dsin)  (GPIO\_NUM\_NC)<br> |
+| define  | [**BSP\_POWER\_AMP\_IO**](#define-bsp_power_amp_io)  (GPIO\_NUM\_NC)<br> |
 
 
 
@@ -404,13 +409,27 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init (
 **Returns:**
 
 Pointer to codec device handle or NULL when error occurred
+### function `bsp_audio_get_codec_itf`
+
+_Get codec I2S interface (initialized in bsp\_audio\_init)_
+```c
+const audio_codec_data_if_t * bsp_audio_get_codec_itf (
+    void
+) 
+```
+
+
+**Returns:**
+
+
+
+* Pointer to codec I2S interface handle or NULL when error occurred
 ### function `bsp_audio_init`
 
 _Init audio._
 ```c
 esp_err_t bsp_audio_init (
-    const i2s_pdm_tx_config_t *i2s_config,
-    i2s_chan_handle_t *tx_channel
+    const i2s_std_config_t *i2s_config
 ) 
 ```
 
@@ -424,8 +443,7 @@ There is no deinit audio function. Users can free audio resources by calling i2s
 **Parameters:**
 
 
-* `i2s_config` I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz) 
-* `tx_channel` I2S TX channel 
+* `i2s_config` I2S configuration. Pass NULL to use default values 
 
 
 **Returns:**
@@ -557,8 +575,9 @@ Below are some of the most relevant predefined constants:
 
 | Type | Name |
 | ---: | :--- |
-| struct | [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) <br>_BSP display configuration structure._ |
-| struct | [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) <br>_BSP display configuration structure._ |
+| struct | [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) <br>_BSP display (LVGL) configuration structure._ |
+| struct | [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) <br>_BSP display low level configuration structure._ |
+| struct | [**bsp\_lcd\_handles\_t**](#struct-bsp_lcd_handles_t) <br>_BSP display return handles._ |
 
 ## Functions
 
@@ -566,14 +585,19 @@ Below are some of the most relevant predefined constants:
 | ---: | :--- |
 |  esp\_err\_t | [**bsp\_display\_backlight\_off**](#function-bsp_display_backlight_off) (void) <br>_Turn off display backlight._ |
 |  esp\_err\_t | [**bsp\_display\_backlight\_on**](#function-bsp_display_backlight_on) (void) <br>_Turn on display backlight._ |
+|  esp\_err\_t | [**bsp\_display\_brightness\_deinit**](#function-bsp_display_brightness_deinit) (void) <br>_Deinitialize display's brightness._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_init**](#function-bsp_display_brightness_init) (void) <br>_Initialize display's brightness._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_set**](#function-bsp_display_brightness_set) (int brightness\_percent) <br>_Set display's brightness._ |
+|  void | [**bsp\_display\_delete**](#function-bsp_display_delete) (void) <br>_Delete display panel._ |
+|  esp\_err\_t | [**bsp\_display\_enter\_sleep**](#function-bsp_display_enter_sleep) (void) <br>_Set display enter sleep mode._ |
+|  esp\_err\_t | [**bsp\_display\_exit\_sleep**](#function-bsp_display_exit_sleep) (void) <br>_Set display exit sleep mode._ |
 |  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)_ |
 |  bool | [**bsp\_display\_lock**](#function-bsp_display_lock) (uint32\_t timeout\_ms) <br>_Take LVGL mutex._ |
 |  esp\_err\_t | [**bsp\_display\_new**](#function-bsp_display_new) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, esp\_lcd\_panel\_handle\_t \*ret\_panel, esp\_lcd\_panel\_io\_handle\_t \*ret\_io) <br>_Create new display panel._ |
+|  esp\_err\_t | [**bsp\_display\_new\_with\_handles**](#function-bsp_display_new_with_handles) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, [**bsp\_lcd\_handles\_t**](#struct-bsp_lcd_handles_t) \*ret\_handles) <br>_Create new display panel._ |
 |  void | [**bsp\_display\_rotate**](#function-bsp_display_rotate) (lv\_display\_t \*disp, lv\_disp\_rotation\_t rotation) <br>_Rotate screen._ |
 |  lv\_display\_t \* | [**bsp\_display\_start**](#function-bsp_display_start) (void) <br>_Initialize display._ |
-|  lv\_disp\_t \* | [**bsp\_display\_start\_with\_config**](#function-bsp_display_start_with_config) (const [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) \*cfg) <br>_Initialize display._ |
+|  lv\_display\_t \* | [**bsp\_display\_start\_with\_config**](#function-bsp_display_start_with_config) (const [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) \*cfg) <br>_Initialize display._ |
 |  void | [**bsp\_display\_unlock**](#function-bsp_display_unlock) (void) <br>_Give LVGL mutex._ |
 
 ## Macros
@@ -602,7 +626,7 @@ Below are some of the most relevant predefined constants:
 
 ### struct `bsp_display_cfg_t`
 
-_BSP display configuration structure._
+_BSP display (LVGL) configuration structure._
 
 Variables:
 
@@ -618,13 +642,27 @@ Variables:
 
 -  lvgl\_port\_cfg\_t lvgl_port_cfg  <br>LVGL port configuration
 
+-  unsigned int sw_rotate  <br>Use software rotation (slower), The feature is unavailable under avoid-tear mode
+
 ### struct `bsp_display_config_t`
 
-_BSP display configuration structure._
+_BSP display low level configuration structure._
 
 Variables:
 
 -  int max_transfer_sz  <br>Maximum transfer size, in bytes.
+
+### struct `bsp_lcd_handles_t`
+
+_BSP display return handles._
+
+Variables:
+
+-  esp\_lcd\_panel\_handle\_t control  <br>ESP LCD panel (control) handle
+
+-  esp\_lcd\_panel\_io\_handle\_t io  <br>ESP LCD IO handle
+
+-  esp\_lcd\_panel\_handle\_t panel  <br>ESP LCD panel (color) handle
 
 
 ## Functions Documentation
@@ -661,6 +699,22 @@ esp_err_t bsp_display_backlight_on (
 
 Brightness is controlled with PWM signal to a pin controlling backlight. Brightness must be already initialized by calling [**bsp\_display\_brightness\_init()**](#function-bsp_display_brightness_init) or[**bsp\_display\_new()**](#function-bsp_display_new)
 
+
+
+**Returns:**
+
+
+
+* ESP\_OK On success
+* ESP\_ERR\_INVALID\_ARG Parameter error
+### function `bsp_display_brightness_deinit`
+
+_Deinitialize display's brightness._
+```c
+esp_err_t bsp_display_brightness_deinit (
+    void
+) 
+```
 
 
 **Returns:**
@@ -715,6 +769,55 @@ Brightness is controlled with PWM signal to a pin controlling backlight. Brightn
 
 * ESP\_OK On success
 * ESP\_ERR\_INVALID\_ARG Parameter error
+### function `bsp_display_delete`
+
+_Delete display panel._
+```c
+void bsp_display_delete (
+    void
+) 
+```
+
+### function `bsp_display_enter_sleep`
+
+_Set display enter sleep mode._
+```c
+esp_err_t bsp_display_enter_sleep (
+    void
+) 
+```
+
+
+All the display (LCD, backlight, touch) will enter sleep mode.
+
+
+
+**Returns:**
+
+
+
+* ESP\_OK on success
+* ESP\_ERR\_NOT\_SUPPORTED if this function is not supported by the panel
+### function `bsp_display_exit_sleep`
+
+_Set display exit sleep mode._
+```c
+esp_err_t bsp_display_exit_sleep (
+    void
+) 
+```
+
+
+All the display (LCD, backlight, touch) will exit sleep mode.
+
+
+
+**Returns:**
+
+
+
+* ESP\_OK on success
+* ESP\_ERR\_NOT\_SUPPORTED if this function is not supported by the panel
 ### function `bsp_display_get_input_dev`
 
 _Get pointer to input device (touch, buttons, ...)_
@@ -799,7 +902,44 @@ spi_bus_free(spi_num_from_configuration);
 
 
 * ESP\_OK On success
-* Else esp\_lcd failure
+* Other errors from underlying esp\_lcd driver
+### function `bsp_display_new_with_handles`
+
+_Create new display panel._
+```c
+esp_err_t bsp_display_new_with_handles (
+    const bsp_display_config_t *config,
+    bsp_lcd_handles_t *ret_handles
+) 
+```
+
+
+For maximum flexibility, this function performs only reset and initialization of the display. You must turn on the display explicitly by calling esp\_lcd\_panel\_disp\_on\_off(). The display's backlight is not turned on either. You can use bsp\_display\_backlight\_on/off(), [**bsp\_display\_brightness\_set()**](#function-bsp_display_brightness_set) (on supported boards) or implement your own backlight control.
+
+If you want to free resources allocated by this function, you can use API:
+
+
+````cpp
+bsp_display_delete();
+````
+
+
+
+
+
+**Parameters:**
+
+
+* `config` display configuration 
+* `ret_handles` all esp\_lcd handles in one structure 
+
+
+**Returns:**
+
+
+
+* ESP\_OK On success
+* Other errors from underlying esp\_lcd driver
 ### function `bsp_display_rotate`
 
 _Rotate screen._
@@ -841,7 +981,7 @@ Pointer to LVGL display or NULL when error occurred
 
 _Initialize display._
 ```c
-lv_disp_t * bsp_display_start_with_config (
+lv_display_t * bsp_display_start_with_config (
     const bsp_display_cfg_t *cfg
 ) 
 ```
@@ -868,66 +1008,6 @@ void bsp_display_unlock (
     void
 ) 
 ```
-
-
-
-
-
-
-
-## :radio_button: Buttons
-
-Most boards include one or more user buttons. The BSP provides a simple API to initialize and use them.
-Internally, it utilizes the [button](https://components.espressif.com/components/espressif/button/) component for event handling and debouncing.
-
-```
-/* Initialize all available buttons */
-button_handle_t btns[BSP_BUTTON_NUM] = {NULL};
-bsp_iot_button_create(btns, NULL, BSP_BUTTON_NUM);
-
-/* Register a callback for button press */
-for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-    iot_button_register_cb(btns[i], BUTTON_PRESS_DOWN, NULL, btn_handler, (void *) i);
-}
-
-/* Called on button press */
-static void btn_handler(void *button_handle, void *usr_data)
-{
-    int button_index = (int)usr_data;
-    ESP_LOGI(TAG, "Button %d pressed", button_index);
-}
-```
-
-**Notes:**
-- `BSP_BUTTON_NUM` defines the number of available buttons on the board
-
-- Instead of relying on a numeric index, you can use the `bsp_button_t` structure defined in the BSP header to reference buttons by name (e.g., BSP_BUTTON_MUTE, BSP_BUTTON_MAIN, BSP_BUTTON_BOOT, etc.)
-
-- The callback can be registered for different button events, such as `BUTTON_PRESS_DOWN`, `BUTTON_PRESS_UP`, or `BUTTON_LONG_PRESS_START`, `BUTTON_DOUBLE_CLICK`, ...
-
-- Button features (e.g. long-press support, active level) are configured automatically by the BSP.
-
-### Buttons API Reference
-
-## Structures and Types
-
-| Type | Name |
-| ---: | :--- |
-| enum  | [**bsp\_button\_t**](#enum-bsp_button_t)  <br> |
-
-
-
-
-## Structures and Types Documentation
-
-### enum `bsp_button_t`
-
-```c
-enum bsp_button_t {
-    BSP_BTN_PRESS = GPIO_NUM_9
-};
-```
-
 
 
 
@@ -964,30 +1044,73 @@ led_indicator_start(leds[0], BSP_LED_BREATHE_SLOW);
 
 ### Leds API Reference
 
+## Structures and Types
+
+| Type | Name |
+| ---: | :--- |
+| enum  | [**bsp\_led\_effect\_t**](#enum-bsp_led_effect_t)  <br> |
+| enum  | [**bsp\_led\_t**](#enum-bsp_led_t)  <br> |
 
 ## Functions
 
 | Type | Name |
 | ---: | :--- |
-|  esp\_err\_t | [**bsp\_led\_init**](#function-bsp_led_init) () <br>_Initialize WS2812._ |
-|  esp\_err\_t | [**bsp\_led\_rgb\_set**](#function-bsp_led_rgb_set) (uint8\_t r, uint8\_t g, uint8\_t b) <br>_Set RGB for a specific pixel._ |
+|  esp\_err\_t | [**bsp\_led\_indicator\_create**](#function-bsp_led_indicator_create) (led\_indicator\_handle\_t led\_array, int \*led\_cnt, int led\_array\_size) <br>_Initialize all LEDs._ |
+|  esp\_err\_t | [**bsp\_led\_set**](#function-bsp_led_set) (led\_indicator\_handle\_t handle, const bool on) <br>_Turn LED on/off._ |
 
 ## Macros
 
 | Type | Name |
 | ---: | :--- |
-| define  | [**BSP\_RGB\_CTRL**](#define-bsp_rgb_ctrl)  (GPIO\_NUM\_8)<br> |
+| define  | [**BSP\_LED\_RGB\_IO**](#define-bsp_led_rgb_io)  (GPIO\_NUM\_8)<br> |
 
+
+## Structures and Types Documentation
+
+### enum `bsp_led_effect_t`
+
+```c
+enum bsp_led_effect_t {
+    BSP_LED_ON,
+    BSP_LED_OFF,
+    BSP_LED_BLINK_FAST,
+    BSP_LED_BLINK_SLOW,
+    BSP_LED_BREATHE_FAST,
+    BSP_LED_BREATHE_SLOW,
+    BSP_LED_MAX
+};
+```
+
+### enum `bsp_led_t`
+
+```c
+enum bsp_led_t {
+    BSP_LED_1,
+    BSP_LED_NUM
+};
+```
 
 
 ## Functions Documentation
 
-### function `bsp_led_init`
+### function `bsp_led_indicator_create`
 
-_Initialize WS2812._
+_Initialize all LEDs._
 ```c
-esp_err_t bsp_led_init () 
+esp_err_t bsp_led_indicator_create (
+    led_indicator_handle_t led_array,
+    int *led_cnt,
+    int led_array_size
+) 
 ```
+
+
+**Parameters:**
+
+
+* `led_array` Output LED array 
+* `led_cnt` Number of LED handlers saved to led\_array, can be NULL 
+* `led_array_size` Size of output LED array. Must be at least BSP\_LED\_NUM 
 
 
 **Returns:**
@@ -996,14 +1119,13 @@ esp_err_t bsp_led_init ()
 
 * ESP\_OK Success
 * ESP\_ERR\_INVALID\_ARG Parameter error
-### function `bsp_led_rgb_set`
+### function `bsp_led_set`
 
-_Set RGB for a specific pixel._
+_Turn LED on/off._
 ```c
-esp_err_t bsp_led_rgb_set (
-    uint8_t r,
-    uint8_t g,
-    uint8_t b
+esp_err_t bsp_led_set (
+    led_indicator_handle_t handle,
+    const bool on
 ) 
 ```
 
@@ -1011,55 +1133,16 @@ esp_err_t bsp_led_rgb_set (
 **Parameters:**
 
 
-* `r` red part of color 
-* `g` green part of color 
-* `b` blue part of color
+* `handle` led handle 
+* `on` Switch LED on/off 
 
 
 **Returns:**
 
 
 
-* ESP\_OK: Set RGB for a specific pixel successfully
-* ESP\_ERR\_INVALID\_ARG: Set RGB for a specific pixel failed because of invalid parameters
-* ESP\_FAIL: Set RGB for a specific pixel failed because other error occurred
-
-
-
-
-
-
-## :electric_plug: USB
-
-Boards with USB support define macros for USB pins, such as `BSP_USB_POS` and `BSP_USB_NEG`, and may also provide control APIs for enabling or disabling USB functionality.
-
-```
-/* Initialize USB in device mode and enable power */
-bsp_usb_host_start(BSP_USB_HOST_POWER_MODE_USB_DEV, true);
-
-...
-/* Deinitialize and stop USB */
-bsp_usb_host_stop();
-```
-
-> [!NOTE]
-> Not all BSPs implement USB support or provide power control. Refer to the board's documentation and the BSP header files for available functions and supported modes.
-
-For more USB-related APIs and configuration options, check the corresponding BSP header files.
-
-### USB API Reference
-
-
-
-## Macros
-
-| Type | Name |
-| ---: | :--- |
-| define  | [**BSP\_USB\_NEG**](#define-bsp_usb_neg)  (GPIO\_NUM\_19)<br> |
-| define  | [**BSP\_USB\_POS**](#define-bsp_usb_pos)  (GPIO\_NUM\_20)<br> |
-
-
-
+* ESP\_OK Success
+* ESP\_ERR\_INVALID\_ARG Parameter error
 
 
 
