@@ -38,6 +38,34 @@ ESP32-S3-BOX-3 also uses a Type-C USB connector that provides 5 V of power input
 |:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                                                                             idf                                                                                                             |      >=5.3     |
 |:heavy_check_mark:|    :video_game: IMU    |                |                                                                     [espressif/icm42670](https://components.espressif.com/components/espressif/icm42670)                                                                    |     ^2.0.2     |
 
+
+END GOAL:
+
+```mermaid
+flowchart LR;
+    subgraph Components registry
+        %% direction TB
+        esp_codec_dev
+        button
+        cmake_utilities
+    end
+    subgraph components
+        direction TB
+        subgraph icm42670
+        end
+        subgraph lcd
+            subgraph ili9341
+            end
+        end
+        subgraph lcd_touch
+            esp_lcd_touch_gt911
+            esp_lcd_touch
+        end
+    end
+
+cmake_utilities ---> ili9341
+```
+
 <!-- END_DEPENDENCIES -->
 </div>
 
