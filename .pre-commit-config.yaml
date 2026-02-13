@@ -156,3 +156,6 @@ repos:
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/m5stack_tab5", "-i", "bsp/m5stack_tab5/doxygen/xml", "-o", "bsp/m5stack_tab5/API.md"]
         files: ^bsp/m5stack_tab5/
+      - id: doxygen-api-md
+        args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/echoear", "-i", "bsp/echoear/doxygen/xml", "-o", "bsp/echoear/API.md"]
+        files: ^bsp/echoear/

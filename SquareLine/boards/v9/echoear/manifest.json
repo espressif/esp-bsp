@@ -1,0 +1,19 @@
+{
+ "name": "EchoEar",
+ "version": "1.0.0",
+ "mcu": "ESP32S3",
+
+ "screen_width": "360",
+ "screen_height": "360",
+ "screen_color_swap": false,
+
+ "supported_lvgl_version": "9.1.*, 9.2.*",
+
+ "short_description": "EchoEar BSP for SquareLine Studio.",
+ "long_description": "EchoEar is an intelligent AI development kit. It is suitable for voice interaction products that require large model capabilities, such as toys, smart speakers, and smart central control systems. The device is equipped with a 1.85-inch QSPI circular touch screen, dual microphone array, and supports offline voice wake-up and sound source localization algorithms. Combined with the large model capabilities provided by OpenAI，Xiaozhi AI, Gemini, etc., EchoEar can achieve full-duplex voice interaction, multimodal recognition, and intelligent agent control, providing a solid foundation for developers to create complete edge-side AI application experiences.",
+
+ "placeholders": {
+  "__ESP_BOARD_INCLUDE__": "bsp/esp-bsp.h",
+  "__ESP_BOARD_I2C_INIT__": ""
+ }
+}

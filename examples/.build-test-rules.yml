@@ -7,5 +7,7 @@ examples:
       reason: Example depends on BSP, which is supported only for IDF >= 5.3
     - if: (IDF_VERSION < "5.4.0") and CONFIG_NAME in ["m5stack_core_s3", "esp32_s3_korvo_2", "esp32_s3_eye", "esp32_p4_eye", "esp32_p4_function_ev_board", "m5stack_tab5"]
       reason: Example depends on BSP, which is supported only for IDF >= 5.4
+    - if: (IDF_VERSION < "5.5.0") and CONFIG_NAME in ["echoear"]
+      reason: Example depends on BSP, which is supported only for IDF >= 5.5 (Touch pad driver)
     - if: (IDF_VERSION >= "6.0.0") and CONFIG_NAME in ["esp32_lyrat"]
       reason: Example depends on BSP, which is supported only for IDF < 6.0 (LyraT incompatible Touch pad driver)
