@@ -11,6 +11,7 @@ extern "C" {
 #endif
 
 #include "driver/i2c_master.h"
+#include "driver/spi_master.h"
 
 #define ICM42670_I2C_ADDRESS         0x68 /*!< I2C address with AD0 pin low */
 #define ICM42670_I2C_ADDRESS_1       0x69 /*!< I2C address with AD0 pin high */
@@ -48,14 +49,14 @@ typedef enum {
     ACCE_FS_8G  = 1,     /*!< Accelerometer full scale range is +/- 8g */
     ACCE_FS_4G  = 2,     /*!< Accelerometer full scale range is +/- 4g */
     ACCE_FS_2G  = 3,     /*!< Accelerometer full scale range is +/- 2g */
-} icm42670_acce_fs_t;
+    } icm42670_acce_fs_t;
 
 typedef enum {
     ACCE_PWR_OFF      = 0,     /*!< Accelerometer power off state */
     ACCE_PWR_ON       = 1,     /*!< Accelerometer power on state */
     ACCE_PWR_LOWPOWER = 2,     /*!< Accelerometer low-power mode */
     ACCE_PWR_LOWNOISE = 3,     /*!< Accelerometer low noise state */
-} icm42670_acce_pwr_t;
+    } icm42670_acce_pwr_t;
 
 typedef enum {
     ACCE_ODR_1600HZ   = 5,  /*!< Accelerometer ODR 1.6 kHz */
@@ -68,32 +69,32 @@ typedef enum {
     ACCE_ODR_12_5HZ   = 12, /*!< Accelerometer ODR 12.5 Hz */
     ACCE_ODR_6_25HZ   = 13, /*!< Accelerometer ODR 6.25 Hz */
     ACCE_ODR_3_125HZ  = 14, /*!< Accelerometer ODR 3.125 Hz */
-    ACCE_ODR_1_5625HZ = 15, /*!< Accelerometer ODR 1.5625 Hz */
-} icm42670_acce_odr_t;
+        ACCE_ODR_1_5625HZ = 15, /*!< Accelerometer ODR 1.5625 Hz */
+    } icm42670_acce_odr_t;
 
 typedef enum {
     GYRO_FS_2000DPS = 0,     /*!< Gyroscope full scale range is +/- 2000 degree per sencond */
     GYRO_FS_1000DPS = 1,     /*!< Gyroscope full scale range is +/- 1000 degree per sencond */
     GYRO_FS_500DPS  = 2,     /*!< Gyroscope full scale range is +/- 500 degree per sencond */
     GYRO_FS_250DPS  = 3,     /*!< Gyroscope full scale range is +/- 250 degree per sencond */
-} icm42670_gyro_fs_t;
+    } icm42670_gyro_fs_t;
 
 typedef enum {
     GYRO_PWR_OFF      = 0,     /*!< Gyroscope power off state */
     GYRO_PWR_STANDBY  = 1,     /*!< Gyroscope power standby state */
     GYRO_PWR_LOWNOISE = 3,     /*!< Gyroscope power low noise state */
-} icm42670_gyro_pwr_t;
+    } icm42670_gyro_pwr_t;
 
 typedef enum {
-    GYRO_ODR_1600HZ = 5,  /*!< Gyroscope ODR 1.6 kHz */
+        GYRO_ODR_1600HZ = 5,  /*!< Gyroscope ODR 1.6 kHz */
     GYRO_ODR_800HZ  = 6,  /*!< Gyroscope ODR 800 Hz */
     GYRO_ODR_400HZ  = 7,  /*!< Gyroscope ODR 400 Hz */
     GYRO_ODR_200HZ  = 8,  /*!< Gyroscope ODR 200 Hz */
     GYRO_ODR_100HZ  = 9,  /*!< Gyroscope ODR 100 Hz */
     GYRO_ODR_50HZ   = 10, /*!< Gyroscope ODR 50 Hz */
     GYRO_ODR_25HZ   = 11, /*!< Gyroscope ODR 25 Hz */
-    GYRO_ODR_12_5HZ = 12, /*!< Gyroscope ODR 12.5 Hz */
-} icm42670_gyro_odr_t;
+        GYRO_ODR_12_5HZ = 12, /*!< Gyroscope ODR 12.5 Hz */
+    } icm42670_gyro_odr_t;
 
 typedef struct {
     icm42670_acce_fs_t  acce_fs;    /*!< Accelerometer full scale range */
@@ -103,26 +104,26 @@ typedef struct {
 } icm42670_cfg_t;
 
 typedef struct {
-    int16_t x;
-    int16_t y;
-    int16_t z;
+        int16_t x;
+        int16_t y;
+        int16_t z;
 } icm42670_raw_value_t;
 
 typedef struct {
-    float x;
-    float y;
-    float z;
+        float x;
+        float y;
+        float z;
 } icm42670_value_t;
 
 typedef struct {
-    float roll;
-    float pitch;
+        float roll;
+        float pitch;
 } complimentary_angle_t;
 
 typedef void *icm42670_handle_t;
 
 /**
- * @brief Create and init sensor object
+ * @brief Create and init sensor object using I2C interface
  *
  * @param[in]  i2c_bus    I2C bus handle. Obtained from i2c_new_master_bus()
  * @param[in]  dev_addr   I2C device address of sensor. Can be ICM42670_I2C_ADDRESS or ICM42670_I2C_ADDRESS_1
@@ -134,8 +135,22 @@ typedef void *icm42670_handle_t;
  *     - ESP_ERR_NOT_FOUND Sensor not found on the I2C bus
  *     - Others Error from underlying I2C driver
  */
-esp_err_t icm42670_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_addr, icm42670_handle_t *handle_ret);
+esp_err_t icm42670_create_i2c(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_addr, icm42670_handle_t *handle_ret);
 
+/**
+ * @brief Create and init sensor object using SPI interface
+ *
+ * @param[in]  spi_bus    SPI bus handle. Obtained from spi_new_master_bus()
+ * @param[in]  cs_pin     SPI chip select pin of sensor. Can be ICM42670_SPI_CS_PIN or ICM42670_SPI_CS_PI_1
+ * @param[out] handle_ret Handle to created ICM42670 driver object
+ *
+ * @return
+ *     - ESP_OK Success
+ *     - ESP_ERR_NO_MEM Not enough memory for the driver
+ *     - ESP_ERR_NOT_FOUND Sensor not found on the I2C bus
+ *     - Others Error from underlying I2C driver
+ */
+esp_err_t icm42670_create_spi(spi_host_device_t spi_bus, gpio_num_t cs_pin, icm42670_handle_t *handle_ret);
 /**
  * @brief Delete and release a sensor object
  *
@@ -357,7 +372,7 @@ esp_err_t icm42670_read_mreg_register(icm42670_handle_t sensor, uint8_t mreg, ui
  *     - ESP_FAIL Fail
  */
 esp_err_t icm42670_write_mreg_register(icm42670_handle_t sensor, uint8_t mreg, uint8_t reg,
-                                       uint8_t val);
+                                           uint8_t val);
 
 #ifdef __cplusplus
 }
