@@ -33,9 +33,6 @@ concurrency:
 
 jobs:
   build:
-    env:
-      component_manager_ver: "2.4.*"
-      idf_build_apps_ver: "2.10.1"
     outputs:
       ignored_failure: ${{ steps.ignored-failure.outputs.failed }}
     strategy:
@@ -78,12 +75,13 @@ jobs:
           # When event not a pull-request, the action before must be skipped and the steps.changed-files.outputs.all_modified_files variable is not exists and must be removed
           ALL_CHANGED_FILES: ${{ (github.event_name != 'pull_request') && format(' ') || format('--modified-files=') }}${{ (github.event_name != 'pull_request') && format(' ') || steps.changed-files.outputs.all_modified_files }}
         run: |
-          . ${IDF_PATH}/export.sh
-          pip install idf-component-manager==${{ env.component_manager_ver }} ruamel.yaml idf-build-apps==${{ env.idf_build_apps_ver }} --upgrade
+          export IDF_PYTHON_CHECK_CONSTRAINTS=yes
+          ${IDF_PATH}/install.sh --enable-ci
+          source ${IDF_PATH}/export.sh
 
           echo "Files changed: "${{env.ALL_CHANGED_FILES}}
-          idf-build-apps find ${{env.ALL_CHANGED_FILES}}
-          idf-build-apps build --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }} ${{env.ALL_CHANGED_FILES}} --collect-app-info build_info_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}.json
+          idf-build-apps find --path . --target all ${{env.ALL_CHANGED_FILES}}
+          idf-build-apps build --path . --target all --parallel-count ${{ matrix.parallel_count }} --parallel-index ${{ matrix.parallel_index }} ${{env.ALL_CHANGED_FILES}} --collect-app-info build_info_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}.json
 
       - name: Save and write the outcome of an ignored failing job
         id: ignored-failure
@@ -150,7 +148,7 @@ jobs:
       PYTEST_BENCHMARK_IGNORE: ${{ (contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master') && format(' ') || format('--ignore=examples/display_lvgl_benchmark') }}
     runs-on: [self-hosted, Linux, bspwall]
     container:
-      image: python:3.11-bookworm
+      image: espressif/idf:${{ matrix.idf_ver }}
       options: --privileged -v /dev/boards:/dev/boards/ # Privileged mode has access to serial ports
     steps:
       - uses: actions/checkout@v4
@@ -158,11 +156,6 @@ jobs:
         with:
           pattern: app_binaries_${{ matrix.idf_ver }}_*
           merge-multiple: true
-      - name: Install Python packages
-        env:
-          PIP_EXTRA_INDEX_URL: "https://dl.espressif.com/pypi/"
-        run: |
-          pip install --prefer-binary cryptography pytest-embedded pytest-embedded-serial-esp pytest-embedded-idf pytest-custom_exit_code pytest-xdist
       - name: Download latest results
         uses: actions/download-artifact@v4
         with:
@@ -170,6 +163,11 @@ jobs:
           path: benchmark/
       - name: Run apps
         run: |
+          export IDF_PYTHON_CHECK_CONSTRAINTS=yes
+          ${IDF_PATH}/install.sh --enable-ci --enable-pytest
+          . ${IDF_PATH}/export.sh
+          pip install --prefer-binary pytest-custom_exit_code pytest-xdist
+
           export PYTEST_EMBEDDED_CACHE_DIR=/tmp/pytest-embedded-cache-dummy
           mkdir -p /tmp/pytest-embedded-cache-dummy
           pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} -k "${{ matrix.runner.example }} and not test_example_display_sensors" -n auto ${{ env.PYTEST_BENCHMARK_IGNORE }}
