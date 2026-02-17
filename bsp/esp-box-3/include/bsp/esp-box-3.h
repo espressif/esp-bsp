@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -22,6 +22,8 @@
 #include "iot_button.h"
 #include "bsp/config.h"
 #include "bsp/display.h"
+
+#include "iot_sensor_hub.h"
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 #include "lvgl.h"
@@ -55,6 +57,7 @@
 #define BSP_CAPS_AUDIO_MIC      1
 #define BSP_CAPS_SDCARD         1
 #define BSP_CAPS_IMU            1
+#define BSP_CAPS_HUMITURE       1
 /** @} */ // end of capabilities
 
 /**************************************************************************************************
@@ -67,6 +70,8 @@
  */
 #define BSP_I2C_SCL           (GPIO_NUM_18)
 #define BSP_I2C_SDA           (GPIO_NUM_8)
+#define BSP_I2C_DOCK_SCL      (GPIO_NUM_40)
+#define BSP_I2C_DOCK_SDA      (GPIO_NUM_41)
 /** @} */ // end of i2c
 
 /** @defgroup g03_audio Audio
@@ -615,6 +620,33 @@ void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 
 /** @} */ // end of buttons
+
+
+/** @defgroup g10_sensors Sensors
+ *  @brief BSP API for sensors
+ *  @{
+ */
+
+/**
+ * @brief BSP sensor configuration structure
+ */
+typedef struct {
+    sensor_type_t type;
+    sensor_mode_t mode;
+    uint16_t period;
+} bsp_sensor_config_t;
+
+/**
+ * @brief Initialize a sensor
+ *
+ * @param[in]  cfg              Pointer to the sensor configuration
+ * @param[out] sensor_handle    Pointer to the outgoing sensor handle
+ * @return
+ *     - ESP_OK on success, otherwise returns ESP_ERR_xxx
+ */
+esp_err_t bsp_sensor_init(const bsp_sensor_config_t *cfg, sensor_handle_t *sensor_handle);
+
+/** @} */ // end of sensors
 
 
 #ifdef __cplusplus

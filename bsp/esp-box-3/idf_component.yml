@@ -1,48 +1,52 @@
-
-version: "3.0.3"
+version: 3.1.0
 description: Board Support Package (BSP) for ESP32-S3-BOX-3
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box-3
 
 targets:
-  - esp32s3
+- esp32s3
 
 tags:
-  - bsp
+- bsp
 
 dependencies:
-  idf: ">=5.3" # We use I2C Driver-NG from IDF v5.2 but esp-codec-dev supports from v5.3
-  esp_lcd_touch_tt21100: 
-    version: "^1"
-    override_path: "../../components/lcd_touch/esp_lcd_touch_tt21100"
-  esp_lcd_touch_gt911: 
-    version: "^1"
-    override_path: "../../components/lcd_touch/esp_lcd_touch_gt911"
-  esp_lcd_ili9341: 
-    version: "^2.0.1"
-    override_path: "../../components/lcd/esp_lcd_ili9341"
+  idf: '>=5.3' # We use I2C Driver-NG from IDF v5.2 but esp-codec-dev supports from v5.3
+  esp_lcd_touch_tt21100:
+    version: ^1
+    override_path: ../../components/lcd_touch/esp_lcd_touch_tt21100
+  esp_lcd_touch_gt911:
+    version: ^1
+    override_path: ../../components/lcd_touch/esp_lcd_touch_gt911
+  esp_lcd_ili9341:
+    version: ^2.0.1
+    override_path: ../../components/lcd/esp_lcd_ili9341
 
   espressif/esp_lvgl_port:
-    version: "^2"
+    version: ^2
     public: true
-    override_path: "../../components/esp_lvgl_port"
+    override_path: ../../components/esp_lvgl_port
 
   esp_codec_dev:
-    version: "~1.5"
+    version: ~1.5
     public: true
 
   button:
-    version: "^4"
+    version: ^4
     public: true
 
   icm42670:
-    version: "^2.0.2"
+    version: ^2.0.2
     public: true
-    override_path: "../../components/icm42670"
+    override_path: ../../components/sensors/icm42670
+
+  aht30:
+    version: '^1.0.0'
+    override_path: ../../components/sensors/aht30
 
 examples:
-  - path: ../../examples/display
-  - path: ../../examples/display_rotation
-  - path: ../../examples/display_audio_photo
-  - path: ../../examples/display_lvgl_demos
-  - path: ../../examples/display_lvgl_benchmark
-  - path: ../../examples/display_sdcard
+- path: ../../examples/display
+- path: ../../examples/display_rotation
+- path: ../../examples/display_audio_photo
+- path: ../../examples/display_lvgl_demos
+- path: ../../examples/display_lvgl_benchmark
+- path: ../../examples/display_sdcard
+- path: ../../examples/sensors

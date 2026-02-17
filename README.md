@@ -27,7 +27,7 @@ The following table shows the compatibility of this BSP with different ESP-IDF v
 
 | Board name | SoC | Supported Features | Photo |
 |:----------:|:---:|:-------------------|:-----:|
-| [ESP-BOX-3](bsp/esp-box-3) | esp32s3 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es7210)<br/>:speaker: Audio Speaker  (es8311)<br/>:radio_button: Button <br/>:pager: LCD Display  (st7789, ili9341)<br/>:video_game: IMU <br/>:floppy_disk: uSD Card <br/>:point_up: Display Touch  (tt21100, gt911)<br/> | <img src="bsp/esp-box-3/doc/esp-box-3.webp" width="150"> |
+| [ESP-BOX-3](bsp/esp-box-3) | esp32s3 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es7210)<br/>:speaker: Audio Speaker  (es8311)<br/>:radio_button: Button <br/>:pager: LCD Display  (st7789, ili9341)<br/>:thermometer: Temperature and Humidity <br/>:video_game: IMU <br/>:floppy_disk: uSD Card <br/>:point_up: Display Touch  (tt21100, gt911)<br/> | <img src="bsp/esp-box-3/doc/esp-box-3.webp" width="150"> |
 | [ESP32-C3-LCDKit](bsp/esp32_c3_lcdkit) | esp32c3 | :musical_note: Audio <br/>:speaker: Audio Speaker <br/>:pager: LCD Display  (gc9a01)<br/>:white_circle: Knob <br/>:bulb: LED <br/> | <img src="bsp/esp32_c3_lcdkit/doc/esp32_c3_lcdkit.webp" width="150"> |
 | [ESP32-LyraT](bsp/esp32_lyrat) | esp32 | :musical_note: Audio <br/>:microphone: Audio Microphone  (es8388)<br/>:speaker: Audio Speaker  (es8388)<br/>:radio_button: Button <br/>:bulb: LED <br/>:floppy_disk: uSD Card <br/> | <img src="bsp/esp32_lyrat/doc/esp32_lyrat.webp" width="150"> |
 | [ESP32-P4-EYE](bsp/esp32_p4_eye) | esp32p4 | :musical_note: Audio <br/>:microphone: Audio Microphone <br/>:battery: Battery <br/>:radio_button: Button <br/>:camera: Camera  (OV2710)<br/>:pager: LCD Display  (st7789)<br/>:white_circle: Knob <br/>:bulb: LED <br/>:floppy_disk: uSD Card <br/> | <img src="bsp/esp32_p4_eye/doc/esp32_p4_eye.webp" width="150"> |
@@ -82,6 +82,7 @@ Here is a summary of the available examples:
 | [USB HID Example](examples/display_usb_hid) | USB HID demo (keyboard, mouse, or gamepad visualization using LVGL) | <details><summary>3 boards</summary>[esp32_p4_function_ev_board](bsp/esp32_p4_function_ev_board)<br/>[esp32_s3_usb_otg](bsp/esp32_s3_usb_otg)<br/>[m5stack_tab5](bsp/m5stack_tab5)</details> | - |
 | [Generic Button and LED Example](examples/generic_button_led) | Minimal example using the Generic BSP: button and LED control | <details><summary>2 boards</summary>[esp_bsp_devkit](bsp/esp_bsp_devkit)<br/>[esp_bsp_generic](bsp/esp_bsp_generic)</details> | - |
 | [MQTT Example](examples/mqtt_example) | Collect sensor data and publish to an MQTT server | <details><summary>1 board</summary>[esp32_azure_iot_kit](bsp/esp32_azure_iot_kit)</details> | - |
+| [Sensors Example](examples/sensors) | Acquire sensor data using the sensor hub component | <details><summary>1 board</summary>[esp-box-3](bsp/esp-box-3)</details> | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=sensors) |
 
 <!-- EXAMPLES_TABLE_END -->
 

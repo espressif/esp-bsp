@@ -5,3 +5,5 @@ else()
 endif()
 
 idf_component_register(SRCS "icm42670.c" INCLUDE_DIRS "include" REQUIRES ${REQ} esp_timer)
+
+target_link_libraries(${COMPONENT_LIB} INTERFACE "-u icm42670_impl_init")

@@ -34,9 +34,16 @@ components/ds18b20:
     - if: SOC_RMT_SUPPORTED != 1
       reason: Onewire component depends on RMT peripheral
 
-components/icm42670:
+components/sensors/icm42670:
   depends_filepatterns:
-    - "components/icm42670/**"
+    - "components/sensors/icm42670/**"
+  disable:
+    - if: IDF_VERSION < "5.2.0"
+      reason: Requires I2C Driver-NG which was introduced in v5.2
+
+components/sensors/aht30:
+  depends_filepatterns:
+    - "components/sensors/aht30/**"
   disable:
     - if: IDF_VERSION < "5.2.0"
       reason: Requires I2C Driver-NG which was introduced in v5.2
