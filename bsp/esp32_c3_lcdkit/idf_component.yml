@@ -1,5 +1,6 @@
-version: "2.0.4"
-description: Board Support Package (BSP) for esp32_c3_lcdkit
+
+version: "2.1.0"
+description: Board Support Package (BSP) for ESP32-C3-LCDKit
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_c3_lcdkit
 
 targets:
@@ -9,33 +10,37 @@ tags:
   - bsp
 
 dependencies:
-  idf: ">=5.0.0"
-
-  espressif/esp_lvgl_port:
-    public: true
-    version: "^2"
-    override_path: "../../components/esp_lvgl_port"
-
-  led_strip:
-    version: "^3"
-    public: true
-
-  espressif/esp_lcd_gc9a01:
-    version:  "^2"
-    public: true
-    override_path: "../../components/lcd/esp_lcd_gc9a01"
-
-  button:
-    public: true
-    version: "^4"
-
-  knob:
-    version: "^1"
-    public: true
-
+  idf: ">=5.2"
+  
   esp_codec_dev:
     version: "~1.5"
-    public: true
+    public:  true
+  
+  espressif/esp_lvgl_port:
+    version: "^2"
+    public:  true
+    override_path: "../../components/esp_lvgl_port"
 
+  
+  espressif/esp_lcd_gc9a01:
+    version: "*"
+    public:  false
+    override_path: "../../components/lcd/esp_lcd_gc9a01"
+
+  
+  knob:
+    version: "^1"
+    public:  true
+  
+  button:
+    version: "^4"
+    public:  true
+  
+  led_indicator:
+    version: "^2"
+    public:  true
+    
 examples:
   - path: ../../examples/display
+
+  
