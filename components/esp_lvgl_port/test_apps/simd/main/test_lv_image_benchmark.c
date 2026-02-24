@@ -105,7 +105,7 @@ TEST_CASE("LV Image benchmark RGB565 blend to RGB565", "[image][benchmark][RGB56
         .color_format = LV_COLOR_FORMAT_RGB565,
     };
 
-    ESP_LOGI(TAG_LV_IMAGE_BENCH, "running test for RGB565 color format");
+    ESP_LOGI(TAG_LV_IMAGE_BENCH, "running memcpy for RGB565 to RGB565 color format");
     lv_image_benchmark_init(&test_params);
     free(dest_array_align16);
     free(src_array_align16);
