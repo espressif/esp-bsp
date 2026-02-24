@@ -80,7 +80,7 @@ static const char *TAG = "ICM42670";
  * Public API functions
  *******************************************************************************/
 
-esp_err_t icm42670_create_i2c(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_addr, icm42670_handle_t *handle_ret)
+esp_err_t icm42670_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_addr, icm42670_handle_t *handle_ret)
 {
     esp_err_t ret = ESP_OK;
 
