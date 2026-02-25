@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.7.2
+
+### Features
+
+- Added a new event type for encoder events
+
+### Fixes
+
+- Encoder usage no longer causes unexpected touch controller readings - https://github.com/espressif/esp-bsp/issues/700
+
 ## 2.7.1
 
 ### Features

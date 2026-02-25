@@ -169,7 +169,7 @@ static void lvgl_port_encoder_btn_down_handler(void *button_handle, void *usr_da
     }
 
     /* Wake LVGL task, if needed */
-    lvgl_port_task_wake(LVGL_PORT_EVENT_TOUCH, ctx->indev);
+    lvgl_port_task_wake(LVGL_PORT_EVENT_ENCODER, ctx->indev);
 }
 
 static void lvgl_port_encoder_btn_up_handler(void *button_handle, void *usr_data)
@@ -184,7 +184,7 @@ static void lvgl_port_encoder_btn_up_handler(void *button_handle, void *usr_data
     }
 
     /* Wake LVGL task, if needed */
-    lvgl_port_task_wake(LVGL_PORT_EVENT_TOUCH, ctx->indev);
+    lvgl_port_task_wake(LVGL_PORT_EVENT_ENCODER, ctx->indev);
 }
 
 static void lvgl_port_encoder_left_handler(void *arg, void *arg2)
@@ -198,7 +198,7 @@ static void lvgl_port_encoder_left_handler(void *arg, void *arg2)
             ctx->diff = (ctx->diff > 0) ? diff : ctx->diff + diff;
         }
         /* Wake LVGL task, if needed */
-        lvgl_port_task_wake(LVGL_PORT_EVENT_TOUCH, ctx->indev);
+        lvgl_port_task_wake(LVGL_PORT_EVENT_ENCODER, ctx->indev);
     }
 }
 
@@ -213,7 +213,7 @@ static void lvgl_port_encoder_right_handler(void *arg, void *arg2)
             ctx->diff = (ctx->diff < 0) ? diff : ctx->diff + diff;
         }
         /* Wake LVGL task, if needed */
-        lvgl_port_task_wake(LVGL_PORT_EVENT_TOUCH, ctx->indev);
+        lvgl_port_task_wake(LVGL_PORT_EVENT_ENCODER, ctx->indev);
     }
 }
 

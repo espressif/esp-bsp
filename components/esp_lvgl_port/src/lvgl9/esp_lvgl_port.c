@@ -48,6 +48,7 @@ static lvgl_port_ctx_t lvgl_port_ctx;
 static void lvgl_port_task(void *arg);
 static esp_err_t lvgl_port_tick_init(void);
 static void lvgl_port_task_deinit(void);
+static inline bool indev_matches_event(const lv_indev_t *indev, EventBits_t event);
 
 /*******************************************************************************
 * Public API functions
@@ -225,11 +226,13 @@ static void lvgl_port_task(void *arg)
         if (lv_display_get_default() && lvgl_port_lock(0)) {
 
             /* Call read input devices */
-            if (events & LVGL_PORT_EVENT_TOUCH) {
+            if (events & LVGL_PORT_EVENT_TOUCH || events & LVGL_PORT_EVENT_ENCODER) {
                 xSemaphoreTake(lvgl_port_ctx.timer_mux, portMAX_DELAY);
                 indev = lv_indev_get_next(NULL);
                 while (indev != NULL) {
-                    lv_indev_read(indev);
+                    if (indev_matches_event(indev, events)) {
+                        lv_indev_read(indev);
+                    }
                     indev = lv_indev_get_next(indev);
                 }
                 xSemaphoreGive(lvgl_port_ctx.timer_mux);
@@ -301,4 +304,24 @@ static esp_err_t lvgl_port_tick_init(void)
     ESP_RETURN_ON_ERROR(esp_timer_create(&lvgl_tick_timer_args, &lvgl_port_ctx.tick_timer), TAG,
                         "Creating LVGL timer filed!");
     return esp_timer_start_periodic(lvgl_port_ctx.tick_timer, lvgl_port_ctx.timer_period_ms * 1000);
+}
+
+static inline bool indev_matches_event(const lv_indev_t *indev, EventBits_t event)
+{
+    assert(indev != NULL);
+
+    bool does_match = false;
+
+    switch (lv_indev_get_type(indev)) {
+    case LV_INDEV_TYPE_KEYPAD:
+    case LV_INDEV_TYPE_POINTER:
+        does_match = event & LVGL_PORT_EVENT_TOUCH;
+        break;
+    case LV_INDEV_TYPE_ENCODER:
+        does_match = event & LVGL_PORT_EVENT_ENCODER;
+        break;
+    default:
+        does_match = false;
+    }
+    return does_match;
 }

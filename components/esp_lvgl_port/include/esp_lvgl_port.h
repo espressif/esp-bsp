@@ -34,6 +34,7 @@ extern "C" {
 typedef enum {
     LVGL_PORT_EVENT_DISPLAY = 0x01,
     LVGL_PORT_EVENT_TOUCH   = 0x02,
+    LVGL_PORT_EVENT_ENCODER = 0x04,
     LVGL_PORT_EVENT_USER    = 0x80,
 } lvgl_port_event_type_t;
 
