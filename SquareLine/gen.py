@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2023-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import sys
 import os
@@ -37,6 +37,7 @@ SLB_FILE = {
     "offset_x": 0,
     "offset_y": 0,
     "rotation": 0,
+    "shape": "rectangle",
     "color_depth": "",
     "lvgl_export_path": "",
     "lvgl_include_path": "lvgl.h",
@@ -165,6 +166,7 @@ def create_slb_file(output, output_filename, manifest):
     check_json_key(manifest, "short_description")
     check_json_key(manifest, "long_description")
     check_json_key(manifest, "supported_lvgl_version")
+    check_json_key(manifest, "screen_circle")
 
     SLB_FILE["version"] = manifest["version"]
     SLB_FILE["title"] = manifest["name"]
@@ -182,6 +184,10 @@ def create_slb_file(output, output_filename, manifest):
     SLB_FILE["short_description"] = manifest["short_description"]
     SLB_FILE["long_description"] = manifest["long_description"]
     SLB_FILE["supported_lvgl_version"] = manifest["supported_lvgl_version"]
+    if manifest["screen_circle"]:
+        SLB_FILE["shape"] = "circle"
+    else:
+        SLB_FILE["shape"] = "rectangle"
 
     out_slb_json = json.dumps(SLB_FILE, indent=4)
     slb_file = os.path.join(output, output_filename + ".slb")
