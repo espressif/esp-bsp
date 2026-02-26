@@ -7,7 +7,7 @@ else()
 endif()
 
 idf_component_register(
-    SRCS "esp32_c3_lcdkit.c"
+    SRCS "src/esp32_c3_lcdkit.c" "src/led_blink_defaults.c"
     INCLUDE_DIRS "include"
     PRIV_INCLUDE_DIRS "priv_include"
     REQUIRES ${REQ} fatfs
