@@ -1,5 +1,5 @@
 
-version: "1.0.0"
+version: "1.0.1"
 description: Board Support Package (BSP) for m5stack_tab5
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5stack_tab5
 
@@ -41,7 +41,7 @@ dependencies:
     override_path: "../../components/lcd_touch/esp_lcd_touch_gt911"
 
   esp_video:
-    version: "~1.4"
+    version: "~2.0"
     public:  true
 
   usb:
