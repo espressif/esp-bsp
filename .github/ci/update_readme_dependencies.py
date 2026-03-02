@@ -130,7 +130,7 @@ def extract_function_body(c_code, function_name):
     return None
 
 
-def get_capabilities_table(header_path, main_path, manifest):
+def get_capabilities_table(header_path, bsp_path, bsp_name, manifest):
     """
     Get markdown formatted table of manifest's capabilities
     """
@@ -148,42 +148,52 @@ def get_capabilities_table(header_path, main_path, manifest):
 
                 # Check for specific driver/controller names in C file
                 additional_info = []
-                if main_path and main_path.exists():
-                    with open(main_path, "r", encoding="utf-8") as cf:
-                        c_code = cf.read()
+                boardname_src_file = (bsp_name + '.c')
+                c_files = [boardname_src_file, "bsp_display.c", "bsp_audio.c"]
+                for file in c_files:
+                    path = bsp_path / file
+                    # Some BSPs has main C file in src/ folder
+                    if not path.exists():
+                        path = bsp_path / "src" / file
 
-                        # DISPLAY: find all esp_lcd_new_panel_* excluding io_*
-                        if capability == "DISPLAY":
-                            display_matches = re.findall(r"esp_lcd_new_panel_([a-z0-9_]+)\s*\(", c_code)
-                            additional_info = [m for m in display_matches if not m.startswith("io_")]
+                    if path and path.exists():
+                        with open(path, "r", encoding="utf-8") as cf:
+                            c_code = cf.read()
 
-                        # TOUCH: esp_lcd_touch_new_i2c_*
-                        if capability == "TOUCH":
-                            additional_info = re.findall(r"esp_lcd_touch_new_i2c_([a-z0-9_]+)\s*\(", c_code)
+                            if file == boardname_src_file or file == "bsp_display.c":
+                                # DISPLAY: find all esp_lcd_new_panel_* excluding io_*
+                                if capability == "DISPLAY":
+                                    display_matches = re.findall(r"esp_lcd_new_panel_([a-z0-9_]+)\s*\(", c_code)
+                                    additional_info = [m for m in display_matches if not m.startswith("io_")]
 
-                        # AUDIO_SPEAKER
-                        if capability == "AUDIO_SPEAKER":
-                            speaker_code_section = extract_function_body(c_code, 'bsp_audio_codec_speaker_init')
-                            if speaker_code_section is not None:
-                                matches = re.findall(r"([a-z0-9_]+)_codec_new", speaker_code_section)
-                                additional_info = [m for m in matches if not m.startswith("audio")]
-                            if not additional_info:
-                                speaker_code_section = extract_function_body(c_code, 'bsp_audio_codec_init')
-                                if speaker_code_section is not None:
-                                    matches = re.findall(r"([a-z0-9_]+)_codec_new", speaker_code_section)
-                                    additional_info = [m for m in matches if not m.startswith("audio")]
+                                # TOUCH: esp_lcd_touch_new_i2c_*
+                                if capability == "TOUCH":
+                                    additional_info = re.findall(r"esp_lcd_touch_new_i2c_([a-z0-9_]+)\s*\(", c_code)
 
-                        # AUDIO_MIC
-                        if capability == "AUDIO_MIC":
-                            mic_code_section = extract_function_body(c_code, 'bsp_audio_codec_microphone_init')
-                            if mic_code_section is not None:
-                                matches = re.findall(r"([a-z0-9_]+)_codec_new", mic_code_section)
-                                additional_info = [m for m in matches if not m.startswith("audio")]
-                            if not additional_info:
-                                mic_code_section = extract_function_body(c_code, 'bsp_audio_codec_init')
-                                if mic_code_section is not None:
-                                    matches = re.findall(r"([a-z0-9_]+)_codec_new", mic_code_section)
-                                    additional_info = [m for m in matches if not m.startswith("audio")]
+                            if file == boardname_src_file or file == "bsp_audio.c":
+                                # AUDIO_SPEAKER
+                                if capability == "AUDIO_SPEAKER":
+                                    speaker_code_section = extract_function_body(c_code, 'bsp_audio_codec_speaker_init')
+                                    if speaker_code_section is not None:
+                                        matches = re.findall(r"([a-z0-9_]+)_codec_new", speaker_code_section)
+                                        additional_info = [m for m in matches if not m.startswith("audio")]
+                                    if not additional_info:
+                                        speaker_code_section = extract_function_body(c_code, 'bsp_audio_codec_init')
+                                        if speaker_code_section is not None:
+                                            matches = re.findall(r"([a-z0-9_]+)_codec_new", speaker_code_section)
+                                            additional_info = [m for m in matches if not m.startswith("audio")]
+
+                                # AUDIO_MIC
+                                if capability == "AUDIO_MIC":
+                                    mic_code_section = extract_function_body(c_code, 'bsp_audio_codec_microphone_init')
+                                    if mic_code_section is not None:
+                                        matches = re.findall(r"([a-z0-9_]+)_codec_new", mic_code_section)
+                                        additional_info = [m for m in matches if not m.startswith("audio")]
+                                    if not additional_info:
+                                        mic_code_section = extract_function_body(c_code, 'bsp_audio_codec_init')
+                                        if mic_code_section is not None:
+                                            matches = re.findall(r"([a-z0-9_]+)_codec_new", mic_code_section)
+                                            additional_info = [m for m in matches if not m.startswith("audio")]
 
                 # CAMERA SENSOR
                 if capability == "CAMERA":
@@ -297,15 +307,10 @@ def check_bsp_readme(bsp_path) -> Any:
     # Get list of capabilities and dependencies of this BSP
     bsp_name = bsp_path.stem if not bsp_path.stem.endswith('_noglib') else bsp_path.stem[:-7]
     header_path = bsp_path / "include" / "bsp" / (bsp_name + '.h')
-    main_path = bsp_path / (bsp_name + '.c')
     readme_path = bsp_path / 'README.md'
     manager = ManifestManager(bsp_path, 'bsp')
 
-    # Some BSPs has main C file in src/ folder
-    if not main_path.exists():
-        main_path = bsp_path / "src" / (bsp_name + '.c')
-
-    table_capabilities_data = get_capabilities_table(header_path, main_path, manager.load())
+    table_capabilities_data = get_capabilities_table(header_path, bsp_path, bsp_name, manager.load())
     table_examples_md = get_examples_table(bsp_name)
 
     # Convert table to markdown format

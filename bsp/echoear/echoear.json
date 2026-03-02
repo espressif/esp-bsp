@@ -303,5 +303,14 @@
         }
     ],
     "YEAR": 2026,
+    "BSP_SRC_FILES": [
+        "src/bsp_audio.c",
+        "src/bsp_button.c",
+        "src/bsp_display.c",
+        "src/bsp_i2c.c",
+        "src/bsp_led.c",
+        "src/bsp_storage.c",
+        "src/bsp_feature_en.c"
+    ],
     "NOGLIB": 1
 }
