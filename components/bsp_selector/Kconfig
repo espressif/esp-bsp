@@ -96,6 +96,11 @@ menu "BSP Selector"
         int
         default 1 if BSP_SELECT_M5STACK_TAB5
         default 0
+    
+    config ECHOEAR
+        int
+        default 1 if BSP_SELECT_ECHOEAR
+        default 0
         
 
     choice BSP_SELECT
@@ -184,6 +189,10 @@ menu "BSP Selector"
         config BSP_SELECT_M5STACK_TAB5
             depends on IDF_TARGET_ESP32P4
             bool "M5STACK_TAB5"
+            
+        config BSP_SELECT_ECHOEAR
+            depends on IDF_TARGET_ESP32S3
+            bool "ECHOEAR"
             
    endchoice     
 
