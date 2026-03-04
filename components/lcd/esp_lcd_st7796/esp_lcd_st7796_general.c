@@ -32,6 +32,7 @@ static esp_err_t panel_st7796_mirror(esp_lcd_panel_t *panel, bool mirror_x, bool
 static esp_err_t panel_st7796_swap_xy(esp_lcd_panel_t *panel, bool swap_axes);
 static esp_err_t panel_st7796_set_gap(esp_lcd_panel_t *panel, int x_gap, int y_gap);
 static esp_err_t panel_st7796_disp_on_off(esp_lcd_panel_t *panel, bool off);
+static esp_err_t panel_st7796_disp_sleep(esp_lcd_panel_t *panel, bool sleep);
 
 typedef struct {
     esp_lcd_panel_t base;
@@ -141,6 +142,8 @@ esp_err_t esp_lcd_new_panel_st7796_general(const esp_lcd_panel_io_handle_t io,
 #else
     st7796->base.disp_on_off = panel_st7796_disp_on_off;
 #endif
+    st7796->base.disp_sleep = panel_st7796_disp_sleep;
+
     *ret_panel = &(st7796->base);
     ESP_LOGD(TAG, "new st7796 panel @%p", st7796);
 
@@ -367,5 +370,25 @@ static esp_err_t panel_st7796_disp_on_off(esp_lcd_panel_t *panel, bool on_off)
         command = LCD_CMD_DISPOFF;
     }
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, command, NULL, 0), TAG, "send command failed");
+    return ESP_OK;
+}
+
+static esp_err_t panel_st7796_disp_sleep(esp_lcd_panel_t *panel, bool sleep)
+{
+    st7796_panel_t *st7796 = __containerof(panel, st7796_panel_t, base);
+    esp_lcd_panel_io_handle_t io = st7796->io;
+    int command;
+
+    if (sleep) {
+        command = LCD_CMD_SLPIN;
+    } else {
+        command = LCD_CMD_SLPOUT;
+    }
+
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, command, NULL, 0), TAG, "send command failed");
+
+    /* According to the ST7796 datasheet, a delay of at least 120ms is required after sleep in/out commands */
+    vTaskDelay(pdMS_TO_TICKS(120));
+
     return ESP_OK;
 }
