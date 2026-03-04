@@ -17,10 +17,10 @@
 #include "esp_lcd_mipi_dsi.h"
 #include "esp_ldo_regulator.h"
 #include "sd_pwr_ctrl_by_on_chip_ldo.h"
-#include "esp_lcd_ili9881c.h"
+#include "esp_lcd_st7123.h"
 #include "disp_init_data.h"
 #include "esp_io_expander_pi4ioe5v6408.h"
-#include "esp_lcd_touch_gt911.h"
+#include "esp_lcd_touch_st7123.h"
 #include "esp_vfs_fat.h"
 #include "sd_pwr_ctrl_by_on_chip_ldo.h"
 #include "bsp/m5stack_tab5.h"
@@ -496,7 +496,7 @@ esp_err_t bsp_display_brightness_init(void)
         .speed_mode = LEDC_LOW_SPEED_MODE,
         .duty_resolution = LEDC_TIMER_10_BIT,
         .timer_num = LEDC_TIMER_0,
-        .freq_hz = 5000,
+        .freq_hz = 25000,
         .clk_cfg = LEDC_AUTO_CLK
     };
 
@@ -605,19 +605,19 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     esp_lcd_dpi_panel_config_t dpi_config = {
         .virtual_channel    = 0,
         .dpi_clk_src        = MIPI_DSI_DPI_CLK_SRC_DEFAULT,
-        .dpi_clock_freq_mhz = 60,
+        .dpi_clock_freq_mhz = 70,
         .in_color_format    = LCD_COLOR_FMT_RGB565,
         .num_fbs            = 1,
         .video_timing =
         {
             .h_size            = BSP_LCD_H_RES,
             .v_size            = BSP_LCD_V_RES,
-            .hsync_back_porch  = 140,
-            .hsync_pulse_width = 40,
-            .hsync_front_porch = 40,
-            .vsync_back_porch  = 20,
-            .vsync_pulse_width = 4,
-            .vsync_front_porch = 20,
+            .hsync_back_porch  = BSP_LCD_MIPI_DSI_LCD_HBP,
+            .hsync_pulse_width = BSP_LCD_MIPI_DSI_LCD_HSYNC,
+            .hsync_front_porch = BSP_LCD_MIPI_DSI_LCD_HFP,
+            .vsync_back_porch  = BSP_LCD_MIPI_DSI_LCD_VBP,
+            .vsync_pulse_width = BSP_LCD_MIPI_DSI_LCD_VSYNC,
+            .vsync_front_porch = BSP_LCD_MIPI_DSI_LCD_VFP,
         },
 #if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0))
         .flags.use_dma2d = true,
@@ -625,13 +625,12 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     };
     dpi_config.num_fbs = CONFIG_BSP_LCD_DPI_BUFFER_NUMS;
 
-    ili9881c_vendor_config_t vendor_config = {
+    st7123_vendor_config_t vendor_config = {
         .init_cmds      = disp_init_data,
         .init_cmds_size = sizeof(disp_init_data) / sizeof(disp_init_data[0]),
         .mipi_config = {
             .dsi_bus = ret_handles->mipi_dsi_bus,
             .dpi_config = &dpi_config,
-            .lane_num   = BSP_LCD_MIPI_DSI_LANE_NUM,
         },
     };
     ESP_LOGD(TAG, "Install LCD driver");
@@ -642,7 +641,7 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
         .bits_per_pixel = BSP_LCD_BITS_PER_PIXEL,
         .vendor_config = &vendor_config,
     };
-    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9881c(ret_handles->io, (const esp_lcd_panel_dev_config_t *)&panel_config,
+    ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7123(ret_handles->io, (const esp_lcd_panel_dev_config_t *)&panel_config,
                       &ret_handles->panel), err, TAG, "New panel failed");
     disp_handles.panel = ret_handles->panel;
 #if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0))
@@ -652,7 +651,7 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     esp_lcd_panel_reset(ret_handles->panel);
     esp_lcd_panel_init(ret_handles->panel);
     esp_lcd_panel_invert_color(ret_handles->panel, false);
-    esp_lcd_panel_swap_xy(ret_handles->panel, false);
+    //esp_lcd_panel_swap_xy(ret_handles->panel, false);
     esp_lcd_panel_mirror(ret_handles->panel, false, false);
 
     ESP_LOGI(TAG, "Display initialized with resolution %dx%d", BSP_LCD_H_RES, BSP_LCD_V_RES);
@@ -776,7 +775,7 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     /*
      * Keep interrupt pin in low for working touch
      * Note: This is the fix - there is resistor to 3V3 on interrupt pin
-     * which is blocking GT911 touch.
+     * which is blocking ST7123 touch.
      */
     const gpio_config_t int_gpio_config = {
         .mode = GPIO_MODE_OUTPUT,
@@ -789,13 +788,13 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     gpio_set_level(GPIO_NUM_23, 0);
 
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
-    tp_io_config.dev_addr = ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS_BACKUP;
+    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_ST7123_CONFIG();
+    tp_io_config.dev_addr = ESP_LCD_TOUCH_IO_I2C_ST7123_ADDRESS;
     tp_io_config.scl_speed_hz =
         CONFIG_BSP_I2C_CLK_SPEED_HZ; // This parameter was introduced together with I2C Driver-NG in IDF v5.2
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle), TAG, "");
 
-    ESP_RETURN_ON_ERROR(esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, ret_touch), TAG,
+    ESP_RETURN_ON_ERROR(esp_lcd_touch_new_i2c_st7123(tp_io_handle, &tp_cfg, ret_touch), TAG,
                         "New touch driver initialization failed");
 
     return ESP_OK;

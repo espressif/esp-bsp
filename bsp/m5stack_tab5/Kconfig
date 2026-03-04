@@ -86,7 +86,7 @@ menu "Board Support Package(m5stack_tab5)"
             Whether to enable double framebuf.
         config BSP_LCD_DPI_BUFFER_NUMS
             int "Set number of frame buffers"
-            default 1
+            default 2
             range 1 3
             help
                 Let DPI LCD driver create a specified number of frame-size buffers. Only when it is set to multiple can the avoiding tearing be turned on.
