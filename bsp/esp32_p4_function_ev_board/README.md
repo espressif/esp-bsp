@@ -24,10 +24,8 @@ ESP32-P4-Function-EV-Board is a multimedia development board based on the ESP32-
 |    V1.0    |      ^1     |
 |    V1.2    |      ^2     |
 |    [V1.4](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32p4/esp32-p4-function-ev-board/user_guide_v1.4.html)    |      ^3     |
-|    [V1.5](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32p4/esp32-p4-function-ev-board/user_guide.html)    |      ^3     |
+|    [V1.5](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32p4/esp32-p4-function-ev-board/user_guide.html) / 1.6    |      >=3     |
 
-> [!NOTE]
-> For using boards with ESP32-P4 ECO5 (Board v1.5), change `CONFIG_ESP32P4_SELECTS_REV_LESS_V3=n` in `menuconfig`.
 
 ## Configuration
 
@@ -49,7 +47,7 @@ Selection color format `Board Support Package(ESP32-P4) --> Display --> Select L
 ## HDMI Support
 
 This BSP supports HDMI converter Lontium LT8912B. Follow these rules for using it with HDMI:
-- Use ESP-IDF 5.4 or older (from commit [93fdbf2](https://github.com/espressif/esp-idf/commit/93fdbf25b3ea7e44d1f519ed61050847dcc8a076))
+- Use ESP-IDF 6.0 or newer
 - Only RGB888 is supported with HDMI
 - Use MIPI-DSI to HDMI converter Lontium LT8912B
 

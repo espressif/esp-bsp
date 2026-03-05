@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -46,7 +46,7 @@ static void app_lvgl_btn_ok_cb(lv_event_t *e)
     const char *email = lv_textarea_get_text(ta_email);
 
     result = lv_obj_create(scr);
-    lv_obj_set_size(result, BSP_LCD_V_RES, BSP_LCD_H_RES);
+    lv_obj_set_size(result, BSP_LCD_H_RES, BSP_LCD_V_RES);
     lv_obj_align(result, LV_ALIGN_TOP_MID, 0, 0);
     lv_obj_set_flex_flow(result, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(result, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -76,7 +76,7 @@ static void app_lvgl_display(void)
     bsp_display_lock(0);
 
     lv_obj_t *col = lv_obj_create(scr);
-    lv_obj_set_size(col, BSP_LCD_V_RES, BSP_LCD_H_RES);
+    lv_obj_set_size(col, BSP_LCD_H_RES, BSP_LCD_V_RES);
     lv_obj_align(col, LV_ALIGN_TOP_MID, 0, 0);
     lv_obj_set_flex_flow(col, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(col, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -85,7 +85,7 @@ static void app_lvgl_display(void)
     lv_label_set_text(lbl, "USB HID Example");
 
     lv_obj_t *cont_row = lv_obj_create(col);
-    lv_obj_set_size(cont_row, BSP_LCD_V_RES - 10, 50);
+    lv_obj_set_size(cont_row, BSP_LCD_H_RES - 10, 50);
     lv_obj_align(cont_row, LV_ALIGN_TOP_MID, 0, 20);
     lv_obj_set_flex_flow(cont_row, LV_FLEX_FLOW_ROW);
     lv_obj_set_style_pad_top(cont_row, 5, 0);
@@ -97,11 +97,11 @@ static void app_lvgl_display(void)
     lbl = lv_label_create(cont_row);
     lv_label_set_text(lbl, "Name:");
     ta_name = lv_textarea_create(cont_row);
-    lv_obj_set_width(ta_name, BSP_LCD_V_RES - 100);
+    lv_obj_set_width(ta_name, BSP_LCD_H_RES - 100);
     lv_textarea_set_one_line(ta_name, true);
 
     cont_row = lv_obj_create(col);
-    lv_obj_set_size(cont_row, BSP_LCD_V_RES - 10, 50);
+    lv_obj_set_size(cont_row, BSP_LCD_H_RES - 10, 50);
     lv_obj_align(cont_row, LV_ALIGN_TOP_MID, 0, 20);
     lv_obj_set_flex_flow(cont_row, LV_FLEX_FLOW_ROW);
     lv_obj_set_style_pad_top(cont_row, 5, 0);
@@ -113,7 +113,7 @@ static void app_lvgl_display(void)
     lbl = lv_label_create(cont_row);
     lv_label_set_text(lbl, "E-mail:");
     ta_email = lv_textarea_create(cont_row);
-    lv_obj_set_width(ta_email, BSP_LCD_V_RES - 100);
+    lv_obj_set_width(ta_email, BSP_LCD_H_RES - 100);
     lv_textarea_set_one_line(ta_email, true);
 
     /* Button OK */

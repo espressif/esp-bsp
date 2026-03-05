@@ -116,6 +116,7 @@ menu "Board Support Package (ESP32-P4)"
                 Select the LCD color format RGB565/RGB888.
 
             config BSP_LCD_COLOR_FORMAT_RGB565
+                depends on !BSP_LCD_TYPE_HDMI
                 bool "RGB565"
             config BSP_LCD_COLOR_FORMAT_RGB888
                 bool "RGB888"
@@ -150,6 +151,8 @@ menu "Board Support Package (ESP32-P4)"
 
             config BSP_LCD_HDMI_800x600_60HZ
                 bool "800x600@60HZ"
+            config BSP_LCD_HDMI_1024x768_60HZ
+                bool "1024x768@60HZ"
             config BSP_LCD_HDMI_1280x720_60HZ
                 bool "1280x720@60HZ"
             config BSP_LCD_HDMI_1280x800_60HZ
