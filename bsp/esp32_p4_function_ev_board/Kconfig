@@ -150,10 +150,14 @@ menu "Board Support Package (ESP32-P4)"
 
             config BSP_LCD_HDMI_800x600_60HZ
                 bool "800x600@60HZ"
+            config BSP_LCD_HDMI_1024x768_60HZ
+                bool "1024x768@60HZ"
             config BSP_LCD_HDMI_1280x720_60HZ
                 bool "1280x720@60HZ"
             config BSP_LCD_HDMI_1280x800_60HZ
                 bool "1280x800@60HZ"
+            config BSP_LCD_HDMI_1600x900_60HZ
+                bool "1600x900@60HZ"
             config BSP_LCD_HDMI_1920x1080_30HZ
                 bool "1920x1080@30HZ"
         endchoice          

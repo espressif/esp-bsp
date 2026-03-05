@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -45,14 +45,38 @@
 /* LCD display definition 1024x600 */
 #define BSP_LCD_H_RES              (1024)
 #define BSP_LCD_V_RES              (600)
-#else
+#elif CONFIG_BSP_LCD_TYPE_1280_800
 /* LCD display definition 1280x800 */
 #define BSP_LCD_H_RES              (800)
 #define BSP_LCD_V_RES              (1280)
+#elif CONFIG_BSP_LCD_TYPE_HDMI
+#if CONFIG_BSP_LCD_HDMI_800x600_60HZ
+#define BSP_LCD_H_RES              (800)
+#define BSP_LCD_V_RES              (600)
+#elif CONFIG_BSP_LCD_HDMI_1024x768_60HZ
+#define BSP_LCD_H_RES              (1024)
+#define BSP_LCD_V_RES              (768)
+#elif CONFIG_BSP_LCD_HDMI_1280x720_60HZ
+#define BSP_LCD_H_RES              (1280)
+#define BSP_LCD_V_RES              (720)
+#elif CONFIG_BSP_LCD_HDMI_1280x800_60HZ
+#define BSP_LCD_H_RES              (1280)
+#define BSP_LCD_V_RES              (800)
+#elif CONFIG_BSP_LCD_HDMI_1600x900_60HZ
+#define BSP_LCD_H_RES              (1600)
+#define BSP_LCD_V_RES              (900)
+#elif CONFIG_BSP_LCD_HDMI_1920x1080_30HZ
+#define BSP_LCD_H_RES              (1920)
+#define BSP_LCD_V_RES              (1080)
+#endif
 #endif
 
 #define BSP_LCD_MIPI_DSI_LANE_NUM          (2)    // 2 data lanes
+#if CONFIG_BSP_LCD_TYPE_HDMI
+#define BSP_LCD_MIPI_DSI_LANE_BITRATE_MBPS (1500) // 1.5Gbps
+#else
 #define BSP_LCD_MIPI_DSI_LANE_BITRATE_MBPS (1000) // 1Gbps
+#endif
 
 #define BSP_MIPI_DSI_PHY_PWR_LDO_CHAN       (3)  // LDO_VO3 is connected to VDD_MIPI_DPHY
 #define BSP_MIPI_DSI_PHY_PWR_LDO_VOLTAGE_MV (2500)
@@ -71,6 +95,7 @@ typedef enum {
     BSP_HDMI_RES_1024x768,  /*!< 1024x768@60HZ  */
     BSP_HDMI_RES_1280x720,  /*!< 1280x720@60HZ  */
     BSP_HDMI_RES_1280x800,  /*!< 1280x800@60HZ  */
+    BSP_HDMI_RES_1600x900,  /*!< 1600x900@60HZ  */
     BSP_HDMI_RES_1920x1080  /*!< 1920x1080@30HZ */
 } bsp_hdmi_resolution_t;
 
