@@ -19,40 +19,39 @@
 #define ICM42670_I2C_CLK_SPEED 400000
 #define ICM42670_SPI_CLK_SPEED 1000000
 
-#define ALPHA                       0.97f        /*!< Weight of gyroscope */
-#define RAD_TO_DEG                  57.27272727f /*!< Radians to degrees */
+#define ALPHA 0.97f             /*!< Weight of gyroscope */
+#define RAD_TO_DEG 57.27272727f /*!< Radians to degrees */
 
 #define ICM42607_ID 0x60
 #define ICM42670_ID 0x67
 
 /* ICM42670 register */
-#define ICM42670_WHOAMI         0x75
-#define ICM42670_GYRO_CONFIG0   0x20
-#define ICM42670_ACCEL_CONFIG0  0x21
-#define ICM42670_TEMP_CONFIG    0x22
-#define ICM42670_PWR_MGMT0      0x1F
-#define ICM42670_TEMP_DATA      0x09
-#define ICM42670_ACCEL_DATA     0x0B
-#define ICM42670_GYRO_DATA      0x11
+#define ICM42670_WHOAMI 0x75
+#define ICM42670_GYRO_CONFIG0 0x20
+#define ICM42670_ACCEL_CONFIG0 0x21
+#define ICM42670_TEMP_CONFIG 0x22
+#define ICM42670_PWR_MGMT0 0x1F
+#define ICM42670_TEMP_DATA 0x09
+#define ICM42670_ACCEL_DATA 0x0B
+#define ICM42670_GYRO_DATA 0x11
 
 /* Sensitivity of the gyroscope */
 #define GYRO_FS_2000_SENSITIVITY (16.4)
 #define GYRO_FS_1000_SENSITIVITY (32.8)
-#define GYRO_FS_500_SENSITIVITY  (65.5)
-#define GYRO_FS_250_SENSITIVITY  (131.0)
+#define GYRO_FS_500_SENSITIVITY (65.5)
+#define GYRO_FS_250_SENSITIVITY (131.0)
 
 /* Sensitivity of the accelerometer */
 #define ACCE_FS_16G_SENSITIVITY (2048)
-#define ACCE_FS_8G_SENSITIVITY  (4096)
-#define ACCE_FS_4G_SENSITIVITY  (8192)
-#define ACCE_FS_2G_SENSITIVITY  (16384)
+#define ACCE_FS_8G_SENSITIVITY (4096)
+#define ACCE_FS_4G_SENSITIVITY (8192)
+#define ACCE_FS_2G_SENSITIVITY (16384)
 
 /*******************************************************************************
  * Types definitions
  *******************************************************************************/
 
-typedef struct
-{
+typedef struct {
     bool using_spi;
     spi_device_handle_t spi_handle;
     i2c_master_dev_handle_t i2c_handle;
@@ -136,12 +135,9 @@ err:
 void icm42670_delete(icm42670_handle_t sensor)
 {
     icm42670_dev_t *sens = (icm42670_dev_t *)sensor;
-    if (sens->using_spi && sens->spi_handle)
-    {
+    if (sens->using_spi && sens->spi_handle) {
         spi_bus_remove_device(sens->spi_handle);
-    }
-    else if (sens->i2c_handle)
-    {
+    } else if (sens->i2c_handle) {
         i2c_master_bus_rm_device(sens->i2c_handle);
     }
 
@@ -369,12 +365,10 @@ static esp_err_t check_device_present(icm42670_handle_t sensor)
 {
     uint8_t dev_id = 0;
     esp_err_t ret = icm42670_get_deviceid(sensor, &dev_id);
-    if (ret != ESP_OK)
-    {
+    if (ret != ESP_OK) {
         return ret;
     }
-    if (dev_id != ICM42607_ID && dev_id != ICM42670_ID)
-    {
+    if (dev_id != ICM42607_ID && dev_id != ICM42670_ID) {
         ESP_LOGD(TAG, "Incorrect Device ID (0x%02x).", dev_id);
         return ESP_ERR_NOT_FOUND;
     }
@@ -405,22 +399,19 @@ static esp_err_t icm42670_get_raw_value(icm42670_handle_t sensor, uint8_t reg, i
 static esp_err_t icm42670_write(icm42670_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *data_buf,
                                 const uint8_t data_len)
 {
-    icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
+    icm42670_dev_t *sens = (icm42670_dev_t *)sensor;
     assert(sens);
 
     assert(data_len < 5);
     uint8_t write_buff[5] = {reg_start_addr};
     memcpy(&write_buff[1], data_buf, data_len);
-    if (sens->using_spi)
-    {
+    if (sens->using_spi) {
         spi_transaction_t trans = {
             .length = (data_len + 1) * 8, // Total length in bits
             .tx_buffer = write_buff,
         };
         return spi_device_transmit(sens->spi_handle, &trans);
-    }
-    else
-    {
+    } else {
         return i2c_master_transmit(sens->i2c_handle, write_buff, data_len + 1, -1);
     }
 }
@@ -430,8 +421,7 @@ static esp_err_t icm42670_read(icm42670_handle_t sensor, const uint8_t reg_start
     icm42670_dev_t *sens = (icm42670_dev_t *)sensor;
     assert(sens && data_buf && data_len <= 6);
     esp_err_t ret;
-    if (sens->using_spi)
-    {
+    if (sens->using_spi) {
         uint8_t tx_buf[7] = {reg_start_addr | 0x80}; // Set MSB for read operation
         uint8_t rx_buf[7] = {0};                     // Buffer to receive data (including the register address)
         spi_transaction_t trans = {
@@ -440,13 +430,10 @@ static esp_err_t icm42670_read(icm42670_handle_t sensor, const uint8_t reg_start
             .rx_buffer = rx_buf,
         };
         ret = spi_device_transmit(sens->spi_handle, &trans);
-        if (ret == ESP_OK)
-        {
+        if (ret == ESP_OK) {
             memcpy(data_buf, &rx_buf[1], data_len); // Skip the first byte (register address)
         }
-    }
-    else
-    {
+    } else {
         uint8_t reg_buff[] = {reg_start_addr};
         /* Write register number and read data */
         ret = i2c_master_transmit_receive(sens->i2c_handle, reg_buff, sizeof(reg_buff), data_buf, data_len, -1);
@@ -457,7 +444,7 @@ static esp_err_t icm42670_read(icm42670_handle_t sensor, const uint8_t reg_start
 esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670_value_t *const acce_value,
                                         const icm42670_value_t *const gyro_value, complimentary_angle_t *const complimentary_angle)
 {
-    icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
+    icm42670_dev_t *sens = (icm42670_dev_t *)sensor;
     float measurement_delta;
     uint64_t current_time_us;
     float acc_roll_angle;
@@ -466,9 +453,11 @@ esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670
     float gyro_pitch_angle;
 
     acc_roll_angle = (atan2(acce_value->y,
-                            sqrt(acce_value->x * acce_value->x + acce_value->z * acce_value->z)) * RAD_TO_DEG);
+                            sqrt(acce_value->x * acce_value->x + acce_value->z * acce_value->z)) *
+                      RAD_TO_DEG);
     acc_pitch_angle = (atan2(-acce_value->x,
-                             sqrt(acce_value->y * acce_value->y + acce_value->z * acce_value->z)) * RAD_TO_DEG);
+                             sqrt(acce_value->y * acce_value->y + acce_value->z * acce_value->z)) *
+                       RAD_TO_DEG);
 
     if (!sens->initialized_filter) {
         sens->initialized_filter = true;
@@ -485,9 +474,11 @@ esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670
     gyro_pitch_angle = gyro_value->y * measurement_delta;
 
     complimentary_angle->roll = (ALPHA * (sens->previous_measurement.roll + gyro_roll_angle)) + ((
-                                    1 - ALPHA) * acc_roll_angle);
+                                    1 - ALPHA) *
+                                acc_roll_angle);
     complimentary_angle->pitch = (ALPHA * (sens->previous_measurement.pitch + gyro_pitch_angle)) + ((
-                                     1 - ALPHA) * acc_pitch_angle);
+                                     1 - ALPHA) *
+                                 acc_pitch_angle);
 
     sens->previous_measurement.roll = complimentary_angle->roll;
     sens->previous_measurement.pitch = complimentary_angle->pitch;
@@ -593,13 +584,13 @@ esp_err_t icm42670_impl_deinit(void)
     return ESP_OK;
 }
 
-esp_err_t icm42670_impl_test (void)
+esp_err_t icm42670_impl_test(void)
 {
     uint8_t device_id;
     return icm42670_get_deviceid(sensor_hub_icm42670_handle, &device_id);
 }
 
-esp_err_t icm42670_impl_acquire_acce (float *acce_x, float *acce_y, float *acce_z)
+esp_err_t icm42670_impl_acquire_acce(float *acce_x, float *acce_y, float *acce_z)
 {
     icm42670_value_t value;
     ESP_RETURN_ON_ERROR(icm42670_get_acce_value(sensor_hub_icm42670_handle, &value), TAG,
