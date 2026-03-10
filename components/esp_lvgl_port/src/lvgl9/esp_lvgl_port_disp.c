@@ -82,8 +82,13 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
 static bool lvgl_port_flush_io_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata,
         void *user_ctx);
 #if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#if CONFIG_LCD_RGB_ISR_IRAM_SAFE
+static IRAM_ATTR bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t panel_io,
+        const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx);
+#else
 static bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t panel_io,
         const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx);
+#endif
 #endif
 #if (CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
 static bool lvgl_port_flush_dpi_panel_ready_callback(esp_lcd_panel_handle_t panel_io,
@@ -195,10 +200,18 @@ lv_display_t *lvgl_port_add_disp_rgb(const lvgl_port_display_cfg_t *disp_cfg,
 #endif
         };
 
+        /* When LCD_RGB_ISR_IRAM_SAFE is enabled, the callback must be in IRAM and
+         * cannot call lv_display_get_driver_data() (which resides in flash).
+         * Pass disp_ctx directly as user_ctx to avoid flash access from ISR. */
+#if CONFIG_LCD_RGB_ISR_IRAM_SAFE
+        void *cb_user_ctx = disp_ctx;
+#else
+        void *cb_user_ctx = disp_ctx->disp_drv;
+#endif
         if (rgb_cfg->flags.bb_mode && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 2))) {
-            ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &bb_cbs, disp_ctx->disp_drv));
+            ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &bb_cbs, cb_user_ctx));
         } else {
-            ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &vsync_cbs, disp_ctx->disp_drv));
+            ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &vsync_cbs, cb_user_ctx));
         }
 #else
         ESP_RETURN_ON_FALSE(false, NULL, TAG, "RGB is supported only on ESP32S3 and from IDF 5.0!");
@@ -509,6 +522,25 @@ static bool lvgl_port_flush_dpi_vsync_ready_callback(esp_lcd_panel_handle_t pane
 #endif
 
 #if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#if CONFIG_LCD_RGB_ISR_IRAM_SAFE
+/* When LCD_RGB_ISR_IRAM_SAFE is enabled, this callback runs from IRAM.
+ * user_ctx is lvgl_port_display_ctx_t* to avoid calling lv_display_get_driver_data()
+ * which resides in flash and would crash when cache is disabled (e.g. during SPI flash ops). */
+static IRAM_ATTR bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t panel_io,
+        const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx)
+{
+    BaseType_t need_yield = pdFALSE;
+
+    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)user_ctx;
+    assert(disp_ctx != NULL);
+
+    if (disp_ctx->trans_sem) {
+        xSemaphoreGiveFromISR(disp_ctx->trans_sem, &need_yield);
+    }
+
+    return (need_yield == pdTRUE);
+}
+#else
 static bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t panel_io,
         const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx)
 {
@@ -525,6 +557,7 @@ static bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t pane
 
     return (need_yield == pdTRUE);
 }
+#endif /* CONFIG_LCD_RGB_ISR_IRAM_SAFE */
 #endif
 #endif
 
