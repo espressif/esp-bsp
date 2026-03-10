@@ -313,7 +313,14 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
     }
 
     /* Display context */
+#if CONFIG_LCD_RGB_ISR_IRAM_SAFE
+    /* When ISR IRAM safety is enabled, the display context is passed directly
+     * to the ISR callback as user_ctx. It must reside in internal RAM so it
+     * remains accessible when the cache is disabled during SPI flash operations. */
+    lvgl_port_display_ctx_t *disp_ctx = heap_caps_malloc(sizeof(lvgl_port_display_ctx_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+#else
     lvgl_port_display_ctx_t *disp_ctx = malloc(sizeof(lvgl_port_display_ctx_t));
+#endif
     ESP_GOTO_ON_FALSE(disp_ctx, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for display context allocation!");
     memset(disp_ctx, 0, sizeof(lvgl_port_display_ctx_t));
     disp_ctx->io_handle = disp_cfg->io_handle;
@@ -532,7 +539,9 @@ static IRAM_ATTR bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_han
     BaseType_t need_yield = pdFALSE;
 
     lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)user_ctx;
-    assert(disp_ctx != NULL);
+    if (disp_ctx == NULL) {
+        return false;
+    }
 
     if (disp_ctx->trans_sem) {
         xSemaphoreGiveFromISR(disp_ctx->trans_sem, &need_yield);
