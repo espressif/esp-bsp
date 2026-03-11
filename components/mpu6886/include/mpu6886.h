@@ -491,7 +491,7 @@ esp_err_t mpu6886_get_fifo_count(mpu6886_handle_t sensor, uint16_t *count);
  *     - ESP_OK Success
  *     - ESP_FAIL Fail
  */
-esp_err_t mpu6886_read_fifo(mpu6886_handle_t sensor, uint8_t *buf, uint8_t len);
+esp_err_t mpu6886_read_fifo(mpu6886_handle_t sensor, uint8_t *buf, uint16_t len);
 
 /**
  * @brief Set FIFO watermark threshold. Watermark interrupt disabled when threshold is 0.

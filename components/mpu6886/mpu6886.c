@@ -14,7 +14,7 @@
 #include "mpu6886.h"
 
 #define ALPHA                       0.99f        /*!< Weight of gyroscope */
-#define RAD_TO_DEG                  57.27272727f  /*!< Radians to degrees */
+#define RAD_TO_DEG                  57.29577951f  /*!< Radians to degrees (180/π) */
 
 /* MPU6886 register addresses (from datasheet DS-000193 Rev 1.1) */
 #define MPU6886_SELF_TEST_X_ACCEL   0x0Du
@@ -103,7 +103,7 @@ static esp_err_t mpu6886_write(mpu6886_handle_t sensor, const uint8_t reg_start_
 }
 
 static esp_err_t mpu6886_read(mpu6886_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf,
-                              const uint8_t data_len)
+                              const uint16_t data_len)
 {
     mpu6886_dev_t *sens = (mpu6886_dev_t *) sensor;
     return i2c_master_transmit_receive(sens->i2c_dev, &reg_start_addr, 1, data_buf, data_len, 1000);
@@ -166,7 +166,7 @@ static esp_err_t mpu6886_write(mpu6886_handle_t sensor, const uint8_t reg_start_
 }
 
 static esp_err_t mpu6886_read(mpu6886_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf,
-                              const uint8_t data_len)
+                              const uint16_t data_len)
 {
     mpu6886_dev_t *sens = (mpu6886_dev_t *) sensor;
     esp_err_t ret;
@@ -195,6 +195,9 @@ static esp_err_t mpu6886_read(mpu6886_handle_t sensor, const uint8_t reg_start_a
 mpu6886_handle_t mpu6886_create(i2c_port_t port, const uint16_t dev_addr)
 {
     mpu6886_dev_t *sensor = (mpu6886_dev_t *) calloc(1, sizeof(mpu6886_dev_t));
+    if (!sensor) {
+        return NULL;
+    }
     sensor->bus = port;
     sensor->dev_addr = dev_addr << 1;
     sensor->counter = 0;
@@ -548,7 +551,7 @@ esp_err_t mpu6886_get_fifo_count(mpu6886_handle_t sensor, uint16_t *count)
     return ret;
 }
 
-esp_err_t mpu6886_read_fifo(mpu6886_handle_t sensor, uint8_t *buf, uint8_t len)
+esp_err_t mpu6886_read_fifo(mpu6886_handle_t sensor, uint8_t *buf, uint16_t len)
 {
     return mpu6886_read(sensor, MPU6886_FIFO_R_W, buf, len);
 }
@@ -704,18 +707,26 @@ esp_err_t mpu6886_config_interrupts(mpu6886_handle_t sensor, const mpu6886_int_c
 
     if (MPU6886_INTERRUPT_PIN_ACTIVE_LOW == interrupt_configuration->active_level) {
         int_pin_cfg |= BIT7;
+    } else {
+        int_pin_cfg &= ~BIT7;
     }
 
     if (MPU6886_INTERRUPT_PIN_OPEN_DRAIN == interrupt_configuration->pin_mode) {
         int_pin_cfg |= BIT6;
+    } else {
+        int_pin_cfg &= ~BIT6;
     }
 
     if (MPU6886_INTERRUPT_LATCH_UNTIL_CLEARED == interrupt_configuration->interrupt_latch) {
         int_pin_cfg |= BIT5;
+    } else {
+        int_pin_cfg &= ~BIT5;
     }
 
     if (MPU6886_INTERRUPT_CLEAR_ON_ANY_READ == interrupt_configuration->interrupt_clear_behavior) {
         int_pin_cfg |= BIT4;
+    } else {
+        int_pin_cfg &= ~BIT4;
     }
 
     ret = mpu6886_write(sensor, MPU6886_INTR_PIN_CFG, &int_pin_cfg, 1);

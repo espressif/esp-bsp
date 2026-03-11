@@ -178,7 +178,7 @@ mpu6886_set_fifo_watermark(sensor, 512);
 uint16_t count;
 mpu6886_get_fifo_count(sensor, &count);
 uint8_t buf[512];
-mpu6886_read_fifo(sensor, buf, count > 512 ? 512 : (uint8_t)count);
+mpu6886_read_fifo(sensor, buf, count > 512 ? 512 : count);
 ```
 
 ### Low-Power Mode
