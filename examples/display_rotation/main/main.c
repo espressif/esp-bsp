@@ -15,7 +15,11 @@
 #include "bsp/esp-bsp.h"
 #include "lvgl.h"
 #if BSP_CAPS_IMU
+#if defined(BSP_BOARD_M5STACK_CORE_2)
+#include "mpu6886.h"
+#else
 #include "icm42670.h"
+#endif
 #endif
 
 static const char *TAG = "example";
@@ -27,7 +31,11 @@ static lv_disp_t *display;
 static lv_obj_t *lbl_rotation;
 static lv_disp_rotation_t rotation = LV_DISPLAY_ROTATION_0;
 #if BSP_CAPS_IMU
+#if defined(BSP_BOARD_M5STACK_CORE_2)
+static mpu6886_handle_t imu = NULL;
+#else
 static icm42670_handle_t imu = NULL;
+#endif
 #endif
 
 
@@ -145,6 +153,68 @@ static void app_lvgl_display(void)
 }
 
 #if BSP_CAPS_IMU
+#if defined(BSP_BOARD_M5STACK_CORE_2)
+static void app_imu_init(void)
+{
+    i2c_master_bus_handle_t i2c_handle = bsp_i2c_get_handle();
+    imu = mpu6886_create(i2c_handle, MPU6886_I2C_ADDRESS);
+    if (imu) {
+        mpu6886_wake_up(imu);
+        mpu6886_set_output_limit(imu);
+        mpu6886_set_clock_source(imu, MPU6886_CLK_AUTO);
+        mpu6886_config(imu, MPU6886_ACCE_FS_2G, MPU6886_GYRO_FS_2000DPS);
+    }
+}
+
+static void app_imu_read(void)
+{
+    mpu6886_acce_value_t acce_val;
+    mpu6886_get_acce(imu, &acce_val);
+    ESP_LOGI(TAG, "ACCE val: %.2f, %.2f, %.2f", acce_val.acce_x, acce_val.acce_y, acce_val.acce_z);
+
+    mpu6886_gyro_value_t gyro_val;
+    mpu6886_get_gyro(imu, &gyro_val);
+    ESP_LOGI(TAG, "GYRO val: %.2f, %.2f, %.2f", gyro_val.gyro_x, gyro_val.gyro_y, gyro_val.gyro_z);
+
+    mpu6886_temp_value_t temp_val;
+    mpu6886_get_temp(imu, &temp_val);
+    ESP_LOGI(TAG, "TEMP val: %.2f", temp_val.temp);
+
+    if (acce_val.acce_y < -0.6) {
+        if (rotation != LV_DISPLAY_ROTATION_0) {
+            rotation = LV_DISPLAY_ROTATION_0;
+            bsp_display_lock(0);
+            bsp_display_rotate(display, rotation);
+            lv_label_set_text_fmt(lbl_rotation, "Rotation %d°", app_lvgl_get_rotation_degrees(rotation));
+            bsp_display_unlock();
+        }
+    } else if (acce_val.acce_y > 0.6) {
+        if (rotation != LV_DISPLAY_ROTATION_180) {
+            rotation = LV_DISPLAY_ROTATION_180;
+            bsp_display_lock(0);
+            bsp_display_rotate(display, rotation);
+            lv_label_set_text_fmt(lbl_rotation, "Rotation %d°", app_lvgl_get_rotation_degrees(rotation));
+            bsp_display_unlock();
+        }
+    } else if (acce_val.acce_x > 0.6) {
+        if (rotation != LV_DISPLAY_ROTATION_270) {
+            rotation = LV_DISPLAY_ROTATION_270;
+            bsp_display_lock(0);
+            bsp_display_rotate(display, rotation);
+            lv_label_set_text_fmt(lbl_rotation, "Rotation %d°", app_lvgl_get_rotation_degrees(rotation));
+            bsp_display_unlock();
+        }
+    } else if (acce_val.acce_x < -0.6) {
+        if (rotation != LV_DISPLAY_ROTATION_90) {
+            rotation = LV_DISPLAY_ROTATION_90;
+            bsp_display_lock(0);
+            bsp_display_rotate(display, rotation);
+            lv_label_set_text_fmt(lbl_rotation, "Rotation %d°", app_lvgl_get_rotation_degrees(rotation));
+            bsp_display_unlock();
+        }
+    }
+}
+#else /* ICM42670-based boards */
 static void app_imu_init(void)
 {
     i2c_master_bus_handle_t i2c_handle = bsp_i2c_get_handle();
@@ -218,7 +288,8 @@ static void app_imu_read(void)
     }
 
 }
-#endif
+#endif /* BSP_BOARD_M5STACK_CORE_2 */
+#endif /* BSP_CAPS_IMU */
 
 void app_main(void)
 {

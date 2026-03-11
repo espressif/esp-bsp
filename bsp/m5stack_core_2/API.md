@@ -149,7 +149,7 @@ You can use these macros to conditionally compile code depending on feature avai
 | define  | [**BSP\_CAPS\_AUDIO\_SPEAKER**](#define-bsp_caps_audio_speaker)  1<br> |
 | define  | [**BSP\_CAPS\_BUTTONS**](#define-bsp_caps_buttons)  0<br> |
 | define  | [**BSP\_CAPS\_DISPLAY**](#define-bsp_caps_display)  1<br> |
-| define  | [**BSP\_CAPS\_IMU**](#define-bsp_caps_imu)  0<br> |
+| define  | [**BSP\_CAPS\_IMU**](#define-bsp_caps_imu)  1<br> |
 | define  | [**BSP\_CAPS\_SDCARD**](#define-bsp_caps_sdcard)  1<br> |
 | define  | [**BSP\_CAPS\_TOUCH**](#define-bsp_caps_touch)  1<br> |
 

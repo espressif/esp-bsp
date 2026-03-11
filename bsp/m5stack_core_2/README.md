@@ -57,7 +57,7 @@ Core2 V1.1 is an iterative version of Core2 with the following upgrades and addi
 |:heavy_check_mark:| :speaker: AUDIO_SPEAKER|                |                                                                                                            |                |
 |        :x:       | :microphone: AUDIO_MIC |                |                                                                                                            |                |
 |:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                     idf                                                    |      >=5.3     |
-|        :x:       |    :video_game: IMU    |                |                                                                                                            |                |
+|:heavy_check_mark:|    :video_game: IMU    |     mpu6886    |        [espressif/mpu6886](https://components.espressif.com/components/espressif/mpu6886)                  |     ^1.0.0     |
 
 <!-- END_DEPENDENCIES -->
 </div>

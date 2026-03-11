@@ -27,6 +27,11 @@ dependencies:
     version: "~1.5"
     public: true
 
+  mpu6886:
+    version: "^1.0.0"
+    public: true
+    override_path: "../../components/mpu6886"
+
 examples:
   - path: ../../examples/display
   - path: ../../examples/display_audio_photo
