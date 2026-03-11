@@ -8,7 +8,7 @@ C driver for MPU-6886 6-axis gyroscope and accelerometer based on I2C communicat
 - 3-axis accelerometer data (raw 16-bit or floating-point g values)
 - 3-axis gyroscope data (raw 16-bit or floating-point dps values)
 - Internal temperature sensor
-- Complimentary filter for roll and pitch angle estimation
+- complementary filter for roll and pitch angle estimation
 
 ### Configuration
 - Accelerometer full-scale range: ±2g, ±4g, ±8g, ±16g
@@ -237,7 +237,7 @@ mpu6886_set_gyro_low_power(sensor, true, MPU6886_GYRO_AVG_32);
 | `mpu6886_get_raw_acce` / `mpu6886_get_acce` | Read accelerometer data |
 | `mpu6886_get_raw_gyro` / `mpu6886_get_gyro` | Read gyroscope data |
 | `mpu6886_get_temp` | Read temperature |
-| `mpu6886_complimentary_filter` | Compute roll/pitch angles |
+| `mpu6886_complementary_filter` | Compute roll/pitch angles |
 
 ## See Also
 * [MPU-6886 datasheet](https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/docs/datasheet/core/MPU-6886-000193%2Bv1.1_GHIC_en.pdf)

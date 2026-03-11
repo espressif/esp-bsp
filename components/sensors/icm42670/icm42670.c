@@ -54,7 +54,7 @@ typedef struct {
     i2c_master_dev_handle_t i2c_handle;
     bool initialized_filter;
     uint64_t previous_measurement_us;
-    complimentary_angle_t previous_measurement;
+    complementary_angle_t previous_measurement;
 } icm42670_dev_t;
 
 /*******************************************************************************
@@ -381,7 +381,7 @@ static esp_err_t icm42670_read(icm42670_handle_t sensor, const uint8_t reg_start
 }
 
 esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670_value_t *const acce_value,
-                                        const icm42670_value_t *const gyro_value, complimentary_angle_t *const complimentary_angle)
+                                        const icm42670_value_t *const gyro_value, complementary_angle_t *const complementary_angle)
 {
     icm42670_dev_t *sens = (icm42670_dev_t *) sensor;
     float measurement_delta;
@@ -410,13 +410,13 @@ esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670
     gyro_roll_angle = gyro_value->x * measurement_delta;
     gyro_pitch_angle = gyro_value->y * measurement_delta;
 
-    complimentary_angle->roll = (ALPHA * (sens->previous_measurement.roll + gyro_roll_angle)) + ((
+    complementary_angle->roll = (ALPHA * (sens->previous_measurement.roll + gyro_roll_angle)) + ((
                                     1 - ALPHA) * acc_roll_angle);
-    complimentary_angle->pitch = (ALPHA * (sens->previous_measurement.pitch + gyro_pitch_angle)) + ((
+    complementary_angle->pitch = (ALPHA * (sens->previous_measurement.pitch + gyro_pitch_angle)) + ((
                                      1 - ALPHA) * acc_pitch_angle);
 
-    sens->previous_measurement.roll = complimentary_angle->roll;
-    sens->previous_measurement.pitch = complimentary_angle->pitch;
+    sens->previous_measurement.roll = complementary_angle->roll;
+    sens->previous_measurement.pitch = complementary_angle->pitch;
 
     return ESP_OK;
 }

@@ -181,7 +181,7 @@ typedef struct {
 typedef struct {
     float roll;
     float pitch;
-} mpu6886_complimentary_angle_t;
+} mpu6886_complementary_angle_t;
 
 typedef void *mpu6886_handle_t;
 
@@ -733,19 +733,19 @@ esp_err_t mpu6886_get_gyro(mpu6886_handle_t sensor, mpu6886_gyro_value_t *const 
 esp_err_t mpu6886_get_temp(mpu6886_handle_t sensor, mpu6886_temp_value_t *const temp_value);
 
 /**
- * @brief Use complimentary filter to calculate roll and pitch
+ * @brief Use complementary filter to calculate roll and pitch
  *
  * @param sensor object handle of mpu6886
  * @param acce_value accelerometer measurements
  * @param gyro_value gyroscope measurements
- * @param complimentary_angle complimentary angle
+ * @param complementary_angle complementary angle
  *
  * @return
  *     - ESP_OK Success
  *     - ESP_FAIL Fail
  */
-esp_err_t mpu6886_complimentary_filter(mpu6886_handle_t sensor, const mpu6886_acce_value_t *const acce_value,
-                                       const mpu6886_gyro_value_t *const gyro_value, mpu6886_complimentary_angle_t *const complimentary_angle);
+esp_err_t mpu6886_complementary_filter(mpu6886_handle_t sensor, const mpu6886_acce_value_t *const acce_value,
+                                       const mpu6886_gyro_value_t *const gyro_value, mpu6886_complementary_angle_t *const complementary_angle);
 
 #ifdef __cplusplus
 }

@@ -102,7 +102,7 @@ typedef struct {
 typedef struct {
     float roll;
     float pitch;
-} complimentary_angle_t;
+} complementary_angle_t;
 
 typedef void *mpu6050_handle_t;
 
@@ -385,14 +385,14 @@ esp_err_t mpu6050_get_temp(mpu6050_handle_t sensor, mpu6050_temp_value_t *const 
  * @param sensor object handle of mpu6050
  * @param acce_value accelerometer measurements
  * @param gyro_value gyroscope measurements
- * @param complimentary_angle complimentary angle
+ * @param complementary_angle complementary angle
  *
  * @return
  *     - ESP_OK Success
  *     - ESP_FAIL Fail
  */
 esp_err_t mpu6050_complimentory_filter(mpu6050_handle_t sensor, const mpu6050_acce_value_t *const acce_value,
-                                       const mpu6050_gyro_value_t *const gyro_value, complimentary_angle_t *const complimentary_angle);
+                                       const mpu6050_gyro_value_t *const gyro_value, complementary_angle_t *const complementary_angle);
 
 #ifdef __cplusplus
 }

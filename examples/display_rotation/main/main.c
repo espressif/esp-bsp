@@ -249,7 +249,7 @@ static void app_imu_read(void)
     icm42670_get_temp_value(imu, &val);
     ESP_LOGI(TAG, "TEMP val: %.2f", val);
 
-    complimentary_angle_t angle;
+    complementary_angle_t angle;
     icm42670_complimentory_filter(imu, &acce_val, &gyro_val, &angle);
     ESP_LOGI(TAG, "Angle roll: %.2f pitch: %.2f ", angle.roll, angle.pitch);
 
