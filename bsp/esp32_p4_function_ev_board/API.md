@@ -324,9 +324,9 @@ sdmmc_card_print_info(stdout, sdcard);
 |  void | [**bsp\_sdcard\_get\_sdspi\_host**](#function-bsp_sdcard_get_sdspi_host) (const int slot, sdmmc\_host\_t \*config) <br>_Get SD card SPI host config._ |
 |  esp\_err\_t | [**bsp\_sdcard\_mount**](#function-bsp_sdcard_mount) (void) <br>_Mount microSD card to virtual file system._ |
 |  void | [**bsp\_sdcard\_sdmmc\_get\_slot**](#function-bsp_sdcard_sdmmc_get_slot) (const int slot, sdmmc\_slot\_config\_t \*config) <br>_Get SD card MMC slot config._ |
-|  esp\_err\_t | [**bsp\_sdcard\_sdmmc\_mount**](#function-bsp_sdcard_sdmmc_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (MMC mode)_ |
+|  esp\_err\_t | [**bsp\_sdcard\_sdmmc\_mount**](#function-bsp_sdcard_sdmmc_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (MMC mode)._ |
 |  void | [**bsp\_sdcard\_sdspi\_get\_slot**](#function-bsp_sdcard_sdspi_get_slot) (const spi\_host\_device\_t spi\_host, sdspi\_device\_config\_t \*config) <br>_Get SD card SPI slot config._ |
-|  esp\_err\_t | [**bsp\_sdcard\_sdspi\_mount**](#function-bsp_sdcard_sdspi_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (SPI mode)_ |
+|  esp\_err\_t | [**bsp\_sdcard\_sdspi\_mount**](#function-bsp_sdcard_sdspi_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (SPI mode)._ |
 |  esp\_err\_t | [**bsp\_sdcard\_unmount**](#function-bsp_sdcard_unmount) (void) <br>_Unmount microSD card from virtual file system._ |
 |  esp\_err\_t | [**bsp\_spiffs\_mount**](#function-bsp_spiffs_mount) (void) <br>_Mount SPIFFS to virtual file system._ |
 |  esp\_err\_t | [**bsp\_spiffs\_unmount**](#function-bsp_spiffs_unmount) (void) <br>_Unmount SPIFFS from virtual file system._ |
@@ -366,7 +366,7 @@ Variables:
 
 -  const sdspi\_device\_config\_t \* sdspi  
 
--  union [**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) slot  
+-  union bsp\_sdcard\_cfg\_t::@045343360220276315262105036155214057070000234336 slot  
 
 
 ## Functions Documentation
@@ -453,7 +453,7 @@ void bsp_sdcard_sdmmc_get_slot (
 * `config` Structure which will be filled
 ### function `bsp_sdcard_sdmmc_mount`
 
-_Mount microSD card to virtual file system (MMC mode)_
+_Mount microSD card to virtual file system (MMC mode)._
 ```c
 esp_err_t bsp_sdcard_sdmmc_mount (
     bsp_sdcard_cfg_t *cfg
@@ -494,7 +494,7 @@ void bsp_sdcard_sdspi_get_slot (
 * `config` Structure which will be filled
 ### function `bsp_sdcard_sdspi_mount`
 
-_Mount microSD card to virtual file system (SPI mode)_
+_Mount microSD card to virtual file system (SPI mode)._
 ```c
 esp_err_t bsp_sdcard_sdspi_mount (
     bsp_sdcard_cfg_t *cfg
@@ -883,7 +883,7 @@ Below are some of the most relevant predefined constants:
 |  esp\_err\_t | [**bsp\_display\_brightness\_init**](#function-bsp_display_brightness_init) (void) <br>_Initialize display's brightness._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_set**](#function-bsp_display_brightness_set) (int brightness\_percent) <br>_Set display's brightness._ |
 |  void | [**bsp\_display\_delete**](#function-bsp_display_delete) (void) <br>_Delete display panel._ |
-|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)_ |
+|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)._ |
 |  bool | [**bsp\_display\_lock**](#function-bsp_display_lock) (uint32\_t timeout\_ms) <br>_Take LVGL mutex._ |
 |  esp\_err\_t | [**bsp\_display\_new**](#function-bsp_display_new) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, esp\_lcd\_panel\_handle\_t \*ret\_panel, esp\_lcd\_panel\_io\_handle\_t \*ret\_io) <br>_Create new display panel._ |
 |  esp\_err\_t | [**bsp\_display\_new\_with\_handles**](#function-bsp_display_new_with_handles) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, [**bsp\_lcd\_handles\_t**](#struct-bsp_lcd_handles_t) \*ret\_handles) <br>_Create new display panel._ |
@@ -936,7 +936,7 @@ Variables:
 
 -  bool double_buffer  <br>True, if should be allocated two buffers
 
--  struct [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) flags  
+-  struct bsp\_display\_cfg\_t::@115033147126261326050136253257316030030056275134 flags  
 
 -  [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) hw_cfg  <br>Display HW configuration
 
@@ -950,7 +950,7 @@ _BSP display configuration structure._
 
 Variables:
 
--  struct [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) dsi_bus  
+-  struct bsp\_display\_config\_t::@244221147217214117241201215350221306174174200170 dsi_bus  
 
 -  [**bsp\_hdmi\_resolution\_t**](#enum-bsp_hdmi_resolution_t) hdmi_resolution  <br>HDMI resolution selection
 
@@ -1103,7 +1103,7 @@ void bsp_display_delete (
 
 ### function `bsp_display_get_input_dev`
 
-_Get pointer to input device (touch, buttons, ...)_
+_Get pointer to input device (touch, buttons, ...)._
 ```c
 lv_indev_t * bsp_display_get_input_dev (
     void
@@ -1496,7 +1496,7 @@ Camera usage can be quite complex. For a complete example, refer to the [`displa
 
 | Type | Name |
 | ---: | :--- |
-| struct | [**bsp\_camera\_cfg\_t**](#struct-bsp_camera_cfg_t) <br>_BSP camera configuration structure (for future use)_ |
+| struct | [**bsp\_camera\_cfg\_t**](#struct-bsp_camera_cfg_t) <br>_BSP camera configuration structure (for future use)._ |
 
 ## Functions
 
@@ -1518,7 +1518,7 @@ Camera usage can be quite complex. For a complete example, refer to the [`displa
 
 ### struct `bsp_camera_cfg_t`
 
-_BSP camera configuration structure (for future use)_
+_BSP camera configuration structure (for future use)._
 
 Variables:
 
