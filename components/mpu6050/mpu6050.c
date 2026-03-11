@@ -441,7 +441,7 @@ esp_err_t mpu6050_get_temp(mpu6050_handle_t sensor, mpu6050_temp_value_t *const 
 }
 
 esp_err_t mpu6050_complimentory_filter(mpu6050_handle_t sensor, const mpu6050_acce_value_t *const acce_value,
-                                       const mpu6050_gyro_value_t *const gyro_value, complimentary_angle_t *const complimentary_angle)
+                                       const mpu6050_gyro_value_t *const gyro_value, complementary_angle_t *const complementary_angle)
 {
     float acce_angle[2];
     float gyro_angle[2];
@@ -452,8 +452,8 @@ esp_err_t mpu6050_complimentory_filter(mpu6050_handle_t sensor, const mpu6050_ac
     if (sens->counter == 1) {
         acce_angle[0] = (atan2(acce_value->acce_y, acce_value->acce_z) * RAD_TO_DEG);
         acce_angle[1] = (atan2(acce_value->acce_x, acce_value->acce_z) * RAD_TO_DEG);
-        complimentary_angle->roll = acce_angle[0];
-        complimentary_angle->pitch = acce_angle[1];
+        complementary_angle->roll = acce_angle[0];
+        complementary_angle->pitch = acce_angle[1];
         gettimeofday(sens->timer, NULL);
         return ESP_OK;
     }
@@ -472,8 +472,8 @@ esp_err_t mpu6050_complimentory_filter(mpu6050_handle_t sensor, const mpu6050_ac
     gyro_angle[0] = gyro_rate[0] * sens->dt;
     gyro_angle[1] = gyro_rate[1] * sens->dt;
 
-    complimentary_angle->roll = (ALPHA * (complimentary_angle->roll + gyro_angle[0])) + ((1 - ALPHA) * acce_angle[0]);
-    complimentary_angle->pitch = (ALPHA * (complimentary_angle->pitch + gyro_angle[1])) + ((1 - ALPHA) * acce_angle[1]);
+    complementary_angle->roll = (ALPHA * (complementary_angle->roll + gyro_angle[0])) + ((1 - ALPHA) * acce_angle[0]);
+    complementary_angle->pitch = (ALPHA * (complementary_angle->pitch + gyro_angle[1])) + ((1 - ALPHA) * acce_angle[1]);
 
     return ESP_OK;
 }

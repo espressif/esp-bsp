@@ -54,7 +54,7 @@
 #define BSP_CAPS_AUDIO_SPEAKER  1
 #define BSP_CAPS_AUDIO_MIC      0
 #define BSP_CAPS_SDCARD         1
-#define BSP_CAPS_IMU            0
+#define BSP_CAPS_IMU            1
 /** @} */ // end of capabilities
 
 /**************************************************************************************************
@@ -178,6 +178,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void);
  * There are multiple devices connected to I2C peripheral:
  *  - AXP192 / AXP2101 PMU
  *  - LCD Touch controller
+ *  - MPU6886 IMU (Inertial Measurement Unit)
  **************************************************************************************************/
 #define BSP_I2C_NUM     CONFIG_BSP_I2C_NUM
 

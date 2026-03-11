@@ -1,4 +1,4 @@
-version: "3.0.1"
+version: "3.0.2"
 description: Board Support Package (BSP) for M5Stack Core2
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5stack_core_2
 
@@ -26,6 +26,11 @@ dependencies:
   esp_codec_dev:
     version: "~1.5"
     public: true
+
+  mpu6886:
+    version: "^1.0.0"
+    public: true
+    override_path: "../../components/mpu6886"
 
 examples:
   - path: ../../examples/display

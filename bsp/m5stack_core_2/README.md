@@ -57,7 +57,7 @@ Core2 V1.1 is an iterative version of Core2 with the following upgrades and addi
 |:heavy_check_mark:| :speaker: AUDIO_SPEAKER|                |                                                                                                            |                |
 |        :x:       | :microphone: AUDIO_MIC |                |                                                                                                            |                |
 |:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                     idf                                                    |      >=5.3     |
-|        :x:       |    :video_game: IMU    |                |                                                                                                            |                |
+|:heavy_check_mark:|    :video_game: IMU    |                |                                                                                                            |                |
 
 <!-- END_DEPENDENCIES -->
 </div>
@@ -71,6 +71,7 @@ Core2 V1.1 is an iterative version of Core2 with the following upgrades and addi
 | ------- | ----------- | ---------------------- |
 | [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
 | [Display, Audio and Photo Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_audio_photo) | Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo-) |
+| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-) |
 
 <!-- END_EXAMPLES -->
 </div>

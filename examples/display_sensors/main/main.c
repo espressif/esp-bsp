@@ -44,7 +44,7 @@ static uint8_t g_page_num = 0;
 
 static mpu6050_acce_value_t acce;
 static mpu6050_gyro_value_t gyro;
-static complimentary_angle_t complimentary_angle;
+static complementary_angle_t complementary_angle;
 
 static void display_show_signs(void)
 {
@@ -132,12 +132,12 @@ static void display_show_gyro_data(void)
     bsp_display_unlock();
 }
 
-static void display_show_complimentary_angle(void)
+static void display_show_complementary_angle(void)
 {
-    ESP_LOGI(TAG, "roll:%.2f, pitch:%.2f", complimentary_angle.roll, complimentary_angle.pitch);
+    ESP_LOGI(TAG, "roll:%.2f, pitch:%.2f", complementary_angle.roll, complementary_angle.pitch);
 
     bsp_display_lock(0);
-    lv_label_set_text_fmt(main_label, "Roll: %.2f\nPitch: %.2f", complimentary_angle.roll, complimentary_angle.pitch);
+    lv_label_set_text_fmt(main_label, "Roll: %.2f\nPitch: %.2f", complementary_angle.roll, complementary_angle.pitch);
     lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_LEFT, 0);
     bsp_display_unlock();
 }
@@ -197,7 +197,7 @@ static void display_show_task(void *pvParameters)
             display_show_gyro_data();
             break;
         case 3:
-            display_show_complimentary_angle();
+            display_show_complementary_angle();
             break;
         case 4:
             display_show_barometer_data();
@@ -215,7 +215,7 @@ static void mpu6050_read(void *pvParameters)
 {
     mpu6050_get_acce(mpu6050_dev, &acce);
     mpu6050_get_gyro(mpu6050_dev, &gyro);
-    mpu6050_complimentory_filter(mpu6050_dev, &acce, &gyro, &complimentary_angle);
+    mpu6050_complimentory_filter(mpu6050_dev, &acce, &gyro, &complementary_angle);
 }
 
 static void btn_handler(void *button_handle, void *usr_data)
@@ -277,7 +277,7 @@ void app_main(void)
     q_page_num = xQueueCreate(10, sizeof(uint8_t));
     xTaskCreate(display_show_task, "display_show_task", 2048 * 2, NULL, 5, NULL);
 
-    // In order to get accurate calculation of complimentary angle we need fast reading (5ms)
+    // In order to get accurate calculation of complementary angle we need fast reading (5ms)
     // FreeRTOS resolution is 10ms, so esp_timer is used
     const esp_timer_create_args_t cal_timer_config = {
         .callback = mpu6050_read,

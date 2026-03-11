@@ -117,7 +117,7 @@ typedef struct {
 typedef struct {
     float roll;
     float pitch;
-} complimentary_angle_t;
+} complementary_angle_t;
 
 typedef void *icm42670_handle_t;
 
@@ -292,14 +292,14 @@ esp_err_t icm42670_get_temp_value(icm42670_handle_t sensor, float *value);
  *
  * @param acce_value accelerometer measurements
  * @param gyro_value gyroscope measurements
- * @param complimentary_angle complimentary angle
+ * @param complementary_angle complementary angle
  *
  * @return
  *     - ESP_OK Success
  *     - ESP_FAIL Fail
  */
 esp_err_t icm42670_complimentory_filter(icm42670_handle_t sensor, const icm42670_value_t *acce_value,
-                                        const icm42670_value_t *gyro_value, complimentary_angle_t *complimentary_angle);
+                                        const icm42670_value_t *gyro_value, complementary_angle_t *complementary_angle);
 
 /**
  * @brief Read a register
