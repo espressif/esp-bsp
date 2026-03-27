@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -15,10 +15,13 @@ extern "C" {
 #endif
 
 typedef enum {
+    /** Keep pipeline default (e.g. from menuconfig); do not call VIDIOC_S_FMT for pixel format. */
+    APP_VIDEO_FMT_DRIVER_DEFAULT = 0,
     APP_VIDEO_FMT_RAW8 = V4L2_PIX_FMT_SBGGR8,
     APP_VIDEO_FMT_RAW10 = V4L2_PIX_FMT_SBGGR10,
     APP_VIDEO_FMT_GREY = V4L2_PIX_FMT_GREY,
     APP_VIDEO_FMT_RGB565 = V4L2_PIX_FMT_RGB565,
+    APP_VIDEO_FMT_RGB565_BE = V4L2_PIX_FMT_RGB565X,
     APP_VIDEO_FMT_RGB888 = V4L2_PIX_FMT_RGB24,
     APP_VIDEO_FMT_YUV422 = V4L2_PIX_FMT_YUV422P,
     APP_VIDEO_FMT_YUV420 = V4L2_PIX_FMT_YUV420,
@@ -36,11 +39,17 @@ typedef void (*app_video_frame_operation_cb_t)(uint8_t *camera_buf, uint8_t came
  * vertical or horizontal mirroring if enabled in the configuration.
  *
  * @param dev The device path of the video capture (e.g., "/dev/video0").
- * @param init_fmt The desired pixel format for the video capture.
+ * @param init_fmt The desired pixel format for the video capture, or APP_VIDEO_FMT_DRIVER_DEFAULT
+ *                 to use the format already configured by the driver (sensor / menuconfig).
  * @return Returns the file descriptor for the opened video device on success;
  *         returns -1 on failure, indicating an error occurred during the operation.
  */
 int app_video_open(char *dev, video_fmt_t init_fmt);
+
+/**
+ * @brief V4L2 pixelformat fourcc after app_video_open() (from VIDIOC_G_FMT).
+ */
+uint32_t app_video_get_pixelformat(void);
 
 /**
  * @brief Set up video capture buffers.
