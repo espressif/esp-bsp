@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Add detection for uninitialized power-on state (85.0C) and return `ESP_ERR_INVALID_STATE` when this value is read.
+
 ## 0.2.0
 
 - Support trigger temperature conversion for all DS18B20 sensors on the same bus with a single function call (`ds18b20_trigger_temperature_conversion_for_all`).
