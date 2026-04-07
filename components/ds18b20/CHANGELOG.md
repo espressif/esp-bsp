@@ -1,3 +1,8 @@
+## 0.3.1
+
+- Bump dependency `onewire_bus` to `^1.1.0` to align with new backend capabilities (including UART backend support).
+- Update `ds18b20_read` example to support backend selection in menuconfig (RMT/UART).
+
 ## 0.3.0
 
 - Add detection for uninitialized power-on state (85.0C) and return `ESP_ERR_INVALID_STATE` when this value is read.
