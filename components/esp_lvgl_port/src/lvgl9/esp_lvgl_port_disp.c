@@ -319,7 +319,7 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
      * remains accessible when the cache is disabled during SPI flash operations. */
     lvgl_port_display_ctx_t *disp_ctx = heap_caps_malloc(sizeof(lvgl_port_display_ctx_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
 #else
-    lvgl_port_display_ctx_t *disp_ctx = malloc(sizeof(lvgl_port_display_ctx_t));
+    lvgl_port_display_ctx_t *disp_ctx = heap_caps_malloc(sizeof(lvgl_port_display_ctx_t), MALLOC_CAP_DEFAULT);
 #endif
     ESP_GOTO_ON_FALSE(disp_ctx, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for display context allocation!");
     memset(disp_ctx, 0, sizeof(lvgl_port_display_ctx_t));
