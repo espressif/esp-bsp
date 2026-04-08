@@ -1,0 +1,45 @@
+menu "Example Configuration"
+
+    config EXAMPLE_ONEWIRE_BUS_GPIO
+        int "1-Wire bus GPIO number"
+        range 0 48
+        default 0
+        help
+            GPIO used by the 1-Wire bus.
+
+    config EXAMPLE_ONEWIRE_MAX_DS18B20
+        int "Maximum number of DS18B20 devices to enumerate"
+        range 1 32
+        default 2
+        help
+            Stop searching after this many DS18B20 devices are found.
+
+    config EXAMPLE_ONEWIRE_ENABLE_INTERNAL_PULLUP
+        bool "Enable internal pull-up resistor on bus GPIO"
+        default y
+        help
+            Enable this when there is no external pull-up resistor on the
+            1-Wire data line.
+
+    choice EXAMPLE_ONEWIRE_BACKEND
+        prompt "1-Wire backend"
+        default EXAMPLE_ONEWIRE_BACKEND_RMT
+        help
+            Select which backend is used by onewire_bus.
+
+        config EXAMPLE_ONEWIRE_BACKEND_RMT
+            bool "RMT backend"
+
+        config EXAMPLE_ONEWIRE_BACKEND_UART
+            bool "UART backend"
+    endchoice
+
+    config EXAMPLE_ONEWIRE_UART_PORT_NUM
+        int "UART port number (for UART backend)"
+        range 0 2
+        default 1
+        depends on EXAMPLE_ONEWIRE_BACKEND_UART
+        help
+            UART port index passed to onewire_new_bus_uart().
+
+endmenu

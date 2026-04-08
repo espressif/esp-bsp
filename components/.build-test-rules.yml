@@ -27,12 +27,14 @@ components/esp_lvgl_port/test_apps/simd:
     - if: IDF_TARGET in ["esp32", "esp32s3"]
       reason: Supports only xtensa targets
 
-components/ds18b20:
+components/ds18b20/examples/ds18b20_read:
   depends_filepatterns:
     - "components/ds18b20/**"
   disable:
-    - if: SOC_RMT_SUPPORTED != 1
-      reason: Onewire component depends on RMT peripheral
+    - if: CONFIG_NAME == "rmt" and SOC_RMT_SUPPORTED != 1
+      reason: RMT backend variant requires SOC RMT support
+    - if: CONFIG_NAME == "uart" and SOC_UART_SUPPORTED != 1
+      reason: UART backend variant requires SOC UART support
 
 components/sensors/icm42670:
   depends_filepatterns:
