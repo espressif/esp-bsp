@@ -33,7 +33,7 @@ menu "Board Support Package"
     endmenu
 
     menu "uSD card - Virtual File System"
-        config BSP_uSD_FORMAT_ON_MOUNT_FAIL
+        config BSP_SD_FORMAT_ON_MOUNT_FAIL
             bool "Format uSD card if mounting fails"
             default n
             help
@@ -47,6 +47,13 @@ menu "Board Support Package"
 
     endmenu
     menu "Display"
+        config BSP_LVGL_INTEGRATION
+            bool "Build BSP with LVGL integration"
+            default y
+            help
+                When enabled, BSP headers and sources include LVGL and esp_lvgl_port.
+                Note: Run idf.py update-dependencies after changing this setting.
+
         config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
             int "LEDC channel index"
             default 1
