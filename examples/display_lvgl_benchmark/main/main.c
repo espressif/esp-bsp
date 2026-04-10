@@ -47,7 +47,7 @@ void app_main(void)
     };
     cfg.lvgl_port_cfg.task_stack = 10000;
     bsp_display_start_with_config(&cfg);
-#elif defined(BSP_BOARD_ESP32_S3_EYE)
+#elif defined(BSP_BOARD_ESP32_S3_EYE) || defined(BSP_BOARD_M5STACK_CORE_S3)
     bsp_display_cfg_t cfg = {
         .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
         .buffer_size = BSP_LCD_H_RES * CONFIG_BSP_LCD_DRAW_BUF_HEIGHT,
@@ -64,7 +64,7 @@ void app_main(void)
     };
     cfg.lvgl_port_cfg.task_stack = 10000;
     bsp_display_start_with_config(&cfg);
-#elif defined(BSP_BOARD_M5DIAL) || defined(BSP_BOARD_M5STACK_CORE_S3)
+#elif defined(BSP_BOARD_M5DIAL)
     bsp_display_cfg_t cfg = {
         .lvgl_port_cfg = ESP_LVGL_PORT_INIT_CONFIG(),
         .buffer_size = BSP_LCD_DRAW_BUFF_SIZE,

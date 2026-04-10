@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -33,6 +33,7 @@
 #define BSP_LCD_BITS_PER_PIXEL      (16)
 /* LCD display color space */
 #define BSP_LCD_COLOR_SPACE         (LCD_RGB_ELEMENT_ORDER_BGR)
+
 /* LCD definition */
 #define BSP_LCD_H_RES              (320)
 #define BSP_LCD_V_RES              (240)
@@ -42,12 +43,22 @@ extern "C" {
 #endif
 
 /**
- * @brief BSP display configuration structure
+ * @brief BSP display low level configuration structure
  *
  */
 typedef struct {
     int max_transfer_sz;    /*!< Maximum transfer size, in bytes. */
 } bsp_display_config_t;
+
+/**
+ * @brief BSP display return handles
+ *
+ */
+typedef struct {
+    esp_lcd_panel_io_handle_t   io;            /*!< ESP LCD IO handle */
+    esp_lcd_panel_handle_t      panel;         /*!< ESP LCD panel (color) handle */
+    esp_lcd_panel_handle_t      control;       /*!< ESP LCD panel (control) handle */
+} bsp_lcd_handles_t;
 
 /**
  * @brief Create new display panel
@@ -70,54 +81,104 @@ typedef struct {
  * @param[out] ret_io    esp_lcd IO handle
  * @return
  *      - ESP_OK         On success
- *      - Else           esp_lcd failure
+ *      - Other errors from underlying esp_lcd driver
  */
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
                           esp_lcd_panel_io_handle_t *ret_io);
 
 /**
- * @brief Initialize display's brightness
+ * @brief Create new display panel
  *
- * Brightness is controlled with AXP2101 via I2C.
+ * For maximum flexibility, this function performs only reset and initialization of the display.
+ * You must turn on the display explicitly by calling esp_lcd_panel_disp_on_off().
+ * The display's backlight is not turned on either. You can use bsp_display_backlight_on/off(),
+ * bsp_display_brightness_set() (on supported boards) or implement your own backlight control.
+ *
+ * If you want to free resources allocated by this function, you can use API:
+ *
+ * \code{.c}
+ * bsp_display_delete();
+ * \endcode
+ *
+ * @param[in]  config    display configuration
+ * @param[out] ret_handles all esp_lcd handles in one structure
+ * @return
+ *      - ESP_OK         On success
+ *      - Other errors from underlying esp_lcd driver
+ */
+esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_lcd_handles_t *ret_handles);
+
+/**
+ * @brief Delete display panel
+ */
+void bsp_display_delete(void);
+
+/**
+ * @brief Initialize display's backlight control
+ *
+ * If supported, the backlight level can be adjusted using a PWM signal.
+ * On platforms without PWM support, only simple On/Off control may be available.
+ * If the feature is not supported at all, the function returns an error.
  *
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_NOT_SUPPORTED Changing backlight is not supported
  */
 esp_err_t bsp_display_brightness_init(void);
 
 /**
- * @brief Set display's brightness
+ * @brief Deinitialize display's brightness
  *
- * Brightness is controlled with AXP2101 via I2C.
- * Backlight must be already initialized by calling bsp_display_brightness_init() or bsp_display_start()
+ * @return
+ *      - ESP_OK                On success
+ *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_NOT_SUPPORTED Changing backlight is not supported
+ */
+esp_err_t bsp_display_brightness_deinit(void);
+
+/**
+ * @brief Set display's backlight
+ *
+ *
+ * If supported, the backlight level can be adjusted using a PWM signal.
+ * On platforms without PWM support, only simple On/Off control may be available.
+ * If the feature is not supported at all, the function returns an error.
+ * Backlight must be already initialized by calling bsp_display_brightness_init() or bsp_display_new()
  *
  * @param[in] brightness_percent Brightness in [%]
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_NOT_SUPPORTED Changing backlight is not supported
  */
 esp_err_t bsp_display_brightness_set(int brightness_percent);
 
 /**
  * @brief Turn on display backlight
  *
- * Backlight must be already initialized by calling bsp_display_brightness_init() or bsp_display_start()
+ * If supported, the backlight level can be adjusted using a PWM signal.
+ * On platforms without PWM support, only simple On/Off control may be available.
+ * If the feature is not supported at all, the function returns an error.
+ * Backlight must be already initialized by calling bsp_display_brightness_init() or bsp_display_new()
  *
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_NOT_SUPPORTED Changing backlight is not supported
  */
 esp_err_t bsp_display_backlight_on(void);
 
 /**
  * @brief Turn off display backlight
  *
- * Backlight must be already initialized by calling bsp_display_brightness_init() or bsp_display_start()
+ * Brightness is controlled with PWM signal to a pin controlling backlight.
+ * Brightness must be already initialized by calling bsp_display_brightness_init() or bsp_display_new()
  *
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_NOT_SUPPORTED Changing backlight is not supported
  */
 esp_err_t bsp_display_backlight_off(void);
 
