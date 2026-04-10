@@ -16,8 +16,8 @@ extern "C" {
 #define BMI270_STATUS_CHECK_CNT             10
 #define BMI270_FILE_WRITE_LEN               32
 
-#define BMI270_POWER_ON_TIME_MS             3
-#define BMI270_SOFT_RESET_TIME_MS           3
+#define BMI270_POWER_ON_TIME_MS             10
+#define BMI270_SOFT_RESET_TIME_MS           10
 #define BMI270_STATUS_CHECK_PERIOD_MS       50
 
 #define BMI270_CMD_SOFT_RESET               0xB6
