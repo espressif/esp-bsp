@@ -29,6 +29,7 @@ USER $USERNAME
 WORKDIR /home/$USERNAME
 
 RUN echo 'source /opt/esp/idf/export.sh' >> /home/$USERNAME/.zshrc && \
+    echo 'sudo chown -R dev:dev /opt/esp/python_env' >> /home/$USERNAME/.zshrc && \
     echo 'export LANG=C' >> /home/$USERNAME/.zshrc && \
     echo 'export LC_ALL=C' >> /home/$USERNAME/.zshrc && \
     echo 'eval "$(starship init zsh)"' >> /home/$USERNAME/.zshrc
