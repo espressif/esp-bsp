@@ -1,5 +1,75 @@
 # Changelog
 
+## 2.7.2
+
+### Features
+
+- Added a new event type for encoder events
+
+### Fixes
+
+- Encoder usage no longer causes unexpected touch controller readings - https://github.com/espressif/esp-bsp/issues/700
+
+## 2.7.1
+
+### Features
+- Added option to include a rounder callback
+
+### Fixes
+- Fixed deinitialization of the task which was created with caps - https://github.com/espressif/esp-bsp/issues/680
+- Call lv_deinit() - https://github.com/espressif/esp-bsp/issues/635
+- Fixed PPA rotation for IDF6
+
+## 2.7.0
+
+### Features
+
+- Added support for multi-touch gestures.
+
+## 2.6.3
+
+### Fixes
+- Improved and fixed deinit function (remove semaphor) - https://github.com/espressif/esp-bsp/issues/673
+
+## 2.6.2
+
+- Changed minimum IDF version to IDF5.1
+
+## 2.6.1
+
+### Features
+- Added option to place LVGL task stack to external RAM
+- Fixed callback for RGB display for IDF6
+
+### Fixes
+- Register button callbacks only if encoder_enter is set https://github.com/espressif/esp-bsp/pull/571/files
+
+## 2.6.0
+
+### Features
+- Scaling feature in touch
+- Added support for PPA rotation in LVGL9 (available for ESP32-P4)
+
+## 2.5.0
+
+### Features (Functional change for button v4 users)
+- Updated LVGL port for using IoT button component v4 (LVGL port not anymore creating button, need to be created in app and included handle to LVGL port)
+
+### Fixes
+- Fixed buffer size by selected color format
+- Fixed memory leak in LVGL8 in display removing https://github.com/espressif/esp-bsp/issues/462
+- Fixed draw buffer alignment
+
+## 2.4.4
+
+### Features
+- Changed queue to event group in main LVGL task for speed up https://github.com/espressif/esp-bsp/issues/492
+- Reworked handling encoder (knob) https://github.com/espressif/esp-bsp/pull/450
+
+### Fixes
+- Fixed a crash when esp_lvgl_port was initialized from high priority task https://github.com/espressif/esp-bsp/issues/455
+- Allow to swap bytes when used SW rotation https://github.com/espressif/esp-bsp/issues/497
+
 ## 2.4.3
 
 ### Fixes

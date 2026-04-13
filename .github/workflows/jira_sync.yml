@@ -1,0 +1,29 @@
+name: Sync Jira with Github
+
+on:
+  schedule:
+    # TODO: Could be removed?
+    # Triggered every 6 hours
+    - cron: "0 */6 * * *"
+  issues:
+    types: [opened]
+  issue_comment:
+
+permissions:
+  issues: write
+
+jobs:
+  jira_sync:
+    name: Sync Jira with Github
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Sync Jira with Github
+        uses: espressif/sync-jira-actions@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JIRA_PASS: ${{ secrets.JIRA_PASS }}
+          JIRA_PROJECT: BSP
+          JIRA_COMPONENT: GitHub
+          JIRA_URL: ${{ secrets.JIRA_URL }}
+          JIRA_USER: ${{ secrets.JIRA_USER }}

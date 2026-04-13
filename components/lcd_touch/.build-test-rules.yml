@@ -1,0 +1,8 @@
+# LCD Touch components: Build only on related changes
+components/lcd_touch/esp_lcd_touch_cst816s:
+  depends_filepatterns:
+    - "components/lcd_touch/esp_lcd_touch_cst816s/**"
+
+components/lcd_touch/esp_lcd_touch_stmpe610:
+  depends_filepatterns:
+    - "components/lcd_touch/esp_lcd_touch_stmpe610/**"

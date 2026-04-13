@@ -11,7 +11,6 @@
 #include <inttypes.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/i2c.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
@@ -55,7 +54,8 @@ static esp_lcd_dsi_bus_handle_t mipi_dsi_bus = NULL;
 static esp_lcd_panel_io_handle_t mipi_dbi_io = NULL;
 static SemaphoreHandle_t refresh_finish = NULL;
 
-IRAM_ATTR static bool test_notify_refresh_ready(esp_lcd_panel_handle_t panel, esp_lcd_dpi_panel_event_data_t *edata, void *user_ctx)
+IRAM_ATTR static bool test_notify_refresh_ready(esp_lcd_panel_handle_t panel, esp_lcd_dpi_panel_event_data_t *edata,
+        void *user_ctx)
 {
     SemaphoreHandle_t refresh_finish = (SemaphoreHandle_t)user_ctx;
     BaseType_t need_yield = pdFALSE;
@@ -109,6 +109,9 @@ static void test_init_lcd(void)
         .vendor_config = &vendor_config,
     };
     TEST_ESP_OK(esp_lcd_new_panel_st7796(mipi_dbi_io, &panel_config, &panel_handle));
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+    TEST_ESP_OK(esp_lcd_dpi_panel_enable_dma2d(panel_handle));
+#endif
     TEST_ESP_OK(esp_lcd_panel_reset(panel_handle));
     TEST_ESP_OK(esp_lcd_panel_init(panel_handle));
     TEST_ESP_OK(esp_lcd_panel_disp_on_off(panel_handle, true));

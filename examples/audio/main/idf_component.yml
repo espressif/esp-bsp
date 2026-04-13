@@ -1,6 +1,6 @@
 description: BSP Audio example
 
 dependencies:
-  esp32_s3_korvo_2:
-    version: ">=0.1"
-    override_path: "../../../bsp/esp32_s3_korvo_2"
+  bsp_selector:
+    version: '*'
+    override_path: ../../../components/bsp_selector

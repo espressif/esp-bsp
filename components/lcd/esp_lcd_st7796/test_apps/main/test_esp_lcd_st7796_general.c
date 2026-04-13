@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -57,7 +57,8 @@
 static char *TAG = "st7796_test";
 static SemaphoreHandle_t refresh_finish = NULL;
 
-IRAM_ATTR static bool test_notify_refresh_ready(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
+IRAM_ATTR static bool test_notify_refresh_ready(esp_lcd_panel_io_handle_t panel_io,
+        esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
 {
     BaseType_t need_yield = pdFALSE;
 
@@ -102,7 +103,8 @@ TEST_CASE("test st7796 to draw color bar with I80 interface", "[st7796][i80]")
 
     ESP_LOGI(TAG, "Install panel IO");
     esp_lcd_panel_io_handle_t io_handle = NULL;
-    esp_lcd_panel_io_i80_config_t io_config = ST7796_PANEL_IO_I80_CONFIG(TEST_PIN_NUM_LCD_CS, test_notify_refresh_ready, NULL);
+    esp_lcd_panel_io_i80_config_t io_config = ST7796_PANEL_IO_I80_CONFIG(TEST_PIN_NUM_LCD_CS, test_notify_refresh_ready,
+            NULL);
     TEST_ESP_OK(esp_lcd_new_panel_io_i80(i80_bus, &io_config, &io_handle));
 
     ESP_LOGI(TAG, "Install ST7796 panel driver");
@@ -110,8 +112,10 @@ TEST_CASE("test st7796 to draw color bar with I80 interface", "[st7796][i80]")
         .reset_gpio_num = TEST_PIN_NUM_LCD_RST,
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
         .color_space = ESP_LCD_COLOR_SPACE_BGR,
-#else
+#elif ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
         .rgb_endian = LCD_RGB_ENDIAN_BGR,
+#else
+        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_BGR,
 #endif
         .bits_per_pixel = TEST_LCD_BIT_PER_PIXEL,
     };

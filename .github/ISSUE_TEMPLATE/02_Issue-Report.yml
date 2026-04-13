@@ -1,6 +1,6 @@
 name: Issue report
 description: Report any problem here
-labels: ['Type: Bug', 'Status: Awaiting triage']
+labels: ["Type: Bug", "Status: Awaiting triage"]
 body:
   - type: markdown
     attributes:
@@ -23,15 +23,15 @@ body:
       description: What display or other hardware is the chip attached to?
       placeholder: ex. DevKitC, plain module on breadboard, etc. If your hardware is custom or unusual, please attach a photo.
     validations:
-       required: true
+      required: true
   - type: input
     id: IDE
     attributes:
-     label: IDE Name
-     description: What IDE are you using?
-     placeholder: eg. VSCode, Espressif-IDE...
+      label: IDE Name
+      description: What IDE are you using?
+      placeholder: eg. VSCode, Espressif-IDE...
     validations:
-     required: true
+      required: true
   - type: input
     id: os
     attributes:
@@ -56,11 +56,11 @@ body:
       placeholder: ex. Related part of the code to replicate the issue
       render: cpp
     validations:
-     required: true
+      required: true
   - type: textarea
     id: other-remarks
     attributes:
-      label: Other Steps to Reproduce 
+      label: Other Steps to Reproduce
       description: Is there any other information you can think of which will help us reproduce this problem? Any additional info can be added as well.
       placeholder: ex. I also tried on other OS, HW...it works correctly on that setup.
   - type: checkboxes

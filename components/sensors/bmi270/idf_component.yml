@@ -1,0 +1,11 @@
+version: 1.0.0
+description: I2C driver for BMI270 inertial measurement unit
+url: https://github.com/espressif/esp-bsp/tree/master/components/bmi270
+tags:
+  - i2c
+  - sensor_hub
+dependencies:
+  idf: ">=5.2"
+  sensor_hub:
+    version: ^0.1.4
+    public: true

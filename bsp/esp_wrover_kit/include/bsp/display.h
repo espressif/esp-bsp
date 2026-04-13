@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -18,6 +18,10 @@
 #include "esp_lcd_types.h"
 #include "sdkconfig.h"
 
+/** \addtogroup g04_display
+ *  @{
+ */
+
 /* LCD color formats */
 #define ESP_LCD_COLOR_FORMAT_RGB565    (1)
 #define ESP_LCD_COLOR_FORMAT_RGB888    (2)
@@ -30,9 +34,9 @@
 #define BSP_LCD_BITS_PER_PIXEL      (16)
 /* LCD display color space */
 #ifdef CONFIG_BSP_LCD_ILI9341
-#define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_BGR)
+#define BSP_LCD_COLOR_SPACE         (LCD_RGB_ELEMENT_ORDER_BGR)
 #else
-#define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_RGB)
+#define BSP_LCD_COLOR_SPACE         (LCD_RGB_ELEMENT_ORDER_RGB)
 #endif
 /* LCD definition */
 #define BSP_LCD_H_RES               (240)
@@ -73,7 +77,8 @@ typedef struct {
  *      - ESP_OK         On success
  *      - Else           esp_lcd failure
  */
-esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io);
+esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
+                          esp_lcd_panel_io_handle_t *ret_io);
 
 /**
  * @brief Initialize display's brightness
@@ -126,3 +131,5 @@ esp_err_t bsp_display_backlight_off(void);
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */ // end of display

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -58,7 +58,8 @@ static lvgl_port_usb_hid_ctx_t *lvgl_port_hid_init(void);
 static void lvgl_port_usb_hid_task(void *arg);
 static void lvgl_port_usb_hid_read_mouse(lv_indev_t *indev_drv, lv_indev_data_t *data);
 static void lvgl_port_usb_hid_read_kb(lv_indev_t *indev_drv, lv_indev_data_t *data);
-static void lvgl_port_usb_hid_callback(hid_host_device_handle_t hid_device_handle, const hid_host_driver_event_t event, void *arg);
+static void lvgl_port_usb_hid_callback(hid_host_device_handle_t hid_device_handle, const hid_host_driver_event_t event,
+                                       void *arg);
 
 /*******************************************************************************
 * Local variables
@@ -98,7 +99,7 @@ lv_indev_t *lvgl_port_add_usb_hid_mouse_input(const lvgl_port_hid_mouse_cfg_t *m
     lv_indev_set_mode(indev, LV_INDEV_MODE_EVENT);
     lv_indev_set_read_cb(indev, lvgl_port_usb_hid_read_mouse);
     lv_indev_set_disp(indev, mouse_cfg->disp);
-    lv_indev_set_user_data(indev, hid_ctx);
+    lv_indev_set_driver_data(indev, hid_ctx);
     hid_ctx->mouse.indev = indev;
     lvgl_port_unlock();
 
@@ -132,7 +133,7 @@ lv_indev_t *lvgl_port_add_usb_hid_keyboard_input(const lvgl_port_hid_keyboard_cf
     lv_indev_set_mode(indev, LV_INDEV_MODE_EVENT);
     lv_indev_set_read_cb(indev, lvgl_port_usb_hid_read_kb);
     lv_indev_set_disp(indev, keyboard_cfg->disp);
-    lv_indev_set_user_data(indev, hid_ctx);
+    lv_indev_set_driver_data(indev, hid_ctx);
     hid_ctx->kb.indev = indev;
     lvgl_port_unlock();
 
@@ -142,7 +143,7 @@ lv_indev_t *lvgl_port_add_usb_hid_keyboard_input(const lvgl_port_hid_keyboard_cf
 esp_err_t lvgl_port_remove_usb_hid_input(lv_indev_t *hid)
 {
     assert(hid);
-    lvgl_port_usb_hid_ctx_t *hid_ctx = (lvgl_port_usb_hid_ctx_t *)lv_indev_get_user_data(hid);
+    lvgl_port_usb_hid_ctx_t *hid_ctx = (lvgl_port_usb_hid_ctx_t *)lv_indev_get_driver_data(hid);
 
     lvgl_port_lock(0);
     /* Remove input device driver */
@@ -273,7 +274,8 @@ static char usb_hid_get_keyboard_char(uint8_t key, uint8_t shift)
     return ret_key;
 }
 
-static void lvgl_port_usb_hid_host_interface_callback(hid_host_device_handle_t hid_device_handle, const hid_host_interface_event_t event, void *arg)
+static void lvgl_port_usb_hid_host_interface_callback(hid_host_device_handle_t hid_device_handle,
+        const hid_host_interface_event_t event, void *arg)
 {
     hid_host_dev_params_t dev;
     hid_host_device_get_params(hid_device_handle, &dev);
@@ -408,12 +410,13 @@ static void lvgl_port_usb_hid_read_mouse(lv_indev_t *indev_drv, lv_indev_data_t 
     int16_t width = 0;
     int16_t height = 0;
     assert(indev_drv);
-    lvgl_port_usb_hid_ctx_t *ctx = (lvgl_port_usb_hid_ctx_t *)lv_indev_get_user_data(indev_drv);
+    lvgl_port_usb_hid_ctx_t *ctx = (lvgl_port_usb_hid_ctx_t *)lv_indev_get_driver_data(indev_drv);
     assert(ctx);
 
     lv_display_t *disp = lv_indev_get_display(indev_drv);
     assert(disp);
-    if (lv_display_get_rotation(disp) == LV_DISPLAY_ROTATION_0 || lv_display_get_rotation(disp) == LV_DISPLAY_ROTATION_180) {
+    if (lv_display_get_rotation(disp) == LV_DISPLAY_ROTATION_0
+            || lv_display_get_rotation(disp) == LV_DISPLAY_ROTATION_180) {
         width = lv_display_get_physical_horizontal_resolution(disp);
         height = lv_display_get_vertical_resolution(disp);
     } else {
@@ -463,7 +466,7 @@ static void lvgl_port_usb_hid_read_mouse(lv_indev_t *indev_drv, lv_indev_data_t 
 static void lvgl_port_usb_hid_read_kb(lv_indev_t *indev_drv, lv_indev_data_t *data)
 {
     assert(indev_drv);
-    lvgl_port_usb_hid_ctx_t *ctx = (lvgl_port_usb_hid_ctx_t *)lv_indev_get_user_data(indev_drv);
+    lvgl_port_usb_hid_ctx_t *ctx = (lvgl_port_usb_hid_ctx_t *)lv_indev_get_driver_data(indev_drv);
     assert(ctx);
 
     data->key = ctx->kb.last_key;
@@ -476,7 +479,8 @@ static void lvgl_port_usb_hid_read_kb(lv_indev_t *indev_drv, lv_indev_data_t *da
     }
 }
 
-static void lvgl_port_usb_hid_callback(hid_host_device_handle_t hid_device_handle, const hid_host_driver_event_t event, void *arg)
+static void lvgl_port_usb_hid_callback(hid_host_device_handle_t hid_device_handle, const hid_host_driver_event_t event,
+                                       void *arg)
 {
     lvgl_port_usb_hid_ctx_t *hid_ctx = (lvgl_port_usb_hid_ctx_t *)arg;
 

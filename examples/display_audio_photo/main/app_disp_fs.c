@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <sys/stat.h>
 #include <inttypes.h>
 
 #include "freertos/FreeRTOS.h"
@@ -21,7 +22,7 @@
 #include "bsp/esp-bsp.h"
 #include "lvgl.h"
 #include "app_disp_fs.h"
-#include "jpeg_decoder.h"
+#include "esp_jpeg_dec.h"
 
 /* SPIFFS mount root */
 #define FS_MNT_PATH  BSP_SPIFFS_MOUNT_POINT
@@ -42,7 +43,9 @@
 static const char *TAG = "DISP";
 
 static esp_codec_dev_handle_t spk_codec_dev = NULL;
+#if BSP_CAPS_AUDIO_MIC
 static esp_codec_dev_handle_t mic_codec_dev = NULL;
+#endif
 
 /*******************************************************************************
 * Types definitions
@@ -74,7 +77,6 @@ static void app_disp_lvgl_show_settings(lv_obj_t *screen, lv_group_t *group);
 static void app_disp_lvgl_show_record(lv_obj_t *screen, lv_group_t *group);
 static void app_disp_lvgl_show_filesystem(lv_obj_t *screen, lv_group_t *group);
 static void app_disp_lvgl_show_files(const char *path);
-static void scroll_begin_event(lv_event_t *e);
 static void tab_changed_event(lv_event_t *e);
 static void set_tab_group(void);
 
@@ -117,8 +119,6 @@ void app_disp_lvgl_show(void)
     lv_obj_set_size(tabview, BSP_LCD_H_RES, BSP_LCD_V_RES);
     lv_obj_align(tabview, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_set_style_text_font(tabview, &lv_font_montserrat_14, 0);
-    /* Change animation time of moving between tabs */
-    //lv_obj_add_event_cb(lv_tabview_get_content(tabview), scroll_begin_event, LV_EVENT_SCROLL_BEGIN, NULL);
     lv_obj_add_event_cb(tabview, tab_changed_event, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Tabview buttons style */
@@ -175,7 +175,7 @@ void app_audio_init(void)
 void app_disp_fs_init(void)
 {
     file_buffer_size = BSP_LCD_H_RES * BSP_LCD_V_RES * sizeof(lv_color_t);
-    file_buffer = heap_caps_calloc(file_buffer_size, 1, MALLOC_CAP_DEFAULT);
+    file_buffer = jpeg_calloc_align(file_buffer_size, 16);
     assert(file_buffer);
 
     /* Initialize root path */
@@ -271,25 +271,62 @@ static void show_window(const char *path, app_file_type_t type)
                 } else if (fs_img) {
                     ESP_LOGI(TAG, "Decoding JPEG image...");
                     /* JPEG decode */
-                    esp_jpeg_image_cfg_t jpeg_cfg = {
-                        .indata = (uint8_t *)file_buf,
-                        .indata_size = filesize,
+                    jpeg_dec_handle_t jpeg_dec = NULL;
+                    jpeg_dec_header_info_t out_info;
+                    jpeg_dec_io_t jpeg_io = {
+                        .inbuf = (uint8_t *)file_buf,
+                        .inbuf_len = (int)filesize,
                         .outbuf = file_buffer,
-                        .outbuf_size = file_buffer_size,
-                        .out_format = JPEG_IMAGE_FORMAT_RGB565,
-                        .out_scale = JPEG_IMAGE_SCALE_0,
-                        .flags = {
-#if CONFIG_LV_COLOR_16_SWAP
-                            .swap_color_bytes = 1,
-#endif
-                        }
                     };
-                    esp_jpeg_image_output_t outimg;
-                    esp_jpeg_decode(&jpeg_cfg, &outimg);
+                    jpeg_dec_config_t config = DEFAULT_JPEG_DEC_CONFIG();
+                    config.output_type = JPEG_PIXEL_FORMAT_RGB565_LE;
+#if CONFIG_LV_COLOR_16_SWAP
+                    config.output_type = JPEG_PIXEL_FORMAT_RGB565_BE;
+#endif
 
-                    lv_canvas_set_buffer(fs_img, file_buffer, outimg.width, outimg.height, LV_COLOR_FORMAT_RGB565);
+                    jpeg_error_t ret = jpeg_dec_open(&config, &jpeg_dec);
+                    if (ret != JPEG_ERR_OK) {
+                        ESP_LOGE(TAG, "JPEG decoder open failed: %d", ret);
+                        lv_label_set_text(label, "JPEG decoder open failed!");
+                        goto jpeg_decode_cleanup;
+                    }
+
+                    ret = jpeg_dec_parse_header(jpeg_dec, &jpeg_io, &out_info);
+                    if (ret != JPEG_ERR_OK) {
+                        ESP_LOGE(TAG, "JPEG header parse failed: %d", ret);
+                        lv_label_set_text(label, "JPEG header parse failed!");
+                        goto jpeg_decode_cleanup;
+                    }
+
+                    int outbuf_len = 0;
+                    ret = jpeg_dec_get_outbuf_len(jpeg_dec, &outbuf_len);
+                    if (ret != JPEG_ERR_OK || outbuf_len <= 0) {
+                        ESP_LOGE(TAG, "JPEG out buffer size failed: %d", ret);
+                        lv_label_set_text(label, "JPEG buffer size error!");
+                        goto jpeg_decode_cleanup;
+                    }
+
+                    if ((size_t)outbuf_len > file_buffer_size) {
+                        ESP_LOGE(TAG, "JPEG buffer too small: need %d, have %u", outbuf_len, (unsigned)file_buffer_size);
+                        lv_label_set_text(label, "JPEG image too large!");
+                        goto jpeg_decode_cleanup;
+                    }
+
+                    ret = jpeg_dec_process(jpeg_dec, &jpeg_io);
+                    if (ret != JPEG_ERR_OK) {
+                        ESP_LOGE(TAG, "JPEG decode failed: %d", ret);
+                        lv_label_set_text(label, "JPEG decode failed!");
+                        goto jpeg_decode_cleanup;
+                    }
+
+                    lv_canvas_set_buffer(fs_img, file_buffer, out_info.width, out_info.height, LV_COLOR_FORMAT_RGB565);
                     lv_obj_center(fs_img);
                     lv_obj_invalidate(fs_img);
+
+jpeg_decode_cleanup:
+                    if (jpeg_dec) {
+                        jpeg_dec_close(jpeg_dec);
+                    }
                 }
 
                 close(f);
@@ -348,7 +385,9 @@ static void play_file(void *arg)
         .sample_rate = wav_header.sample_rate,
         .channel = wav_header.num_channels,
         .bits_per_sample = wav_header.bits_per_sample,
+#if !defined(BSP_BOARD_M5STACK_TAB5)
         .mclk_multiple = I2S_MCLK_MULTIPLE_384,
+#endif
     };
     esp_codec_dev_open(spk_codec_dev, &fs);
 
@@ -988,16 +1027,5 @@ static void tab_changed_event(lv_event_t *e)
     /* Change scroll time animations. Triggered when a tab button is clicked */
     if (lv_event_get_code(e) == LV_EVENT_VALUE_CHANGED) {
         set_tab_group();
-    }
-}
-
-static void scroll_begin_event(lv_event_t *e)
-{
-    /* Change scroll time animations. Triggered when a tab button is clicked */
-    if (lv_event_get_code(e) == LV_EVENT_SCROLL_BEGIN) {
-        lv_anim_t *a = lv_event_get_param(e);
-        if (a) {
-            lv_anim_set_duration(a, 300);
-        }
     }
 }

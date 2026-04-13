@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -53,7 +53,8 @@ esp_err_t bsp_i2c_deinit(void)
 #define LCD_CMD_BITS           16
 #define LCD_PARAM_BITS         8
 
-esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io)
+esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
+                          esp_lcd_panel_io_handle_t *ret_io)
 {
     esp_err_t ret = ESP_OK;
 
@@ -84,8 +85,7 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
         },
         .bus_width = BSP_LCD_WIDTH,
         .max_transfer_bytes = (BSP_LCD_H_RES) * 80 * sizeof(uint16_t),
-        .psram_trans_align = 64,
-        .sram_trans_align = 4,
+        .dma_burst_size = 64,
     };
     ESP_RETURN_ON_ERROR(esp_lcd_new_i80_bus(&bus_config, &i80_bus), TAG, "I80 init failed");
 
@@ -118,7 +118,7 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
     };
     esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = BSP_LCD_RST,
-        .color_space = ESP_LCD_COLOR_SPACE_RGB,
+        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,
         .bits_per_pixel = 16,
         .vendor_config = (void *) &vendor_config,
     };
@@ -202,7 +202,8 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     };
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
-    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle), TAG, "");
+    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle), TAG,
+                        "");
     return esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, ret_touch);
 }
 

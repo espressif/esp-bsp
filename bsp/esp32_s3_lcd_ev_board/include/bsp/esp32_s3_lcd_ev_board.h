@@ -1,20 +1,20 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
  * @file
- * @brief ESP BSP: S3-LCD-EV board
+ * @brief ESP BSP: ESP32-S3-LCD-EV-Board
  */
 
 #pragma once
 
+#include "sdkconfig.h"
 #include "driver/i2s_std.h"
 #include "driver/i2c_master.h"
 #include "driver/gpio.h"
-#include "soc/usb_pins.h"
 #include "esp_adc/adc_cali_scheme.h"
 #include "esp_adc/adc_oneshot.h"
 #include "esp_codec_dev.h"
@@ -22,15 +22,33 @@
 #include "esp_io_expander.h"
 #include "esp_lcd_gc9503.h"
 #include "iot_button.h"
-#include "lvgl.h"
+#include "bsp/config.h"
 #include "bsp/display.h"
-#include "esp_lvgl_port.h"
 
-#include "sdkconfig.h"
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
+#include "lvgl.h"
+#include "esp_lvgl_port.h"
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_ESP32_S3_LCD_EV_BOARD
+/** @} */ // end of boardname
+
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          1
 #define BSP_CAPS_BUTTONS        1
@@ -39,27 +57,40 @@
 #define BSP_CAPS_AUDIO_MIC      1
 #define BSP_CAPS_SDCARD         0
 #define BSP_CAPS_IMU            0
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  *  ESP32-S3-LCD-EV-Board Pinout
  **************************************************************************************************/
-/* I2C */
+
+/** @defgroup g01_i2c I2C
+ *  @brief I2C BSP API
+ *  @{
+ */
 #define BSP_I2C_SCL             (GPIO_NUM_18)
 #define BSP_I2C_SDA             (GPIO_NUM_8)
 
 // Pins for board using ESP32-S3-WROOM-1-N16R16V
 #define BSP_I2C_SCL_R16         (GPIO_NUM_48)
 #define BSP_I2C_SDA_R16         (GPIO_NUM_47)
+/** @} */ // end of i2c
 
-/* Audio */
+/** @defgroup g03_audio Audio
+ *  @brief Audio BSP API
+ *  @{
+ */
 #define BSP_I2S_SCLK            (GPIO_NUM_16)
 #define BSP_I2S_MCLK            (GPIO_NUM_5)
 #define BSP_I2S_LCLK            (GPIO_NUM_7)
 #define BSP_I2S_DOUT            (GPIO_NUM_6)    // To Codec ES8311
 #define BSP_I2S_DSIN            (GPIO_NUM_15)   // From ADC ES7210
 #define BSP_POWER_AMP_IO        (IO_EXPANDER_PIN_NUM_0)
+/** @} */ // end of audio
 
-/* Display */
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
 #define BSP_LCD_SUB_BOARD_2_3_VSYNC     (GPIO_NUM_3)
 #define BSP_LCD_SUB_BOARD_2_3_HSYNC     (GPIO_NUM_46)
 #define BSP_LCD_SUB_BOARD_2_3_DE        (GPIO_NUM_17)
@@ -89,31 +120,35 @@
 #define BSP_LCD_SUB_BOARD_2_SPI_CS      (IO_EXPANDER_PIN_NUM_1)
 #define BSP_LCD_SUB_BOARD_2_SPI_SCK     (IO_EXPANDER_PIN_NUM_2)
 #define BSP_LCD_SUB_BOARD_2_SPI_SDO     (IO_EXPANDER_PIN_NUM_3)
+/** @} */ // end of display
 
-/* USB */
-#define BSP_USB_POS             (USBPHY_DP_NUM)
-#define BSP_USB_NEG             (USBPHY_DM_NUM)
+/** @defgroup g07_usb USB
+ *  @brief USB BSP API
+ *  @{
+ */
+#define BSP_USB_POS             ((GPIO_NUM_20))
+#define BSP_USB_NEG             ((GPIO_NUM_19))
+/** @} */ // end of usb
 
-/* Button */
-
+/** @defgroup g05_buttons Buttons
+ *  @brief Buttons BSP API
+ *  @{
+ */
 #define BSP_BUTTON_BOOT_IO      (GPIO_NUM_0)
 
 typedef enum {
     BSP_BUTTON_BOOT = 0,
     BSP_BUTTON_NUM,
 } bsp_button_t;
+/** @} */ // end of buttons
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * @brief BSP display configuration structure
- *
+/** \addtogroup g01_i2c
+ *  @{
  */
-typedef struct {
-    lvgl_port_cfg_t lvgl_port_cfg;
-} bsp_display_cfg_t;
 
 /**************************************************************************************************
  *
@@ -156,6 +191,13 @@ esp_err_t bsp_i2c_deinit(void);
  */
 i2c_master_bus_handle_t bsp_i2c_get_handle(void);
 
+/** @} */ // end of i2c
+
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * SPIFFS
@@ -194,6 +236,13 @@ esp_err_t bsp_spiffs_mount(void);
  */
 esp_err_t bsp_spiffs_unmount(void);
 
+/** @} */ // end of storage
+
+/** @defgroup g99_others Others
+ *  @brief Other BSP API
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * IO Expander Interface
@@ -211,6 +260,12 @@ esp_err_t bsp_spiffs_unmount(void);
  * @return Pointer to device handle or NULL when error occurred
  */
 esp_io_expander_handle_t bsp_io_expander_init(void);
+
+/** @} */ // end of others
+
+/** \addtogroup g03_audio
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -279,6 +334,12 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
  */
 esp_err_t bsp_audio_poweramp_enable(bool enable);
 
+/** @} */ // end of audio
+
+/** \addtogroup g04_display
+ *  @{
+ */
+
 /********************************************************************************************************************************
  *
  * Display Interface
@@ -328,11 +389,18 @@ esp_err_t bsp_audio_poweramp_enable(bool enable);
         .flags.pclk_active_neg = true,              \
     }
 
-#define BSP_LCD_H_RES   bsp_display_get_h_res()
-#define BSP_LCD_V_RES   bsp_display_get_v_res()
+#if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 /* LVGL related parameters */
 #define LVGL_BUFFER_HEIGHT          (CONFIG_BSP_DISPLAY_LVGL_BUF_HEIGHT)
+
+/**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;
+} bsp_display_cfg_t;
 
 
 /**
@@ -399,23 +467,13 @@ void bsp_display_unlock(void);
  */
 void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation);
 
-/**
- * @brief Get display horizontal resolution
- *
- * @note  This function should be called after calling `bsp_display_new()` or `bsp_display_start()`
- *
- * @return Horizontal resolution. Return 0 if error occurred.
- */
-uint16_t bsp_display_get_h_res(void);
+#endif // BSP_CONFIG_NO_GRAPHIC_LIB == 0
 
-/**
- * @brief Get display vertical resolution
- *
- * @note  This function should be called after calling `bsp_display_new()` or `bsp_display_start()`
- *
- * @return Vertical resolution. Return 0 if error occurred.
+/** @} */ // end of display
+
+/** \addtogroup g05_buttons
+ *  @{
  */
-uint16_t bsp_display_get_v_res(void);
 
 /**************************************************************************************************
  *
@@ -468,6 +526,13 @@ __attribute__((deprecated("use espressif/button API instead")));
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 
+/** @} */ // end of buttons
+
+/** @defgroup g01_adc ADC
+ *  @brief ADC BSP API
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * ADC interface
@@ -481,8 +546,6 @@ esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int b
  * @brief Initialize ADC
  *
  * The ADC can be initialized inside BSP, when needed.
- *
- * @param[out] adc_handle Returned ADC handle
  */
 esp_err_t bsp_adc_initialize(void);
 
@@ -495,6 +558,8 @@ esp_err_t bsp_adc_initialize(void);
  * @return ADC handle
  */
 adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
+
+/** @} */ // end of adc
 
 #ifdef __cplusplus
 }

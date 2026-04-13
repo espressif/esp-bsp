@@ -2,6 +2,8 @@
 # Espressif IoT Development Framework (ESP-IDF) Project Minimal Configuration
 #
 CONFIG_IDF_TARGET="esp32"
+CONFIG_BSP_SELECT_ESP_BSP_DEVKIT=y
+
 CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
 CONFIG_PARTITION_TABLE_CUSTOM=y
 

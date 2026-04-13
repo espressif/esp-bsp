@@ -1,12 +1,12 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
  * @file
- * @brief ESP BSP: S3-USB-OTG kit
+ * @brief ESP BSP: ESP32-S3-USB-OTG
  */
 
 #pragma once
@@ -14,16 +14,33 @@
 #include "sdkconfig.h"
 #include "driver/gpio.h"
 #include "driver/sdmmc_host.h"
-#include "soc/usb_pins.h"
+#include "driver/sdspi_host.h"
+#include "esp_vfs_fat.h"
 #include "iot_button.h"
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
 #include "bsp/display.h"
+#include "esp_adc/adc_oneshot.h"
+
+/**************************************************************************************************
+ *  BSP Board Name
+ **************************************************************************************************/
+
+/** @defgroup boardname Board Name
+ *  @brief BSP Board Name
+ *  @{
+ */
+#define BSP_BOARD_ESP32_S3_USB_OTG
+/** @} */ // end of boardname
 
 /**************************************************************************************************
  *  BSP Capabilities
  **************************************************************************************************/
 
+/** @defgroup capabilities Capabilities
+ *  @brief BSP Capabilities
+ *  @{
+ */
 #define BSP_CAPS_DISPLAY        1
 #define BSP_CAPS_TOUCH          0
 #define BSP_CAPS_BUTTONS        1
@@ -34,33 +51,53 @@
 #define BSP_CAPS_IMU            0
 #define BSP_CAPS_LED            1
 #define BSP_CAPS_BAT            1
+/** @} */ // end of capabilities
 
 /**************************************************************************************************
  * ESP32-S3-USB-OTG pinout
  **************************************************************************************************/
 
-/* LEDs */
+/** @defgroup g06_led Leds
+ *  @brief Leds BSP API
+ *  @{
+ */
 // There is also red LED, that indicates battery charging
 typedef enum bsp_led_t {
     BSP_LED_GREEN = GPIO_NUM_15,
     BSP_LED_YELLOW = GPIO_NUM_16
 } bsp_led_t;
+/** @} */ // end of leds
 
-/* Display */
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
 #define BSP_LCD_SPI_MOSI      (GPIO_NUM_7)
 #define BSP_LCD_SPI_CLK       (GPIO_NUM_6)
 #define BSP_LCD_SPI_CS        (GPIO_NUM_5)
 #define BSP_LCD_DC            (GPIO_NUM_4)
 #define BSP_LCD_RST           (GPIO_NUM_8)
 #define BSP_LCD_BACKLIGHT     (GPIO_NUM_9)
+/** @} */ // end of display
 
-/* uSD card */
+/** @defgroup g02_storage SD Card and SPIFFS
+ *  @brief SPIFFS and SD card BSP API
+ *  @{
+ */
+/* uSD card MMC */
 #define BSP_SD_D0             (GPIO_NUM_37)
 #define BSP_SD_D1             (GPIO_NUM_38)
 #define BSP_SD_D2             (GPIO_NUM_33)
 #define BSP_SD_D3             (GPIO_NUM_34)
 #define BSP_SD_CMD            (GPIO_NUM_35)
 #define BSP_SD_CLK            (GPIO_NUM_36)
+
+/* uSD card SPI */
+#define BSP_SD_SPI_MISO       (GPIO_NUM_37)
+#define BSP_SD_SPI_CS         (GPIO_NUM_34)
+#define BSP_SD_SPI_MOSI       (GPIO_NUM_35)
+#define BSP_SD_SPI_CLK        (GPIO_NUM_36)
+/** @} */ // end of storage
 
 /* Buttons */
 #define BSP_BUTTON_OK_IO            (GPIO_NUM_0)
@@ -69,7 +106,10 @@ typedef enum bsp_led_t {
 #define BSP_BUTTON_MENU_IO          (GPIO_NUM_14)
 #define BSP_USB_OVERCURRENT_IO      (GPIO_NUM_21)
 
-/* Button */
+/** @defgroup g05_buttons Buttons
+ *  @brief Buttons BSP API
+ *  @{
+ */
 // All signal are active low
 typedef enum {
     BSP_BUTTON_OK = GPIO_NUM_0, // Also serves as BOOT select
@@ -79,38 +119,37 @@ typedef enum {
     BSP_USB_OVERCURRENT = GPIO_NUM_21, // This is not a real button, but the button API can be reused here
     BSP_BUTTON_NUM = 5
 } bsp_button_t;
+/** @} */ // end of buttons
 
-/* USB */
-#define BSP_USB_POS           USBPHY_DP_NUM
-#define BSP_USB_NEG           USBPHY_DM_NUM
+/** @defgroup g07_usb USB
+ *  @brief USB BSP API
+ *  @{
+ */
+#define BSP_USB_POS           (GPIO_NUM_20)
+#define BSP_USB_NEG           (GPIO_NUM_19)
 #define BSP_USB_MODE_SEL      (GPIO_NUM_18) // Select Host (high level) or Device (low level, default) mode
 #define BSP_USB_HOST_VOLTAGE  (GPIO_NUM_1)  // Voltage at this pin = (V_BUS / 3.7), ADC1 channel 0
 #define BSP_USB_HOST_VOLTAGE_DIV (3.7f)
 #define BSP_USB_LIMIT_EN      (GPIO_NUM_17) // Active high (pulled low)
 #define BSP_USB_DEV_VBUS_EN   (GPIO_NUM_12) // Active high (pulled low)
+/** @} */ // end of usb
 
-/* Battery */
+/** @defgroup g09_battery Battery
+ *  @brief Battery BSP API
+ *  @{
+ */
 #define BSP_BATTERY_VOLTAGE   (GPIO_NUM_2)  // Voltage at this pin = (V_BAT / 2), ADC1 channel 1
 #define BSP_BATTERY_VOLTAGE_DIV (2)
 #define BSP_BATTERY_BOOST_EN  (GPIO_NUM_13) // 3.3->5V for USB device power from battery. Active high (pulled low)
+/** @} */ // end of battery
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * @brief BSP display configuration structure
- *
+/** \addtogroup g02_storage
+ *  @{
  */
-typedef struct {
-    lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
-    uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
-    bool            double_buffer;  /*!< True, if should be allocated two buffers */
-    struct {
-        unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
-        unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
-    } flags;
-} bsp_display_cfg_t;
 
 /**************************************************************************************************
  *
@@ -123,8 +162,20 @@ typedef struct {
  * fclose(f);
  * \endcode
  **************************************************************************************************/
-#define BSP_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
-extern sdmmc_card_t *bsp_sdcard;
+#define BSP_SD_MOUNT_POINT      CONFIG_BSP_SD_MOUNT_POINT
+#define BSP_SDSPI_HOST          (SPI2_HOST)
+
+/**
+ * @brief BSP SD card configuration structure
+ */
+typedef struct {
+    const esp_vfs_fat_sdmmc_mount_config_t *mount;
+    sdmmc_host_t *host;
+    union {
+        const sdmmc_slot_config_t   *sdmmc;
+        const sdspi_device_config_t *sdspi;
+    } slot;
+} bsp_sdcard_cfg_t;
 
 /**
  * @brief Mount microSD card to virtual file system
@@ -150,6 +201,73 @@ esp_err_t bsp_sdcard_mount(void);
  *      - other error codes from wear levelling library, SPI flash driver, or FATFS drivers
  */
 esp_err_t bsp_sdcard_unmount(void);
+
+/**
+ * @brief Get SD card handle
+ *
+ * @return SD card handle
+ */
+sdmmc_card_t *bsp_sdcard_get_handle(void);
+
+/**
+ * @brief Get SD card MMC host config
+ *
+ * @param slot SD card slot
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_get_sdmmc_host(const int slot, sdmmc_host_t *config);
+
+/**
+ * @brief Get SD card SPI host config
+ *
+ * @param slot SD card slot
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_get_sdspi_host(const int slot, sdmmc_host_t *config);
+
+/**
+ * @brief Get SD card MMC slot config
+ *
+ * @param slot SD card slot
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config);
+
+/**
+ * @brief Get SD card SPI slot config
+ *
+ * @param spi_host SPI host ID
+ * @param config Structure which will be filled
+ */
+void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_config_t *config);
+
+/**
+ * @brief Mount microSD card to virtual file system (MMC mode)
+ *
+ * @param cfg SD card configuration
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_fat_sdmmc_mount was already called
+ *      - ESP_ERR_NO_MEM if memory cannot be allocated
+ *      - ESP_FAIL if partition cannot be mounted
+ *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+ */
+esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg);
+
+/**
+ * @brief Mount microSD card to virtual file system (SPI mode)
+ *
+ * @param cfg SD card configuration
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_INVALID_STATE if esp_vfs_fat_sdmmc_mount was already called
+ *      - ESP_ERR_NO_MEM if memory cannot be allocated
+ *      - ESP_FAIL if partition cannot be mounted
+ *      - other error codes from SDMMC or SPI drivers, SDMMC protocol, or FATFS drivers
+ */
+esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
 
 /**************************************************************************************************
  *
@@ -189,6 +307,12 @@ esp_err_t bsp_spiffs_mount(void);
  */
 esp_err_t bsp_spiffs_unmount(void);
 
+/** @} */ // end of storage
+
+/** \addtogroup g04_display
+ *  @{
+ */
+
 /**************************************************************************************************
  *
  * LCD interface
@@ -205,6 +329,20 @@ esp_err_t bsp_spiffs_unmount(void);
 
 #define BSP_LCD_DRAW_BUFF_SIZE     (BSP_LCD_H_RES * 30) // Frame buffer size in pixels
 #define BSP_LCD_DRAW_BUFF_DOUBLE   (1)
+
+/**
+ * @brief BSP display configuration structure
+ *
+ */
+typedef struct {
+    lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
+    uint32_t        buffer_size;    /*!< Size of the buffer for the screen in pixels */
+    bool            double_buffer;  /*!< True, if should be allocated two buffers */
+    struct {
+        unsigned int buff_dma: 1;    /*!< Allocated LVGL buffer will be DMA capable */
+        unsigned int buff_spiram: 1; /*!< Allocated LVGL buffer will be in PSRAM */
+    } flags;
+} bsp_display_cfg_t;
 
 /**
  * @brief Initialize display
@@ -261,6 +399,11 @@ void bsp_display_unlock(void);
  */
 void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 
+/** @} */ // end of display
+
+/** \addtogroup g06_led
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -288,6 +431,11 @@ esp_err_t bsp_leds_init(void);
  */
 esp_err_t bsp_led_set(const bsp_led_t led_io, const bool on);
 
+/** @} */ // end of leds
+
+/** \addtogroup g05_buttons
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -335,6 +483,12 @@ __attribute__((deprecated("use espressif/button API instead")));
  *     - ESP_FAIL             Underlaying iot_button_create failed
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
+
+/** @} */ // end of buttons
+
+/** \addtogroup g07_usb
+ *  @{
+ */
 
 /**************************************************************************************************
  *
@@ -426,13 +580,21 @@ esp_err_t bsp_usb_host_start(bsp_usb_host_power_mode_t mode, bool limit_500mA);
  */
 esp_err_t bsp_usb_host_stop(void);
 
+/** @} */ // end of usb
+
+/** @defgroup g01_adc ADC
+ *  @brief ADC BSP API
+ *  @{
+ */
+
 /**************************************************************************************************
  *
- * Voltage measurements
+ * ADC interface
  *
- * There are 2 voltages measured on ESP32-S2-USB-OTG board:
- * 1. Battery voltage
- * 2. Voltage on USB device connector
+ * There are multiple devices connected to ADC peripheral:
+ *  - Buttons
+ *
+ * After initialization of ADC, use adc_handle when using ADC driver.
  **************************************************************************************************/
 
 #define BSP_ADC_UNIT     ADC_UNIT_1
@@ -441,8 +603,6 @@ esp_err_t bsp_usb_host_stop(void);
  * @brief Initialize ADC
  *
  * The ADC can be initialized inside BSP, when needed.
- *
- * @param[out] adc_handle Returned ADC handle
  */
 esp_err_t bsp_adc_initialize(void);
 
@@ -457,6 +617,21 @@ esp_err_t bsp_adc_initialize(void);
  */
 adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
 #endif
+
+/** @} */ // end of adc
+
+/** \addtogroup g09_battery
+ *  @{
+ */
+
+/**************************************************************************************************
+ *
+ * Voltage measurements
+ *
+ * There are 2 voltages measured on ESP32-S2-USB-OTG board:
+ * 1. Battery voltage
+ * 2. Voltage on USB device connector
+ **************************************************************************************************/
 
 /**
  * @brief Init voltage measurements
@@ -490,6 +665,8 @@ int bsp_voltage_battery_get(void);
  * @return Resulting voltage in [mV] or -1 on error
  */
 int bsp_voltage_usb_get(void);
+
+/** @} */ // end of battery
 
 #ifdef __cplusplus
 }

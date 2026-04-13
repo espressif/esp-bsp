@@ -1,0 +1,35 @@
+{%- if nodes -%}
+## {{title}}
+
+{% for node in nodes -%}
+### {{ node.kind.value }} `{{ node.name }}`
+
+{% if node.brief -%}
+{{ node.brief }}
+{% endif -%}
+
+{% if node.codeblock -%}
+```c
+{{ node.codeblock }}
+```
+
+{% endif -%}
+
+{%- if node.details %}
+{{ node.details }}
+{% endif -%}
+
+{%- set variables = node.query(kinds=['variable']) -%}
+{%- if variables %}
+Variables:
+
+{% for var in variables -%}
+- {{var.prefix}} {{var.type}} {{var.name}} {{var.params}} {{var.suffix}}
+  {%- if var.brief %}<br>{{var.brief}}{% endif -%}
+  {%- if var.details %}<br>{{var.details}}{% endif %}
+
+{% endfor %}
+{%- endif -%}
+
+{% endfor %}
+{%- endif -%}

@@ -1,0 +1,31 @@
+components/io_expander/esp_io_expander_ht8574:
+  depends_filepatterns:
+    - "components/io_expander/esp_io_expander/**"
+    - "components/io_expander/esp_io_expander_ht8574/**"
+  disable:
+    - if: IDF_VERSION < "5.2.0"
+      reason: Requires I2C Driver-NG which was introduced in v5.2
+
+components/io_expander/esp_io_expander_tca95xx_16bit:
+  depends_filepatterns:
+    - "components/io_expander/esp_io_expander/**"
+    - "components/io_expander/esp_io_expander_tca95xx_16bit/**"
+  disable:
+    - if: IDF_VERSION < "5.2.0"
+      reason: Requires I2C Driver-NG which was introduced in v5.2
+
+components/io_expander/esp_io_expander_tca9554:
+  depends_filepatterns:
+    - "components/io_expander/esp_io_expander/**"
+    - "components/io_expander/esp_io_expander_tca9554/**"
+  disable:
+    - if: IDF_VERSION < "5.2.0"
+      reason: Requires I2C Driver-NG which was introduced in v5.2
+
+components/io_expander/esp_io_expander_pi4ioe5v6408:
+  depends_filepatterns:
+    - "components/io_expander/esp_io_expander/**"
+    - "components/io_expander/esp_io_expander_pi4ioe5v6408/**"
+  disable:
+    - if: IDF_VERSION < "5.2.0"
+      reason: Requires I2C Driver-NG which was introduced in v5.2

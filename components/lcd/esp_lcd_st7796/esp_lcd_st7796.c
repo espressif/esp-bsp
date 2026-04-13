@@ -13,7 +13,8 @@
 
 static const char *TAG = "st7796";
 
-esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config,
+esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io,
+                                   const esp_lcd_panel_dev_config_t *panel_dev_config,
                                    esp_lcd_panel_handle_t *ret_panel)
 {
     ESP_LOGI(TAG, "version: %d.%d.%d", ESP_LCD_ST7796_VER_MAJOR, ESP_LCD_ST7796_VER_MINOR, ESP_LCD_ST7796_VER_PATCH);

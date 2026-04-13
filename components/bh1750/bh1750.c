@@ -1,53 +1,59 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <stdio.h>
-#include "driver/i2c.h"
 #include "bh1750.h"
+#include "driver/i2c_master.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/projdefs.h" // for pdMS_TO_TICKS
 
 #define BH_1750_MEASUREMENT_ACCURACY    1.2    /*!< the typical measurement accuracy of  BH1750 sensor */
 
 #define BH1750_POWER_DOWN        0x00    /*!< Command to set Power Down*/
 #define BH1750_POWER_ON          0x01    /*!< Command to set Power On*/
+#define I2C_CLK_SPEED            400000
 
 typedef struct {
-    i2c_port_t bus;
-    uint16_t dev_addr;
+    i2c_master_dev_handle_t i2c_handle;
 } bh1750_dev_t;
 
 static esp_err_t bh1750_write_byte(const bh1750_dev_t *const sens, const uint8_t byte)
 {
-    esp_err_t ret;
-
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    ret = i2c_master_start(cmd);
-    assert(ESP_OK == ret);
-    ret = i2c_master_write_byte(cmd, sens->dev_addr | I2C_MASTER_WRITE, true);
-    assert(ESP_OK == ret);
-    ret = i2c_master_write_byte(cmd, byte, true);
-    assert(ESP_OK == ret);
-    ret = i2c_master_stop(cmd);
-    assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd);
-
-    return ret;
+    return i2c_master_transmit(sens->i2c_handle, &byte, 1, pdMS_TO_TICKS(1000));
 }
 
-bh1750_handle_t bh1750_create(i2c_port_t port, const uint16_t dev_addr)
+esp_err_t bh1750_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_addr, bh1750_handle_t *handle_ret)
 {
+    esp_err_t ret = ESP_OK;
     bh1750_dev_t *sensor = (bh1750_dev_t *) calloc(1, sizeof(bh1750_dev_t));
-    sensor->bus = port;
-    sensor->dev_addr = dev_addr << 1;
-    return (bh1750_handle_t) sensor;
+    if (!sensor) {
+        return ESP_ERR_NO_MEM;
+    }
+
+    // Add new I2C device
+    const i2c_device_config_t i2c_dev_cfg = {
+        .device_address = dev_addr,
+        .scl_speed_hz = I2C_CLK_SPEED,
+    };
+    ret = i2c_master_bus_add_device(i2c_bus, &i2c_dev_cfg, &sensor->i2c_handle);
+    if (ret != ESP_OK) {
+        free(sensor);
+        return ret;
+    }
+
+    assert(sensor->i2c_handle);
+    *handle_ret = sensor;
+    return ret;
 }
 
 esp_err_t bh1750_delete(bh1750_handle_t sensor)
 {
     bh1750_dev_t *sens = (bh1750_dev_t *) sensor;
+    if (sens->i2c_handle) {
+        i2c_master_bus_rm_device(sens->i2c_handle);
+    }
     free(sens);
     return ESP_OK;
 }
@@ -88,26 +94,12 @@ esp_err_t bh1750_set_measure_mode(bh1750_handle_t sensor, const bh1750_measure_m
 
 esp_err_t bh1750_get_data(bh1750_handle_t sensor, float *const data)
 {
-    esp_err_t ret;
-    uint8_t bh1750_data_h, bh1750_data_l;
     bh1750_dev_t *sens = (bh1750_dev_t *) sensor;
-
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-    ret = i2c_master_start(cmd);
-    assert(ESP_OK == ret);
-    ret = i2c_master_write_byte(cmd, sens->dev_addr | I2C_MASTER_READ, true);
-    assert(ESP_OK == ret);
-    ret = i2c_master_read_byte(cmd, &bh1750_data_h, I2C_MASTER_ACK);
-    assert(ESP_OK == ret);
-    ret = i2c_master_read_byte(cmd, &bh1750_data_l, I2C_MASTER_NACK);
-    assert(ESP_OK == ret);
-    ret = i2c_master_stop(cmd);
-    assert(ESP_OK == ret);
-    ret = i2c_master_cmd_begin(sens->bus, cmd, 1000 / portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd);
+    uint8_t read_buffer[2];
+    esp_err_t ret = i2c_master_receive(sens->i2c_handle, read_buffer, sizeof(read_buffer), pdMS_TO_TICKS(1000));
     if (ESP_OK != ret) {
         return ret;
     }
-    *data = (( bh1750_data_h << 8 | bh1750_data_l ) / BH_1750_MEASUREMENT_ACCURACY);
+    *data = (( read_buffer[0] << 8 | read_buffer[1] ) / BH_1750_MEASUREMENT_ACCURACY);
     return ESP_OK;
 }

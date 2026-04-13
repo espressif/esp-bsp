@@ -37,7 +37,8 @@ typedef struct {
  *          - ESP_ERR_NO_MEM        if out of memory
  *          - ESP_OK                on success
  */
-esp_err_t esp_lcd_new_panel_ra8875(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
+esp_err_t esp_lcd_new_panel_ra8875(const esp_lcd_panel_io_handle_t io,
+                                   const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
 
 #ifdef __cplusplus
 }

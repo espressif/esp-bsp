@@ -5,7 +5,7 @@ menu "Board Support Package (generic)"
         default y
         help
             Error check assert the application before returning the error code.
-    
+
     menu "I2C"
         menu "Pins"
             config BSP_I2C_GPIO_SCL
@@ -20,24 +20,19 @@ menu "Board Support Package (generic)"
                 range -1 ENV_GPIO_OUT_RANGE_MAX
                 help
                     The GPIO pin for I2C SDA.
+            config BSP_I2C_PULLUP
+                bool "I2C GPIO PULL UP"
+                default n
+                help
+                    Enable I2C bus pull up.
         endmenu
-        config BSP_I2C_NUM
+
+    config BSP_I2C_NUM
             int "I2C peripheral index"
             default 1
             range 0 1
             help
                 ESP32 has two I2C peripherals, pick the one you want to use.
-
-        config BSP_I2C_FAST_MODE
-            bool "Enable I2C fast mode"
-            default y
-            help
-                I2C has two speed modes: normal (100kHz) and fast (400kHz).
-
-        config BSP_I2C_CLK_SPEED_HZ
-            int
-            default 400000 if BSP_I2C_FAST_MODE
-            default 100000
     endmenu
 
     menu "Buttons"
@@ -46,7 +41,7 @@ menu "Board Support Package (generic)"
             prompt "Number of buttons in BSP"
             default 2
             range 0 5
-            
+
         menu "Button 1"
             depends on BSP_BUTTONS_NUM > 0
             choice BSP_BUTTON_1_TYPE
@@ -60,10 +55,10 @@ menu "Board Support Package (generic)"
                 config BSP_BUTTON_1_TYPE_ADC
                     bool "ADC Button"
             endchoice
-            
+
             config BSP_BUTTON_1_GPIO
                 depends on BSP_BUTTON_1_TYPE_GPIO
-                int 
+                int
                 prompt "Button 1 GPIO"
                 default 0
                 range -1 ENV_GPIO_IN_RANGE_MAX
@@ -77,32 +72,32 @@ menu "Board Support Package (generic)"
                 range 0 1
                 help
                     The active level for button 1.
-           
+
             config BSP_BUTTON_1_ADC_UNIT
                 depends on BSP_BUTTON_1_TYPE_ADC
                 int "Button 1 ADC Unit"
                 default 1
                 range 0 1
                 help
-                    The ADC unit for button 1.   
-           
+                    The ADC unit for button 1.
+
             config BSP_BUTTON_1_ADC_CHANNEL
                 depends on BSP_BUTTON_1_TYPE_ADC
                 int "Button 1 ADC Channel"
                 default 0
                 range 0 9
                 help
-                    The ADC channel for button 1.  
-           
+                    The ADC channel for button 1.
+
             config BSP_BUTTON_1_ADC_VALUE
                 depends on BSP_BUTTON_1_TYPE_ADC
                 int "Button 1 ADC Value"
                 default 2000
                 range 0 2500
                 help
-                    The ADC middle value for button 1.   
+                    The ADC middle value for button 1.
         endmenu
-            
+
         menu "Button 2"
             depends on BSP_BUTTONS_NUM > 1
             choice
@@ -116,7 +111,7 @@ menu "Board Support Package (generic)"
                 config BSP_BUTTON_2_TYPE_ADC
                     bool "ADC Button"
             endchoice
-            
+
             config BSP_BUTTON_2_GPIO
                 depends on BSP_BUTTON_2_TYPE_GPIO
                 int "Button 2 GPIO"
@@ -124,7 +119,7 @@ menu "Board Support Package (generic)"
                 range -1 ENV_GPIO_IN_RANGE_MAX
                 help
                     The GPIO pin for button 2.
-                    
+
             config BSP_BUTTON_2_LEVEL
                 depends on BSP_BUTTON_2_TYPE_GPIO
                 int "Button 2 Active Level"
@@ -132,32 +127,32 @@ menu "Board Support Package (generic)"
                 range 0 1
                 help
                     The active level for button 2.
-           
+
             config BSP_BUTTON_2_ADC_UNIT
                 depends on BSP_BUTTON_2_TYPE_ADC
                 int "Button 2 ADC Unit"
                 default 1
                 range 0 1
                 help
-                    The ADC unit for button 2.   
-           
+                    The ADC unit for button 2.
+
             config BSP_BUTTON_2_ADC_CHANNEL
                 depends on BSP_BUTTON_2_TYPE_ADC
                 int "Button 2 ADC Channel"
                 default 0
                 range 0 9
                 help
-                    The ADC channel for button 2.  
-           
+                    The ADC channel for button 2.
+
             config BSP_BUTTON_2_ADC_VALUE
                 depends on BSP_BUTTON_2_TYPE_ADC
                 int "Button 2 ADC Value"
                 default 2000
                 range 0 2500
                 help
-                    The ADC middle value for button 2.  
+                    The ADC middle value for button 2.
         endmenu
-            
+
         menu "Button 3"
             depends on BSP_BUTTONS_NUM > 2
             choice
@@ -171,7 +166,7 @@ menu "Board Support Package (generic)"
                 config BSP_BUTTON_3_TYPE_ADC
                     bool "ADC Button"
             endchoice
-            
+
             config BSP_BUTTON_3_GPIO
                 depends on BSP_BUTTON_3_TYPE_GPIO
                 int "Button 3 GPIO"
@@ -179,7 +174,7 @@ menu "Board Support Package (generic)"
                 range -1 ENV_GPIO_IN_RANGE_MAX
                 help
                     The GPIO pin for button 3.
-                    
+
             config BSP_BUTTON_3_LEVEL
                 depends on BSP_BUTTON_3_TYPE_GPIO
                 int "Button 3 Active Level"
@@ -187,32 +182,32 @@ menu "Board Support Package (generic)"
                 range 0 1
                 help
                     The active level for button 3.
-           
+
             config BSP_BUTTON_3_ADC_UNIT
                 depends on BSP_BUTTON_3_TYPE_ADC
                 int "Button 3 ADC Unit"
                 default 1
                 range 0 1
                 help
-                    The ADC unit for button 3.   
-           
+                    The ADC unit for button 3.
+
             config BSP_BUTTON_3_ADC_CHANNEL
                 depends on BSP_BUTTON_3_TYPE_ADC
                 int "Button 3 ADC Channel"
                 default 0
                 range 0 9
                 help
-                    The ADC channel for button 3.  
-           
+                    The ADC channel for button 3.
+
             config BSP_BUTTON_3_ADC_VALUE
                 depends on BSP_BUTTON_3_TYPE_ADC
                 int "Button 3 ADC Value"
                 default 2000
                 range 0 2500
                 help
-                    The ADC middle value for button 3.  
+                    The ADC middle value for button 3.
         endmenu
-            
+
         menu "Button 4"
             depends on BSP_BUTTONS_NUM > 3
             choice
@@ -226,7 +221,7 @@ menu "Board Support Package (generic)"
                 config BSP_BUTTON_4_TYPE_ADC
                     bool "ADC Button"
             endchoice
-            
+
             config BSP_BUTTON_4_GPIO
                 depends on BSP_BUTTON_4_TYPE_GPIO
                 int "Button 4 GPIO"
@@ -234,7 +229,7 @@ menu "Board Support Package (generic)"
                 range -1 ENV_GPIO_IN_RANGE_MAX
                 help
                     The GPIO pin for button 4.
-                    
+
             config BSP_BUTTON_4_LEVEL
                 depends on BSP_BUTTON_4_TYPE_GPIO
                 int "Button 4 Active Level"
@@ -242,32 +237,32 @@ menu "Board Support Package (generic)"
                 range 0 1
                 help
                     The active level for button 4.
-           
+
             config BSP_BUTTON_4_ADC_UNIT
                 depends on BSP_BUTTON_4_TYPE_ADC
                 int "Button 4 ADC Unit"
                 default 1
                 range 0 1
                 help
-                    The ADC unit for button 4.   
-           
+                    The ADC unit for button 4.
+
             config BSP_BUTTON_4_ADC_CHANNEL
                 depends on BSP_BUTTON_4_TYPE_ADC
                 int "Button 4 ADC Channel"
                 default 0
                 range 0 9
                 help
-                    The ADC channel for button 4.  
-           
+                    The ADC channel for button 4.
+
             config BSP_BUTTON_4_ADC_VALUE
                 depends on BSP_BUTTON_4_TYPE_ADC
                 int "Button 4 ADC Value"
                 default 2000
                 range 0 2500
                 help
-                    The ADC middle value for button 4.  
+                    The ADC middle value for button 4.
         endmenu
-            
+
         menu "Button 5"
             depends on BSP_BUTTONS_NUM > 4
             choice
@@ -281,7 +276,7 @@ menu "Board Support Package (generic)"
                 config BSP_BUTTON_5_TYPE_ADC
                     bool "ADC Button"
             endchoice
-            
+
             config BSP_BUTTON_5_GPIO
                 depends on BSP_BUTTON_5_TYPE_GPIO
                 int "Button 5 GPIO"
@@ -289,7 +284,7 @@ menu "Board Support Package (generic)"
                 range -1 ENV_GPIO_IN_RANGE_MAX
                 help
                     The GPIO pin for button 5.
-                    
+
             config BSP_BUTTON_5_LEVEL
                 depends on BSP_BUTTON_5_TYPE_GPIO
                 int "Button 5 Active Level"
@@ -297,40 +292,40 @@ menu "Board Support Package (generic)"
                 range 0 1
                 help
                     The active level for button 5.
-           
+
             config BSP_BUTTON_5_ADC_UNIT
                 depends on BSP_BUTTON_5_TYPE_ADC
                 int "Button 5 ADC Unit"
                 default 1
                 range 0 1
                 help
-                    The ADC unit for button 5.   
-           
+                    The ADC unit for button 5.
+
             config BSP_BUTTON_5_ADC_CHANNEL
                 depends on BSP_BUTTON_5_TYPE_ADC
                 int "Button 5 ADC Channel"
                 default 0
                 range 0 9
                 help
-                    The ADC channel for button 5.  
-           
+                    The ADC channel for button 5.
+
             config BSP_BUTTON_5_ADC_VALUE
                 depends on BSP_BUTTON_5_TYPE_ADC
                 int "Button 5 ADC Value"
                 default 2000
                 range 0 2500
                 help
-                    The ADC middle value for button 5.  
+                    The ADC middle value for button 5.
         endmenu
     endmenu
-    
+
 
     menu "LEDs"
-        choice  
+        choice
             prompt "LED type"
             default BSP_LED_TYPE_GPIO
             help
-                Select a LED type GPIO or Adressable RGB 
+                Select a LED type GPIO or Adressable RGB
             config BSP_LED_TYPE_GPIO
                 bool "GPIO LED"
             config BSP_LED_TYPE_RGB_CLASSIC
@@ -338,7 +333,7 @@ menu "Board Support Package (generic)"
             config BSP_LED_TYPE_RGB
                 bool "Adressable RGB LED"
         endchoice
-        
+
         if BSP_LED_TYPE_GPIO
             config ENV_MAX_LEDS
                 int
@@ -349,22 +344,22 @@ menu "Board Support Package (generic)"
                 int
                 default 1
         endif
-        
+
         config BSP_LEDS_NUM
             int
             prompt "Number of LEDs in BSP"
             default 1
             range 0 ENV_MAX_LEDS
-            
+
         config BSP_LED_RGB_GPIO
             depends on BSP_LED_TYPE_RGB && BSP_LEDS_NUM > 0
-            int 
+            int
             prompt "Adressable RGB LED GPIO"
             default 48
             range -1 ENV_GPIO_OUT_RANGE_MAX
             help
                 The GPIO pin for adressable LEDs.
-                    
+
         config BSP_LED_RGB_CLASSIC_LEVEL
             depends on BSP_LED_TYPE_RGB_CLASSIC && BSP_LEDS_NUM > 0
             int
@@ -372,29 +367,29 @@ menu "Board Support Package (generic)"
             default 0
             range 0 1
             help
-                The active level for classic RGB LED. 
-            
+                The active level for classic RGB LED.
+
         config BSP_LED_RGB_RED_GPIO
             depends on BSP_LED_TYPE_RGB_CLASSIC && BSP_LEDS_NUM > 0
-            int 
+            int
             prompt "Classic RGB LED red GPIO"
             default -1
             range -1 ENV_GPIO_OUT_RANGE_MAX
             help
                 The GPIO pin for red color RGB LED.
-            
+
         config BSP_LED_RGB_GREEN_GPIO
             depends on BSP_LED_TYPE_RGB_CLASSIC && BSP_LEDS_NUM > 0
-            int 
+            int
             prompt "Classic RGB LED green GPIO"
             default -1
             range -1 ENV_GPIO_OUT_RANGE_MAX
             help
                 The GPIO pin for green color RGB LED.
-            
+
         config BSP_LED_RGB_BLUE_GPIO
             depends on BSP_LED_TYPE_RGB_CLASSIC && BSP_LEDS_NUM > 0
-            int 
+            int
             prompt "Classic RGB LED blue GPIO"
             default -1
             range -1 ENV_GPIO_OUT_RANGE_MAX
@@ -402,7 +397,7 @@ menu "Board Support Package (generic)"
                 The GPIO pin for blue color RGB LED.
 
         config BSP_ESP_IDF_VERSION
-            string 
+            string
             default "$ESP_IDF_VERSION"
 
         choice BSP_LED_RGB_BACKEND
@@ -420,32 +415,32 @@ menu "Board Support Package (generic)"
                     bool "SPI"
             endif
         endchoice
-            
+
         menu "LED 1"
             depends on BSP_LEDS_NUM > 0 && BSP_LED_TYPE_GPIO
-            
+
             config BSP_LED_1_GPIO
-                int 
+                int
                 prompt "LED 1 GPIO"
                 default 0
                 range -1 ENV_GPIO_OUT_RANGE_MAX
                 help
                     The GPIO pin for LED 1.
-                    
+
             config BSP_LED_1_LEVEL
                 int
                 prompt "LED 1 Active Level"
                 default 1
                 range 0 1
                 help
-                    The active level for LED 1. 
+                    The active level for LED 1.
         endmenu
-            
+
         menu "LED 2"
             depends on BSP_LEDS_NUM > 1 && BSP_LED_TYPE_GPIO
-            
+
             config BSP_LED_2_GPIO
-                int 
+                int
                 prompt "LED 2 GPIO"
                 default 0
                 range -1 ENV_GPIO_OUT_RANGE_MAX
@@ -457,14 +452,14 @@ menu "Board Support Package (generic)"
                 default 1
                 range 0 1
                 help
-                    The active level for LED 2. 
+                    The active level for LED 2.
         endmenu
-            
+
         menu "LED 3"
             depends on BSP_LEDS_NUM > 2 && BSP_LED_TYPE_GPIO
-            
+
             config BSP_LED_3_GPIO
-                int 
+                int
                 prompt "LED 3 GPIO"
                 default 0
                 range -1 ENV_GPIO_OUT_RANGE_MAX
@@ -476,14 +471,14 @@ menu "Board Support Package (generic)"
                 default 1
                 range 0 1
                 help
-                    The active level for LED 3. 
+                    The active level for LED 3.
         endmenu
-            
+
         menu "LED 4"
             depends on BSP_LEDS_NUM > 3 && BSP_LED_TYPE_GPIO
-            
+
             config BSP_LED_4_GPIO
-                int 
+                int
                 prompt "LED 4 GPIO"
                 default 0
                 range -1 ENV_GPIO_OUT_RANGE_MAX
@@ -495,14 +490,14 @@ menu "Board Support Package (generic)"
                 default 1
                 range 0 1
                 help
-                    The active level for LED 4. 
+                    The active level for LED 4.
         endmenu
-            
+
         menu "LED 5"
             depends on BSP_LEDS_NUM > 4 && BSP_LED_TYPE_GPIO
-            
+
             config BSP_LED_5_GPIO
-                int 
+                int
                 prompt "LED 5 GPIO"
                 default 0
                 range -1 ENV_GPIO_OUT_RANGE_MAX
@@ -514,11 +509,11 @@ menu "Board Support Package (generic)"
                 default 1
                 range 0 1
                 help
-                    The active level for LED 5. 
+                    The active level for LED 5.
         endmenu
-            
+
     endmenu
-    
+
 
     menu "Display"
 
@@ -527,85 +522,85 @@ menu "Board Support Package (generic)"
             default n
             help
                 Enable using display in BSP
-        
+
         menu "Connection"
             depends on BSP_DISPLAY_ENABLED
-            choice  
+            choice
                 prompt "Communication interface"
                 help
                     Select a communication interface
                 config BSP_DISPLAY_INTERFACE_SPI
                     bool "SPI"
             endchoice
-            
+
             config BSP_DISPLAY_SCLK_GPIO
                 depends on BSP_DISPLAY_INTERFACE_SPI
-                int 
+                int
                 prompt "Display SPI SCLK GPIO"
                 default 0
                 range -1 ENV_GPIO_OUT_RANGE_MAX
                 help
                     The SCLK pin for SPI display.
-            
+
             config BSP_DISPLAY_MOSI_GPIO
                 depends on BSP_DISPLAY_INTERFACE_SPI
-                int 
+                int
                 prompt "Display SPI MOSI GPIO"
                 default 0
                 range -1 ENV_GPIO_OUT_RANGE_MAX
                 help
                     The MOSI pin for SPI display.
-            
+
             config BSP_DISPLAY_MISO_GPIO
                 depends on BSP_DISPLAY_INTERFACE_SPI
-                int 
+                int
                 prompt "Display SPI MISO GPIO"
                 default 0
                 range -1 ENV_GPIO_OUT_RANGE_MAX
                 help
                     The MISO pin for SPI display.
-            
+
             config BSP_DISPLAY_CS_GPIO
                 depends on BSP_DISPLAY_INTERFACE_SPI
-                int 
+                int
                 prompt "Display SPI CS GPIO"
                 default 0
                 range -1 ENV_GPIO_OUT_RANGE_MAX
                 help
                     The CS pin for SPI display.
-            
+
             config BSP_DISPLAY_DC_GPIO
                 depends on BSP_DISPLAY_INTERFACE_SPI
-                int 
+                int
                 prompt "Display SPI DC GPIO"
                 default 0
                 range -1 ENV_GPIO_OUT_RANGE_MAX
                 help
                     The DC pin for SPI display.
-            
+
             config BSP_DISPLAY_RST_GPIO
-                int 
+                int
                 prompt "Display reset GPIO"
                 default 0
                 range -1 ENV_GPIO_OUT_RANGE_MAX
                 help
                     The reset pin for display.
-            
+
             config BSP_DISPLAY_BACKLIGHT_GPIO
-                int 
+                int
                 prompt "Display backlight GPIO"
                 default -1
                 range -1 ENV_GPIO_OUT_RANGE_MAX
                 help
                     The backlight pin for display.
-            
+
         endmenu
-            
-        choice  
+
+        choice
             prompt "Display driver"
             depends on BSP_DISPLAY_ENABLED
             help
-                Select a display driver 
+                Select a display driver
             config BSP_DISPLAY_DRIVER_ST7789
                 depends on BSP_DISPLAY_INTERFACE_SPI
                 bool "ST7789"
@@ -616,7 +611,7 @@ menu "Board Support Package (generic)"
                 depends on BSP_DISPLAY_INTERFACE_SPI
                 bool "GC9A01"
         endchoice
-        
+
         menu "Rotation"
             depends on BSP_DISPLAY_ENABLED
 
@@ -638,12 +633,12 @@ menu "Board Support Package (generic)"
                 help
                     Mirror Y axis on the screen.
         endmenu
-            
-        choice  
+
+        choice
             prompt "Color space"
             depends on BSP_DISPLAY_ENABLED
             help
-                Select a display color space 
+                Select a display color space
             config BSP_DISPLAY_COLOR_SPACE_RGB
                 bool "RGB"
             config BSP_DISPLAY_COLOR_SPACE_BGR
@@ -675,32 +670,50 @@ menu "Board Support Package (generic)"
             default 8
             help
                 The param bits of the display.
-            
+
         config BSP_DISPLAY_PIXEL_CLOCK
             depends on BSP_DISPLAY_ENABLED
-            int 
+            int
             prompt "Display pixel clock (MHz)"
             default 20
             range 1 40
             help
                 The pixel clock of the display in MHz.
-            
+
         config BSP_DISPLAY_WIDTH
             depends on BSP_DISPLAY_ENABLED
-            int 
+            int
             prompt "Display width"
             default 320
             help
                 The width in pixels of the display.
-            
+
         config BSP_DISPLAY_HEIGHT
             depends on BSP_DISPLAY_ENABLED
-            int 
+            int
             prompt "Display height"
             default 240
             help
                 The height in pixels of the display.
-                
+
+        config BSP_DISPLAY_HORIZONTAL_OFFSET
+            depends on BSP_DISPLAY_ENABLED
+            int
+            prompt "Display horizontal offset"
+            default 0
+            help
+                Some displays has offset. First columns and rows are not visible on screen
+                (specific connection layout between screen and controler).
+
+        config BSP_DISPLAY_VERTICAL_OFFSET
+            depends on BSP_DISPLAY_ENABLED
+            int
+            prompt "Display vertical offset"
+            default 0
+            help
+                Some displays has offset. First columns and rows are not visible on screen
+                (specific connection layout between screen and controler).
+
         config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
             depends on BSP_DISPLAY_ENABLED && BSP_DISPLAY_BACKLIGHT_GPIO != -1
             int "LEDC channel index for brightness control"
@@ -724,9 +737,9 @@ menu "Board Support Package (generic)"
             default n
             help
                 Whether to enable double framebuf.
-        
+
     endmenu
-    
+
     menu "Display Touch"
 
         config BSP_TOUCH_ENABLED
@@ -734,40 +747,40 @@ menu "Board Support Package (generic)"
             default n
             help
                 Enable using display touch in BSP
-        
+
         menu "Connection"
             depends on BSP_TOUCH_ENABLED
-            choice  
+            choice
                 prompt "Communication interface"
                 help
                     Select a communication interface
                 config BSP_TOUCH_INTERFACE_I2C
                     bool "I2C"
             endchoice
-            
+
             config BSP_TOUCH_RST_GPIO
-                int 
+                int
                 prompt "Display touch reset GPIO"
                 default -1
                 range -1 ENV_GPIO_OUT_RANGE_MAX
                 help
                     The reset pin for display touch.
-            
+
             config BSP_TOUCH_INT_GPIO
-                int 
+                int
                 prompt "Display touch interrupt GPIO"
                 default -1
                 range -1 ENV_GPIO_OUT_RANGE_MAX
                 help
                     The interrupt pin for display touch.
-            
+
         endmenu
-            
-        choice  
+
+        choice
             prompt "Display touch driver"
             depends on BSP_TOUCH_ENABLED
             help
-                Select a display touch driver 
+                Select a display touch driver
             config BSP_TOUCH_DRIVER_TT21100
                 depends on BSP_TOUCH_INTERFACE_I2C
                 bool "TT21100"
@@ -784,7 +797,7 @@ menu "Board Support Package (generic)"
                 depends on BSP_TOUCH_INTERFACE_I2C
                 bool "FT5X06"
         endchoice
-        
+
         menu "Rotation"
             depends on BSP_TOUCH_ENABLED
 
@@ -847,7 +860,7 @@ menu "Board Support Package (generic)"
                 range -1 ENV_GPIO_IN_RANGE_MAX
                 help
                     The GPIO pin for uSD D3.
-            
+
         endmenu
         config BSP_SD_FORMAT_ON_MOUNT_FAIL
             bool "Format uSD card if mounting fails"
@@ -894,10 +907,10 @@ menu "Board Support Package (generic)"
             help
                 Supported max files for SPIFFS in the Virtual File System.
     endmenu
-    
-    
+
+
     # TARGET CONFIGURATION
-    
+
     if IDF_TARGET_ESP32
         config ENV_GPIO_RANGE_MIN
             int
@@ -1055,5 +1068,5 @@ menu "Board Support Package (generic)"
             int
             default ENV_GPIO_RANGE_MAX
     endif
-    
+
 endmenu

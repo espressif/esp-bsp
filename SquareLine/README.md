@@ -1,6 +1,6 @@
 # SquareLine board generator
 
-This is a simple python generator script for SquareLine board packages. This script copies all files from `common` folder to the destination ZIP file. It also generates other files according to the `manifest.json` file from each board directory in `boards` folder. For information on the structure of SquareLine board packages, please refer to (add link here).
+This is a simple python generator script for SquareLine board packages. This script copies all files from `common` folder to the destination ZIP file. It also generates other files according to the `manifest.json` file from each board directory in `boards` folder. For information on the structure of SquareLine board packages, please refer to [Open Board Platform (OBP)](https://docs.squareline.io/docs/obp/) documentation.
 
 ## Mandatory files in each board folder:
 * `manifest.json` - Description of the board

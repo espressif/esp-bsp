@@ -1,5 +1,5 @@
 dependencies:
-  idf: ">=5.0"
+  idf: ">=5.2"
   esp_lcd_touch_gt1151:
     version: "^1"
     override_path: "../../../../lcd_touch/esp_lcd_touch_gt1151/"

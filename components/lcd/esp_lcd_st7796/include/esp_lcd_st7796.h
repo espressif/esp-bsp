@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -39,7 +39,8 @@ typedef struct {
  *
  */
 typedef struct {
-    const st7796_lcd_init_cmd_t *init_cmds;     /*!< Pointer to initialization commands array. Set to NULL if using default commands.
+    const st7796_lcd_init_cmd_t
+    *init_cmds;     /*!< Pointer to initialization commands array. Set to NULL if using default commands.
                                                  *   The array should be declared as `static const` and positioned outside the function.
                                                  *   Please refer to `vendor_specific_init_default` in source file.
                                                  */
@@ -68,7 +69,8 @@ typedef struct {
  *          - ESP_ERR_NO_MEM        if out of memory
  *          - ESP_OK                on success
  */
-esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
+esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io,
+                                   const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////// Default Configuration Macros for I80 Interface /////////////////////////////////////////
@@ -97,7 +99,7 @@ esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp
         .bus_width = data_width,                                                                \
         .max_transfer_bytes = max_trans_bytes,                                                  \
     }
-#else
+#elif ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 3, 0)
 #define ST7796_PANEL_BUS_I80_CONFIG(max_trans_bytes, data_width, dc, wr, d0, d1, d2, d3, d4,    \
                                     d5, d6, d7, d8 , d9, d10, d11, d12, d13, d14, d15)          \
     {                                                                                           \
@@ -111,6 +113,20 @@ esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp
         .max_transfer_bytes = max_trans_bytes,                                                  \
         .psram_trans_align = 64,                                                                \
         .sram_trans_align = 4,                                                                  \
+    }
+#else
+#define ST7796_PANEL_BUS_I80_CONFIG(max_trans_bytes, data_width, dc, wr, d0, d1, d2, d3, d4,    \
+                                    d5, d6, d7, d8 , d9, d10, d11, d12, d13, d14, d15)          \
+    {                                                                                           \
+        .clk_src = LCD_CLK_SRC_PLL160M,                                                         \
+        .dc_gpio_num = dc,                                                                      \
+        .wr_gpio_num = wr,                                                                      \
+        .data_gpio_nums = {                                                                     \
+            d0, d1, d2, d3, d4, d5, d6, d7, d8 , d9, d10, d11, d12, d13, d14, d15               \
+        },                                                                                      \
+        .bus_width = data_width,                                                                \
+        .max_transfer_bytes = max_trans_bytes,                                                  \
+        .dma_burst_size = 64,                                                                   \
     }
 #endif
 
@@ -157,7 +173,7 @@ esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp
     {                                                    \
         .bus_id = 0,                                     \
         .num_data_lanes = 1,                             \
-        .phy_clk_src = MIPI_DSI_PHY_CLK_SRC_DEFAULT,     \
+        .phy_clk_src = 0,                                \
         .lane_bit_rate_mbps = 480,                       \
     }
 
@@ -172,6 +188,7 @@ esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp
         .lcd_param_bits = 8,          \
     }
 
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
 /**
  * @brief MIPI DPI configuration structure
  *
@@ -199,6 +216,35 @@ esp_err_t esp_lcd_new_panel_st7796(const esp_lcd_panel_io_handle_t io, const esp
             .vsync_front_porch = 10,                     \
         },                                               \
         .flags.use_dma2d = true,                         \
+    }
+#endif
+
+/**
+ * @brief MIPI DPI configuration structure
+ *
+ * @note  refresh_rate = (dpi_clock_freq_mhz * 1000000) / (h_res + hsync_pulse_width + hsync_back_porch + hsync_front_porch)
+ *                                                      / (v_res + vsync_pulse_width + vsync_back_porch + vsync_front_porch)
+ *
+ * @param[in] color_format Input color format of the panel
+ *
+ */
+#define ST7796_320_480_PANEL_60HZ_DPI_CONFIG_CF(color_format)  \
+    {                                                    \
+        .dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT,     \
+        .dpi_clock_freq_mhz = 10,                        \
+        .virtual_channel = 0,                            \
+        .in_color_format = color_format,                 \
+        .num_fbs = 1,                                    \
+        .video_timing = {                                \
+            .h_size = 320,                               \
+            .v_size = 480,                               \
+            .hsync_back_porch = 10,                      \
+            .hsync_pulse_width = 10,                     \
+            .hsync_front_porch = 20,                     \
+            .vsync_back_porch = 10,                      \
+            .vsync_pulse_width = 10,                     \
+            .vsync_front_porch = 10,                     \
+        },                                               \
     }
 
 #ifdef __cplusplus

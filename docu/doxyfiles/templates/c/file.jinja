@@ -1,0 +1,16 @@
+## File {{ file.location }}
+
+{{ file.brief }}
+
+{{ file.details }}
+
+{% set macros = file.query(kinds=['define']) -%}
+{%- set structures_types = file.query(kinds=['struct', 'typedef', 'enum', 'union']) -%}
+{%- set functions = file.query(kinds=['function']) -%}
+
+{{ table_template.render(title='Structures and Types', nodes=structures_types) }}
+{{ table_template.render(title='Functions', nodes=functions) }}
+{{ table_template.render(title='Macros', nodes=macros) }}
+{{ detail_template.render(title='Structures and Types Documentation', nodes=structures_types) }}
+{{ detail_template.render(title='Functions Documentation', nodes=functions) }}
+{{ detail_template.render(title='Macros Documentation', nodes=macros) }}

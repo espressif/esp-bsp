@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -19,9 +19,19 @@
 #include "esp_err.h"
 #include "esp_lcd_types.h"
 
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* LCD display color bits */
+#define BSP_LCD_BITS_PER_PIXEL      (16)
+#define BSP_LCD_H_RES               bsp_display_get_h_res()
+#define BSP_LCD_V_RES               bsp_display_get_v_res()
 
 /**
  * @brief BSP display configuration structure
@@ -54,7 +64,8 @@ typedef struct {
  *      - ESP_OK         On success
  *      - Else           esp_lcd failure
  */
-esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io);
+esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
+                          esp_lcd_panel_io_handle_t *ret_io);
 
 /**
  * @brief Initialize display's brightness (Useless, just for compatibility)
@@ -89,6 +100,26 @@ esp_err_t bsp_display_backlight_on(void);
  */
 esp_err_t bsp_display_backlight_off(void);
 
+/**
+ * @brief Get display horizontal resolution
+ *
+ * @note  This function should be called after calling `bsp_display_new()` or `bsp_display_start()`
+ *
+ * @return Horizontal resolution. Return 0 if error occurred.
+ */
+uint16_t bsp_display_get_h_res(void);
+
+/**
+ * @brief Get display vertical resolution
+ *
+ * @note  This function should be called after calling `bsp_display_new()` or `bsp_display_start()`
+ *
+ * @return Vertical resolution. Return 0 if error occurred.
+ */
+uint16_t bsp_display_get_v_res(void);
+
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */ // end of display

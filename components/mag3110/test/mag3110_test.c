@@ -60,7 +60,8 @@ TEST_CASE("Sensor mag3110 test", "[mag3110][iot][sensor]")
 
     ret = mag3110_get_deviceid(mag3110, &mag3110_deviceid);
     TEST_ASSERT_EQUAL(ESP_OK, ret);
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(MAG3110_WHO_AM_I_VAL, mag3110_deviceid, "Who Am I register does not contain expected data");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(MAG3110_WHO_AM_I_VAL, mag3110_deviceid,
+                                    "Who Am I register does not contain expected data");
 
     ret = mag3110_start(mag3110, MAG3110_DR_OS_10_128);
     TEST_ASSERT_EQUAL(ESP_OK, ret);

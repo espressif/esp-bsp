@@ -1,9 +1,10 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <string.h>
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "esp_err.h"
@@ -16,7 +17,6 @@
 #include "esp_vfs_fat.h"
 #include "driver/sdmmc_host.h"
 #include "driver/sdspi_host.h"
-#include "driver/i2c.h"
 
 #include "bsp/m5stack_core_2.h"
 #include "bsp/display.h"
@@ -36,9 +36,24 @@ static lv_display_t *disp;
 static lv_indev_t *disp_indev = NULL;
 #endif                               // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static esp_lcd_touch_handle_t tp;    // LCD touch handle
-sdmmc_card_t *bsp_sdcard    = NULL;  // Global SD card handler
+static sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 static bool i2c_initialized = false;
 static bool spi_initialized = false;
+
+/**
+ * @brief I2C handle for BSP usage
+ *
+ * In IDF v5.4 you can call i2c_master_get_bus_handle(BSP_I2C_NUM, i2c_master_bus_handle_t *ret_handle)
+ * from #include "esp_private/i2c_platform.h" to get this handle
+ *
+ * For IDF 5.2 and 5.3 you must call bsp_i2c_get_handle()
+ */
+static i2c_master_bus_handle_t i2c_handle = NULL;
+#if defined(CONFIG_BSP_PMU_AXP2101)
+static i2c_master_dev_handle_t axp2101_h = NULL;
+#elif defined(CONFIG_BSP_PMU_AXP192)
+static i2c_master_dev_handle_t axp192_h = NULL;
+#endif
 
 esp_err_t bsp_i2c_init(void)
 {
@@ -47,34 +62,57 @@ esp_err_t bsp_i2c_init(void)
         return ESP_OK;
     }
 
-    const i2c_config_t i2c_conf = {.mode             = I2C_MODE_MASTER,
-                                   .sda_io_num       = BSP_I2C_SDA,
-                                   .sda_pullup_en    = GPIO_PULLUP_DISABLE,
-                                   .scl_io_num       = BSP_I2C_SCL,
-                                   .scl_pullup_en    = GPIO_PULLUP_DISABLE,
-                                   .master.clk_speed = CONFIG_BSP_I2C_CLK_SPEED_HZ
-                                  };
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_param_config(BSP_I2C_NUM, &i2c_conf));
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_install(BSP_I2C_NUM, i2c_conf.mode, 0, 0, 0));
+    const i2c_master_bus_config_t i2c_config = {
+        .i2c_port = BSP_I2C_NUM,
+        .sda_io_num = BSP_I2C_SDA,
+        .scl_io_num = BSP_I2C_SCL,
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+    };
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_new_master_bus(&i2c_config, &i2c_handle));
 
+    // AXP2101 and AXP192 are managed by this BSP
+#if defined(CONFIG_BSP_PMU_AXP2101)
+    const i2c_device_config_t axp2101_config = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = BSP_AXP2101_ADDR,
+        .scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ,
+    };
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_master_bus_add_device(i2c_handle, &axp2101_config, &axp2101_h));
+#elif defined(CONFIG_BSP_PMU_AXP192)
+    const i2c_device_config_t axp192_config = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = BSP_AXP192_ADDR,
+        .scl_speed_hz = CONFIG_BSP_I2C_CLK_SPEED_HZ,
+    };
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_master_bus_add_device(i2c_handle, &axp192_config, &axp192_h));
+#endif
     i2c_initialized = true;
-
     return ESP_OK;
 }
 
 esp_err_t bsp_i2c_deinit(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(i2c_driver_delete(BSP_I2C_NUM));
+    BSP_ERROR_CHECK_RETURN_ERR(i2c_del_master_bus(i2c_handle));
     i2c_initialized = false;
     return ESP_OK;
 }
 
-uint8_t read8bit(uint8_t sub_addr)
+i2c_master_bus_handle_t bsp_i2c_get_handle(void)
+{
+    bsp_i2c_init();
+    return i2c_handle;
+}
+
+static uint8_t read8bit(uint8_t sub_addr)
 {
     // Read register data
     uint8_t reg_data[1] = {0};
-    esp_err_t err = i2c_master_write_read_device(BSP_I2C_NUM, BSP_AXP192_ADDR, &sub_addr, 1, reg_data, sizeof(reg_data),
-                    1000 / portTICK_PERIOD_MS);
+
+#if defined(CONFIG_BSP_PMU_AXP2101)
+    esp_err_t err = i2c_master_transmit_receive(axp2101_h, &sub_addr, 1, reg_data, sizeof(reg_data), 1000);
+#elif defined(CONFIG_BSP_PMU_AXP192)
+    esp_err_t err = i2c_master_transmit_receive(axp192_h, &sub_addr, 1, reg_data, sizeof(reg_data), 1000);
+#endif
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to write & read register address: %s", esp_err_to_name(err));
     }
@@ -98,17 +136,14 @@ esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
         /* AXP ALDO4 voltage / SD Card / Touch Pad / 3V3 */
         const uint8_t aldo4_value = enable ? 0x1C : 0x00;
         const uint8_t feature_ctr[] = {0x95, aldo4_value};  // axp: lcd logic and sdcard voltage preset to 3.3v
-        err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, feature_ctr, sizeof(feature_ctr),
-                                          1000 / portTICK_PERIOD_MS);
+        err |= i2c_master_transmit(axp2101_h, feature_ctr, sizeof(feature_ctr), 1000);
 
 #elif defined(CONFIG_BSP_PMU_AXP192)
         const uint8_t pmu_value = enable ? (read8bit(0x28) & 0x0f) | 0xf0 : (read8bit(0x28) & 0x0f);
         const uint8_t  pmu_ldo2[] = {
             0x28, pmu_value
         };
-
-        err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_ldo2, sizeof(pmu_ldo2),
-                                          1000 / portTICK_PERIOD_MS);
+        err |= i2c_master_transmit(axp192_h,  pmu_ldo2, sizeof(pmu_ldo2), 1000);
 #endif
         break;
     case BSP_FEATURE_SPEAKER:
@@ -116,14 +151,11 @@ esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
         /* AXP ALDO3 voltage / Codec+Mic / 3V3 */
         const uint8_t aldo3_value = enable ? 0x1C : 0x00;
         const uint8_t spk_ctr[] = {0x94, aldo3_value};  // axp: lcd logic and sdcard voltage preset to 3.3v
-        err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, spk_ctr, sizeof(spk_ctr),
-                                          1000 / portTICK_PERIOD_MS);
+        err |= i2c_master_transmit(axp2101_h, spk_ctr, sizeof(spk_ctr), 1000);
 #elif defined(CONFIG_BSP_PMU_AXP192)
         const uint8_t led_gpio_value = enable ? (read8bit(0x94) | 0x04) | 0xf0 : (read8bit(0x94) & ~0x04);
         const uint8_t led_gpio_set[] = {0x94, led_gpio_value};
-        ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, led_gpio_set,
-                            sizeof(led_gpio_set), 1000 / portTICK_PERIOD_MS),
-                            TAG, "I2C write failed");
+        err |= i2c_master_transmit(axp192_h,  led_gpio_set, sizeof(led_gpio_set), 1000);
 #endif
         break;
     case BSP_FEATURE_BATTERY:
@@ -131,29 +163,22 @@ esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
         // Battery detection enabled.
         const uint8_t axp_bat_val = enable ? 0x01 : 0x00;
         const uint8_t axp_bat_ctr[] = {0x68, axp_bat_val};
-        err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, axp_bat_ctr, sizeof(axp_bat_ctr),
-                                          1000 / portTICK_PERIOD_MS);
+        err |= i2c_master_transmit(axp2101_h, axp_bat_ctr, sizeof(axp_bat_ctr), 1000);
 #endif
         break;
     case BSP_FEATURE_VIBRATION:
 #if defined(CONFIG_BSP_PMU_AXP2101)
         const uint8_t dldo1_vol[] = {0x99, 0x1C};  // AXP DLDO1 Voltage set
-        err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, dldo1_vol, sizeof(dldo1_vol),
-                                          1000 / portTICK_PERIOD_MS);
+        err |= i2c_master_transmit(axp2101_h, dldo1_vol, sizeof(dldo1_vol), 1000);
         const uint8_t dldo1_en_val = enable ? (read8bit(0x90) | 0x80) : (read8bit(0x90) & ~0x80);
         const uint8_t dldo1_en[] = {0x90, dldo1_en_val};  // AXP DLDO1 Enable
-        err |= i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, dldo1_en, sizeof(dldo1_en),
-                                          1000 / portTICK_PERIOD_MS);
+        err |= i2c_master_transmit(axp2101_h, dldo1_en, sizeof(dldo1_en), 1000);
 #elif defined(CONFIG_BSP_PMU_AXP192)
         const uint8_t pmu_ldo3[] = {0x28, (read8bit(0x28) & 0xf0) | 0x0f};  // Vibrator power voltage preset
-        ESP_RETURN_ON_ERROR(
-            i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_ldo3, sizeof(pmu_ldo3), 1000 / portTICK_PERIOD_MS),
-            TAG, "I2C write failed");
+        err |= i2c_master_transmit(axp192_h, pmu_ldo3, sizeof(pmu_ldo3), 1000);
         const uint8_t pmu_ldo3_en_val = enable ? read8bit(0x12) | 0x08 : read8bit(0x12) & ~0x08;
         const uint8_t pmu_ldo3_en[] = {0x12, pmu_ldo3_en_val};  // ldo3 enable
-        ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_ldo3_en, sizeof(pmu_ldo3_en),
-                            1000 / portTICK_PERIOD_MS),
-                            TAG, "I2C write failed");
+        err |= i2c_master_transmit(axp192_h, pmu_ldo3_en, sizeof(pmu_ldo3_en), 1000);
 #endif
         break;
     }
@@ -216,34 +241,116 @@ esp_err_t bsp_spiffs_unmount(void)
     return esp_vfs_spiffs_unregister(CONFIG_BSP_SPIFFS_PARTITION_LABEL);
 }
 
-esp_err_t bsp_sdcard_mount(void)
+sdmmc_card_t *bsp_sdcard_get_handle(void)
 {
-    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_SD, true));
+    return bsp_sdcard;
+}
 
+void bsp_sdcard_get_sdmmc_host(const int slot, sdmmc_host_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdmmc_host_t));
+    ESP_LOGE(TAG, "SD card MMC mode is not supported by HW (Shared SPI)!");
+}
+
+void bsp_sdcard_get_sdspi_host(const int slot, sdmmc_host_t *config)
+{
+    assert(config);
+
+    sdmmc_host_t host_config = SDSPI_HOST_DEFAULT();
+    host_config.slot = slot;
+
+    memcpy(config, &host_config, sizeof(sdmmc_host_t));
+}
+
+void bsp_sdcard_sdmmc_get_slot(const int slot, sdmmc_slot_config_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdmmc_slot_config_t));
+    ESP_LOGE(TAG, "SD card MMC mode is not supported by HW (Shared SPI)!");
+}
+
+void bsp_sdcard_sdspi_get_slot(const spi_host_device_t spi_host, sdspi_device_config_t *config)
+{
+    assert(config);
+    memset(config, 0, sizeof(sdspi_device_config_t));
+
+    config->gpio_cs   = BSP_SD_SPI_CS;
+    config->gpio_cd   = SDSPI_SLOT_NO_CD;
+    config->gpio_wp   = SDSPI_SLOT_NO_WP;
+    config->gpio_int  = GPIO_NUM_NC;
+    config->host_id = spi_host;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 2, 0)
+    config->gpio_wp_polarity = SDSPI_IO_ACTIVE_LOW;
+#endif
+}
+
+esp_err_t bsp_sdcard_sdmmc_mount(bsp_sdcard_cfg_t *cfg)
+{
+    ESP_LOGE(TAG, "SD card MMC mode is not supported by HW (Shared SPI)!");
+    return ESP_ERR_NOT_SUPPORTED;
+}
+
+esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg)
+{
+    sdmmc_host_t sdhost = {0};
+    sdspi_device_config_t sdslot = {0};
     const esp_vfs_fat_sdmmc_mount_config_t mount_config = {
 #ifdef CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL
         .format_if_mount_failed = true,
 #else
         .format_if_mount_failed = false,
 #endif
-        .max_files            = 5,
+        .max_files = 5,
         .allocation_unit_size = 16 * 1024
     };
+    assert(cfg);
 
-    sdmmc_host_t host                 = SDSPI_HOST_DEFAULT();
-    host.slot                         = BSP_LCD_SPI_NUM;
-    sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
-    slot_config.gpio_cs               = BSP_SD_CS;
-    slot_config.host_id               = host.slot;
+    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_SD, true));
 
     ESP_RETURN_ON_ERROR(bsp_spi_init((BSP_LCD_H_RES * BSP_LCD_V_RES) * sizeof(uint16_t)), TAG, "");
 
-    return esp_vfs_fat_sdspi_mount(BSP_SD_MOUNT_POINT, &host, &slot_config, &mount_config, &bsp_sdcard);
+    if (!cfg->mount) {
+        cfg->mount = &mount_config;
+    }
+
+    if (!cfg->host) {
+        bsp_sdcard_get_sdspi_host(SDMMC_HOST_SLOT_0, &sdhost);
+        cfg->host = &sdhost;
+    }
+
+    if (!cfg->slot.sdspi) {
+        bsp_sdcard_sdspi_get_slot(BSP_SDSPI_HOST, &sdslot);
+        cfg->slot.sdspi = &sdslot;
+    }
+
+#if !CONFIG_FATFS_LONG_FILENAMES
+    ESP_LOGW(TAG, "Warning: Long filenames on SD card are disabled in menuconfig!");
+#endif
+
+    return esp_vfs_fat_sdspi_mount(BSP_SD_MOUNT_POINT, cfg->host, cfg->slot.sdspi, cfg->mount, &bsp_sdcard);
+}
+
+esp_err_t bsp_sdcard_mount(void)
+{
+    bsp_sdcard_cfg_t cfg = {0};
+    return bsp_sdcard_sdspi_mount(&cfg);
 }
 
 esp_err_t bsp_sdcard_unmount(void)
 {
-    return esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    esp_err_t ret = ESP_OK;
+
+    ret |= esp_vfs_fat_sdcard_unmount(BSP_SD_MOUNT_POINT, bsp_sdcard);
+    bsp_sdcard = NULL;
+
+    //TODO: Check if LCD initialized (when LCD deinit will be covered by BSP)
+    if (spi_initialized) {
+        ret |= spi_bus_free(BSP_SDSPI_HOST);
+        spi_initialized = false;
+    }
+
+    return ret;
 }
 
 esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
@@ -279,104 +386,95 @@ esp_err_t bsp_display_brightness_init(void)
     BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
 #if defined(CONFIG_BSP_PMU_AXP2101)
     const uint8_t lcd_bl_en[] = {0x90, 0x3F};  // AXP ALDO1~4 BLDO1~2 Enable
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, lcd_bl_en, sizeof(lcd_bl_en),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, lcd_bl_en, sizeof(lcd_bl_en), 1000),
                         TAG, "I2C write failed");
+
     const uint8_t lcd_bl_val[] = {0x96, 0b000011000};  // AXP BLDO1 voltage
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, lcd_bl_val, sizeof(lcd_bl_val),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, lcd_bl_val, sizeof(lcd_bl_val), 1000),
                         TAG, "I2C write failed");
 
     // AXP2101
     // PowerKey Hold=1sec / PowerOff=4sec IRQLEVEL/OFFLEVEL/ONLEVEL setting
     const uint8_t axp_pwr_val[] = {0x27, 0b00000000};
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, axp_pwr_val, sizeof(axp_pwr_val),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, axp_pwr_val, sizeof(axp_pwr_val), 1000),
                         TAG, "I2C write failed");
     // Internal off-discharge enable for DCDC & LDO & SWITCH
     const uint8_t axp_en_val[] = {0x10, 0b00110000};
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, axp_en_val, sizeof(axp_en_val),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, axp_en_val, sizeof(axp_en_val), 1000),
                         TAG, "I2C write failed");
     // BATFET disable
     const uint8_t axp_bat_val[] = {0x12, 0b00000000};
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, axp_bat_val, sizeof(axp_bat_val),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, axp_bat_val, sizeof(axp_bat_val), 1000),
                         TAG, "I2C write failed");
     // CHGLED setting
     const uint8_t axp_hgled_val[] = {0x69, 0b00010011};
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, axp_hgled_val, sizeof(axp_hgled_val),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, axp_hgled_val, sizeof(axp_hgled_val), 1000),
                         TAG, "I2C write failed");
 #elif defined(CONFIG_BSP_PMU_AXP192)
     read8bit(0x12);
 
     const uint8_t vbus_limit[] = {0x30, (read8bit(0x30) & 0x04) | 0x02};  // axp: vbus limit off
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, vbus_limit, sizeof(vbus_limit),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, vbus_limit, sizeof(vbus_limit), 1000),
                         TAG, "I2C write failed");
+
     const uint8_t pmu_gpio1[] = {0x92, read8bit(0x92) & 0xf8};  // AXP192 GPIO1:OD OUTPUT
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_gpio1, sizeof(pmu_gpio1),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, pmu_gpio1, sizeof(pmu_gpio1), 1000),
                         TAG, "I2C write failed");
+
     const uint8_t pmu_gpio2[] = {0x93, read8bit(0x93) & 0xf8};  // AXP192 GPIO2:OD OUTPUT
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_gpio2, sizeof(pmu_gpio2),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, pmu_gpio2, sizeof(pmu_gpio2), 1000),
                         TAG, "I2C write failed");
+
     const uint8_t pmu_gpio3[] = {0x35, (read8bit(0x35) & 0x1c) | 0xa2};  // AXP192 RTC CHG
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_gpio3, sizeof(pmu_gpio3),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, pmu_gpio3, sizeof(pmu_gpio3), 1000),
                         TAG, "I2C write failed");
+
     const uint8_t esp_vol[] = {0x26, 0x6a};  // AXP192 RTC CHG
-    ESP_RETURN_ON_ERROR(
-        i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, esp_vol, sizeof(esp_vol), 1000 / portTICK_PERIOD_MS),
-        TAG, "I2C write failed");
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, esp_vol, sizeof(esp_vol), 1000),
+                        TAG, "I2C write failed");
+
     const uint8_t lcd_bl_val[] = {0x27, 0x68};  // Lcd backlight voltage
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, lcd_bl_val, sizeof(lcd_bl_val),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, lcd_bl_val, sizeof(lcd_bl_val), 1000),
                         TAG, "I2C write failed");
-    const uint8_t pmu_ldo2[] = {0x28,
-                                (read8bit(0x28) & 0x0f) | 0xf0
-                               };  // axp: lcd logic and sdcard voltage preset to 3.3v
-    ESP_RETURN_ON_ERROR(
-        i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_ldo2, sizeof(pmu_ldo2), 1000 / portTICK_PERIOD_MS),
-        TAG, "I2C write failed");
+
+    const uint8_t pmu_ldo2[] = {0x28, (read8bit(0x28) & 0x0f) | 0xf0};  // axp: lcd logic and sdcard voltage preset to 3.3v
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, pmu_ldo2, sizeof(pmu_ldo2), 1000),
+                        TAG, "I2C write failed");
+
     const uint8_t pmu_ldo2_en[] = {0x12, (read8bit(0x12) & 0xfb) | 0x04};  // ldo2 enable
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pmu_ldo2_en, sizeof(pmu_ldo2_en),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, pmu_ldo2_en, sizeof(pmu_ldo2_en), 1000),
                         TAG, "I2C write failed");
+
     const uint8_t lcd_bl_en[] = {0x12, (read8bit(0x12) & 0xfd) | 0x02};  // Lcd backlight enable
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, lcd_bl_en, sizeof(lcd_bl_en),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, lcd_bl_en, sizeof(lcd_bl_en), 1000),
                         TAG, "I2C write failed");
 
     const uint8_t chg_current[] = {0x33, ((read8bit(0x33) & 0xf0)) | 0x0};
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, chg_current, sizeof(chg_current),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, chg_current, sizeof(chg_current), 1000),
                         TAG, "I2C write failed");
 
     const uint8_t apx_gpio4[] = {0x95, (read8bit(0x95) & 0x72) | 0x84};
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, apx_gpio4, sizeof(apx_gpio4),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, apx_gpio4, sizeof(apx_gpio4), 1000),
                         TAG, "I2C write failed");
+
     read8bit(0x95);
     const uint8_t pek_key[] = {0x36, 0x4c};  // Lcd backlight enable
-    ESP_RETURN_ON_ERROR(
-        i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, pek_key, sizeof(pek_key), 1000 / portTICK_PERIOD_MS),
-        TAG, "I2C write failed");
-    const uint8_t adc_en[] = {0x82, 0xff};  // Lcd backlight enable
-    ESP_RETURN_ON_ERROR(
-        i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, adc_en, sizeof(adc_en), 1000 / portTICK_PERIOD_MS),
-        TAG, "I2C write failed");
-    const uint8_t lcd_rset2[] = {0x96, read8bit(0x96) &(~0x02)};   // Lcd backlight enable
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, lcd_rset2, sizeof(lcd_rset2),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, pek_key, sizeof(pek_key), 1000),
                         TAG, "I2C write failed");
+
+    const uint8_t adc_en[] = {0x82, 0xff};  // Lcd backlight enable
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, adc_en, sizeof(adc_en), 1000),
+                        TAG, "I2C write failed");
+
+    const uint8_t lcd_rset2[] = {0x96, read8bit(0x96) &(~0x02)};   // Lcd backlight enable
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, lcd_rset2, sizeof(lcd_rset2), 1000),
+                        TAG, "I2C write failed");
+
     vTaskDelay(pdMS_TO_TICKS(100));                            // 延迟100ms
     const uint8_t lcd_rset[] = {0x96, read8bit(0x96) | 0x02};  // Lcd backlight enable
-    ESP_RETURN_ON_ERROR(
-        i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, lcd_rset, sizeof(lcd_rset), 1000 / portTICK_PERIOD_MS),
-        TAG, "I2C write failed");
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, lcd_rset, sizeof(lcd_rset), 1000),
+                        TAG, "I2C write failed");
+
 #endif
     return ESP_OK;
 }
@@ -394,14 +492,12 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
 #if defined(CONFIG_BSP_PMU_AXP2101)
     const uint8_t reg_val      = 20 + ((8 * brightness_percent) / 100);  // 0b00000 ~ 0b11100; under 20, it is too dark
     const uint8_t lcd_bl_val[] = {0x96, reg_val};                        // AXP BLDO1 voltage
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP2101_ADDR, lcd_bl_val, sizeof(lcd_bl_val),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, lcd_bl_val, sizeof(lcd_bl_val), 1000),
                         TAG, "I2C write failed");
 #elif defined(CONFIG_BSP_PMU_AXP192)
     const uint8_t reg_val      = 90 + ((8 * brightness_percent) / 100);  // 0b00000 ~ 0b11100; under 20, it is too dark
     const uint8_t lcd_bl_val[] = {0x27, reg_val};                        // AXP DCDC3 voltage
-    ESP_RETURN_ON_ERROR(i2c_master_write_to_device(BSP_I2C_NUM, BSP_AXP192_ADDR, lcd_bl_val, sizeof(lcd_bl_val),
-                        1000 / portTICK_PERIOD_MS),
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp192_h, lcd_bl_val, sizeof(lcd_bl_val), 1000),
                         TAG, "I2C write failed");
 #endif
 
@@ -445,7 +541,7 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
     ESP_LOGI(TAG, "Install LCD driver");
     const esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = BSP_LCD_RST,  // Shared with Touch reset
-        .color_space    = BSP_LCD_COLOR_SPACE,
+        .rgb_ele_order    = BSP_LCD_COLOR_SPACE,
         .bits_per_pixel = BSP_LCD_BITS_PER_PIXEL,
     };
 
@@ -490,8 +586,8 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
         },
     };
     esp_lcd_panel_io_handle_t tp_io_handle           = NULL;
-    const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
-    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)BSP_I2C_NUM, &tp_io_config, &tp_io_handle),
+    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
+    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle),
                         TAG, "");
     return esp_lcd_touch_new_i2c_ft5x06(tp_io_handle, &tp_cfg, ret_touch);
 }

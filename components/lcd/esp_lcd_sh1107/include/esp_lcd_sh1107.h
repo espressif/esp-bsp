@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -27,7 +27,8 @@ extern "C" {
  *          - ESP_ERR_NO_MEM        if out of memory
  *          - ESP_OK                on success
  */
-esp_err_t esp_lcd_new_panel_sh1107(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
+esp_err_t esp_lcd_new_panel_sh1107(const esp_lcd_panel_io_handle_t io,
+                                   const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel);
 
 /**
  * @brief I2C address of the SH1107 controller
@@ -40,17 +41,18 @@ esp_err_t esp_lcd_new_panel_sh1107(const esp_lcd_panel_io_handle_t io, const esp
  * @brief Touch IO configuration structure
  *
  */
-#define ESP_LCD_IO_I2C_SH1107_CONFIG()             \
-    {                                              \
-        .dev_addr = ESP_LCD_IO_I2C_SH1107_ADDRESS, \
-        .control_phase_bytes = 1,           \
-        .dc_bit_offset = 0,                 \
-        .lcd_cmd_bits = 8,                  \
-        .lcd_param_bits = 8,                \
-        .flags =                            \
-        {                                   \
-            .disable_control_phase = 1,     \
-        }                                   \
+#define ESP_LCD_IO_I2C_SH1107_CONFIG()              \
+    {                                               \
+        .scl_speed_hz = 100000,                     \
+        .dev_addr = ESP_LCD_IO_I2C_SH1107_ADDRESS,  \
+        .control_phase_bytes = 1,                   \
+        .dc_bit_offset = 0,                         \
+        .lcd_cmd_bits = 8,                          \
+        .lcd_param_bits = 8,                        \
+        .flags =                                    \
+        {                                           \
+            .disable_control_phase = 1,             \
+        }                                           \
     }
 
 #ifdef __cplusplus

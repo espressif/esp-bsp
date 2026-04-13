@@ -8,12 +8,11 @@ Implementation of the CST816S touch controller with esp_lcd_touch component.
 | :--------------: | :---------------------: | :-------------------: | :------------------------------------------------------------------------: |
 |     CST816S      |           I2C           | esp_lcd_touch_cst816s | [datasheet](https://www.buydisplay.com/download/ic/DS-CST816S_DS_V1.3.pdf) |
 
-**Note, there are two things about the driver are noteworthy (from [document](https://doc.riot-os.org/group__drivers__cst816s.html)):**
-
-* It only responds to I2C commands after an event, such as a touch detection. Do not expect it to respond on init. Instead after a touch event, it will assert the IRQ and respond to I2C reads for a short time.
-* While it should be able to detect multiple finger events, this version of the chip always returns only a single finger event and a gesture.
-
-Reading the display data multiple times during a single event will return the last sampled finger position.
+> [!NOTE]
+> * There are two things about the driver are noteworthy (from [document](https://doc.riot-os.org/group__drivers__cst816s.html)):
+>   * It only responds to I2C commands after an event, such as a touch detection. Do not expect it to respond on init. Instead after a touch event, it will assert the IRQ and respond to I2C reads for a short time.
+>   * While it should be able to detect multiple finger events, this version of the chip always returns only a single finger event and a gesture. Reading the display data multiple times during a single event will return the last sampled finger position.
+> * For some chips, reading ID may cause initialization failure. Disable reading ID by setting `CONFIG_ESP_LCD_TOUCH_CST816S_DISABLE_READ_ID` to `y` in `menuconfig`.
 
 ## Add to project
 
@@ -51,7 +50,7 @@ static void touch_callback(esp_lcd_touch_handle_t tp)
 
 Initialization of the touch component.
 
-```
+``` c
     esp_lcd_panel_io_i2c_config_t io_config = ESP_LCD_TOUCH_IO_I2C_CST816S_CONFIG();
 
     esp_lcd_touch_config_t tp_cfg = {
@@ -77,19 +76,17 @@ Initialization of the touch component.
 
 Read data from the touch controller and store it in RAM memory. It should be called regularly in poll.
 
-```
+``` c
     if (xSemaphoreTake(touch_mux, 0) == pdTRUE) {
         esp_lcd_touch_read_data(tp); // read only when ISR was triggled
     }
 ```
 
-Get one X and Y coordinates with strength of touch.
+Get attributes of a single touch point.
 
-```
-    uint16_t touch_x[1];
-    uint16_t touch_y[1];
-    uint16_t touch_strength[1];
+``` c
+    esp_lcd_touch_point_data_t touch_point_data[1];
     uint8_t touch_cnt = 0;
 
-    bool touchpad_pressed = esp_lcd_touch_get_coordinates(tp, touch_x, touch_y, touch_strength, &touch_cnt, 1);
+    ESP_ERROR_CHECK(esp_lcd_touch_get_data(tp, touch_point_data, &touch_cnt, 1));
 ```

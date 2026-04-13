@@ -30,13 +30,15 @@
 #define BSP_LCD_BITS_PER_PIXEL      (16)
 /* LCD display color space */
 #if defined(CONFIG_BSP_DISPLAY_COLOR_SPACE_RGB)
-#define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_RGB)
+#define BSP_LCD_COLOR_SPACE         (LCD_RGB_ELEMENT_ORDER_RGB)
 #elif defined(CONFIG_BSP_DISPLAY_COLOR_SPACE_BGR)
-#define BSP_LCD_COLOR_SPACE         (ESP_LCD_COLOR_SPACE_BGR)
+#define BSP_LCD_COLOR_SPACE         (LCD_RGB_ELEMENT_ORDER_BGR)
 #endif
 /* Display definition */
 #define BSP_LCD_H_RES              (CONFIG_BSP_DISPLAY_WIDTH)
 #define BSP_LCD_V_RES              (CONFIG_BSP_DISPLAY_HEIGHT)
+#define BSP_LCD_H_OFFSET           (CONFIG_BSP_DISPLAY_HORIZONTAL_OFFSET)
+#define BSP_LCD_V_OFFSET           (CONFIG_BSP_DISPLAY_VERTICAL_OFFSET)
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,7 +75,8 @@ typedef struct {
  *      - ESP_OK         On success
  *      - Else           esp_lcd failure
  */
-esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io);
+esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
+                          esp_lcd_panel_io_handle_t *ret_io);
 
 /**
  * @brief Initialize display's brightness

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -195,7 +195,8 @@ esp_err_t es8311_sample_frequency_config(es8311_handle_t dev, int mclk_frequency
     ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_CLK_MANAGER_REG03, reg03), TAG, "I2C read/write error");
 
     /* register 0x04 */
-    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_CLK_MANAGER_REG04, selected_coeff->dac_osr), TAG, "I2C read/write error");
+    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_CLK_MANAGER_REG04, selected_coeff->dac_osr), TAG,
+                        "I2C read/write error");
 
     /* register 0x05 */
     const uint8_t reg05 = ((selected_coeff->adc_div - 1) << 4) | (selected_coeff->dac_div - 1);
@@ -220,12 +221,14 @@ esp_err_t es8311_sample_frequency_config(es8311_handle_t dev, int mclk_frequency
     ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_CLK_MANAGER_REG07, regv), TAG, "I2C read/write error");
 
     /* register 0x08 */
-    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_CLK_MANAGER_REG08, selected_coeff->lrck_l), TAG, "I2C read/write error");
+    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_CLK_MANAGER_REG08, selected_coeff->lrck_l), TAG,
+                        "I2C read/write error");
 
     return ESP_OK;
 }
 
-static esp_err_t es8311_clock_config(es8311_handle_t dev, const es8311_clock_config_t *const clk_cfg, es8311_resolution_t res)
+static esp_err_t es8311_clock_config(es8311_handle_t dev, const es8311_clock_config_t *const clk_cfg,
+                                     es8311_resolution_t res)
 {
     uint8_t reg06;
     uint8_t reg01 = 0x3F; // Enable all clocks
@@ -280,7 +283,8 @@ static esp_err_t es8311_resolution_config(const es8311_resolution_t res, uint8_t
     return ESP_OK;
 }
 
-static esp_err_t es8311_fmt_config(es8311_handle_t dev, const es8311_resolution_t res_in, const es8311_resolution_t res_out)
+static esp_err_t es8311_fmt_config(es8311_handle_t dev, const es8311_resolution_t res_in,
+                                   const es8311_resolution_t res_out)
 {
     uint8_t reg09 = 0; // SDP In
     uint8_t reg0a = 0; // SDP Out
@@ -289,7 +293,8 @@ static esp_err_t es8311_fmt_config(es8311_handle_t dev, const es8311_resolution_
     uint8_t reg00;
     ESP_RETURN_ON_ERROR(es8311_read_reg(dev, ES8311_RESET_REG00, &reg00), TAG, "I2C read/write error");
     reg00 &= 0xBF;
-    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_RESET_REG00, reg00), TAG, "I2C read/write error"); // Slave serial port - default
+    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_RESET_REG00, reg00), TAG,
+                        "I2C read/write error"); // Slave serial port - default
 
     /* Setup SDP In and Out resolution */
     es8311_resolution_config(res_in, &reg09);
@@ -314,14 +319,16 @@ esp_err_t es8311_microphone_config(es8311_handle_t dev, bool digital_mic)
     return es8311_write_reg(dev, ES8311_SYSTEM_REG14, reg14);
 }
 
-esp_err_t es8311_init(es8311_handle_t dev, const es8311_clock_config_t *const clk_cfg, const es8311_resolution_t res_in, const es8311_resolution_t res_out)
+esp_err_t es8311_init(es8311_handle_t dev, const es8311_clock_config_t *const clk_cfg, const es8311_resolution_t res_in,
+                      const es8311_resolution_t res_out)
 {
     ESP_RETURN_ON_FALSE(
         (clk_cfg->sample_frequency >= 8000) && (clk_cfg->sample_frequency <= 96000),
         ESP_ERR_INVALID_ARG, TAG, "ES8311 init needs frequency in interval [8000; 96000] Hz"
     );
     if (!clk_cfg->mclk_from_mclk_pin) {
-        ESP_RETURN_ON_FALSE(res_out == res_in, ESP_ERR_INVALID_ARG, TAG, "Resolution IN/OUT must be equal if MCLK is taken from SCK pin");
+        ESP_RETURN_ON_FALSE(res_out == res_in, ESP_ERR_INVALID_ARG, TAG,
+                            "Resolution IN/OUT must be equal if MCLK is taken from SCK pin");
     }
 
 
@@ -337,12 +344,18 @@ esp_err_t es8311_init(es8311_handle_t dev, const es8311_clock_config_t *const cl
     /* Setup audio format (fmt): master/slave, resolution, I2S */
     ESP_RETURN_ON_ERROR(es8311_fmt_config(dev, res_in, res_out), TAG, "");
 
-    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_SYSTEM_REG0D, 0x01), TAG, "I2C read/write error"); // Power up analog circuitry - NOT default
-    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_SYSTEM_REG0E, 0x02), TAG, "I2C read/write error"); // Enable analog PGA, enable ADC modulator - NOT default
-    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_SYSTEM_REG12, 0x00), TAG, "I2C read/write error"); // power-up DAC - NOT default
-    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_SYSTEM_REG13, 0x10), TAG, "I2C read/write error"); // Enable output to HP drive - NOT default
-    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_ADC_REG1C, 0x6A), TAG, "I2C read/write error"); // ADC Equalizer bypass, cancel DC offset in digital domain
-    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_DAC_REG37, 0x08), TAG, "I2C read/write error"); // Bypass DAC equalizer - NOT default
+    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_SYSTEM_REG0D, 0x01), TAG,
+                        "I2C read/write error"); // Power up analog circuitry - NOT default
+    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_SYSTEM_REG0E, 0x02), TAG,
+                        "I2C read/write error"); // Enable analog PGA, enable ADC modulator - NOT default
+    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_SYSTEM_REG12, 0x00), TAG,
+                        "I2C read/write error"); // power-up DAC - NOT default
+    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_SYSTEM_REG13, 0x10), TAG,
+                        "I2C read/write error"); // Enable output to HP drive - NOT default
+    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_ADC_REG1C, 0x6A), TAG,
+                        "I2C read/write error"); // ADC Equalizer bypass, cancel DC offset in digital domain
+    ESP_RETURN_ON_ERROR(es8311_write_reg(dev, ES8311_DAC_REG37, 0x08), TAG,
+                        "I2C read/write error"); // Bypass DAC equalizer - NOT default
 
     return ESP_OK;
 }

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -23,7 +23,10 @@ static const char *TAG = "TT21100";
 * Function definitions
 *******************************************************************************/
 static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp);
-static bool esp_lcd_touch_tt21100_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+static bool esp_lcd_touch_tt21100_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength,
+        uint8_t *point_num, uint8_t max_point_num);
+static esp_err_t esp_lcd_touch_tt21100_get_track_id(esp_lcd_touch_handle_t tp, uint8_t *track_id,
+        uint8_t max_point_num);
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
 static esp_err_t esp_lcd_touch_tt21100_get_button_state(esp_lcd_touch_handle_t tp, uint8_t n, uint8_t *state);
 #endif
@@ -45,12 +48,16 @@ static esp_err_t esp_lcd_touch_tt21100_exit_sleep(esp_lcd_touch_handle_t tp);
 * Public API functions
 *******************************************************************************/
 
-esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *out_touch)
+esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config,
+                                        esp_lcd_touch_handle_t *out_touch)
 {
     esp_err_t ret = ESP_OK;
 
-    assert(config != NULL);
-    assert(out_touch != NULL);
+    ESP_RETURN_ON_FALSE(io != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller io handle can't be NULL");
+    ESP_RETURN_ON_FALSE(config != NULL, ESP_ERR_INVALID_ARG, TAG,
+                        "Pointer to the touch controller configuration can't be NULL");
+    ESP_RETURN_ON_FALSE(out_touch != NULL, ESP_ERR_INVALID_ARG, TAG,
+                        "Pointer to the touch controller handle can't be NULL");
 
     /* Prepare main structure */
     esp_lcd_touch_handle_t esp_lcd_touch_tt21100 = heap_caps_calloc(1, sizeof(esp_lcd_touch_t), MALLOC_CAP_DEFAULT);
@@ -62,6 +69,7 @@ esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_panel_io_handle_t io, cons
     /* Only supported callbacks are set */
     esp_lcd_touch_tt21100->read_data = esp_lcd_touch_tt21100_read_data;
     esp_lcd_touch_tt21100->get_xy = esp_lcd_touch_tt21100_get_xy;
+    esp_lcd_touch_tt21100->get_track_id = esp_lcd_touch_tt21100_get_track_id;
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
     esp_lcd_touch_tt21100->get_button_state = esp_lcd_touch_tt21100_get_button_state;
 #endif
@@ -108,6 +116,8 @@ esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_panel_io_handle_t io, cons
     ret = esp_lcd_touch_tt21100_read_data(esp_lcd_touch_tt21100);
     ESP_GOTO_ON_ERROR(ret, err, TAG, "TT21100 init failed");
 
+    *out_touch = esp_lcd_touch_tt21100;
+
 err:
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error (0x%x)! Touch controller TT21100 initialization failed!", ret);
@@ -116,13 +126,13 @@ err:
         }
     }
 
-    *out_touch = esp_lcd_touch_tt21100;
-
     return ret;
 }
 
 static esp_err_t esp_lcd_touch_tt21100_enter_sleep(esp_lcd_touch_handle_t tp)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+
     uint8_t power_save_cmd[2] = {0x01, 0x08};
     esp_err_t err = touch_tt21100_i2c_write(tp, 0x0500, power_save_cmd, sizeof(power_save_cmd));
     ESP_RETURN_ON_ERROR(err, TAG, "Enter Sleep failed!");
@@ -132,6 +142,8 @@ static esp_err_t esp_lcd_touch_tt21100_enter_sleep(esp_lcd_touch_handle_t tp)
 
 static esp_err_t esp_lcd_touch_tt21100_exit_sleep(esp_lcd_touch_handle_t tp)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+
     uint8_t power_save_cmd[2] = {0x00, 0x08};
     esp_err_t err = touch_tt21100_i2c_write(tp, 0x0500, power_save_cmd, sizeof(power_save_cmd));
     ESP_RETURN_ON_ERROR(err, TAG, "Exit Sleep failed!");
@@ -141,12 +153,14 @@ static esp_err_t esp_lcd_touch_tt21100_exit_sleep(esp_lcd_touch_handle_t tp)
 
 static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
 {
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+
     typedef struct {
-        uint8_t : 5;
         uint8_t touch_type: 3;
-        uint8_t tip: 1;
-        uint8_t event_id: 2;
+        uint8_t : 5;
         uint8_t touch_id: 5;
+        uint8_t event_id: 2;
+        uint8_t tip: 1;
         uint16_t x;
         uint16_t y;
         uint8_t pressure;
@@ -158,12 +172,12 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
         uint16_t data_len;
         uint8_t report_id;
         uint16_t time_stamp;
-        uint8_t : 2;
-        uint8_t large_object : 1;
         uint8_t record_num : 5;
-        uint8_t report_counter: 2;
-        uint8_t : 3;
+        uint8_t large_object : 1;
+        uint8_t : 2;
         uint8_t noise_efect: 3;
+        uint8_t : 3;
+        uint8_t report_counter: 2;
         touch_record_struct_t touch_record[0];
     } __attribute__((packed)) touch_report_struct_t;
 
@@ -190,8 +204,6 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
     uint8_t tp_num = 0;
     size_t i = 0;
 
-    assert(tp != NULL);
-
     /* Get report data length */
     err = touch_tt21100_i2c_read(tp, (uint8_t *)&data_len, sizeof(data_len));
     ESP_RETURN_ON_ERROR(err, TAG, "I2C read error!");
@@ -201,12 +213,12 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
         touch_tt21100_i2c_read(tp, data, data_len);
         ESP_RETURN_ON_ERROR(err, TAG, "I2C read error!");
 
-        portENTER_CRITICAL(&tp->data.lock);
-
         if (data_len == 14) {
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
             /* Button event */
             p_btn_data = (button_record_struct_t *) data;
+
+            portENTER_CRITICAL(&tp->data.lock);
 
             /* Buttons count */
             tp->data.buttons = (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS < 4 ? CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS : 4);
@@ -215,6 +227,8 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
                 tp->data.button[i].status = p_btn_data->btn_signal[i];
             }
 
+            portEXIT_CRITICAL(&tp->data.lock);
+
             ESP_LOGD(TAG, "Len : %04Xh. ID : %02Xh. Time : %5u. Val : [%u] - [%04X][%04X][%04X][%04X]",
                      p_btn_data->length, p_btn_data->report_id, p_btn_data->time_stamp, p_btn_data->btn_val,
                      p_btn_data->btn_signal[0], p_btn_data->btn_signal[1], p_btn_data->btn_signal[2], p_btn_data->btn_signal[3]);
@@ -222,37 +236,47 @@ static esp_err_t esp_lcd_touch_tt21100_read_data(esp_lcd_touch_handle_t tp)
         } else if (data_len >= 7) {
             /* Touch point event */
             p_report_data = (touch_report_struct_t *) data;
-            tp_num = (data_len - sizeof(touch_report_struct_t)) / sizeof(touch_record_struct_t);
 
             /* Number of touched points */
+            tp_num = p_report_data->record_num;
             tp_num = (tp_num > CONFIG_ESP_LCD_TOUCH_MAX_POINTS ? CONFIG_ESP_LCD_TOUCH_MAX_POINTS : tp_num);
+
+            portENTER_CRITICAL(&tp->data.lock);
+
             tp->data.points = tp_num;
 
             /* Fill all coordinates */
             for (i = 0; i < tp_num; i++) {
                 p_touch_data = &p_report_data->touch_record[i];
 
-                tp->data.coords[i].x = p_touch_data->x;
-                tp->data.coords[i].y = p_touch_data->y;
-                tp->data.coords[i].strength = p_touch_data->pressure;
+                if (p_touch_data->touch_type == 0) {
+                    tp->data.coords[i].x = p_touch_data->x;
+                    tp->data.coords[i].y = p_touch_data->y;
+                    tp->data.coords[i].strength = p_touch_data->pressure;
+                    tp->data.coords[i].track_id = p_touch_data->touch_id;
+                }
+            }
 
+            portEXIT_CRITICAL(&tp->data.lock);
+
+            for (i = 0; i < tp_num; i++) {
+                p_touch_data = &p_report_data->touch_record[i];
                 ESP_LOGD(TAG, "(%zu) [%3u][%3u]", i, p_touch_data->x, p_touch_data->y);
             }
         }
-
-        portEXIT_CRITICAL(&tp->data.lock);
     }
 
     return ESP_OK;
 }
 
-static bool esp_lcd_touch_tt21100_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)
+static bool esp_lcd_touch_tt21100_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength,
+        uint8_t *point_num, uint8_t max_point_num)
 {
-    assert(tp != NULL);
-    assert(x != NULL);
-    assert(y != NULL);
-    assert(point_num != NULL);
-    assert(max_point_num > 0);
+    ESP_RETURN_ON_FALSE(tp != NULL, false, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(x != NULL, false, TAG, "Pointer to the x coordinates array can't be NULL");
+    ESP_RETURN_ON_FALSE(y != NULL, false, TAG, "Pointer to the y coordinates array can't be NULL");
+    ESP_RETURN_ON_FALSE(point_num != NULL, false, TAG, "Pointer to number of touch points can't be NULL");
+    ESP_RETURN_ON_FALSE(max_point_num > 0, false, TAG, "Array size must be equal or larger than 1");
 
     portENTER_CRITICAL(&tp->data.lock);
 
@@ -276,12 +300,29 @@ static bool esp_lcd_touch_tt21100_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x,
     return (*point_num > 0);
 }
 
+static esp_err_t esp_lcd_touch_tt21100_get_track_id(esp_lcd_touch_handle_t tp, uint8_t *track_id, uint8_t max_point_num)
+{
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(track_id != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the track ID array can't be NULL");
+    ESP_RETURN_ON_FALSE(max_point_num > 0, ESP_ERR_INVALID_ARG, TAG, "Array size must be equal or larger than 1");
+
+    portENTER_CRITICAL(&tp->data.lock);
+
+    for (int i = 0; i < max_point_num; i++) {
+        track_id[i] = tp->data.coords[i].track_id;
+    }
+
+    portEXIT_CRITICAL(&tp->data.lock);
+
+    return ESP_OK;
+}
+
 #if (CONFIG_ESP_LCD_TOUCH_MAX_BUTTONS > 0)
 static esp_err_t esp_lcd_touch_tt21100_get_button_state(esp_lcd_touch_handle_t tp, uint8_t n, uint8_t *state)
 {
     esp_err_t err = ESP_OK;
-    assert(tp != NULL);
-    assert(state != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(state != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the state array can't be NULL");
 
     *state = 0;
 
@@ -301,7 +342,7 @@ static esp_err_t esp_lcd_touch_tt21100_get_button_state(esp_lcd_touch_handle_t t
 
 static esp_err_t esp_lcd_touch_tt21100_del(esp_lcd_touch_handle_t tp)
 {
-    assert(tp != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
 
     /* Reset GPIO pin settings */
     if (tp->config.int_gpio_num != GPIO_NUM_NC) {
@@ -328,7 +369,7 @@ static esp_err_t esp_lcd_touch_tt21100_del(esp_lcd_touch_handle_t tp)
 /* Reset controller */
 static esp_err_t touch_tt21100_reset(esp_lcd_touch_handle_t tp)
 {
-    assert(tp != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
 
     if (tp->config.rst_gpio_num != GPIO_NUM_NC) {
         ESP_RETURN_ON_ERROR(gpio_set_level(tp->config.rst_gpio_num, tp->config.levels.reset), TAG, "GPIO set level error!");
@@ -342,8 +383,8 @@ static esp_err_t touch_tt21100_reset(esp_lcd_touch_handle_t tp)
 
 static esp_err_t touch_tt21100_i2c_read(esp_lcd_touch_handle_t tp, uint8_t *data, uint8_t len)
 {
-    assert(tp != NULL);
-    assert(data != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(data != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the data array can't be NULL");
 
     /* Read data */
     return esp_lcd_panel_io_rx_param(tp->io, -1, data, len);
@@ -351,8 +392,8 @@ static esp_err_t touch_tt21100_i2c_read(esp_lcd_touch_handle_t tp, uint8_t *data
 
 static esp_err_t touch_tt21100_i2c_write(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t *data, uint16_t len)
 {
-    assert(tp != NULL);
-    assert(data != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(data != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the data array can't be NULL");
 
     return esp_lcd_panel_io_tx_param(tp->io, reg, data, len);
 }

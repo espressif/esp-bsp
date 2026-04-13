@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 
 """
@@ -10,7 +10,7 @@ Remove esp_lvgl_port from BSP's dependencies
 import sys
 import argparse
 from pathlib import Path
-from idf_component_tools.manifest import ManifestManager
+from idf_component_tools.manager import ManifestManager
 from update_readme_dependencies import check_bsp_readme
 
 DEFINE_NOGLIB_OFF = '#define BSP_CONFIG_NO_GRAPHIC_LIB (0)'
@@ -35,23 +35,43 @@ def select_bsp_config_no_graphic_lib(bsp_path):
 
 def remove_esp_lvgl_port(bsp_path):
     manager = ManifestManager(bsp_path, 'bsp')
+    deps = manager.manifest.dependencies
     try:
-        del manager.manifest_tree["dependencies"]["espressif/esp_lvgl_port"]
+        del deps["espressif/esp_lvgl_port"]
     except KeyError:
         print("{}: could not remove esp_lvgl_port".format(str(bsp_path)))
         return 1
     try:
-        del manager.manifest_tree["dependencies"]["lvgl/lvgl"]
+        del deps["lvgl/lvgl"]
     except KeyError:
         print("{}: no lvgl dependency found".format(str(bsp_path)))
-    manager.manifest_tree["description"] = manager.manifest_tree["description"] + ' with no graphical library'
+
+    manager.manifest.description = manager.manifest.description + ' with no graphical library'
+
+    # Add 'noglib' tag
+    tags = manager.manifest.tags or []
+    if "noglib" not in tags:
+        tags.append("noglib")
+    manager.manifest.tags = tags
+
+    manager.dump()
+    return 0
+
+
+def remove_examples(bsp_path):
+    manager = ManifestManager(bsp_path, 'bsp')
+    try:
+        del manager.manifest.examples
+    except KeyError:
+        print("{}: no examples section found".format(str(bsp_path)))
+        return 0
     manager.dump()
     return 0
 
 
 def add_notice_to_readme(bsp_path):
     readme_path = bsp_path / 'README.md'
-    bsp_name = bsp_path.parts[-1].rstrip("_noglib")
+    bsp_name = bsp_path.parts[-1].removesuffix("_noglib")
     try:
         with open(readme_path, encoding='utf-8', mode='r') as readme:
             content = readme.readlines()
@@ -79,6 +99,7 @@ def bsp_no_glib_all(bsp_names):
         # 2. Modify the configuration, dependencies and README
         ret += select_bsp_config_no_graphic_lib(bsp_path)
         ret += remove_esp_lvgl_port(bsp_path)
+        ret += remove_examples(bsp_path)
         ret += add_notice_to_readme(bsp_path)
         try:
             check_bsp_readme(bsp_path)

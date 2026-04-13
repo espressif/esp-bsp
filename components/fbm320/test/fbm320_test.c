@@ -60,7 +60,8 @@ TEST_CASE("Sensor fbm320 test", "[fbm320][iot][sensor]")
 
     ret = fbm320_get_deviceid(fbm320, &fbm320_deviceid);
     TEST_ASSERT_EQUAL(ESP_OK, ret);
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(FBM320_WHO_AM_I_VAL, fbm320_deviceid, "Who Am I register does not contain expected data");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(FBM320_WHO_AM_I_VAL, fbm320_deviceid,
+                                    "Who Am I register does not contain expected data");
 
     ret = fbm320_init(fbm320);
     TEST_ASSERT_EQUAL(ESP_OK, ret);

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -64,7 +64,8 @@ static lvgl_port_usb_hid_ctx_t *lvgl_port_hid_init(void);
 static void lvgl_port_usb_hid_task(void *arg);
 static void lvgl_port_usb_hid_read_mouse(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
 static void lvgl_port_usb_hid_read_kb(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
-static void lvgl_port_usb_hid_callback(hid_host_device_handle_t hid_device_handle, const hid_host_driver_event_t event, void *arg);
+static void lvgl_port_usb_hid_callback(hid_host_device_handle_t hid_device_handle, const hid_host_driver_event_t event,
+                                       void *arg);
 
 /*******************************************************************************
 * Public API functions
@@ -259,7 +260,8 @@ static char usb_hid_get_keyboard_char(uint8_t key, uint8_t shift)
     return ret_key;
 }
 
-static void lvgl_port_usb_hid_host_interface_callback(hid_host_device_handle_t hid_device_handle, const hid_host_interface_event_t event, void *arg)
+static void lvgl_port_usb_hid_host_interface_callback(hid_host_device_handle_t hid_device_handle,
+        const hid_host_interface_event_t event, void *arg)
 {
     hid_host_dev_params_t dev;
     hid_host_device_get_params(hid_device_handle, &dev);
@@ -455,7 +457,8 @@ static void lvgl_port_usb_hid_read_kb(lv_indev_drv_t *indev_drv, lv_indev_data_t
     }
 }
 
-static void lvgl_port_usb_hid_callback(hid_host_device_handle_t hid_device_handle, const hid_host_driver_event_t event, void *arg)
+static void lvgl_port_usb_hid_callback(hid_host_device_handle_t hid_device_handle, const hid_host_driver_event_t event,
+                                       void *arg)
 {
     lvgl_port_usb_hid_ctx_t *hid_ctx = (lvgl_port_usb_hid_ctx_t *)arg;
 

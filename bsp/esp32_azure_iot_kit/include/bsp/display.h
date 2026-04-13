@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -16,6 +16,11 @@
 
 #pragma once
 #include "esp_lcd_types.h"
+
+/** @defgroup g04_display Display and Touch
+ *  @brief Display BSP API
+ *  @{
+ */
 
 /* LCD color formats */
 #define ESP_LCD_COLOR_FORMAT_RGB565     (1)
@@ -69,7 +74,8 @@ typedef struct {
  *      - ESP_OK         On success
  *      - Else           esp_lcd failure
  */
-esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io);
+esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
+                          esp_lcd_panel_io_handle_t *ret_io);
 
 /* Backlight functions are not implemented - Azure kit doesn't provide backlight control
    These functions are here to provide consistent API with other Board Support Packages */
@@ -80,3 +86,5 @@ esp_err_t bsp_display_backlight_off(void);
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */ // end of display

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -14,13 +14,13 @@
 #include "freertos/portmacro.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+#include "freertos/event_groups.h"
+#include "freertos/idf_additions.h"
 #include "esp_lvgl_port.h"
 #include "esp_lvgl_port_priv.h"
 #include "lvgl.h"
 
 static const char *TAG = "LVGL";
-
-#define ESP_LVGL_PORT_TASK_MUX_DELAY_MS    10000
 
 /*******************************************************************************
 * Types definitions
@@ -30,8 +30,7 @@ typedef struct lvgl_port_ctx_s {
     TaskHandle_t        lvgl_task;
     SemaphoreHandle_t   lvgl_mux;
     SemaphoreHandle_t   timer_mux;
-    QueueHandle_t       lvgl_queue;
-    SemaphoreHandle_t   task_init_mux;
+    EventGroupHandle_t  lvgl_events;
     esp_timer_handle_t  tick_timer;
     bool                running;
     int                 task_max_sleep_ms;
@@ -49,6 +48,7 @@ static lvgl_port_ctx_t lvgl_port_ctx;
 static void lvgl_port_task(void *arg);
 static esp_err_t lvgl_port_tick_init(void);
 static void lvgl_port_task_deinit(void);
+static inline bool indev_matches_event(const lv_indev_t *indev, EventBits_t event);
 
 /*******************************************************************************
 * Public API functions
@@ -58,7 +58,8 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
 {
     esp_err_t ret = ESP_OK;
     ESP_GOTO_ON_FALSE(cfg, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
-    ESP_GOTO_ON_FALSE(cfg->task_affinity < (configNUM_CORES), ESP_ERR_INVALID_ARG, err, TAG, "Bad core number for task! Maximum core number is %d", (configNUM_CORES - 1));
+    ESP_GOTO_ON_FALSE(cfg->task_affinity < (configNUM_CORES), ESP_ERR_INVALID_ARG, err, TAG,
+                      "Bad core number for task! Maximum core number is %d", (configNUM_CORES - 1));
 
     memset(&lvgl_port_ctx, 0, sizeof(lvgl_port_ctx));
 
@@ -75,20 +76,26 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
     /* LVGL semaphore */
     lvgl_port_ctx.lvgl_mux = xSemaphoreCreateRecursiveMutex();
     ESP_GOTO_ON_FALSE(lvgl_port_ctx.lvgl_mux, ESP_ERR_NO_MEM, err, TAG, "Create LVGL mutex fail!");
-    /* Task init semaphore */
-    lvgl_port_ctx.task_init_mux = xSemaphoreCreateMutex();
-    ESP_GOTO_ON_FALSE(lvgl_port_ctx.task_init_mux, ESP_ERR_NO_MEM, err, TAG, "Create LVGL task sem fail!");
     /* Task queue */
-    lvgl_port_ctx.lvgl_queue = xQueueCreate(100, sizeof(lvgl_port_event_t));
-    ESP_GOTO_ON_FALSE(lvgl_port_ctx.lvgl_queue, ESP_ERR_NO_MEM, err, TAG, "Create LVGL queue fail!");
+    lvgl_port_ctx.lvgl_events = xEventGroupCreate();
+    ESP_GOTO_ON_FALSE(lvgl_port_ctx.lvgl_events, ESP_ERR_NO_MEM, err, TAG, "Create LVGL Event Group fail!");
 
     BaseType_t res;
+    const uint32_t caps = cfg->task_stack_caps ? cfg->task_stack_caps : MALLOC_CAP_INTERNAL |
+                          MALLOC_CAP_DEFAULT; // caps cannot be zero
     if (cfg->task_affinity < 0) {
-        res = xTaskCreate(lvgl_port_task, "taskLVGL", cfg->task_stack, NULL, cfg->task_priority, &lvgl_port_ctx.lvgl_task);
+        res = xTaskCreateWithCaps(lvgl_port_task, "taskLVGL", cfg->task_stack, xTaskGetCurrentTaskHandle(), cfg->task_priority,
+                                  &lvgl_port_ctx.lvgl_task, caps);
     } else {
-        res = xTaskCreatePinnedToCore(lvgl_port_task, "taskLVGL", cfg->task_stack, NULL, cfg->task_priority, &lvgl_port_ctx.lvgl_task, cfg->task_affinity);
+        res = xTaskCreatePinnedToCoreWithCaps(lvgl_port_task, "taskLVGL", cfg->task_stack, xTaskGetCurrentTaskHandle(),
+                                              cfg->task_priority, &lvgl_port_ctx.lvgl_task, cfg->task_affinity, caps);
     }
     ESP_GOTO_ON_FALSE(res == pdPASS, ESP_FAIL, err, TAG, "Create LVGL task fail!");
+
+    // Wait until taskLVGL starts
+    if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(5000)) == 0) {
+        ret = ESP_ERR_TIMEOUT;
+    }
 
 err:
     if (ret != ESP_OK) {
@@ -124,26 +131,10 @@ esp_err_t lvgl_port_stop(void)
 
 esp_err_t lvgl_port_deinit(void)
 {
-    /* Stop and delete timer */
-    if (lvgl_port_ctx.tick_timer != NULL) {
-        esp_timer_stop(lvgl_port_ctx.tick_timer);
-        esp_timer_delete(lvgl_port_ctx.tick_timer);
-        lvgl_port_ctx.tick_timer = NULL;
-    }
-
     /* Stop running task */
     if (lvgl_port_ctx.running) {
         lvgl_port_ctx.running = false;
     }
-
-    /* Wait for stop task */
-    if (xSemaphoreTake(lvgl_port_ctx.task_init_mux, pdMS_TO_TICKS(ESP_LVGL_PORT_TASK_MUX_DELAY_MS)) != pdTRUE) {
-        ESP_LOGE(TAG, "Failed to stop LVGL task");
-        return ESP_ERR_TIMEOUT;
-    }
-    ESP_LOGI(TAG, "Stopped LVGL task");
-
-    lvgl_port_task_deinit();
 
     return ESP_OK;
 }
@@ -164,23 +155,30 @@ void lvgl_port_unlock(void)
 
 esp_err_t lvgl_port_task_wake(lvgl_port_event_type_t event, void *param)
 {
-    if (!lvgl_port_ctx.lvgl_queue) {
+    EventBits_t bits = 0;
+    if (!lvgl_port_ctx.lvgl_events) {
         return ESP_ERR_INVALID_STATE;
     }
 
-    lvgl_port_event_t ev = {
-        .type = event,
-        .param = param,
-    };
+    /* Get unprocessed bits */
+    if (xPortInIsrContext() == pdTRUE) {
+        bits = xEventGroupGetBitsFromISR(lvgl_port_ctx.lvgl_events);
+    } else {
+        bits = xEventGroupGetBits(lvgl_port_ctx.lvgl_events);
+    }
 
+    /* Set event */
+    bits |= event;
+
+    /* Save */
     if (xPortInIsrContext() == pdTRUE) {
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-        xQueueSendFromISR(lvgl_port_ctx.lvgl_queue, &ev, &xHigherPriorityTaskWoken);
+        xEventGroupSetBitsFromISR(lvgl_port_ctx.lvgl_events, bits, &xHigherPriorityTaskWoken);
         if (xHigherPriorityTaskWoken) {
             portYIELD_FROM_ISR( );
         }
     } else {
-        xQueueSend(lvgl_port_ctx.lvgl_queue, &ev, 0);
+        xEventGroupSetBits(lvgl_port_ctx.lvgl_events, bits);
     }
 
     return ESP_OK;
@@ -206,19 +204,15 @@ IRAM_ATTR bool lvgl_port_task_notify(uint32_t value)
 
 static void lvgl_port_task(void *arg)
 {
-    lvgl_port_event_t event;
+    TaskHandle_t task_to_notify = (TaskHandle_t)arg;
+    EventBits_t events = 0;
     uint32_t task_delay_ms = 0;
     lv_indev_t *indev = NULL;
 
-    /* Take the task semaphore */
-    if (xSemaphoreTake(lvgl_port_ctx.task_init_mux, 0) != pdTRUE) {
-        ESP_LOGE(TAG, "Failed to take LVGL task sem");
-        lvgl_port_task_deinit();
-        vTaskDelete( NULL );
-    }
-
     /* LVGL init */
     lv_init();
+    /* LVGL is initialized, notify lvgl_port_init() function about it */
+    xTaskNotifyGive(task_to_notify);
     /* Tick init */
     lvgl_port_tick_init();
 
@@ -227,21 +221,19 @@ static void lvgl_port_task(void *arg)
     while (lvgl_port_ctx.running) {
         /* Wait for queue or timeout (sleep task) */
         TickType_t wait = (pdMS_TO_TICKS(task_delay_ms) >= 1 ? pdMS_TO_TICKS(task_delay_ms) : 1);
-        xQueueReceive(lvgl_port_ctx.lvgl_queue, &event, wait);
+        events = xEventGroupWaitBits(lvgl_port_ctx.lvgl_events, 0xFF, pdTRUE, pdFALSE, wait);
 
         if (lv_display_get_default() && lvgl_port_lock(0)) {
 
             /* Call read input devices */
-            if (event.type == LVGL_PORT_EVENT_TOUCH) {
+            if (events & LVGL_PORT_EVENT_TOUCH || events & LVGL_PORT_EVENT_ENCODER) {
                 xSemaphoreTake(lvgl_port_ctx.timer_mux, portMAX_DELAY);
-                if (event.param != NULL) {
-                    lv_indev_read(event.param);
-                } else {
-                    indev = lv_indev_get_next(NULL);
-                    while (indev != NULL) {
+                indev = lv_indev_get_next(NULL);
+                while (indev != NULL) {
+                    if (indev_matches_event(indev, events)) {
                         lv_indev_read(indev);
-                        indev = lv_indev_get_next(indev);
                     }
+                    indev = lv_indev_get_next(indev);
                 }
                 xSemaphoreGive(lvgl_port_ctx.timer_mux);
             }
@@ -261,32 +253,37 @@ static void lvgl_port_task(void *arg)
         vTaskDelay(1);
     }
 
-    /* Give semaphore back */
-    xSemaphoreGive(lvgl_port_ctx.task_init_mux);
+    ESP_LOGI(TAG, "Stopped LVGL task");
+
+    /* Deinit LVGL */
+    lvgl_port_task_deinit();
 
     /* Close task */
-    vTaskDelete( NULL );
+    vTaskDeleteWithCaps( NULL );
 }
 
 static void lvgl_port_task_deinit(void)
 {
+    /* Stop and delete timer */
+    if (lvgl_port_ctx.tick_timer != NULL) {
+        esp_timer_stop(lvgl_port_ctx.tick_timer);
+        esp_timer_delete(lvgl_port_ctx.tick_timer);
+        lvgl_port_ctx.tick_timer = NULL;
+    }
+
     if (lvgl_port_ctx.timer_mux) {
         vSemaphoreDelete(lvgl_port_ctx.timer_mux);
     }
     if (lvgl_port_ctx.lvgl_mux) {
         vSemaphoreDelete(lvgl_port_ctx.lvgl_mux);
     }
-    if (lvgl_port_ctx.task_init_mux) {
-        vSemaphoreDelete(lvgl_port_ctx.task_init_mux);
-    }
-    if (lvgl_port_ctx.lvgl_queue) {
-        vQueueDelete(lvgl_port_ctx.lvgl_queue);
+    if (lvgl_port_ctx.lvgl_events) {
+        vEventGroupDelete(lvgl_port_ctx.lvgl_events);
     }
     memset(&lvgl_port_ctx, 0, sizeof(lvgl_port_ctx));
-#if LV_ENABLE_GC || !LV_MEM_CUSTOM
+
     /* Deinitialize LVGL */
     lv_deinit();
-#endif
 }
 
 static void lvgl_port_tick_increment(void *arg)
@@ -304,6 +301,27 @@ static esp_err_t lvgl_port_tick_init(void)
         .callback = &lvgl_port_tick_increment,
         .name = "LVGL tick",
     };
-    ESP_RETURN_ON_ERROR(esp_timer_create(&lvgl_tick_timer_args, &lvgl_port_ctx.tick_timer), TAG, "Creating LVGL timer filed!");
+    ESP_RETURN_ON_ERROR(esp_timer_create(&lvgl_tick_timer_args, &lvgl_port_ctx.tick_timer), TAG,
+                        "Creating LVGL timer filed!");
     return esp_timer_start_periodic(lvgl_port_ctx.tick_timer, lvgl_port_ctx.timer_period_ms * 1000);
+}
+
+static inline bool indev_matches_event(const lv_indev_t *indev, EventBits_t event)
+{
+    assert(indev != NULL);
+
+    bool does_match = false;
+
+    switch (lv_indev_get_type(indev)) {
+    case LV_INDEV_TYPE_KEYPAD:
+    case LV_INDEV_TYPE_POINTER:
+        does_match = event & LVGL_PORT_EVENT_TOUCH;
+        break;
+    case LV_INDEV_TYPE_ENCODER:
+        does_match = event & LVGL_PORT_EVENT_ENCODER;
+        break;
+    default:
+        does_match = false;
+    }
+    return does_match;
 }

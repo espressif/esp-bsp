@@ -1,0 +1,28 @@
+# Set this to the include directory of your component
+INPUT = ./bsp/esp32_s3_korvo_2/include
+EXCLUDE_PATTERNS = */esp-bsp.h \
+                   */config.h
+
+# Output goes into doxygen directory, which is added to gitignore
+OUTPUT_DIRECTORY = ./bsp/esp32_s3_korvo_2/doxygen
+
+# Warning-related settings, it's recommended to keep them enabled
+WARN_IF_UNDOC_ENUM_VAL = NO
+WARN_AS_ERROR = YES
+
+# Other common settings
+WARN_IF_UNDOCUMENTED   = NO
+RECURSIVE = YES
+FULL_PATH_NAMES = YES
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+PREDEFINED             = $(ENV_DOXYGEN_DEFINES)
+HAVE_DOT = NO
+GENERATE_XML    = YES
+XML_OUTPUT      = xml
+GENERATE_HTML   = NO
+HAVE_DOT        = NO
+GENERATE_LATEX  = NO
+QUIET = YES
+MARKDOWN_SUPPORT = YES

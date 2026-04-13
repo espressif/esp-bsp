@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -28,7 +28,8 @@ typedef struct {
     fbm320_calibration_data_t calibration_data;
 } fbm320_dev_t;
 
-static esp_err_t fbm320_write(fbm320_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *const data_buf, const uint8_t data_len)
+static esp_err_t fbm320_write(fbm320_handle_t sensor, const uint8_t reg_start_addr, const uint8_t *const data_buf,
+                              const uint8_t data_len)
 {
     fbm320_dev_t *sens = (fbm320_dev_t *) sensor;
     esp_err_t  ret;
@@ -49,7 +50,8 @@ static esp_err_t fbm320_write(fbm320_handle_t sensor, const uint8_t reg_start_ad
     return ret;
 }
 
-static esp_err_t fbm320_read(fbm320_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf, const uint8_t data_len)
+static esp_err_t fbm320_read(fbm320_handle_t sensor, const uint8_t reg_start_addr, uint8_t *const data_buf,
+                             const uint8_t data_len)
 {
     fbm320_dev_t *sens = (fbm320_dev_t *) sensor;
     esp_err_t ret;
@@ -147,7 +149,8 @@ static esp_err_t fbm320_read_result(fbm320_handle_t sensor, int32_t *const resul
     return ret;
 }
 
-esp_err_t fbm320_get_data(fbm320_handle_t sensor, const fbm320_measure_mode_t meas_mode, int32_t *const temperature, int32_t *const pressure)
+esp_err_t fbm320_get_data(fbm320_handle_t sensor, const fbm320_measure_mode_t meas_mode, int32_t *const temperature,
+                          int32_t *const pressure)
 {
     esp_err_t ret;
     fbm320_dev_t *sens = (fbm320_dev_t *) sensor;

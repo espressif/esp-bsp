@@ -1,0 +1,6 @@
+# SquareLine LVGL example - depends on generated BSP
+description: "ESP-BSP SquareLine LVGL Example for ESP-VoCat"
+targets:
+  - esp32s3
+dependencies:
+  esp_vocat: ">=1.0.0"

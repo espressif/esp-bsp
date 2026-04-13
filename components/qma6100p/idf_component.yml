@@ -1,4 +1,4 @@
-version: "2.0.0"
+version: "2.0.1"
 description: I2C driver for QMA6100P accelerometer
 url: https://github.com/espressif/esp-bsp/tree/master/components/qma6100p
 dependencies:

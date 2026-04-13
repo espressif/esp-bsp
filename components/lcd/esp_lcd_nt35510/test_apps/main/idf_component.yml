@@ -1,0 +1,5 @@
+## IDF Component Manager Manifest File
+dependencies:
+  esp_lcd_nt35510:
+    version: "*"
+    override_path: "../../../esp_lcd_nt35510"

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -31,7 +31,8 @@ static const char *TAG = "sh1107";
 static esp_err_t panel_sh1107_del(esp_lcd_panel_t *panel);
 static esp_err_t panel_sh1107_reset(esp_lcd_panel_t *panel);
 static esp_err_t panel_sh1107_init(esp_lcd_panel_t *panel);
-static esp_err_t panel_sh1107_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end, const void *color_data);
+static esp_err_t panel_sh1107_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end,
+        const void *color_data);
 static esp_err_t panel_sh1107_invert_color(esp_lcd_panel_t *panel, bool invert_color_data);
 static esp_err_t panel_sh1107_mirror(esp_lcd_panel_t *panel, bool mirror_x, bool mirror_y);
 static esp_err_t panel_sh1107_swap_xy(esp_lcd_panel_t *panel, bool swap_axes);
@@ -49,7 +50,8 @@ typedef struct {
     bool swap_axes;
 } sh1107_panel_t;
 
-esp_err_t esp_lcd_new_panel_sh1107(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel)
+esp_err_t esp_lcd_new_panel_sh1107(const esp_lcd_panel_io_handle_t io,
+                                   const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel)
 {
     esp_err_t ret = ESP_OK;
     sh1107_panel_t *sh1107 = NULL;
@@ -183,7 +185,8 @@ static esp_err_t panel_sh1107_init(esp_lcd_panel_t *panel)
     return ESP_OK;
 }
 
-static esp_err_t panel_sh1107_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end, const void *color_data)
+static esp_err_t panel_sh1107_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end,
+        const void *color_data)
 {
     sh1107_panel_t *sh1107 = __containerof(panel, sh1107_panel_t, base);
     assert((x_start < x_end) && (y_start < y_end) && "start position must be smaller than end position");

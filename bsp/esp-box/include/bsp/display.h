@@ -17,6 +17,10 @@
 #pragma once
 #include "esp_lcd_types.h"
 
+/** \addtogroup g04_display
+ *  @{
+ */
+
 /* LCD color formats */
 #define ESP_LCD_COLOR_FORMAT_RGB565    (1)
 #define ESP_LCD_COLOR_FORMAT_RGB888    (2)
@@ -68,7 +72,8 @@ typedef struct {
  *      - ESP_OK         On success
  *      - Else           esp_lcd failure
  */
-esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel, esp_lcd_panel_io_handle_t *ret_io);
+esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
+                          esp_lcd_panel_io_handle_t *ret_io);
 
 /**
  * @brief Initialize display's brightness
@@ -121,3 +126,5 @@ esp_err_t bsp_display_backlight_off(void);
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */ // end of display

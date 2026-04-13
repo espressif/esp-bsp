@@ -28,7 +28,8 @@ extern "C" {
  * @return
  *      - ESP_OK: on success
  */
-esp_err_t esp_lcd_touch_new_i2c_gt1151(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *tp);
+esp_err_t esp_lcd_touch_new_i2c_gt1151(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config,
+                                       esp_lcd_touch_handle_t *tp);
 
 /**
  * @brief I2C address of the GT1151 controller
@@ -42,6 +43,7 @@ esp_err_t esp_lcd_touch_new_i2c_gt1151(const esp_lcd_panel_io_handle_t io, const
  */
 #define ESP_LCD_TOUCH_IO_I2C_GT1151_CONFIG()             \
     {                                                    \
+        .scl_speed_hz = 100000,                          \
         .dev_addr = ESP_LCD_TOUCH_IO_I2C_GT1151_ADDRESS, \
         .control_phase_bytes = 1,                        \
         .dc_bit_offset = 0,                              \

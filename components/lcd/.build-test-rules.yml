@@ -1,0 +1,41 @@
+# LCD components: Build only on related changes
+components/lcd/esp_lcd_gc9a01:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_gc9a01/**"
+
+components/lcd/esp_lcd_gc9503:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_gc9503/**"
+  disable:
+    - if: IDF_VERSION < "5.2.0"
+      reason: Component is supported only for IDF >= 5.2
+
+components/lcd/esp_lcd_ili9341:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_ili9341/**"
+
+components/lcd/esp_lcd_ili9881c:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_ili9881c/**"
+  disable:
+    - if: IDF_VERSION < "5.3.0"
+      reason: Component is supported only for IDF >= 5.3
+    - if: IDF_TARGET not in ["esp32p4"]
+      reason: Component is supported only for esp32p4 target
+
+components/lcd/esp_lcd_nt35510:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_nt35510/**"
+  disable:
+    - if: IDF_VERSION < "5.3.0"
+      reason: Component is supported only for IDF >= 5.3
+    - if: IDF_TARGET not in ["esp32", "esp32s2", "esp32s3"]
+      reason: Test on these targets is sufficient
+
+components/lcd/esp_lcd_ssd1681:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_ssd1681/**"
+
+components/lcd/esp_lcd_st7796:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_st7796/**"

@@ -1,0 +1,54 @@
+# API Reference
+
+<div align="center">
+
+{% set icon_map = {
+    'boardname'     : '',
+    'capabilities'  : ':1234:',
+    'g00_pmod'       : '',
+    'g01_adc'        : '',
+    'g01_i2c'        : '',
+    'g01_spi'        : '',
+    'g02_storage'    : ':floppy_disk:',
+    'g03_audio'      : ':musical_note:',
+    'g04_display'    : ':pager:',
+    'g05_buttons'    : ':radio_button:',
+    'g06_led'        : ':bulb:',
+    'g07_usb'        : ':electric_plug:',
+    'g08_camera'     : ':camera:',
+    'g12_camera'     : ':camera:',
+    'g09_battery'    : ':battery:',
+    'g10_sensors'   : ':video_game:',
+    'g11_buzzer'   : '',
+    'g99_others'   : '',
+} %}
+
+{# Generate menu #}
+| {% for group in groups %}{% if icon_map.get(group.name, '') %}{{ icon_map.get(group.name, '') }} [{{ group.title|upper }}](#{{ icon_map.get(group.name, '') | replace(':', '')  | urlencode }}-{{ group.title | lower | replace(' ', '-') }}) | {% endif %}{%- endfor %}
+| {% for group in groups %}{% if icon_map.get(group.name, '') %}:-------------------------: | {% endif %}{% endfor %}
+
+</div>
+
+{# Inlcude overview #}
+{% include "how_to_use/overview.md" ignore missing %}
+
+{% for group in groups %}
+
+{# Inlcude markdown file for each feature #}
+{% include "how_to_use/" ~ group.name ~ ".md" ignore missing %}
+
+### {{ group.title }} API Reference
+
+{% set macros = group.query(kinds=['define']) -%}
+{%- set structures_types = group.query(kinds=['struct', 'typedef', 'enum', 'union']) -%}
+{%- set functions = group.query(kinds=['function']) -%}
+
+{{ table_template.render(title='Structures and Types', nodes=structures_types) }}
+{{ table_template.render(title='Functions', nodes=functions) }}
+{{ table_template.render(title='Macros', nodes=macros) }}
+
+{{ detail_template.render(title='Structures and Types Documentation', nodes=structures_types) }}
+{{ detail_template.render(title='Functions Documentation', nodes=functions) }}
+{# {{ detail_template.render(title='Macros Documentation', nodes=macros) }} #}
+
+{% endfor %}

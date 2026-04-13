@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -65,7 +65,8 @@ static const char *TAG = "STMPE610";
 * Function definitions
 *******************************************************************************/
 static esp_err_t esp_lcd_touch_stmpe610_read_data(esp_lcd_touch_handle_t tp);
-static bool esp_lcd_touch_stmpe610_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num);
+static bool esp_lcd_touch_stmpe610_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength,
+        uint8_t *point_num, uint8_t max_point_num);
 static esp_err_t esp_lcd_touch_stmpe610_del(esp_lcd_touch_handle_t tp);
 
 /* I2C read/write */
@@ -83,13 +84,16 @@ static long data_convert(long x, long in_min, long in_max, long out_min, long ou
 * Public API functions
 *******************************************************************************/
 
-esp_err_t esp_lcd_touch_new_spi_stmpe610(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config, esp_lcd_touch_handle_t *out_touch)
+esp_err_t esp_lcd_touch_new_spi_stmpe610(const esp_lcd_panel_io_handle_t io, const esp_lcd_touch_config_t *config,
+        esp_lcd_touch_handle_t *out_touch)
 {
     esp_err_t ret = ESP_OK;
 
-    assert(io != NULL);
-    assert(config != NULL);
-    assert(out_touch != NULL);
+    ESP_RETURN_ON_FALSE(io != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller io handle can't be NULL");
+    ESP_RETURN_ON_FALSE(config != NULL, ESP_ERR_INVALID_ARG, TAG,
+                        "Pointer to the touch controller configuration can't be NULL");
+    ESP_RETURN_ON_FALSE(out_touch != NULL, ESP_ERR_INVALID_ARG, TAG,
+                        "Pointer to the touch controller handle can't be NULL");
 
     /* Prepare main structure */
     esp_lcd_touch_handle_t esp_lcd_touch_stmpe610 = heap_caps_calloc(1, sizeof(esp_lcd_touch_t), MALLOC_CAP_DEFAULT);
@@ -143,6 +147,8 @@ esp_err_t esp_lcd_touch_new_spi_stmpe610(const esp_lcd_panel_io_handle_t io, con
     ret = touch_stmpe610_read_cfg(esp_lcd_touch_stmpe610);
     ESP_GOTO_ON_ERROR(ret, err, TAG, "STMPE610 init failed");
 
+    *out_touch = esp_lcd_touch_stmpe610;
+
 err:
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error (0x%x)! Touch controller STMPE610 initialization failed!", ret);
@@ -150,8 +156,6 @@ err:
             esp_lcd_touch_stmpe610_del(esp_lcd_touch_stmpe610);
         }
     }
-
-    *out_touch = esp_lcd_touch_stmpe610;
 
     return ret;
 }
@@ -165,16 +169,18 @@ static esp_err_t esp_lcd_touch_stmpe610_read_data(esp_lcd_touch_handle_t tp)
     uint8_t cnt = 0;
     uint8_t fifo_status = 0;
 
-    assert(tp != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
 
     /* Read fifo status */
-    ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_FIFO_STA, (uint8_t *)&fifo_status, 1), TAG, "STMPE610 read error!");
+    ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_FIFO_STA, (uint8_t *)&fifo_status, 1), TAG,
+                        "STMPE610 read error!");
     if (fifo_status & ESP_LCD_TOUCH_STMPE610_REG_FIFO_STA_EMPTY) {
         return ESP_OK;
     }
 
     /* Read count of samples */
-    ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_FIFO_SIZE, (uint8_t *)&cnt, 1), TAG, "STMPE610 read error!");
+    ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_FIFO_SIZE, (uint8_t *)&cnt, 1), TAG,
+                        "STMPE610 read error!");
     if (cnt == 0) {
         return ESP_OK;
     }
@@ -182,10 +188,14 @@ static esp_err_t esp_lcd_touch_stmpe610_read_data(esp_lcd_touch_handle_t tp)
     for (int i = 0; i < cnt; i++) {
         /* Read XYZ data */
         //Note: There is not working read 4 bytes in one read. It reads bad data.
-        ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_DATA, (uint8_t *)&buf[0], 1), TAG, "STMPE610 read error!");
-        ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_DATA, (uint8_t *)&buf[1], 1), TAG, "STMPE610 read error!");
-        ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_DATA, (uint8_t *)&buf[2], 1), TAG, "STMPE610 read error!");
-        ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_DATA, (uint8_t *)&buf[3], 1), TAG, "STMPE610 read error!");
+        ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_DATA, (uint8_t *)&buf[0], 1), TAG,
+                            "STMPE610 read error!");
+        ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_DATA, (uint8_t *)&buf[1], 1), TAG,
+                            "STMPE610 read error!");
+        ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_DATA, (uint8_t *)&buf[2], 1), TAG,
+                            "STMPE610 read error!");
+        ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_DATA, (uint8_t *)&buf[3], 1), TAG,
+                            "STMPE610 read error!");
 
         /* Get XYZ from buffer data */
         x += (uint16_t)(((uint16_t)buf[0] << 4) | ((buf[1] >> 4) & 0x0F));
@@ -194,7 +204,8 @@ static esp_err_t esp_lcd_touch_stmpe610_read_data(esp_lcd_touch_handle_t tp)
     }
 
     /* Reset FIFO */
-    ESP_RETURN_ON_ERROR(touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_FIFO_STA, ESP_LCD_TOUCH_STMPE610_REG_FIFO_STA_RESET), TAG, "STMPE610 write error!");
+    ESP_RETURN_ON_ERROR(touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_FIFO_STA,
+                        ESP_LCD_TOUCH_STMPE610_REG_FIFO_STA_RESET), TAG, "STMPE610 write error!");
     ESP_RETURN_ON_ERROR(touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_FIFO_STA, 0), TAG, "STMPE610 write error!");
     /* Reset all ints */
     ESP_RETURN_ON_ERROR(touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_INT_STA, 0xFF), TAG, "STMPE610 write error!");
@@ -209,13 +220,14 @@ static esp_err_t esp_lcd_touch_stmpe610_read_data(esp_lcd_touch_handle_t tp)
     return ESP_OK;
 }
 
-static bool esp_lcd_touch_stmpe610_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)
+static bool esp_lcd_touch_stmpe610_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength,
+        uint8_t *point_num, uint8_t max_point_num)
 {
-    assert(tp != NULL);
-    assert(x != NULL);
-    assert(y != NULL);
-    assert(point_num != NULL);
-    assert(max_point_num > 0);
+    ESP_RETURN_ON_FALSE(tp != NULL, false, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(x != NULL, false, TAG, "Pointer to the x coordinates array can't be NULL");
+    ESP_RETURN_ON_FALSE(y != NULL, false, TAG, "Pointer to the y coordinates array can't be NULL");
+    ESP_RETURN_ON_FALSE(point_num != NULL, false, TAG, "Pointer to number of touch points can't be NULL");
+    ESP_RETURN_ON_FALSE(max_point_num > 0, false, TAG, "Array size must be equal or larger than 1");
 
     portENTER_CRITICAL(&tp->data.lock);
 
@@ -241,7 +253,7 @@ static bool esp_lcd_touch_stmpe610_get_xy(esp_lcd_touch_handle_t tp, uint16_t *x
 
 static esp_err_t esp_lcd_touch_stmpe610_del(esp_lcd_touch_handle_t tp)
 {
-    assert(tp != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
 
     /* Reset GPIO pin settings */
     if (tp->config.int_gpio_num != GPIO_NUM_NC) {
@@ -268,7 +280,7 @@ static esp_err_t esp_lcd_touch_stmpe610_del(esp_lcd_touch_handle_t tp)
 /* Reset controller */
 static esp_err_t touch_stmpe610_init(esp_lcd_touch_handle_t tp)
 {
-    assert(tp != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
 
     if (tp->config.rst_gpio_num != GPIO_NUM_NC) {
         ESP_RETURN_ON_ERROR(gpio_set_level(tp->config.rst_gpio_num, tp->config.levels.reset), TAG, "GPIO set level error!");
@@ -284,14 +296,17 @@ static esp_err_t touch_stmpe610_init(esp_lcd_touch_handle_t tp)
     touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_SYS_CTRL2, 0x0);
 
     /* XYZ and enable */
-    touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_CTRL, ESP_LCD_TOUCH_STMPE610_REG_TSC_CTRL_XYZ | ESP_LCD_TOUCH_STMPE610_REG_TSC_CTRL_EN);
+    touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_CTRL,
+                         ESP_LCD_TOUCH_STMPE610_REG_TSC_CTRL_XYZ | ESP_LCD_TOUCH_STMPE610_REG_TSC_CTRL_EN);
     touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_INT_EN, 0x01);
 
     /* 96 clocks per conversion */
     touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_ADC_CTRL1, ESP_LCD_TOUCH_STMPE610_REG_ADC_CTRL1_10BIT | (0x6 << 4));
     touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_ADC_CTRL2, ESP_LCD_TOUCH_STMPE610_REG_ADC_CTRL2_6_5MHZ);
 
-    touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_CFG, ESP_LCD_TOUCH_STMPE610_REG_TSC_CFG_4SAMPLE | ESP_LCD_TOUCH_STMPE610_REG_TSC_CFG_DELAY_1MS | ESP_LCD_TOUCH_STMPE610_REG_TSC_CFG_SETTLE_5MS);
+    touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_CFG,
+                         ESP_LCD_TOUCH_STMPE610_REG_TSC_CFG_4SAMPLE | ESP_LCD_TOUCH_STMPE610_REG_TSC_CFG_DELAY_1MS |
+                         ESP_LCD_TOUCH_STMPE610_REG_TSC_CFG_SETTLE_5MS);
     touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_TSC_FRACTION_Z, 0x6);
     touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_FIFO_TH, 1);
 
@@ -303,7 +318,9 @@ static esp_err_t touch_stmpe610_init(esp_lcd_touch_handle_t tp)
 
     /* Reset all ints */
     touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_INT_STA, 0xFF);
-    touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_INT_CTRL, ESP_LCD_TOUCH_STMPE610_REG_INT_CTRL_POL_LOW | ESP_LCD_TOUCH_STMPE610_REG_INT_CTRL_EDGE | ESP_LCD_TOUCH_STMPE610_REG_INT_CTRL_ENABLE);
+    touch_stmpe610_write(tp, ESP_LCD_TOUCH_STMPE610_REG_INT_CTRL,
+                         ESP_LCD_TOUCH_STMPE610_REG_INT_CTRL_POL_LOW | ESP_LCD_TOUCH_STMPE610_REG_INT_CTRL_EDGE |
+                         ESP_LCD_TOUCH_STMPE610_REG_INT_CTRL_ENABLE);
 
     return ESP_OK;
 }
@@ -313,15 +330,18 @@ static esp_err_t touch_stmpe610_read_cfg(esp_lcd_touch_handle_t tp)
     uint8_t buf[3];
     uint16_t touch_id = 0;
 
-    assert(tp != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
 
     memset(buf, 0, sizeof(buf));
 
     /* Read chip ID */
-    ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_CHIP_ID, (uint8_t *)&buf[0], 1), TAG, "STMPE610 read error!");
-    ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_CHIP_ID + 1, (uint8_t *)&buf[1], 1), TAG, "STMPE610 read error!");
+    ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_CHIP_ID, (uint8_t *)&buf[0], 1), TAG,
+                        "STMPE610 read error!");
+    ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_CHIP_ID + 1, (uint8_t *)&buf[1], 1), TAG,
+                        "STMPE610 read error!");
     /* Read chip version */
-    ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_ID_VER, (uint8_t *)&buf[2], 1), TAG, "STMPE610 read error!");
+    ESP_RETURN_ON_ERROR(touch_stmpe610_read(tp, ESP_LCD_TOUCH_STMPE610_REG_ID_VER, (uint8_t *)&buf[2], 1), TAG,
+                        "STMPE610 read error!");
 
     touch_id = (uint16_t)(buf[0] << 8 | buf[1]);
 
@@ -338,8 +358,8 @@ static esp_err_t touch_stmpe610_read_cfg(esp_lcd_touch_handle_t tp)
 
 static esp_err_t touch_stmpe610_read(esp_lcd_touch_handle_t tp, uint8_t reg, uint8_t *data, uint8_t len)
 {
-    assert(tp != NULL);
-    assert(data != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
+    ESP_RETURN_ON_FALSE(data != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the data array can't be NULL");
 
     /* Read data */
     return esp_lcd_panel_io_rx_param(tp->io, (0x80 | reg), data, len);
@@ -347,7 +367,7 @@ static esp_err_t touch_stmpe610_read(esp_lcd_touch_handle_t tp, uint8_t reg, uin
 
 static esp_err_t touch_stmpe610_write(esp_lcd_touch_handle_t tp, uint8_t reg, uint8_t data)
 {
-    assert(tp != NULL);
+    ESP_RETURN_ON_FALSE(tp != NULL, ESP_ERR_INVALID_ARG, TAG, "Touch controller handle can't be NULL");
 
     // *INDENT-OFF*
     /* Write data */

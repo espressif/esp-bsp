@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -26,7 +26,8 @@ static const char *TAG = "ra8875";
 static esp_err_t panel_ra8875_del(esp_lcd_panel_t *panel);
 static esp_err_t panel_ra8875_reset(esp_lcd_panel_t *panel);
 static esp_err_t panel_ra8875_init(esp_lcd_panel_t *panel);
-static esp_err_t panel_ra8875_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end, const void *color_data);
+static esp_err_t panel_ra8875_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end,
+        const void *color_data);
 static esp_err_t panel_ra8875_invert_color(esp_lcd_panel_t *panel, bool invert_color_data);
 static esp_err_t panel_ra8875_mirror(esp_lcd_panel_t *panel, bool mirror_x, bool mirror_y);
 static esp_err_t panel_ra8875_swap_xy(esp_lcd_panel_t *panel, bool swap_axes);
@@ -48,7 +49,8 @@ typedef struct {
     bool swap_axes;
 } ra8875_panel_t;
 
-esp_err_t esp_lcd_new_panel_ra8875(const esp_lcd_panel_io_handle_t io, const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel)
+esp_err_t esp_lcd_new_panel_ra8875(const esp_lcd_panel_io_handle_t io,
+                                   const esp_lcd_panel_dev_config_t *panel_dev_config, esp_lcd_panel_handle_t *ret_panel)
 {
     esp_err_t ret = ESP_OK;
     ra8875_panel_t *ra8875 = NULL;
@@ -77,13 +79,14 @@ esp_err_t esp_lcd_new_panel_ra8875(const esp_lcd_panel_io_handle_t io, const esp
     }
 
     // The RA8875 supports only RGB endian
-    // Note: Color space used for compatibility with IDF v4.4
-    switch (panel_dev_config->color_space) {
-    case ESP_LCD_COLOR_SPACE_RGB:
-        break;
-    default:
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
+    if (panel_dev_config->color_space != ESP_LCD_COLOR_SPACE_RGB) {
+#elif ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
+    if (panel_dev_config->rgb_endian != LCD_RGB_ENDIAN_RGB) {
+#else
+    if (panel_dev_config->rgb_ele_order != LCD_RGB_ELEMENT_ORDER_RGB) {
+#endif
         ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "unsupported color space");
-        break;
     }
 
     switch (panel_dev_config->bits_per_pixel) {
@@ -314,7 +317,8 @@ static void panel_ra8875_set_cursor(esp_lcd_panel_t *panel, int x_start, int y_s
     panel_ra8875_tx_param(panel, 0x49, y_start >> 8);
 }
 
-static esp_err_t panel_ra8875_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end, const void *color_data)
+static esp_err_t panel_ra8875_draw_bitmap(esp_lcd_panel_t *panel, int x_start, int y_start, int x_end, int y_end,
+        const void *color_data)
 {
     ra8875_panel_t *ra8875 = __containerof(panel, ra8875_panel_t, base);
     esp_lcd_panel_io_handle_t io = ra8875->io;

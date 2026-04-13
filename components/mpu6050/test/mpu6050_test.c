@@ -70,7 +70,8 @@ TEST_CASE("Sensor mpu6050 test", "[mpu6050][iot][sensor]")
 
     ret = mpu6050_get_deviceid(mpu6050, &mpu6050_deviceid);
     TEST_ASSERT_EQUAL(ESP_OK, ret);
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(MPU6050_WHO_AM_I_VAL, mpu6050_deviceid, "Who Am I register does not contain expected data");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(MPU6050_WHO_AM_I_VAL, mpu6050_deviceid,
+                                    "Who Am I register does not contain expected data");
 
     ret = mpu6050_get_acce(mpu6050, &acce);
     TEST_ASSERT_EQUAL(ESP_OK, ret);

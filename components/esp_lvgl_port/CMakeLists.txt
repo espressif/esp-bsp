@@ -4,13 +4,24 @@ if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
     return()
 endif()
 
+set(ADD_SRCS "")
+set(ADD_LIBS "")
+set(PRIV_REQ "")
+idf_build_get_property(target IDF_TARGET)
+if(${target} STREQUAL "esp32p4")
+    list(APPEND ADD_SRCS "src/common/ppa/lcd_ppa.c")
+    list(APPEND ADD_LIBS idf::esp_driver_ppa)
+    list(APPEND PRIV_REQ esp_driver_ppa)
+endif()
+
 # This component uses a CMake workaround, so we can compile esp_lvgl_port for both LVGL8.x and LVGL9.x
 # At the time of idf_component_register() we don't know which LVGL version is used, so we only register an INTERFACE component (with no sources)
 # Later, when we know the LVGL version, we create another CMake library called 'lvgl_port_lib' and link it to the 'esp_lvgl_port' INTERFACE component
 idf_component_register(
         INCLUDE_DIRS "include"
         PRIV_INCLUDE_DIRS "priv_include"
-        REQUIRES "esp_lcd")
+        REQUIRES "esp_lcd"
+        PRIV_REQUIRES "${PRIV_REQ}")
 
 # Get LVGL version
 idf_build_get_property(build_components BUILD_COMPONENTS)
@@ -39,8 +50,6 @@ endif()
 
 # Add LVGL port extensions
 set(PORT_PATH "src/${PORT_FOLDER}")
-set(ADD_SRCS "")
-set(ADD_LIBS "")
 
 idf_build_get_property(build_components BUILD_COMPONENTS)
 if("espressif__button" IN_LIST build_components)
@@ -85,6 +94,10 @@ if((lvgl_ver VERSION_GREATER_EQUAL "9.1.0") AND (lvgl_ver VERSION_LESS "9.2.0"))
         else()
             file(GLOB_RECURSE ASM_SRCS ${PORT_PATH}/simd/*_esp32.S)      # Select only esp32 related files
         endif()
+
+        # Explicitly add all assembly macro files
+        file(GLOB_RECURSE ASM_MACROS ${PORT_PATH}/simd/lv_macro_*.S)
+        list(APPEND ADD_SRCS ${ASM_MACROS})
         list(APPEND ADD_SRCS ${ASM_SRCS})
 
         # Include component libraries, so lvgl component would see lvgl_port includes
@@ -94,6 +107,9 @@ if((lvgl_ver VERSION_GREATER_EQUAL "9.1.0") AND (lvgl_ver VERSION_LESS "9.2.0"))
         # Force link .S files
         set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_argb8888_esp")
         set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_rgb565_esp")
+        set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_rgb888_esp")
+        set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_rgb565_blend_normal_to_rgb565_esp")
+        set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_rgb888_blend_normal_to_rgb888_esp")
     endif()
 endif()
 
