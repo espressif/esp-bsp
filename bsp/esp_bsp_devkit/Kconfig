@@ -669,7 +669,7 @@ menu "Board Support Package (generic)"
 
         config ENV_GPIO_RANGE_MAX
             int
-            default 25
+            default 28
 
         config ENV_GPIO_IN_RANGE_MAX
             int
