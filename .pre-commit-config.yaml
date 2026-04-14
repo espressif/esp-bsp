@@ -49,6 +49,9 @@ repos:
         additional_dependencies:
           - idf_component_manager==2.4.1
           - py-markdown-table
+        # TODO: Remove this when removing these BSPs
+        exclude: '^.*/(esp-box|esp-box-lite|esp32_s2_kaluga_kit)/.*$'
+
 
   - repo: local
     hooks:
