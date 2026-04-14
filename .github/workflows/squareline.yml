@@ -16,12 +16,12 @@ jobs:
   create-squareline-packages:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - name: Generate the packages
         run: |
           cd SquareLine
           python3 gen.py -o out_dir
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: artifacts
           path: SquareLine/out_dir/espressif/
@@ -31,7 +31,7 @@ jobs:
     needs: [ create-squareline-packages ]
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: artifacts
           path: espressif

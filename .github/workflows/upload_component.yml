@@ -46,7 +46,7 @@ jobs:
           - m5stack_tab5
           - esp_vocat
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Prepare BSP examples
         run: |
@@ -65,7 +65,7 @@ jobs:
   upload_other_components:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Upload Other components
         uses: espressif/upload-components-ci-action@v2
         with:
