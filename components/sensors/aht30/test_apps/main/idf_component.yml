@@ -1,0 +1,6 @@
+## IDF Component Manager Manifest File
+dependencies:
+  aht30:
+    version: "*"
+    path: "../../../aht30"
+  idf: ">=5.3"

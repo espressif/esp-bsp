@@ -1,0 +1,6 @@
+## IDF Component Manager Manifest File
+dependencies:
+  esp_lcd_ra8875:
+    version: "*"
+    path: "../../../esp_lcd_ra8875"
+  idf: ">=5.3"
