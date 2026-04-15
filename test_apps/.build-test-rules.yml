@@ -1,10 +1,5 @@
 # Noglib test_app: Build only in CI, where ENV_BUILD_NOGLIB is set
 test_apps/noglib:
   disable:
+    # TODO: Remove this after adding proper noglib tests
     - if: ENV_BUILD_NOGLIB == 0
-
-# Legacy common components test_app: Build for changes in components which do not have their own test_app or example
-test_apps/components:
-  depends_filepatterns:
-    - "components/lcd/esp_lcd_ra8875/**"
-    - "components/lcd_touch/**"
