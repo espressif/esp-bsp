@@ -82,13 +82,8 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
 static bool lvgl_port_flush_io_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata,
         void *user_ctx);
 #if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-#if CONFIG_LCD_RGB_ISR_IRAM_SAFE
-static IRAM_ATTR bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t panel_io,
-        const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx);
-#else
 static bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t panel_io,
         const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx);
-#endif
 #endif
 #if (CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
 static bool lvgl_port_flush_dpi_panel_ready_callback(esp_lcd_panel_handle_t panel_io,
