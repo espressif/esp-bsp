@@ -4,18 +4,18 @@ on:
   push:
     branches:
       - master
-    paths: 
+    paths:
       - 'bsp/**'
   pull_request:
     types: [opened, reopened, synchronize]
-    paths: 
+    paths:
       - 'bsp/**'
 
 jobs:
   upload_components:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Upload noglib version of BSPs
         # TODO: Extend this part to all BSPs

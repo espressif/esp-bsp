@@ -63,12 +63,12 @@ jobs:
     runs-on: ubuntu-latest
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Get changed files
         if: github.event_name == 'pull_request' # This action is working only in pull-request (it fails in push to master)
         id: changed-files
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@v47
         with:
           separator: ';' # idf-build-apps expects files seprated with semicolon
 
@@ -99,7 +99,7 @@ jobs:
           echo "### ⚠️ Build failed for idf_ver=${{ matrix.idf_ver }}" >> $GITHUB_STEP_SUMMARY
           echo "This failure was ignored (continue-on-error enabled)." >> $GITHUB_STEP_SUMMARY
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: github.repository_owner == 'espressif' # && needs.prepare.outputs.build_only == '0'
         with:
           name: app_binaries_${{ matrix.idf_ver }}_${{ matrix.parallel_index }}
@@ -158,13 +158,13 @@ jobs:
       image: espressif/idf:${{ matrix.idf_ver }}
       options: --privileged -v /dev/boards:/dev/boards/ # Privileged mode has access to serial ports
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
         with:
           pattern: app_binaries_${{ matrix.idf_ver }}_*
           merge-multiple: true
       - name: Download latest results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: benchmark_*
           path: benchmark/
@@ -179,7 +179,7 @@ jobs:
           mkdir -p /tmp/pytest-embedded-cache-dummy
           pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} -k "${{ matrix.runner.example }} and not test_example_display_sensors" -n auto ${{ env.PYTEST_BENCHMARK_IGNORE }}
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: ${{ env.TEST_RESULT_NAME }}
@@ -207,7 +207,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Download Test results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: test_results_*
           path: test_results
