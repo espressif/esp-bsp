@@ -32,11 +32,13 @@ static lv_obj_t *acc_x_bar, *acc_y_bar, * acc_z_bar;
 static lv_obj_t *gyr_x_bar, *gyr_y_bar, * gyr_z_bar;
 static lv_style_t bar_style;
 
+#if BSP_CAPS_HUMITURE
 static lv_obj_t *chart = NULL;
 static lv_chart_series_t *temp_series = NULL;
 static lv_chart_series_t *humid_series = NULL;
 
 static void chart_add_value(lv_chart_series_t *series, const int32_t value);
+#endif
 #endif
 
 static void sensor_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data)
