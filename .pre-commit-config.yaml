@@ -76,10 +76,12 @@ repos:
         types_or:
           - c
           - c++
+          - text
       - id: end-of-file-fixer
         types_or:
           - c
           - c++
+          - text
       - id: check-merge-conflict
       - id: mixed-line-ending
         types_or:

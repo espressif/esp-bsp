@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -49,7 +49,7 @@ extern "C" {
 #endif
 
 /**
- * @brief BSP display configuration structure
+ * @brief BSP display low level configuration structure
  *
  */
 typedef struct {
@@ -91,7 +91,7 @@ typedef struct {
  * @param[out] ret_io    esp_lcd IO handle
  * @return
  *      - ESP_OK         On success
- *      - Else           esp_lcd failure
+ *      - Other errors from underlying esp_lcd driver
  */
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
                           esp_lcd_panel_io_handle_t *ret_io);
@@ -114,7 +114,7 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
  * @param[out] ret_handles all esp_lcd handles in one structure
  * @return
  *      - ESP_OK         On success
- *      - Else           esp_lcd failure
+ *      - Other errors from underlying esp_lcd driver
  */
 esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_lcd_handles_t *ret_handles);
 
@@ -124,13 +124,16 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
 void bsp_display_delete(void);
 
 /**
- * @brief Initialize display's brightness
+ * @brief Initialize display's backlight control
  *
- * Brightness is controlled with PWM signal to a pin controlling backlight.
+ * If supported, the backlight level can be adjusted using a PWM signal.
+ * On platforms without PWM support, only simple On/Off control may be available.
+ * If the feature is not supported at all, the function returns an error.
  *
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_NOT_SUPPORTED Changing backlight is not supported
  */
 esp_err_t bsp_display_brightness_init(void);
 
@@ -140,31 +143,39 @@ esp_err_t bsp_display_brightness_init(void);
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_NOT_SUPPORTED Changing backlight is not supported
  */
 esp_err_t bsp_display_brightness_deinit(void);
 
 /**
- * @brief Set display's brightness
+ * @brief Set display's backlight
  *
- * Brightness is controlled with PWM signal to a pin controlling backlight.
- * Brightness must be already initialized by calling bsp_display_brightness_init() or bsp_display_new()
+ *
+ * If supported, the backlight level can be adjusted using a PWM signal.
+ * On platforms without PWM support, only simple On/Off control may be available.
+ * If the feature is not supported at all, the function returns an error.
+ * Backlight must be already initialized by calling bsp_display_brightness_init() or bsp_display_new()
  *
  * @param[in] brightness_percent Brightness in [%]
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_NOT_SUPPORTED Changing backlight is not supported
  */
 esp_err_t bsp_display_brightness_set(int brightness_percent);
 
 /**
  * @brief Turn on display backlight
  *
- * Brightness is controlled with PWM signal to a pin controlling backlight.
- * Brightness must be already initialized by calling bsp_display_brightness_init() or bsp_display_new()
+ * If supported, the backlight level can be adjusted using a PWM signal.
+ * On platforms without PWM support, only simple On/Off control may be available.
+ * If the feature is not supported at all, the function returns an error.
+ * Backlight must be already initialized by calling bsp_display_brightness_init() or bsp_display_new()
  *
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_NOT_SUPPORTED Changing backlight is not supported
  */
 esp_err_t bsp_display_backlight_on(void);
 
@@ -177,6 +188,7 @@ esp_err_t bsp_display_backlight_on(void);
  * @return
  *      - ESP_OK                On success
  *      - ESP_ERR_INVALID_ARG   Parameter error
+ *      - ESP_ERR_NOT_SUPPORTED Changing backlight is not supported
  */
 esp_err_t bsp_display_backlight_off(void);
 
