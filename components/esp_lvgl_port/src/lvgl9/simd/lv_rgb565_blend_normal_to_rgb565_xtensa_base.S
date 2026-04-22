@@ -1,12 +1,13 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <xtensa/config/core-isa.h>
 #include "lv_macro_memcpy.S"        // Memcpy macros
 
-// This is LVGL RGB565 image blend to RGB565 for ESP32 processor
+// This is LVGL RGB565 image blend to RGB565 for ESP32, ESP32S2 processor
 
     .section .text
     .align  4
@@ -42,6 +43,8 @@ lv_rgb565_blend_normal_to_rgb565_esp:
     l32i.n   a8,    a2,    24                   // a8 - src_stride            in bytes
     slli     a11,   a4,    1                    // a11 - dest_w_bytes = sizeof(uint16_t) * dest_w
 
+    beqz     a4,   _zero_matrix_len_check       // Check if dest_w a4 is zero
+    beqz     a5,   _zero_matrix_len_check       // Check if dest_h a5 is zero
     // No need to convert any colors here, we are copying from rgb565 to rgb565
 
     // Check dest_w length
@@ -73,8 +76,16 @@ lv_rgb565_blend_normal_to_rgb565_esp:
 
     .outer_loop_align:
 
+#if XCHAL_HAVE_LOOPS
+        loopnez a9,   ._main_loop_aligned               // zero-overhead loop (not supported in esp32s2)
+#else
+        // Init loop parameters
+        beqz    a9,   ._main_loop_aligned               // Branch to the end, if a9 is 0 (no need to run the main loop)
+        slli    a10,  a9,   4                           // a10 = loop_len (a9) * 16 (main loop increments address pointers by 16)
+        add     a10,  a10,  a3                          // a10 += dest_buf address
+        ._main_loop_aligned_done:
+#endif
         // Run main loop which copies 16 bytes (8 RGB565 pixels) in one loop run
-        loopnez a9, ._main_loop_aligned
             l32i.n      a15,  a7,  0                    // Load 32 bits from src_buff a7 to a15, offset 0
             l32i.n      a14,  a7,  4                    // Load 32 bits from src_buff a7 to a14, offset 4
             l32i.n      a13,  a7,  8                    // Load 32 bits from src_buff a7 to a13, offset 8
@@ -85,6 +96,9 @@ lv_rgb565_blend_normal_to_rgb565_esp:
             s32i.n      a12,  a3,  12                   // Save 32 bits from a15 to dest_buff a3, offset 12
             addi.n      a7,   a7,  16                   // Increment src_buff pointer a7 by 16
             addi.n      a3,   a3,  16                   // Increment dest_buff pointer a3 by 16
+#if !XCHAL_HAVE_LOOPS
+        blt     a3,  a10,  ._main_loop_aligned_done     // Check end of the main loop, branch if dest_buf (a3) lower than a10
+#endif
         ._main_loop_aligned:
 
         // Finish the remaining bytes out of the main loop
@@ -142,14 +156,23 @@ lv_rgb565_blend_normal_to_rgb565_esp:
         sub         a10,  a11,  a14                     // Get the dest_w_bytes after the aligning loop
         srli        a9,   a10,  4                       // Calculate main loop len (a9 = dest_w_bytes_local / 16)
 
+#if XCHAL_HAVE_LOOPS
+        loopnez  a14,  ._dest_aligning_loop             // zero-overhead loop (not supported in esp32s2)
+#else
+        // Init loop parameters
+        beqz     a14,  ._dest_aligning_loop             // Branch to the end, if a14 is 0 (no need to run the main loop)
+        add      a14,  a14,  a3                         // loop_len = loop_len + dest_buf (a3)
+        ._dest_aligning_loop_done:
+#endif
         // Run dest_buff aligning loop byte by byte
-        loopnez a14, ._dest_aligning_loop
             l8ui        a15,  a7,  0                    // Load 8 bits from src_buff a7 to a15, offset 0
             addi.n      a7,   a7,  1                    // Increment src_buff pointer a7 by 1
             s8i         a15,  a3,  0                    // Save 8 bits from a15 to dest_buff a3, offset 0
             addi.n      a3,   a3,  1                    // Increment dest_buff pointer a3 by 1
+#if     !XCHAL_HAVE_LOOPS
+        blt      a3,  a14,  ._dest_aligning_loop_done   // Check end of the main loop, branch if dest_buf (a3) lower than a14
+#endif
         ._dest_aligning_loop:
-
         // Destination is aligned, source is unaligned
 
         // For more information about this implementation, see chapter 3.3.2 Shifts and the Shift Amount Register (SAR)
@@ -162,8 +185,16 @@ lv_rgb565_blend_normal_to_rgb565_esp:
         // First preload for the loopnez cycle
         l32i.n      a15,  a7,  0                        // Load 32 bits from 4-byte aligned src_buff a7 to a15, offset 0
 
+#if XCHAL_HAVE_LOOPS
+        loopnez  a9,  ._main_loop_unalign               // zero-overhead loop (not supported in esp32s2)
+#else
+        // Init loop parameters
+        beqz     a9,  ._main_loop_unalign               // Branch to the end, if a9 is 0 (no need to run the main loop)
+        slli     a9,  a9,  4                            // loop_len (a9) *= 16 (main loop increments address pointers by 16)
+        add      a9,  a9,  a3                           // a9 += dest_buff address
+        ._main_loop_unalign_done:
+#endif
         // Run main loop which copies 16 bytes (8 RGB565 pixels) in one loop run
-        loopnez a9, ._main_loop_unalign
             l32i.n      a14,  a7,   4                   // Load 32 bits from 4-byte aligned src_buff a7 to a14, offset 4
             l32i.n      a13,  a7,   8                   // Load 32 bits from 4-byte aligned src_buff a7 to a13, offset 8
             src         a15,  a14,  a15                 // Concatenate a14 and a15 and shift by SAR_BYTE amount to a15
@@ -178,6 +209,9 @@ lv_rgb565_blend_normal_to_rgb565_esp:
             src         a12,  a15,  a12                 // Concatenate a15 and a12 and shift by SAR_BYTE amount to a12
             s32i.n      a12,  a3,   12                  // Save 32 bits from shift-corrected a12 to dest_buff a3, offset 12
             addi.n      a3,   a3,   16                  // Increment dest_buff pointer a3 by 16
+#if !XCHAL_HAVE_LOOPS
+        blt     a3,  a9,  ._main_loop_unalign_done      // Check end of the main loop, branch if dest_buf (a3) lower than a10
+#endif
         ._main_loop_unalign:
 
         // Finish the remaining bytes out of the loop
@@ -239,14 +273,25 @@ lv_rgb565_blend_normal_to_rgb565_esp:
 
     .outer_loop_short_matrix_length:
 
+#if XCHAL_HAVE_LOOPS
+        loopnez  a4,   ._main_loop_short_matrix_length  // zero-overhead loop (not supported in esp32s2)
+#else
+        // Init loop parameters
+        beqz     a4,   ._main_loop_short_matrix_length  // Branch to the end, if a4 is 0 (no need to run the main loop)
+        slli     a10,  a4,  1                           // a10 = loop_len (a4) * 2 (main loop increments address pointers by 2)
+        add      a10,  a10, a3                          // a10 += dest_buf address
+        ._main_loop_short_matrix_length_done:
+#endif
         // Run main loop which copies 2 bytes (one RGB565 pixel) in one loop run
-        loopnez a4, ._main_loop_short_matrix_length
             l8ui        a15,  a7,  0                    // Load 8 bits from src_buff a7 to a15, offset 0
             l8ui        a14,  a7,  1                    // Load 8 bits from src_buff a7 to a14, offset 1
             s8i         a15,  a3,  0                    // Save 8 bits from a15 to dest_buff a3, offset 0
             s8i         a14,  a3,  1                    // Save 8 bits from a14 to dest_buff a3, offset 1
-            addi.n      a7,   a7,  2                    // Increment src_buff pointer a7 by 1
+            addi.n      a7,   a7,  2                    // Increment src_buff pointer a7 by 2
             addi.n      a3,   a3,  2                    // Increment dest_buff pointer a3 by 2
+#if !XCHAL_HAVE_LOOPS
+        blt     a3,  a10,  ._main_loop_short_matrix_length_done // Check end of the main loop, branch if dest_buf (a3) lower than a10
+#endif
         ._main_loop_short_matrix_length:
 
         // Finish remaining byte out of the main loop
@@ -262,3 +307,10 @@ lv_rgb565_blend_normal_to_rgb565_esp:
 
     movi.n   a2, 1                                      // Return LV_RESULT_OK = 1
     retw.n                                              // Return
+
+//**********************************************************************************************************************
+
+    // One of the matrix dimensions is zero, return early
+    _zero_matrix_len_check:
+    movi.n   a2, 1                                      // return LV_RESULT_OK = 1
+    retw.n                                              // return

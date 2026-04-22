@@ -1,10 +1,13 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// This is LVGL RGB565 simple fill for ESP32 processor
+#include <xtensa/config/core-isa.h>
+#include "lv_macro_memset.S"
+
+// This is LVGL RGB565 simple fill for ESP32, ESP32S2 processor
 
     .section .text
     .align  4
@@ -41,7 +44,10 @@ lv_color_blend_to_rgb565_esp:
     l32i.n   a8,    a7,    0                    // a8 - color as value
     slli     a11,   a4,    1                    // a11 - dest_w_bytes = sizeof(uint16_t) * dest_w
 
-    // Convert color to rgb656
+    beqz     a4,   _zero_matrix_len_check       // Check if dest_w a4 is zero
+    beqz     a5,   _zero_matrix_len_check       // Check if dest_h a5 is zero
+
+    // Convert color to rgb565
     l8ui    a15,    a7,    2                    // red
     movi.n  a14,    0xf8
     and     a13,    a15,   a14
@@ -65,6 +71,9 @@ lv_color_blend_to_rgb565_esp:
 
     movi.n  a8,    0x3                          // a8 = 0x3, dest_buff align mask
     sub     a6,    a6,   a11                    // dest_stride = dest_stride - dest_w_bytes
+
+    // Check dest_w length
+    bltui   a4,  8,  _matrix_width_check         // Branch if dest_w (a4) is lower than 8
 
     // cache init
     // Prepare main loop length and dest_w_bytes
@@ -97,8 +106,16 @@ lv_color_blend_to_rgb565_esp:
 
         _dest_buff_unaligned:
 
-        // Run main loop which sets 16 bytes in one loop run
-        loopnez a9, ._main_loop
+#if XCHAL_HAVE_LOOPS
+        loopnez a9,   ._main_loop                       // zero-overhead loop (not supported in esp32s2)
+#else
+        // Init loop parameters
+        beqz    a9,   ._main_loop                       // Branch to the end, if a9 is 0 (no need to run the main loop)
+        slli    a15,  a9,   5                           // a15 = loop_len (a9) * 32 (main loop increments address pointers by 32)
+        add     a15,  a15,  a3                          // a15 += dest_buf address
+        ._main_loop_aligned_done:
+#endif
+        // Run main loop which sets 32 bytes (16 RGB565 pixels) in one loop run
             s32i.n      a10,  a3,  0                    // save 32 bits from 32-bit color a10 to dest_buff a3, offset 0
             s32i.n      a10,  a3,  4                    // save 32 bits from 32-bit color a10 to dest_buff a3, offset 4
             s32i.n      a10,  a3,  8                    // save 32 bits from 32-bit color a10 to dest_buff a3, offset 8
@@ -108,42 +125,73 @@ lv_color_blend_to_rgb565_esp:
             s32i.n      a10,  a3,  24                   // save 32 bits from 32-bit color a10 to dest_buff a3, offset 24
             s32i.n      a10,  a3,  28                   // save 32 bits from 32-bit color a10 to dest_buff a3, offset 28
             addi.n      a3,   a3,  32                   // increment dest_buff pointer by 32
+#if !XCHAL_HAVE_LOOPS
+        blt     a3,  a15,  ._main_loop_aligned_done     // Check end of the main loop, branch if dest_buf (a3) lower than a15
+#endif
         ._main_loop:
 
         // Finish the remaining bytes out of the loop
-        // Check modulo 8 of the dest_w_bytes, if - then set 16 bytes
-        bbci a11, 4, _mod_16_check                      // branch if 2-nd bit of dest_w_bytes is clear
-            s32i.n      a10,  a3,  0                    // save 32 bits from 32-bit color a10 to dest_buff a3, offset 0
-            s32i.n      a10,  a3,  4                    // save 32 bits from 32-bit color a10 to dest_buff a3, offset 4
-            s32i.n      a10,  a3,  8                    // save 32 bits from 32-bit color a10 to dest_buff a3, offset 8
-            s32i.n      a10,  a3,  12                   // save 32 bits from 32-bit color a10 to dest_buff a3, offset 12
-            addi.n      a3,   a3,  16                   // increment dest_buff pointer by 16
-        _mod_16_check:
+        // Check modulo 16 of the dest_w_bytes (a11), if - then set 16 bytes (8 RGB565 pixels)
+        // src_reg a10, dest_buff a3, dest_w_bytes a11
+        macro_memset_mod_16 a10, a3, a11, __LINE__
 
-        // Finish the remaining bytes out of the loop
-        // Check modulo 8 of the dest_w_bytes, if - then set 8 bytes
-        bbci a11, 3, _mod_8_check                       // branch if 2-nd bit of dest_w_bytes is clear
-            s32i.n      a10,  a3,  0                    // save 32 bits from 32-bit color a10 to dest_buff a3, offset 0
-            s32i.n      a10,  a3,  4                    // save 32 bits from 32-bit color a10 to dest_buff a3, offset 4
-            addi.n      a3,   a3,  8                    // increment dest_buff pointer by 8 bytes
-        _mod_8_check:
+        // Check modulo 8 of the dest_w_bytes (a11), if - then set 8 bytes (4 RGB565 pixels)
+        // src_reg a10, dest_buff a3, dest_w_bytes a11
+        macro_memset_mod_8 a10, a3, a11, __LINE__
 
-        // Check modulo 4 of the dest_w_bytes, if - then set 4 bytes
-        bbci a11, 2, _mod_4_check                       // branch if 2-nd bit of dest_w_bytes is clear
-            s32i.n      a10,  a3,  0                    // save 32 bits from 32-bit color a10 to dest_buff a3, offset 0
-            addi.n      a3,   a3,  4                    // increment dest_buff pointer by 4
-        _mod_4_check:
+        // Check modulo 4 of the dest_w_bytes (a11), if - then set 4 bytes (2 RGB565 pixels)
+        // src_reg a10, dest_buff a3, dest_w_bytes a11
+        macro_memset_mod_4 a10, a3, a11, __LINE__
 
-        // Check modulo 2 of the dest_w_bytes, if - then set 2 bytes
-        bbci a11, 1, _mod_2_check                       // branch if 1-st bit of dest_w_bytes is clear
-            s16i        a12,  a3,  0                    // save 16 bits from 16-bit color a12 to dest_buff a3, offset 0
-            addi.n      a3,   a3,  2                    // increment dest_buff pointer by 2 bytes
-        _mod_2_check:
+        // Check modulo 2 of the dest_w_bytes (a11), if - then set 2 bytes (1 RGB565 pixel)
+        // src_reg a10, dest_buff a3, dest_w_bytes a11
+        macro_memset_mod_2 a10, a3, a11, __LINE__
 
         add     a3,  a3,  a6                            // dest_buff + dest_stride
         addi.n  a5,  a5,  -1                            // decrease the outer loop
         and     a7,  a8,  a3                            // a7 = dest_buff AND 0x3 (chck if the address is 4-byte aligned)
     bnez a5, .outer_loop
 
+    movi.n   a2, 1                                      // return LV_RESULT_OK = 1
+    retw.n                                              // return
+
+//**********************************************************************************************************************
+
+    // Small matrix width, keep it simple for lengths less than 8 pixels
+
+    _matrix_width_check:
+
+#if !XCHAL_HAVE_LOOPS
+    slli    a14,  a4,   1                               // a14 = loop_len (a9) * 4 (main loop increments address pointers by 4)
+#endif
+
+    .outer_loop_short_matrix:
+
+#if XCHAL_HAVE_LOOPS
+        loopnez a4,  ._main_loop_short_matrix           // zero-overhead loop (not supported for esp32s2)
+#else
+        // Init loop parameters
+        add     a15,  a14,  a3                          // a15 = a14 + dest_buf address
+        ._main_loop_short_matrix_done:
+#endif
+        // Run main loop which sets 4 bytes (one ARGB8888 pixel) in one loop run
+            s16i        a12,  a3,  0                    // save 16 bits from a12 to dest_buff a3
+            addi.n      a3,   a3,  2                    // increment dest_buff pointer by 2 bytes
+#if !XCHAL_HAVE_LOOPS
+        blt     a3,   a15,  ._main_loop_short_matrix_done             // Check end of the main loop, branch if dest_buf (a3) lower than a15
+#endif
+        ._main_loop_short_matrix:
+
+        add     a3,  a3,  a6                            // dest_buff + dest_stride
+        addi.n  a5,  a5,  -1                            // decrease the outer loop
+    bnez a5, .outer_loop_short_matrix
+
+    movi.n   a2, 1                                      // return LV_RESULT_OK = 1
+    retw.n                                              // return
+
+//**********************************************************************************************************************
+
+    // One of the matrix dimensions is zero, return early
+    _zero_matrix_len_check:
     movi.n   a2, 1                                      // return LV_RESULT_OK = 1
     retw.n                                              // return

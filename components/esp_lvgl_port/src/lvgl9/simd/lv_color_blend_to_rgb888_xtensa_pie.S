@@ -40,6 +40,9 @@ lv_color_blend_to_rgb888_esp:
     l32i.n   a7,    a2,    20                   // a7 - src_buff (color)
     l32i.n   a8,    a7,    0                    // a8 - color as value
 
+    beqz     a4,   _zero_matrix_len_check       // Check if dest_w a4 is zero
+    beqz     a5,   _zero_matrix_len_check       // Check if dest_h a5 is zero
+
     // a11 - dest_w_bytes = sizeof(uint24_t) * dest_w = 3 * a4
     slli     a11,   a4,    1                    // a11 - dest_w_bytes = 2 * dest_w
     add      a11,   a11,   a4                   // a11 - dest_w_bytes = a11 + a4
@@ -344,3 +347,11 @@ unalignment_table:
 
     movi.n   a2, 1                                      // return LV_RESULT_OK = 1
     retw.n                                              // return
+
+//**********************************************************************************************************************
+
+    // One of the matrix dimensions is zero, return early
+    _zero_matrix_len_check:
+    movi.n   a2, 1                                      // return LV_RESULT_OK = 1
+    retw.n                                              // return
+
