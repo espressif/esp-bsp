@@ -59,10 +59,10 @@ static const char *TAG = "m5stack_tab5";
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *disp;
+static lv_indev_t *disp_indev_touch = NULL;
 #endif // (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static bsp_lcd_handles_t disp_handles;
 static esp_ldo_channel_handle_t disp_phy_pwr_chan = NULL;
-static lv_indev_t *disp_indev_touch = NULL;
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
 static sd_pwr_ctrl_handle_t pwr_ctrl_handle = NULL; //SD LDO handle
 static sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
