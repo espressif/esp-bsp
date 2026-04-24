@@ -67,4 +67,4 @@ Get attributes of a single touch point.
 
 This driver includes multi-touch support.
 Distinction of each touch point is dependent on the quality and type of capacitive touch layer lamination.
-It is possible that some displays may perform worse than others. 
+It is possible that some displays may perform worse than others.

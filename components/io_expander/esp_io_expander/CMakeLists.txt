@@ -13,7 +13,7 @@ idf_component_register(
 if(CONFIG_IO_EXPANDER_ENABLE_GPIO_API_WRAPPER)
     target_sources(${COMPONENT_LIB} PRIVATE "esp_io_expander_gpio_wrapper.c"
                                             "esp_io_expander_gpio_wrapper_weak.c")
-    
+
     target_include_directories(${COMPONENT_LIB} PRIVATE "priv_include")
 
     target_link_libraries(${COMPONENT_LIB} INTERFACE "-Wl,--wrap=gpio_set_level"

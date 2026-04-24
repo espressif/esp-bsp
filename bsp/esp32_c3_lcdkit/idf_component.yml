@@ -11,36 +11,34 @@ tags:
 
 dependencies:
   idf: ">=5.2"
-  
+
   esp_codec_dev:
     version: "~1.5"
     public:  true
-  
+
   espressif/esp_lvgl_port:
     version: "^2"
     public:  true
     override_path: "../../components/esp_lvgl_port"
 
-  
+
   espressif/esp_lcd_gc9a01:
     version: "*"
     public:  false
     override_path: "../../components/lcd/esp_lcd_gc9a01"
 
-  
+
   knob:
     version: "^1"
     public:  true
-  
+
   button:
     version: "^4"
     public:  true
-  
+
   led_indicator:
     version: "^2"
     public:  true
-    
+
 examples:
   - path: ../../examples/display
-
-  

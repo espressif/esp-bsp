@@ -1,4 +1,4 @@
-# BSP: Custom WaveShare 7inch LCD 
+# BSP: Custom WaveShare 7inch LCD
 
 * [Hardware Reference](https://www.waveshare.com/wiki/7inch_Capacitive_Touch_LCD_(C))
 

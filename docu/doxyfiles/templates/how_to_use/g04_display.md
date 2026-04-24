@@ -103,4 +103,3 @@ Below are some of the most relevant predefined constants:
 - `BSP_LCD_H_RES` - Horizontal resolution in pixels
 - `BSP_LCD_V_RES` - Vertical resolution in pixels
 - `BSP_LCD_SPI_NUM` - SPI bus used by the LCD (if applicable)
-

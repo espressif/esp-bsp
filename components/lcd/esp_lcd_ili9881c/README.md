@@ -18,4 +18,3 @@ idf.py add-dependency esp_lcd_ili9881c
 ```
 
 Alternatively, you can create `idf_component.yml`. More is in [Espressif's documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html).
-

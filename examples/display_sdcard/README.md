@@ -23,4 +23,3 @@ To build and flash the example for a specific `{board}` and `{port}`, use the fo
 idf.py -D SDKCONFIG_DEFAULTS=sdkconfig.bsp.{board} -p {port} flash monitor
 ```
 Make sure the correct board name is set in the `main/idf_component.yml` file under the `dependencies` section.
-
