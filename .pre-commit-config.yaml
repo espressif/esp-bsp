@@ -159,3 +159,12 @@ repos:
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp_vocat", "-i", "bsp/esp_vocat/doxygen/xml", "-o", "bsp/esp_vocat/API.md"]
         files: ^bsp/esp_vocat/
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        args: [--config=.codespellrc]
+        # Check docs and header comments, but skip generated API markdown files.
+        files: (?i)\.(md|rst|h)$
+        exclude: (^|/)API\.md$

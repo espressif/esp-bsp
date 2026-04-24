@@ -590,7 +590,7 @@ There is no deinit audio function. Users can free audio resources by calling `i2
 
 **Note:**
 
-This function wiil call `bsp_io_expander_init()` to setup and enable the control pin of audio power amplifier.
+This function will call `bsp_io_expander_init()` to setup and enable the control pin of audio power amplifier.
 
 
 
@@ -1330,7 +1330,7 @@ For LCD panel button which is defined as BSP\_BUTTON\_MAIN, bsp\_display\_start 
 
 * ESP\_OK All buttons initialized
 * ESP\_ERR\_INVALID\_ARG btn\_array is too small or NULL
-* ESP\_FAIL Underlaying iot\_button\_create failed
+* ESP\_FAIL Underlying iot\_button\_create failed
 
 
 

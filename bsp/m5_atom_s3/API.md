@@ -767,7 +767,7 @@ This function initializes SPI, display controller and starts LVGL handling task.
 
 **Returns:**
 
-Pointer to LVGL display or NULL when error occured
+Pointer to LVGL display or NULL when error occurred
 ### function `bsp_display_start_with_config`
 
 _Initialize display._
@@ -790,7 +790,7 @@ This function initializes SPI, display controller and starts LVGL handling task.
 
 **Returns:**
 
-Pointer to LVGL display or NULL when error occured
+Pointer to LVGL display or NULL when error occurred
 ### function `bsp_display_unlock`
 
 _Give LVGL mutex._
@@ -903,7 +903,7 @@ Returned button handlers must be used with espressif/button component API
 
 * ESP\_OK All buttons initialized
 * ESP\_ERR\_INVALID\_ARG btn\_array is too small or NULL
-* ESP\_FAIL Underlaying iot\_button\_create failed
+* ESP\_FAIL Underlying iot\_button\_create failed
 
 
 

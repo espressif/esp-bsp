@@ -1259,7 +1259,7 @@ This function initializes MIPI-DSI, display controller and starts LVGL handling 
 
 **Returns:**
 
-Pointer to LVGL display or NULL when error occured
+Pointer to LVGL display or NULL when error occurred
 ### function `bsp_display_start_with_config`
 
 _Initialize display._
@@ -1282,7 +1282,7 @@ This function initializes MIPI-DSI, display controller and starts LVGL handling 
 
 **Returns:**
 
-Pointer to LVGL display or NULL when error occured
+Pointer to LVGL display or NULL when error occurred
 ### function `bsp_display_stop`
 
 _Deinitialize display._

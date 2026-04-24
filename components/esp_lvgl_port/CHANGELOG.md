@@ -29,7 +29,7 @@
 ## 2.6.3
 
 ### Fixes
-- Improved and fixed deinit function (remove semaphor) - https://github.com/espressif/esp-bsp/issues/673
+- Improved and fixed deinit function (remove semaphore) - https://github.com/espressif/esp-bsp/issues/673
 
 ## 2.6.2
 

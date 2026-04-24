@@ -14,7 +14,7 @@ In this document we will use following metrics for performance evaluation:
 
 Following options and settings have impact on LCD performance (FPS). Some options yield only small difference in FPS (e.g. ~1 FPS), and some of them are more significant. Usually it depends on complexity of the graphical application (number of widgets...), resources (CPU time, RAM available...) and size of screen (definition and color depth).
 
-Another set of key parametes are hardware related (graphical IO, frame buffer location), which are not yet covered in this document.
+Another set of key parameters are hardware related (graphical IO, frame buffer location), which are not yet covered in this document.
 
 ### LVGL Buffer configuration
 

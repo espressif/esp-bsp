@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -119,10 +119,10 @@ typedef void *hts221_handle_t;
 esp_err_t hts221_get_deviceid(hts221_handle_t sensor, uint8_t *const deviceid);
 
 /**
- * @brief Set configration of HTS221
+ * @brief Set configuration of HTS221
  *
  * @param sensor object handle of hts221
- * @param[in] hts221_config a structure pointer of configration
+ * @param[in] hts221_config a structure pointer of configuration
  *
  * @return
  *     - ESP_OK Success
@@ -131,10 +131,10 @@ esp_err_t hts221_get_deviceid(hts221_handle_t sensor, uint8_t *const deviceid);
 esp_err_t hts221_set_config(hts221_handle_t sensor, const hts221_config_t *const hts221_config);
 
 /**
- * @brief Get configration of HTS221
+ * @brief Get configuration of HTS221
  *
  * @param sensor object handle of hts221
- * @param[out] hts221_config a structure pointer of configration
+ * @param[out] hts221_config a structure pointer of configuration
  *
  * @return
  *     - ESP_OK Success
@@ -202,7 +202,7 @@ esp_err_t hts221_set_avgt(hts221_handle_t sensor, const hts221_avgt_t avgt);
  * @brief Enable block data update
  *
  * @param sensor object handle of hts221
- * @param[in] status enable/diable status
+ * @param[in] status enable/disable status
  *
  * @return
  *     - ESP_OK Success
@@ -214,7 +214,7 @@ esp_err_t hts221_set_bdumode(hts221_handle_t sensor, const bool status);
  * @brief Enable heater
  *
  * @param sensor object handle of hts221
- * @param[in] status enable/diable status
+ * @param[in] status enable/disable status
  *
  * @return
  *     - ESP_OK Success
@@ -274,7 +274,7 @@ hts221_handle_t hts221_create(const i2c_port_t port);
  * This function verifies content of WHO_AM_I register, loads calibration data into RAM, configures and activates the device.
  *
  * @param sensor object handle of hts221
- * @param[in] hts221_config a structure pointer of configration
+ * @param[in] hts221_config a structure pointer of configuration
  *
  * @return
  *     - ESP_OK Success

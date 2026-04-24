@@ -1091,7 +1091,7 @@ For LCD panel button which is defined as BSP\_BUTTON\_MAIN, bsp\_display\_start 
 
 * ESP\_OK All buttons initialized
 * ESP\_ERR\_INVALID\_ARG btn\_array is too small or NULL
-* ESP\_FAIL Underlaying iot\_button\_create failed
+* ESP\_FAIL Underlying iot\_button\_create failed
 
 
 

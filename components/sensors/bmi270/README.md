@@ -12,7 +12,7 @@
 ### Limitations
 
 - Missing implementation of the SPI interface.
-- Advanced features such as gesture control, FIFO buffering, interrupt on data ready and auxilary interface are not supported.
+- Advanced features such as gesture control, FIFO buffering, interrupt on data ready and auxiliary interface are not supported.
 
 ## Integration guide
 

@@ -1460,7 +1460,7 @@ Returned button handlers must be used with espressif/button component API
 
 * ESP\_OK All buttons initialized
 * ESP\_ERR\_INVALID\_ARG btn\_array is too small or NULL
-* ESP\_FAIL Underlaying iot\_button\_create failed
+* ESP\_FAIL Underlying iot\_button\_create failed
 
 
 

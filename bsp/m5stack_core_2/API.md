@@ -690,7 +690,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init (
 
 **Returns:**
 
-Pointer to codec device handle or NULL when error occured
+Pointer to codec device handle or NULL when error occurred
 ### function `bsp_audio_get_codec_itf`
 
 _Get codec I2S interface (initialized in bsp\_audio\_init)_
@@ -705,7 +705,7 @@ const audio_codec_data_if_t * bsp_audio_get_codec_itf (
 
 
 
-* Pointer to codec I2S interface handle or NULL when error occured
+* Pointer to codec I2S interface handle or NULL when error occurred
 ### function `bsp_audio_init`
 
 _Init audio._
@@ -1156,7 +1156,7 @@ This function initializes SPI, display controller and starts LVGL handling task.
 
 **Returns:**
 
-Pointer to LVGL display or NULL when error occured
+Pointer to LVGL display or NULL when error occurred
 ### function `bsp_display_start_with_config`
 
 _Initialize display._
@@ -1179,7 +1179,7 @@ This function initializes SPI, display controller and starts LVGL handling task.
 
 **Returns:**
 
-Pointer to LVGL display or NULL when error occured
+Pointer to LVGL display or NULL when error occurred
 ### function `bsp_display_unlock`
 
 _Give LVGL mutex._

@@ -18,7 +18,7 @@ C driver for Invensense MPU6050 6-axis gyroscope and accelerometer based on I2C 
 ## Important Notes
 
 - Keep in mind that MPU6050 I2C address depends on the level of its AD0 pin (9) (0x68 when low, 0x69 when high).
-- In order to receive MPU6050 interrupts, its INT pin (12) must be conneced to a GPIO on the ESP32.
+- In order to receive MPU6050 interrupts, its INT pin (12) must be connected to a GPIO on the ESP32.
 
 ## Limitations
 
