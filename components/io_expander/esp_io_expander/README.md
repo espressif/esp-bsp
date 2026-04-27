@@ -36,7 +36,7 @@ Supported wrapped APIs:
 - `gpio_get_level`
 - `gpio_set_direction` (supports `GPIO_MODE_INPUT`, `GPIO_MODE_OUTPUT`, `GPIO_MODE_OUTPUT_OD` if the chip supports high-Z write)
 - `gpio_set_pull_mode` (supports `GPIO_PULLUP_ONLY`, `GPIO_PULLDOWN_ONLY` if the chip supports pulldown select, and `GPIO_FLOATING`)
-- `gpio_config` 
+- `gpio_config`
 - `gpio_reset_pin` (supported only as wrapper for compatibility - no function)
 
 Example:
@@ -60,6 +60,3 @@ ESP_ERROR_CHECK(esp_io_expander_gpio_wrapper_remove_handler(ioexp));
 ### Future
 
 - Interrupt mode
-
-
-

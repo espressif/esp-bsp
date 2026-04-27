@@ -1,4 +1,4 @@
-# BSP: Custom board for SquareLine Studio - WaveShare 7inch LCD 
+# BSP: Custom board for SquareLine Studio - WaveShare 7inch LCD
 
 This is an example how to make custom BSP and generate custom board for SquareLine Studio. Follow these steps to modify this example for your board.
 

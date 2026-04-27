@@ -6,7 +6,7 @@ C driver for QST QMA6100P 3-axis accelerometer based on I2C communication.
 
 ## Features
 
-- Get 3-axis accelerometer data, either raw or as floating point values. 
+- Get 3-axis accelerometer data, either raw or as floating point values.
 - Configure accelerometer sensitivity.
 - Support for QMA6100P interrupt generation when data ready (occurs each time a write to all sensor data registers has been completed).
 

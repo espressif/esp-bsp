@@ -32,5 +32,3 @@ In this mode HTS221 asserts DRDY pin when new data of either temperature or humi
 > Note: This mode is only available if the DRDY pin of HTS221 is connected to MCU.
 
 After calling `hts221_create()` and `hts221_init()`, the DRDY mode is enabled by calling `hts221_drdy_enable()` which registers a user's new data function callback.
-
-

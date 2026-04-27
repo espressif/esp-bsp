@@ -1,4 +1,4 @@
-menu "Board Support Package(m5stack_tab5)"
+menu "Board Support Package (m5stack_tab5)"
 
     config BSP_ERROR_CHECK
         bool "Enable error check in BSP"
@@ -13,44 +13,46 @@ menu "Board Support Package(m5stack_tab5)"
             help
                 Pick the I2C you want to use.
     endmenu
-    menu "SPIFFS - Virtual File System"
-        config BSP_SPIFFS_FORMAT_ON_MOUNT_FAIL
-            bool "Format SPIFFS if mounting fails"
-            default n
-            help
-                Format SPIFFS if it fails to mount the filesystem.
+    menu "Storage"
+        menu "SPIFFS - Virtual File System"
+            config BSP_SPIFFS_FORMAT_ON_MOUNT_FAIL
+                bool "Format SPIFFS if mounting fails"
+                default n
+                help
+                    Format SPIFFS if it fails to mount the filesystem.
 
-        config BSP_SPIFFS_MOUNT_POINT
-            string "SPIFFS mount point"
-            default "/spiffs"
-            help
-                Mount point of SPIFFS in the Virtual File System.
+            config BSP_SPIFFS_MOUNT_POINT
+                string "SPIFFS mount point"
+                default "/spiffs"
+                help
+                    Mount point of SPIFFS in the Virtual File System.
 
-        config BSP_SPIFFS_PARTITION_LABEL
-            string "Partition label of SPIFFS"
-            default "storage"
-            help
-                Partition label which stores SPIFFS.
+            config BSP_SPIFFS_PARTITION_LABEL
+                string "Partition label of SPIFFS"
+                default "storage"
+                help
+                    Partition label which stores SPIFFS.
 
-        config BSP_SPIFFS_MAX_FILES
-            int "Max files supported for SPIFFS VFS"
-            default 5
-            help
-                Supported max files for SPIFFS in the Virtual File System.
-    endmenu
-    menu "SD card - Virtual File System"
-        config BSP_SD_FORMAT_ON_MOUNT_FAIL
-            bool "Format SD card if mounting fails"
-            default n
-            help
-                The SDMMC host will format (FAT) the SD card if it fails to mount the filesystem.
+            config BSP_SPIFFS_MAX_FILES
+                int "Max files supported for SPIFFS VFS"
+                default 5
+                help
+                    Supported max files for SPIFFS in the Virtual File System.
+        endmenu
+        menu "SD card - Virtual File System"
+            config BSP_SD_FORMAT_ON_MOUNT_FAIL
+                bool "Format SD card if mounting fails"
+                default n
+                help
+                    The SDMMC host will format (FAT) the SD card if it fails to mount the filesystem.
 
-        config BSP_SD_MOUNT_POINT
-            string "SD card mount point"
-            default "/sdcard"
-            help
-                Mount point of the SD card in the Virtual File System
+            config BSP_SD_MOUNT_POINT
+                string "SD card mount point"
+                default "/sdcard"
+                help
+                    Mount point of the SD card in the Virtual File System
 
+        endmenu
     endmenu
     menu "Display"
         config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
@@ -73,6 +75,11 @@ menu "Board Support Package(m5stack_tab5)"
         default y
         help
             Whether to enable double framebuf.
+        config BSP_LCD_USE_DMA2D
+            bool "Select whether to use DMA2D"
+            default "y"
+            help
+                Select whether to use DMA2D to draw the bitmap.
         config BSP_LCD_DPI_BUFFER_NUMS
             int "Set number of frame buffers"
             default 1
@@ -96,18 +103,15 @@ menu "Board Support Package(m5stack_tab5)"
             config BSP_DISPLAY_LVGL_DIRECT_MODE
                 bool "Direct mode"
         endchoice
-
-        config BSP_LCD_USE_DMA2D
-            bool "Select whether to use DMA2D"
-            default "y"
-            help
-                Select whether to use DMA2D to draw the bitmap.
-
     endmenu
-    config BSP_I2S_NUM
-        int "I2S peripheral index"
-        default 1
-        range 0 2
-        help
-            Pick the I2S you want to use.
+    menu "Camera"
+    endmenu
+    menu "Audio"
+        config BSP_I2S_NUM
+            int "I2S peripheral index"
+            default 1
+            range 0 2
+            help
+                Pick the I2S you want to use.
+    endmenu
 endmenu

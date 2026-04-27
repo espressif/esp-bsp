@@ -5,7 +5,7 @@
  */
 #pragma once
 
-static const ili9881c_lcd_init_cmd_t disp_init_data[] = {
+static const ili9881c_lcd_init_cmd_t disp_init_data_ili9881c[] = {
     // {cmd, { data }, data_size, delay}
 
     /**** CMD_Page 1 ****/

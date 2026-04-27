@@ -42,4 +42,3 @@ examples:
   - path: ../../examples/display_rotation
   - path: ../../examples/display_lvgl_demos
   - path: ../../examples/display_camera_video
-

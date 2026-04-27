@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -22,6 +22,7 @@
 #include "esp_codec_dev.h"
 #include "bsp/display.h"
 #include "esp_io_expander.h"
+#include "iot_sensor_hub.h"
 
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
@@ -58,7 +59,8 @@
 #define BSP_CAPS_LED              0
 #define BSP_CAPS_CAMERA           1
 #define BSP_CAPS_BAT              0
-#define BSP_CAPS_IMU              0
+#define BSP_CAPS_IMU              1
+#define BSP_CAPS_HUMITURE         0
 /** @} */ // end of capabilities
 
 /**************************************************************************************************
@@ -93,7 +95,7 @@
 #define BSP_LCD_RST          (GPIO_NUM_NC)
 #define BSP_LCD_BACKLIGHT    (GPIO_NUM_22)
 #define BSP_LCD_EN           (IO_EXPANDER_PIN_NUM_4)
-#define BSP_LCD_TOUCH_INT    (GPIO_NUM_NC)
+#define BSP_LCD_TOUCH_INT    (GPIO_NUM_23)
 #define BSP_TOUCH_EN         (IO_EXPANDER_PIN_NUM_5)
 /** @} */ // end of display
 
@@ -320,7 +322,7 @@ typedef struct {
 esp_err_t bsp_sdcard_mount(void);
 
 /**
- * @brief Unmount micorSD card from virtual file system
+ * @brief Unmount microSD card from virtual file system
  *
  * @return
  *      - ESP_OK on success
@@ -410,7 +412,7 @@ esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
  * LCD interface
  *
  * LVGL is used as graphics library. LVGL is NOT thread safe, therefore the user must take LVGL mutex
- * by calling bsp_display_lock() before calling and LVGL API (lv_...) and then give the mutex with
+ * by calling bsp_display_lock() before calling any LVGL API (lv_...) and then give the mutex with
  * bsp_display_unlock().
  *
  * Display's backlight must be enabled explicitly by calling bsp_display_backlight_on()
@@ -419,7 +421,7 @@ esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 
 /**
- * @brief BSP display configuration structure
+ * @brief BSP display (LVGL) configuration structure
  */
 typedef struct {
     lvgl_port_cfg_t lvgl_port_cfg;  /*!< LVGL port configuration */
@@ -513,7 +515,7 @@ void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
 
 /** @} */ // end of display
 
-/** @addtogroup g12_camera
+/** \addtogroup g12_camera
  *  @{
  */
 
@@ -526,6 +528,8 @@ void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
  **************************************************************************************************/
 
 #define BSP_CAMERA_DEVICE             (ESP_VIDEO_MIPI_CSI_DEVICE_NAME)
+#define BSP_CAMERA_VFLIP              (0)
+#define BSP_CAMERA_HFLIP              (0)
 #define BSP_CAMERA_ROTATION           (270)
 
 /**
@@ -655,7 +659,52 @@ esp_err_t bsp_usb_host_stop(void);
  */
 esp_io_expander_handle_t bsp_io_expander_init(void);
 
+/**
+ * @brief Init second IO expander
+ * @note If the device was already initialized, users can also call it to get handle
+ *
+ * @return Pointer to device handle or NULL when error occurred
+ */
+esp_io_expander_handle_t bsp_io_expander1_init(void);
+
 /** @} */ // end of others
+
+/** @defgroup g10_sensors Sensors
+ *  @brief BSP API for sensors
+ *  @{
+ */
+
+/**************************************************************************************************
+*
+* Sensors API
+*
+* Available sensors:
+*  - IMU: bmi270
+*
+* More information in display_sensors example
+*
+**************************************************************************************************/
+
+/**
+ * @brief BSP sensor configuration structure
+ */
+typedef struct {
+    sensor_type_t type;
+    sensor_mode_t mode;
+    uint16_t period;
+} bsp_sensor_config_t;
+
+/**
+ * @brief Initialize a sensor
+ *
+ * @param[in]  cfg              Pointer to the sensor configuration
+ * @param[out] sensor_handle    Pointer to the outgoing sensor handle
+ * @return
+ *     - ESP_OK on success, otherwise returns ESP_ERR_xxx
+ */
+esp_err_t bsp_sensor_init(const bsp_sensor_config_t *cfg, sensor_handle_t *sensor_handle);
+
+/** @} */ // end of sensors
 
 #ifdef __cplusplus
 }

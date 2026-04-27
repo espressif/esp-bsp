@@ -7,7 +7,7 @@ C driver for Invensense ICM42607/ICM42670 6-axis gyroscope and accelerometer bas
 
 ## Features
 
-- Get 3-axis accelerometer and 3-axis gyroscope data, either raw or as floating point values. 
+- Get 3-axis accelerometer and 3-axis gyroscope data, either raw or as floating point values.
 - Read temperature from ICM42607/ICM42670 internal temperature sensor.
 - Configure gyroscope and accelerometer sensitivity.
 - ICM42607/ICM42670 power down mode.

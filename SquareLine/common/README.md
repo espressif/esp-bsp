@@ -22,4 +22,3 @@ I (475) ESP-BOX: Starting LVGL task
 I (475) ESP-BOX: Setting LCD backlight: 50%
 I (515) ESP-BOX: Example initialization done.
 ```
-

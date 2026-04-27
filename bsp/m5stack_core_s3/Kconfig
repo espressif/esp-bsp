@@ -55,7 +55,7 @@ menu "Board Support Package (M5Stack Core S3)"
         endmenu
     endmenu
     menu "Display"
-                
+
         config BSP_LCD_DRAW_BUF_HEIGHT
         int "LCD framebuf height"
         default 100
