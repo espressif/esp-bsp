@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -205,7 +205,7 @@ esp_err_t bsp_audio_init(const i2s_std_config_t *i2s_config);
  * @brief Get es8311 codec I2S interface (initialized in bsp_audio_init)
  *
  * @return
- *      - Pointer to codec I2S interface handle or NULL when error occured
+ *      - Pointer to codec I2S interface handle or NULL when error occurred
  */
 const audio_codec_data_if_t *bsp_audio_get_codec_itf_spk(void);
 
@@ -213,7 +213,7 @@ const audio_codec_data_if_t *bsp_audio_get_codec_itf_spk(void);
  * @brief Get es7210 codec I2S interface (initialized in bsp_audio_init)
  *
  * @return
- *      - Pointer to codec I2S interface handle or NULL when error occured
+ *      - Pointer to codec I2S interface handle or NULL when error occurred
  */
 const audio_codec_data_if_t *bsp_audio_get_codec_itf_mic(void);
 
@@ -336,7 +336,7 @@ adc_oneshot_unit_handle_t bsp_adc_get_handle(void);
  * @return
  *     - ESP_OK               All buttons initialized
  *     - ESP_ERR_INVALID_ARG  btn_array is too small or NULL
- *     - ESP_FAIL             Underlaying iot_button_create failed
+ *     - ESP_FAIL             Underlying iot_button_create failed
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 

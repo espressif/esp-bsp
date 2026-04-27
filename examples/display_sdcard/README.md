@@ -4,7 +4,7 @@
 <tr><td valign="top">
 
 This example shows how you can interact with a display and perform reads and writes to an SD card.
-By default, the SD card is interfaced using the SDMMC inteface.
+By default, the SD card is interfaced using the SDMMC interface.
 
 </td><td width="200" valign="top">
   <img src="/examples/display_sdcard/doc/pic.webp">

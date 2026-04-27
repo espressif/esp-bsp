@@ -44,7 +44,7 @@ esp_err_t esp_io_expander_new_i2c_aw9523(i2c_master_bus_handle_t i2c_bus, uint32
  *  |  1  |  0  |  1  |  1  |  0  | AD1 | AD0 | R/W |
  *  └─────┘─────┘─────┘─────┘─────┘─────┘─────┘─────┘
  *     └────────┯────────────-─┘    └──┯────┘
- *           (Fixed)        (Hareware Selectable)
+ *           (Fixed)        (Hardware Selectable)
  *
  * And the 7-bit slave address is the most important data for users.
  * For example, if a chip's AD0,AD1 are connected to GND, it's 7-bit slave address is 1011000b(0x58).

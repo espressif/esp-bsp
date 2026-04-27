@@ -787,7 +787,7 @@ const audio_codec_data_if_t * bsp_audio_get_codec_itf_mic (
 
 
 
-* Pointer to codec I2S interface handle or NULL when error occured
+* Pointer to codec I2S interface handle or NULL when error occurred
 ### function `bsp_audio_get_codec_itf_spk`
 
 _Get es8311 codec I2S interface (initialized in bsp\_audio\_init)_
@@ -802,7 +802,7 @@ const audio_codec_data_if_t * bsp_audio_get_codec_itf_spk (
 
 
 
-* Pointer to codec I2S interface handle or NULL when error occured
+* Pointer to codec I2S interface handle or NULL when error occurred
 ### function `bsp_audio_init`
 
 _Init audio._
@@ -949,7 +949,7 @@ Returned button handlers must be used with espressif/button component API
 
 * ESP\_OK All buttons initialized
 * ESP\_ERR\_INVALID\_ARG btn\_array is too small or NULL
-* ESP\_FAIL Underlaying iot\_button\_create failed
+* ESP\_FAIL Underlying iot\_button\_create failed
 
 
 

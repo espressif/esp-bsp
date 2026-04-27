@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -72,10 +72,10 @@ typedef enum {
 } icm42670_acce_odr_t;
 
 typedef enum {
-    GYRO_FS_2000DPS = 0,     /*!< Gyroscope full scale range is +/- 2000 degree per sencond */
-    GYRO_FS_1000DPS = 1,     /*!< Gyroscope full scale range is +/- 1000 degree per sencond */
-    GYRO_FS_500DPS  = 2,     /*!< Gyroscope full scale range is +/- 500 degree per sencond */
-    GYRO_FS_250DPS  = 3,     /*!< Gyroscope full scale range is +/- 250 degree per sencond */
+    GYRO_FS_2000DPS = 0,     /*!< Gyroscope full scale range is +/- 2000 degree per second */
+    GYRO_FS_1000DPS = 1,     /*!< Gyroscope full scale range is +/- 1000 degree per second */
+    GYRO_FS_500DPS  = 2,     /*!< Gyroscope full scale range is +/- 500 degree per second */
+    GYRO_FS_250DPS  = 3,     /*!< Gyroscope full scale range is +/- 250 degree per second */
 } icm42670_gyro_fs_t;
 
 typedef enum {
@@ -288,7 +288,7 @@ esp_err_t icm42670_get_gyro_value(icm42670_handle_t sensor, icm42670_value_t *va
 esp_err_t icm42670_get_temp_value(icm42670_handle_t sensor, float *value);
 
 /**
- * @brief use complimentory filter to caculate roll and pitch
+ * @brief use complimentory filter to calculate roll and pitch
  *
  * @param acce_value accelerometer measurements
  * @param gyro_value gyroscope measurements

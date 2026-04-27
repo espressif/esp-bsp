@@ -1071,7 +1071,7 @@ This function initializes SPI, display controller and starts LVGL handling task.
 
 **Returns:**
 
-Pointer to LVGL display or NULL when error occured
+Pointer to LVGL display or NULL when error occurred
 ### function `bsp_display_start_with_config`
 
 _Initialize display._
@@ -1094,7 +1094,7 @@ This function initializes SPI, display controller and starts LVGL handling task.
 
 **Returns:**
 
-Pointer to LVGL display or NULL when error occured
+Pointer to LVGL display or NULL when error occurred
 ### function `bsp_display_unlock`
 
 _Give LVGL mutex._

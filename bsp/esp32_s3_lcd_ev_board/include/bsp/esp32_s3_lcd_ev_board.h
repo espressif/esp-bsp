@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -290,7 +290,7 @@ esp_io_expander_handle_t bsp_io_expander_init(void);
  * @brief Init audio
  *
  * @note  There is no deinit audio function. Users can free audio resources by calling `i2s_del_channel()`.
- * @note  This function wiil call `bsp_io_expander_init()` to setup and enable the control pin of audio power amplifier.
+ * @note  This function will call `bsp_io_expander_init()` to setup and enable the control pin of audio power amplifier.
  * @note  This function will be called in `bsp_audio_codec_speaker_init()` and `bsp_audio_codec_microphone_init()`.
  *
  * @param[in] i2s_config I2S configuration. Pass NULL to use default values (Mono, duplex, 16bit, 22050 Hz)
@@ -480,7 +480,7 @@ void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation);
  * Button Interface
  *
  * There are two buttons on ESP32-S3-LCD-EV-Board:
- *  - Reset: Not programable
+ *  - Reset: Not programmable
  *  - Boot:  Controls boot mode during reset. Can be programmed after application starts
  *
  **************************************************************************************************/
@@ -522,7 +522,7 @@ __attribute__((deprecated("use espressif/button API instead")));
  * @return
  *     - ESP_OK               All buttons initialized
  *     - ESP_ERR_INVALID_ARG  btn_array is too small or NULL
- *     - ESP_FAIL             Underlaying iot_button_create failed
+ *     - ESP_FAIL             Underlying iot_button_create failed
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 
