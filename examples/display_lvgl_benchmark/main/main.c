@@ -21,6 +21,12 @@ static char *TAG = "app_main";
 
 #define LOG_MEM_INFO    (0)
 
+void benchmark_end_cb(const lv_demo_benchmark_summary_t *summary)
+{
+    lv_demo_benchmark_summary_display(summary);
+    ESP_LOGI(TAG, "LVGL demo ended");
+}
+
 void app_main(void)
 {
     /* Initialize display and LVGL */
@@ -82,6 +88,8 @@ void app_main(void)
 
     /* Set display brightness to 100% */
     bsp_display_backlight_on();
+
+    lv_demo_benchmark_set_end_cb(benchmark_end_cb);
 
     ESP_LOGI(TAG, "Display LVGL demo");
     bsp_display_lock(0);

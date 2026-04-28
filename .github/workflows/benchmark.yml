@@ -1,0 +1,136 @@
+name: Run LVGL benchmarks and publish their outputs
+
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: '0 20 * * SAT'
+  workflow_dispatch:
+  # TODO: Remove
+  pull_request:
+    types: [opened, reopened, synchronize, labeled]
+
+permissions:
+  checks: write
+
+jobs:
+  build_benchmarks:
+    env:
+      BENCHMARK_PROJECT_DIR: "examples/display_lvgl_benchmark"
+    runs-on: ubuntu-latest
+    container: espressif/idf:release-v5.5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build benchmark binaries
+        shell: bash
+        run: |
+          export IDF_PYTHON_CHECK_CONSTRAINTS=yes
+          ${IDF_PATH}/install.sh --enable-ci
+          source ${IDF_PATH}/export.sh
+
+          idf-build-apps build \
+                --path ${{ env.BENCHMARK_PROJECT_DIR }} \
+                --target all \
+                --size-json-filename size.json \
+                --collect-app-info build_info.json
+      - uses: actions/upload-artifact@v7
+        if: github.repository_owner == 'espressif'
+        with:
+          name: app_binaries
+          path: |
+            ${{ env.BENCHMARK_PROJECT_DIR }}/build_*/bootloader/bootloader.bin
+            ${{ env.BENCHMARK_PROJECT_DIR }}/build_*/partition_table/partition-table.bin
+            ${{ env.BENCHMARK_PROJECT_DIR }}/build_*/*.bin
+            ${{ env.BENCHMARK_PROJECT_DIR }}/build_*/size.json
+            ${{ env.BENCHMARK_PROJECT_DIR }}/build_*/flasher_args.json
+            ${{ env.BENCHMARK_PROJECT_DIR }}/build_*/config/sdkconfig.json
+            build_info*.json
+
+  run_benchmarks:
+    name: Run benchmarks
+    if: github.repository_owner == 'espressif'
+    needs: build_benchmarks
+    strategy:
+      matrix:
+        idf_ver:
+          - "release-v5.5"
+    env:
+      BENCHMARK_PROJECT_DIR: "examples/display_lvgl_benchmark"
+      TEST_RESULT_NAME: test_results_lvgl_benchmarks
+    runs-on: [self-hosted, Linux, bspwall]
+    container:
+      image: espressif/idf:${{ matrix.idf_ver }}
+      options: --privileged -v /dev/boards:/dev/boards/
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: app_binaries
+          # Restores artifacts to their original paths
+          merge-multiple: true
+      - name: Run apps
+        run: |
+          export IDF_PYTHON_CHECK_CONSTRAINTS=yes
+          ${IDF_PATH}/install.sh --enable-ci --enable-pytest
+          . ${IDF_PATH}/export.sh
+          pip install --prefer-binary pytest-custom_exit_code pytest-xdist
+
+          export PYTEST_EMBEDDED_CACHE_DIR=/tmp/pytest-embedded-cache-dummy
+          mkdir -p /tmp/pytest-embedded-cache-dummy
+          # Run benchmarks with custom config
+          pytest \
+            ${{ env.BENCHMARK_PROJECT_DIR }}/pytest_display_lvgl_benchmark.py \
+            -c pytest.ini \
+            --suppress-no-test-exit-code \
+            --junit-xml=${{ env.TEST_RESULT_NAME }}.xml \
+            -p no:idf-ci \
+            --ignore-glob '*/managed_components/*' \
+            --ignore=.github \
+            -n auto
+      - name: Combine reports into metrics
+        run: python .github/ci/merge_metrics.py ${{ env.BENCHMARK_PROJECT_DIR }}
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: ${{ env.TEST_RESULT_NAME }}
+          path: |
+            ${{ env.BENCHMARK_PROJECT_DIR }}/build_*/benchmark_*.json
+            ${{ env.BENCHMARK_PROJECT_DIR }}/build_*/size.json
+            *.log
+      - name: Upload benchmark metrics
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: benchmark_metrics
+          path: |
+            ${{ env.BENCHMARK_PROJECT_DIR }}/build_*/metrics*.json
+  upload_metrics:
+    runs-on: ubuntu-latest
+    needs: run_benchmarks
+    env:
+      ESP_METRICS_S3_SERVER: https://idf-s3.espressif.cn:9000
+      ESP_METRICS_S3_ACCESS_KEY: ${{ secrets.ESP_METRICS_S3_ACCESS_KEY }}
+      ESP_METRICS_S3_SECRET_KEY: ${{ secrets.ESP_METRICS_S3_SECRET_KEY }}
+      ESP_METRICS_S3_LONG_TERM_BUCKET: longterm
+      ESP_METRICS_S3_SHORT_TERM_BUCKET: idf-artifacts
+      ESP_METRICS_PROJECT_URL: ${{ github.server_url }}/${{ github.repository }}
+      ESP_METRICS_PROJECT_ID: ${{ github.repository_id }}
+      ESP_METRICS_COMMIT_SHA: ${{ github.sha }}
+      ESP_METRICS_BRANCH_NAME: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: benchmark_metrics
+      - uses: actions/setup-python@v6
+        with: { python-version: "3.10" }
+      - run: pip install --no-cache-dir esp-metrics-cli
+      - name: metrics
+        run: |
+          for file in build_*/metrics*.json; do
+            esp-metrics-cli validate -d .github/ci/benchmark_schema.yaml -i $file --verbose
+            esp-metrics-cli upload   -d .github/ci/benchmark_schema.yaml -i $file --verbose
+          done
