@@ -26,7 +26,7 @@
 
 #include "bsp/m5stack_tab5.h"
 
-static const char *TAG = "m5stack_tab5";
+static const char *TAG = "M5Stack Tab5";
 
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)

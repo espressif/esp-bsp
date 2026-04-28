@@ -10,7 +10,7 @@
 
 #include "bsp/m5stack_tab5.h"
 
-static const char *TAG = "m5stack_tab5";
+static const char *TAG = "M5Stack Tab5";
 static TaskHandle_t usb_host_task;  // USB Host Library task
 
 static void usb_lib_task(void *arg)

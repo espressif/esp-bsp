@@ -8,7 +8,7 @@
 #include "bsp/m5stack_tab5.h"
 #include "bmi270.h"
 
-static const char *TAG = "m5stack_tab5";
+static const char *TAG = "M5Stack Tab5";
 
 esp_err_t bsp_sensor_init(const bsp_sensor_config_t *cfg, sensor_handle_t *sensor_handle)
 {

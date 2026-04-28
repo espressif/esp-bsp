@@ -10,7 +10,7 @@
 #include "esp_codec_dev_defaults.h"
 #include "bsp/m5stack_tab5.h"
 
-static const char *TAG = "m5stack_tab5";
+static const char *TAG = "M5Stack Tab5";
 
 /* Can be used for i2s_std_gpio_config_t and/or i2s_std_config_t initialization */
 #define BSP_I2S_GPIO_CFG       \
