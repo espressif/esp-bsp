@@ -79,6 +79,8 @@ esp_err_t esp_lcd_touch_new_i2c_cst816s(const esp_lcd_panel_io_handle_t io, cons
             .pin_bit_mask = BIT64(cst816s->config.rst_gpio_num)
         };
         ESP_GOTO_ON_ERROR(gpio_config(&rst_gpio_config), err, TAG, "GPIO reset config failed");
+    } else if (cst816s->config.reset_cb ) {
+        ESP_GOTO_ON_ERROR( cst816s->config.reset_cb( &cst816s->config ), err, TAG, "reset callback failed");
     }
     /* Reset controller */
     ESP_GOTO_ON_ERROR(touch_cst816s_reset(cst816s), err, TAG, "Reset failed");

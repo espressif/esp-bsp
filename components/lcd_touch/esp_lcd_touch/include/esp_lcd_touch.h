@@ -40,12 +40,14 @@ typedef void (*esp_lcd_touch_interrupt_callback_t)(esp_lcd_touch_handle_t tp);
  * @brief Touch Configuration Type
  *
  */
-typedef struct {
+typedef struct esp_lcd_touch_config_s {
     uint16_t x_max; /*!< X coordinates max (for mirroring) */
     uint16_t y_max; /*!< Y coordinates max (for mirroring) */
 
     gpio_num_t rst_gpio_num;    /*!< GPIO number of reset pin */
     gpio_num_t int_gpio_num;    /*!< GPIO number of interrupt pin */
+
+    esp_err_t (*reset_cb)( struct esp_lcd_touch_config_s * );
 
     struct {
         unsigned int reset: 1;    /*!< Level of reset pin in reset */
