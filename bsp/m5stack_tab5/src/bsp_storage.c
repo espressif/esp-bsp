@@ -14,7 +14,7 @@
 
 #include "bsp/m5stack_tab5.h"
 
-static const char *TAG = "m5stack_tab5";
+static const char *TAG = "M5Stack Tab5";
 static sd_pwr_ctrl_handle_t pwr_ctrl_handle = NULL; //SD LDO handle
 static sdmmc_card_t *bsp_sdcard = NULL;    // Global uSD card handler
 static bool spi_sd_initialized = false;

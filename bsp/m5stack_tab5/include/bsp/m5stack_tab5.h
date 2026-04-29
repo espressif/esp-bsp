@@ -6,7 +6,7 @@
 
 /**
  * @file
- * @brief ESP BSP: m5stack_tab5
+ * @brief ESP BSP: M5Stack Tab5
  */
 
 #pragma once

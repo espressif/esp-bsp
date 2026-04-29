@@ -1,6 +1,6 @@
 
-version: "1.2.0"
-description: Board Support Package (BSP) for m5stack_tab5
+version: "1.2.0~1"
+description: Board Support Package (BSP) for M5Stack Tab5
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5stack_tab5
 
 targets:
@@ -8,6 +8,7 @@ targets:
 
 tags:
   - bsp
+  - M5Stack
 
 dependencies:
   idf: ">=5.4"

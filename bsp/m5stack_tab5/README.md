@@ -1,4 +1,4 @@
-# BSP: m5stack_tab5
+# BSP: M5Stack Tab5
 
 | [HW Reference](https://docs.m5stack.com/en/core/Tab5) | [HOW TO USE API](API.md) | [EXAMPLES](#compatible-bsp-examples) | [![Component Registry](https://components.espressif.com/components/espressif/m5stack_core_s3/badge.svg)](https://components.espressif.com/components/espressif/m5stack_core_s3) | ![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg) |
 | --- | --- | --- | --- | -- |
