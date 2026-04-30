@@ -13,6 +13,9 @@
 
 #include "esp_log.h"
 #include "bsp/esp-bsp.h"
+#ifdef BSP_GRAPHICS
+#include "esp_bsp_graphics.h"
+#endif
 #include "app_disp_fs.h"
 
 static const char *TAG = "example";

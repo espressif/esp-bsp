@@ -192,6 +192,28 @@ esp_err_t bsp_display_backlight_on(void);
  */
 esp_err_t bsp_display_backlight_off(void);
 
+/**
+ * @brief Set display enter sleep mode
+ *
+ * All the display (LCD, backlight, touch) will enter sleep mode.
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_NOT_SUPPORTED if this function is not supported by the panel
+ */
+esp_err_t bsp_display_enter_sleep(void);
+
+/**
+ * @brief Set display exit sleep mode
+ *
+ * All the display (LCD, backlight, touch) will exit sleep mode.
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_ERR_NOT_SUPPORTED if this function is not supported by the panel
+ */
+esp_err_t bsp_display_exit_sleep(void);
+
 #ifdef __cplusplus
 }
 #endif

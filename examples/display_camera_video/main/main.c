@@ -15,6 +15,9 @@
 #include <string.h>
 #include "sdkconfig.h"
 #include "bsp/esp-bsp.h"
+#ifdef BSP_GRAPHICS
+#include "esp_bsp_graphics.h"
+#endif
 #include "esp_err.h"
 #include "esp_log.h"
 #include <fcntl.h>

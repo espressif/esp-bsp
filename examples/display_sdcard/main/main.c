@@ -26,6 +26,9 @@
 // Functionality which is only supported with display is hidden under BSP_CAPS_DISPLAY
 #if(BSP_CAPS_DISPLAY)
 #include "example_display.h"
+#ifdef BSP_GRAPHICS
+#include "esp_bsp_graphics.h"
+#endif
 #endif
 
 #define EXAMPLE_READ_BUF_SIZE       64

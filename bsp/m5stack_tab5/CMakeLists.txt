@@ -11,3 +11,6 @@ idf_component_register(
     REQUIRES ${REQ}
     PRIV_REQUIRES esp_psram ${PRIV_REQ}
 )
+
+# BSP Name Alias
+add_library(esp_bsp::core ALIAS ${COMPONENT_LIB})

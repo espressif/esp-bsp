@@ -68,9 +68,20 @@ def action_extensions(base_actions, project_path=os.getcwd()):
             if bsp_short_name(dep) in bsps:
                 del manifest['dependencies'][dep]
 
+        # Try to remove BSP Graphics LVGL
+        try:
+            del manifest['dependencies']["bsp_graphics_lvgl"]
+        except KeyError:
+            print("Could not remove bsp_graphics_lvgl")
+
         # Add the one we need
         manifest['dependencies'].insert(0, bsp, {'version': '*', 'override_path': ('../../../bsp/' + bsp_short_name(bsp))})
         yaml.dump(manifest, manifest_path)
+
+        # Add BSP Graphics LVGL if supported
+        if bsp_short_name(bsp) == "m5stack_tab5":
+            manifest['dependencies'].insert(0, "bsp_graphics_lvgl", {'version': '*', 'override_path': ('../../../components/bsp_graphics/bsp_graphics_lvgl')})
+            yaml.dump(manifest, manifest_path)
 
     extensions = {
         'global_action_callbacks': [global_callback],

@@ -8,6 +8,13 @@ tags:
 dependencies:
   idf : ">=5.3"
 
+  bsp_graphics_lvgl:
+    version: "*"
+    public: true
+    override_path: "../../components/bsp_graphics/bsp_graphics_lvgl"
+    matches:
+      - if: $CONFIG{BSP_SELECT_GLIB_SEL_LVGL} == 1 && $CONFIG{M5STACK_TAB5} == 1
+
   esp_bsp_devkit:
     version: "*"
     public: true
@@ -211,13 +218,7 @@ dependencies:
     public: true
     override_path: "../../bsp/m5stack_tab5"
     matches:
-      - if: $CONFIG{M5STACK_TAB5} == 1 && $CONFIG{BSP_SELECT_GLIB_SEL} == 1
-
-  m5stack_tab5_noglib:
-    version: "*"
-    public: true
-    matches:
-      - if: $CONFIG{M5STACK_TAB5} == 1 && $CONFIG{BSP_SELECT_GLIB_SEL} != 1
+      - if: $CONFIG{M5STACK_TAB5} == 1
 
   esp_vocat:
     version: "*"

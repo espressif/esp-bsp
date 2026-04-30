@@ -13,6 +13,9 @@
 
 #include <stdio.h>
 #include "bsp/esp-bsp.h"
+#ifdef BSP_GRAPHICS
+#include "esp_bsp_graphics.h"
+#endif
 #include "lvgl.h"
 #include "esp_log.h"
 

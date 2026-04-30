@@ -104,14 +104,25 @@ menu "BSP Selector"
 
     config BSP_SELECT_GLIB_SEL
         int
-        default 1 if BSP_SELECT_GLIB
+        default 0 if BSP_SELECT_GLIB_NONE
+        default 1
+
+    config BSP_SELECT_GLIB_SEL_LVGL
+        int
+        default 1 if BSP_SELECT_GLIB_LVGL
         default 0
 
-    config BSP_SELECT_GLIB
-        bool "Use GLIB version (with LVGL)"
-        default y
-        help
-            Yes, for use standard BSP. No, for use NoGLIB version of BSP.
+    choice BSP_SELECT_GLIB
+        prompt "Select Graphical Library"
+        default BSP_SELECT_GLIB_LVGL
+
+        config BSP_SELECT_GLIB_NONE
+            bool "NONE (NoGLIB)"
+
+        config BSP_SELECT_GLIB_LVGL
+            bool "LVGL"
+
+    endchoice
 
     choice BSP_SELECT
         prompt "Select BSP"
