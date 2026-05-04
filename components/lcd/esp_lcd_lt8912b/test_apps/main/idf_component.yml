@@ -1,0 +1,6 @@
+## IDF Component Manager Manifest File
+dependencies:
+  esp_lcd_lt8912b:
+    version: "*"
+    path: "../../../esp_lcd_lt8912b"
+  idf: ">=5.3"
