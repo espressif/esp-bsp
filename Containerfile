@@ -28,10 +28,14 @@ RUN existing_user=$(getent passwd $USER_UID | cut -d: -f1) && \
 USER $USERNAME
 WORKDIR /home/$USERNAME
 
+RUN git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
+
 RUN echo 'source /opt/esp/idf/export.sh' >> /home/$USERNAME/.zshrc && \
     echo 'sudo chown -R dev:dev /opt/esp/python_env' >> /home/$USERNAME/.zshrc && \
     echo 'export LANG=C' >> /home/$USERNAME/.zshrc && \
     echo 'export LC_ALL=C' >> /home/$USERNAME/.zshrc && \
+    echo 'source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh' >> /home/$USERNAME/.zshrc && \
+    echo 'bindkey "^ " autosuggest-accept' >> /home/$USERNAME/.zshrc && \
     echo 'eval "$(starship init zsh)"' >> /home/$USERNAME/.zshrc
 
 RUN mkdir -p /home/$USERNAME/workspace
