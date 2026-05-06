@@ -1,5 +1,8 @@
-version: "0.3.1"
+version: "0.3.1~1"
 description: DS18B20 device driver
 url: https://github.com/espressif/esp-bsp/tree/master/components/ds18b20
+tags:
+  - temperature
+  - one_wire
 dependencies:
   onewire_bus: "^1.1.0"
