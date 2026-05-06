@@ -823,7 +823,7 @@ menu "Board Support Package (generic)"
 
     menu "uSD card - Virtual File System"
         menu "Pins"
-            depends on (IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32P4)
+            depends on SOC_SDMMC_USE_GPIO_MATRIX
             config BSP_SD_CLK
                 int "uSD GPIO CLK"
                 default -1
@@ -964,6 +964,23 @@ menu "Board Support Package (generic)"
             int
             default ENV_GPIO_RANGE_MAX
     endif
+    if IDF_TARGET_ESP32C5
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 28
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
     if IDF_TARGET_ESP32C6
         config ENV_GPIO_RANGE_MIN
             int
@@ -972,7 +989,23 @@ menu "Board Support Package (generic)"
         config ENV_GPIO_RANGE_MAX
             int
             default 30
-            # GPIOs 16/17 are always used by UART in examples
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
+    if IDF_TARGET_ESP32C61
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 29
 
         config ENV_GPIO_IN_RANGE_MAX
             int
@@ -990,7 +1023,40 @@ menu "Board Support Package (generic)"
         config ENV_GPIO_RANGE_MAX
             int
             default 27
-            # GPIOs 23/24 are always used by UART in examples
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
+    if IDF_TARGET_ESP32H21
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 18
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
+    if IDF_TARGET_ESP32H4
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 39
 
         config ENV_GPIO_IN_RANGE_MAX
             int
@@ -1042,6 +1108,23 @@ menu "Board Support Package (generic)"
         config ENV_GPIO_RANGE_MAX
             int
             default 48
+
+        config ENV_GPIO_IN_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+
+        config ENV_GPIO_OUT_RANGE_MAX
+            int
+            default ENV_GPIO_RANGE_MAX
+    endif
+    if IDF_TARGET_ESP32S31
+        config ENV_GPIO_RANGE_MIN
+            int
+            default 0
+
+        config ENV_GPIO_RANGE_MAX
+            int
+            default 62
 
         config ENV_GPIO_IN_RANGE_MAX
             int
