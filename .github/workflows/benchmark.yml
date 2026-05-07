@@ -89,7 +89,11 @@ jobs:
             --ignore=.github \
             -n auto
       - name: Combine reports into metrics
-        run: python .github/ci/merge_metrics.py ${{ env.BENCHMARK_PROJECT_DIR }}
+        env:
+          IDF_VERSION: ${{ matrix.idf_ver }}
+        run: |
+          python .github/ci/metrics/merge_metrics.py ${{ env.BENCHMARK_PROJECT_DIR }}
+          cp ${{ env.BENCHMARK_PROJECT_DIR }}/bsp_metrics.json bsp_metrics.json
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v7
@@ -105,8 +109,7 @@ jobs:
         if: always()
         with:
           name: benchmark_metrics
-          path: |
-            ${{ env.BENCHMARK_PROJECT_DIR }}/build_*/metrics*.json
+          path: bsp_metrics.json
   upload_metrics:
     runs-on: ubuntu-latest
     needs: run_benchmarks
@@ -130,7 +133,5 @@ jobs:
       - run: pip install --no-cache-dir esp-metrics-cli
       - name: metrics
         run: |
-          for file in build_*/metrics*.json; do
-            esp-metrics-cli validate -d .github/ci/benchmark_schema.yaml -i $file --verbose
-            esp-metrics-cli upload   -d .github/ci/benchmark_schema.yaml -i $file --verbose
-          done
+          esp-metrics-cli validate -d .github/ci/metrics/benchmark_schema.yaml -i bsp_metrics.json --verbose
+          esp-metrics-cli upload   -d .github/ci/metrics/benchmark_schema.yaml -i bsp_metrics.json --verbose

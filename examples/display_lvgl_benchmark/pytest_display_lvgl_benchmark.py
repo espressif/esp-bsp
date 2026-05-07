@@ -7,7 +7,38 @@ import json
 import pytest
 from pytest_embedded import Dut
 from io import StringIO
-from datetime import datetime
+from datetime import datetime, timezone
+
+# Mapping from LVGL CSV column names to snake_case field names.
+# Numeric fields will be parsed to int/float by merge_metrics.py.
+_CSV_FIELD_MAP = {
+    'Name':        'scene',
+    'Avg. CPU':    'avg_cpu',
+    'Avg. FPS':    'avg_fps',
+    'Avg. time':   'avg_time_ms',
+    'render time': 'render_time_ms',
+    'flush time':  'flush_time_ms',
+}
+
+
+def _parse_number(value: str) -> int | float | str:
+    stripped = value.strip().rstrip('%')
+    try:
+        f = float(stripped)
+        return int(f) if f.is_integer() else f
+    except ValueError:
+        return stripped
+
+
+def _normalise_row(row: dict) -> dict:
+    """Rename CSV columns to snake_case and parse numeric values."""
+    result = {}
+    for csv_key, field_key in _CSV_FIELD_MAP.items():
+        if csv_key not in row:
+            continue
+        raw = row[csv_key]
+        result[field_key] = raw if field_key == 'scene' else _parse_number(raw)
+    return result
 
 
 @pytest.mark.esp_box_3
@@ -20,9 +51,9 @@ from datetime import datetime
 @pytest.mark.m5stack_core_s3_se
 def test_example_lvgl_benchmark(dut: Dut, request, build_dir: str) -> None:
     board_name = request.node.callspec.id
-    benchmark_result = {
-        "time": datetime.now().strftime('%d.%m.%Y %H:%M'),
-        "board": board_name
+    benchmark_result: dict = {
+        'time': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'board': board_name,
     }
 
     # Benchmark starts after returning from the main app
@@ -30,16 +61,16 @@ def test_example_lvgl_benchmark(dut: Dut, request, build_dir: str) -> None:
     dut.expect_exact('main_task: Returned from app_main()')
     # Get LVGL version
     outdata = dut.expect(r'Benchmark Summary \((.*) \)', timeout=200)
-    benchmark_result["LVGL"] = outdata[1].decode()
+    benchmark_result['lvgl_version'] = outdata[1].decode()
 
     outdata = dut.expect(r'I (.*)app_main: LVGL demo ended', return_what_before_match=True)
-    # Convert to regular string
-    decoded_output = outdata.decode("utf-8")
-    # Fix newlines
+    decoded_output = outdata.decode('utf-8')
     cleaned_output = decoded_output.replace('\r\r\n', '\n').strip()
-    # Convert test results to a dictionary
-    benchmark_result["tests"] = list(csv.DictReader(StringIO(cleaned_output), skipinitialspace=True))
+    benchmark_result['tests'] = [
+        _normalise_row(row)
+        for row in csv.DictReader(StringIO(cleaned_output), skipinitialspace=True)
+    ]
 
     test_dirname = os.path.dirname(__file__)
-    with open(os.path.join(test_dirname, build_dir, f'benchmark_{board_name}.json'), "w+") as f:
+    with open(os.path.join(test_dirname, build_dir, f'benchmark_{board_name}.json'), 'w+') as f:
         json.dump(benchmark_result, f, indent=4)

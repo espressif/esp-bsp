@@ -1,0 +1,15 @@
+{
+    "time": "2026-05-07T10:00:00Z",
+    "board": "missing_size_board",
+    "lvgl_version": "9.2.0",
+    "tests": [
+        {
+            "scene": "Widgets demo",
+            "avg_cpu": 50,
+            "avg_fps": 30,
+            "avg_time_ms": 33,
+            "render_time_ms": 20,
+            "flush_time_ms": 13
+        }
+    ]
+}
