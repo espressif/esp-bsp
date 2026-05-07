@@ -32,6 +32,12 @@
 #define LVGL_PORT_HANDLE_FLUSH_READY 1
 #endif
 
+#if CONFIG_LCD_RGB_ISR_IRAM_SAFE
+#define LVGL_PORT_IRAM IRAM_ATTR
+#else
+#define LVGL_PORT_IRAM
+#endif
+
 static const char *TAG = "LVGL";
 
 /*******************************************************************************
@@ -169,10 +175,13 @@ lv_display_t *lvgl_port_add_disp_rgb(const lvgl_port_display_cfg_t *disp_cfg,
 #endif
         };
 
+        /* When LCD_RGB_ISR_IRAM_SAFE is enabled, the callback must be in IRAM and
+         * cannot call lv_display_get_driver_data() (which resides in flash).
+         * Pass disp_ctx directly as user_ctx to avoid flash access from ISR. */
         if (rgb_cfg->flags.bb_mode && (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 2))) {
-            ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &bb_cbs, &disp_ctx->disp_drv));
+            ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &bb_cbs, disp_ctx));
         } else {
-            ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &vsync_cbs, &disp_ctx->disp_drv));
+            ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &vsync_cbs, disp_ctx));
         }
 #else
         ESP_RETURN_ON_FALSE(false, NULL, TAG, "This target does not support RGB.");
@@ -256,7 +265,15 @@ static lv_disp_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp_cf
     assert(disp_cfg->vres > 0);
 
     /* Display context */
+#if CONFIG_LCD_RGB_ISR_IRAM_SAFE
+    /* When ISR IRAM safety is enabled, the display context is passed directly
+    * to the ISR callback as user_ctx. It must reside in internal RAM so it
+    * remains accessible when the cache is disabled during SPI flash operations. */
+    lvgl_port_display_ctx_t *disp_ctx = heap_caps_malloc(sizeof(lvgl_port_display_ctx_t),
+                                        MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+#else
     lvgl_port_display_ctx_t *disp_ctx = malloc(sizeof(lvgl_port_display_ctx_t));
+#endif
     ESP_GOTO_ON_FALSE(disp_ctx, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for display context allocation!");
     memset(disp_ctx, 0, sizeof(lvgl_port_display_ctx_t));
     disp_ctx->io_handle = disp_cfg->io_handle;
@@ -463,15 +480,18 @@ static bool lvgl_port_flush_dpi_vsync_ready_callback(esp_lcd_panel_handle_t pane
 #endif
 
 #if (SOC_LCDCAM_RGB_LCD_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
-static bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t panel_io,
+/* When LCD_RGB_ISR_IRAM_SAFE is enabled, this callback runs from IRAM.
+ * user_ctx is lvgl_port_display_ctx_t* to avoid calling lv_display_get_driver_data()
+ * which resides in flash and would crash when cache is disabled (e.g. during SPI flash ops). */
+static LVGL_PORT_IRAM bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t panel_io,
         const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx)
 {
     BaseType_t need_yield = pdFALSE;
 
-    lv_disp_drv_t *disp_drv = (lv_disp_drv_t *)user_ctx;
-    assert(disp_drv != NULL);
-    lvgl_port_display_ctx_t *disp_ctx = disp_drv->user_data;
-    assert(disp_ctx != NULL);
+    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)user_ctx;
+    if (disp_ctx == NULL) {
+        return false;
+    }
 
     if (disp_ctx->trans_sem) {
         xSemaphoreGiveFromISR(disp_ctx->trans_sem, &need_yield);
