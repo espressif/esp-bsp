@@ -6,6 +6,7 @@
 
 - Supported RGB/MIPI-DSI interfaces for chips by SOC_*
 - Added ESP32P4 support to RGB Example
+- Updated support for RGB565 swapped color format
 
 ## 2.7.2
 
