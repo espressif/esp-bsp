@@ -279,13 +279,26 @@ static lv_disp_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp_cf
         ESP_GOTO_ON_FALSE(trans_sem, ESP_ERR_NO_MEM, err, TAG, "Failed to create transport counting Semaphore");
         disp_ctx->trans_sem = trans_sem;
     } else {
-        uint32_t buff_caps = MALLOC_CAP_DEFAULT;
+        uint32_t buff_caps = 0;
+#if SOC_PSRAM_DMA_CAPABLE == 0
+        /* Targets without PSRAM-DMA capability (e.g. ESP32, ESP32-S2)
+         * cannot satisfy the combination MALLOC_CAP_DMA|MALLOC_CAP_SPIRAM,
+         * so a small DMA bounce buffer (trans_size > 0) is required to
+         * service the SPI flush from a SPIRAM canvas. ESP32-S3 / ESP32-P4
+         * have GDMA paths that reach PSRAM directly, so the combination
+         * is allocated by heap_caps_malloc below. */
         if (disp_cfg->flags.buff_dma && disp_cfg->flags.buff_spiram && (0 == disp_cfg->trans_size)) {
             ESP_GOTO_ON_FALSE(false, ESP_ERR_NOT_SUPPORTED, err, TAG, "Alloc DMA capable buffer in SPIRAM is not supported!");
-        } else if (disp_cfg->flags.buff_dma) {
-            buff_caps = MALLOC_CAP_DMA;
-        } else if (disp_cfg->flags.buff_spiram) {
-            buff_caps = MALLOC_CAP_SPIRAM;
+        }
+#endif
+        if (disp_cfg->flags.buff_dma) {
+            buff_caps |= MALLOC_CAP_DMA;
+        }
+        if (disp_cfg->flags.buff_spiram) {
+            buff_caps |= MALLOC_CAP_SPIRAM;
+        }
+        if (buff_caps == 0) {
+            buff_caps |= MALLOC_CAP_DEFAULT;
         }
 
         if (disp_cfg->trans_size) {
