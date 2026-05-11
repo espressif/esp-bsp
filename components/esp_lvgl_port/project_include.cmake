@@ -9,9 +9,9 @@ function(lvgl_port_create_c_image image_path output_path color_format compressio
     #Get LVGL version
     idf_build_get_property(_idf_v2 IDF_BUILD_V2)
     if(_idf_v2)
-        # cmakev2: short-name resolves to either the local or managed variant.
-        set(lvgl_name lvgl)
-        idf_component_get_property(lvgl_ver lvgl COMPONENT_VERSION)
+        # cmakev2: short name resolves to either the local or managed variant.
+        idf_component_get_property(lvgl_name lvgl COMPONENT_NAME)
+        idf_component_get_property(lvgl_ver  lvgl COMPONENT_VERSION)
         if(NOT lvgl_ver)
             set(lvgl_ver $ENV{LVGL_VERSION})
         endif()
