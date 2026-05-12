@@ -10,7 +10,6 @@ from io import StringIO
 from datetime import datetime, timezone
 
 # Mapping from LVGL CSV column names to snake_case field names.
-# Numeric fields will be parsed to int/float by merge_metrics.py.
 _CSV_FIELD_MAP = {
     'Name':        'scene',
     'Avg. CPU':    'avg_cpu',
@@ -35,7 +34,7 @@ def _normalise_row(row: dict) -> dict:
     result = {}
     for csv_key, field_key in _CSV_FIELD_MAP.items():
         if csv_key not in row:
-            continue
+            raise ValueError(f'{csv_key} field is missing from the csv map.')
         raw = row[csv_key]
         result[field_key] = raw if field_key == 'scene' else _parse_number(raw)
     return result

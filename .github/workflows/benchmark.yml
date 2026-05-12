@@ -7,17 +7,16 @@ on:
   schedule:
     - cron: '0 20 * * SAT'
   workflow_dispatch:
-  # TODO: Remove
   pull_request:
     types: [opened, reopened, synchronize, labeled]
 
 permissions:
   checks: write
 
+env:
+  BENCHMARK_PROJECT_DIR: "examples/display_lvgl_benchmark"
 jobs:
   build_benchmarks:
-    env:
-      BENCHMARK_PROJECT_DIR: "examples/display_lvgl_benchmark"
     runs-on: ubuntu-latest
     container: espressif/idf:release-v5.5
     steps:
@@ -56,7 +55,6 @@ jobs:
         idf_ver:
           - "release-v5.5"
     env:
-      BENCHMARK_PROJECT_DIR: "examples/display_lvgl_benchmark"
       TEST_RESULT_NAME: test_results_lvgl_benchmarks
     runs-on: [self-hosted, Linux, bspwall]
     container:
@@ -81,10 +79,8 @@ jobs:
           # Run benchmarks with custom config
           pytest \
             ${{ env.BENCHMARK_PROJECT_DIR }}/pytest_display_lvgl_benchmark.py \
-            -c pytest.ini \
             --suppress-no-test-exit-code \
             --junit-xml=${{ env.TEST_RESULT_NAME }}.xml \
-            -p no:idf-ci \
             --ignore-glob '*/managed_components/*' \
             --ignore=.github \
             -n auto
@@ -112,6 +108,8 @@ jobs:
           path: bsp_metrics.json
   upload_metrics:
     runs-on: ubuntu-latest
+    # Dry run on pull requests and manual triggers
+    if: github.repository_owner == 'espressif' && (github.event_name == 'schedule' || github.event_name == 'push')
     needs: run_benchmarks
     env:
       ESP_METRICS_S3_SERVER: https://idf-s3.espressif.cn:9000
