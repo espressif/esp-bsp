@@ -6,7 +6,6 @@ import json
 import shutil
 import argparse
 from zipfile import ZipFile
-from typing import Optional
 
 # Directory of all boards
 BOARDS_DIR = "boards/"
@@ -58,7 +57,7 @@ ANSI_NORMAL = '\033[0m'
 
 
 # Print colored message
-def color_print(message, color, newline='\n'):  # type: (str, str, Optional[str]) -> None
+def color_print(message: str, color: str, newline: str | None = '\n') -> None:
     """ Print a message to stderr with colored highlighting """
     sys.stderr.write('%s%s%s%s' % (color, message, ANSI_NORMAL, newline))
     sys.stderr.flush()

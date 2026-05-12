@@ -124,11 +124,16 @@ select =
     C901            # complexity value provided by the user
 
 ignore =
-    E221,           # multiple spaces before operator
-    E231,           # missing whitespace after ',', ';', or ':'
-    E241,           # multiple spaces after ','
-    W503,           # line break before binary operator
-    W504            # line break after binary operator
+    # multiple spaces before operator
+    E221,
+    # missing whitespace after ',', ';', or ':'
+    E231,
+    # multiple spaces after ','
+    E241,
+    # line break before binary operator
+    W503,
+    # line break after binary operator
+    W504
 
 max-line-length = 160
 
