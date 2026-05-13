@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024-2025 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
 import os
 import uuid
@@ -93,6 +93,14 @@ def pytest_generate_tests(metafunc):
                      '/dev/boards/esp32_p4_eye',
                      'build_esp32_p4_eye',
                      id='esp32_p4_eye'),
+        pytest.param('/dev/boards/esp_vocat',
+                     '/dev/boards/esp_vocat',
+                     'build_esp_vocat',
+                     id='esp_vocat'),
+        pytest.param('/dev/boards/m5stack_tab5',
+                     '/dev/boards/m5stack_tab5',
+                     'build_m5stack_tab5',
+                     id='m5stack_tab5'),
     ]
 
     # filter by markers
