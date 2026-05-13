@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Supported RGB/MIPI-DSI interfaces for chips by SOC_*
+- Added ESP32P4 support to RGB Example
+
 ## 2.7.2
 
 ### Features

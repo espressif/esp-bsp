@@ -25,11 +25,11 @@
 #include "../common/ppa/lcd_ppa.h"
 #endif
 
-#if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#if (SOC_LCDCAM_RGB_LCD_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
 #include "esp_lcd_panel_rgb.h"
 #endif
 
-#if (CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+#if (SOC_MIPI_DSI_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
 #include "esp_lcd_mipi_dsi.h"
 #endif
 
@@ -81,11 +81,11 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
 #if LVGL_PORT_HANDLE_FLUSH_READY
 static bool lvgl_port_flush_io_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata,
         void *user_ctx);
-#if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#if (SOC_LCDCAM_RGB_LCD_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
 static bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t panel_io,
         const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx);
 #endif
-#if (CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+#if (SOC_MIPI_DSI_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
 static bool lvgl_port_flush_dpi_panel_ready_callback(esp_lcd_panel_handle_t panel_io,
         esp_lcd_dpi_panel_event_data_t *edata, void *user_ctx);
 static bool lvgl_port_flush_dpi_vsync_ready_callback(esp_lcd_panel_handle_t panel_io,
@@ -132,8 +132,11 @@ lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
 lv_display_t *lvgl_port_add_disp_dsi(const lvgl_port_display_cfg_t *disp_cfg,
                                      const lvgl_port_display_dsi_cfg_t *dsi_cfg)
 {
+    ESP_RETURN_ON_FALSE(ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0), NULL, TAG,
+                        "This IDF version does not support MIPI-DSI.");
     assert(dsi_cfg != NULL);
     const lvgl_port_disp_priv_cfg_t priv_cfg = {
+        .disp_type = LVGL_PORT_DISP_TYPE_DSI,
         .avoid_tearing = dsi_cfg->flags.avoid_tearing,
     };
     lvgl_port_lock(0);
@@ -144,7 +147,7 @@ lv_display_t *lvgl_port_add_disp_dsi(const lvgl_port_display_cfg_t *disp_cfg,
         /* Set display type */
         disp_ctx->disp_type = LVGL_PORT_DISP_TYPE_DSI;
 
-#if (CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+#if (SOC_MIPI_DSI_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
         esp_lcd_dpi_panel_event_callbacks_t cbs = {0};
         if (dsi_cfg->flags.avoid_tearing) {
             cbs.on_refresh_done = lvgl_port_flush_dpi_vsync_ready_callback;
@@ -156,9 +159,8 @@ lv_display_t *lvgl_port_add_disp_dsi(const lvgl_port_display_cfg_t *disp_cfg,
 
         /* Apply rotation from initial display configuration */
         lvgl_port_disp_rotation_update(disp_ctx);
-
 #else
-        ESP_RETURN_ON_FALSE(false, NULL, TAG, "MIPI-DSI is supported only on ESP32P4 and from IDF 5.3!");
+        ESP_RETURN_ON_FALSE(false, NULL, TAG, "This target does not support MIPI-DSI.");
 #endif
     }
     lvgl_port_unlock();
@@ -169,9 +171,12 @@ lv_display_t *lvgl_port_add_disp_dsi(const lvgl_port_display_cfg_t *disp_cfg,
 lv_display_t *lvgl_port_add_disp_rgb(const lvgl_port_display_cfg_t *disp_cfg,
                                      const lvgl_port_display_rgb_cfg_t *rgb_cfg)
 {
+    ESP_RETURN_ON_FALSE(ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0), NULL, TAG,
+                        "This IDF version does not support RGB.");
     lvgl_port_lock(0);
     assert(rgb_cfg != NULL);
     const lvgl_port_disp_priv_cfg_t priv_cfg = {
+        .disp_type = LVGL_PORT_DISP_TYPE_RGB,
         .avoid_tearing = rgb_cfg->flags.avoid_tearing,
     };
     lv_disp_t *disp = lvgl_port_add_disp_priv(disp_cfg, &priv_cfg);
@@ -181,7 +186,7 @@ lv_display_t *lvgl_port_add_disp_rgb(const lvgl_port_display_cfg_t *disp_cfg,
         /* Set display type */
         disp_ctx->disp_type = LVGL_PORT_DISP_TYPE_RGB;
 
-#if (CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+#if (SOC_LCDCAM_RGB_LCD_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
         /* Register done callback */
         const esp_lcd_rgb_panel_event_callbacks_t vsync_cbs = {
             .on_vsync = lvgl_port_flush_rgb_vsync_ready_callback,
@@ -201,7 +206,7 @@ lv_display_t *lvgl_port_add_disp_rgb(const lvgl_port_display_cfg_t *disp_cfg,
             ESP_ERROR_CHECK(esp_lcd_rgb_panel_register_event_callbacks(disp_ctx->panel_handle, &vsync_cbs, disp_ctx->disp_drv));
         }
 #else
-        ESP_RETURN_ON_FALSE(false, NULL, TAG, "RGB is supported only on ESP32S3 and from IDF 5.0!");
+        ESP_RETURN_ON_FALSE(false, NULL, TAG, "This target does not support RGB.");
 #endif
 
         /* Apply rotation from initial display configuration */
@@ -332,14 +337,19 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
 
     /* Use RGB internal buffers for avoid tearing effect */
     if (priv_cfg && priv_cfg->avoid_tearing) {
-#if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-        buffer_size = disp_cfg->hres * disp_cfg->vres;
-        ESP_GOTO_ON_ERROR(esp_lcd_rgb_panel_get_frame_buffer(disp_cfg->panel_handle, 2, (void *)&buf1, (void *)&buf2), err, TAG,
-                          "Get RGB buffers failed");
-#elif CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0)
-        buffer_size = disp_cfg->hres * disp_cfg->vres;
-        ESP_GOTO_ON_ERROR(esp_lcd_dpi_panel_get_frame_buffer(disp_cfg->panel_handle, 2, (void *)&buf1, (void *)&buf2), err, TAG,
-                          "Get RGB buffers failed");
+#if (SOC_LCDCAM_RGB_LCD_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
+        if (priv_cfg->disp_type ==  LVGL_PORT_DISP_TYPE_RGB) {
+            buffer_size = disp_cfg->hres * disp_cfg->vres;
+            ESP_GOTO_ON_ERROR(esp_lcd_rgb_panel_get_frame_buffer(disp_cfg->panel_handle, 2, (void *)&buf1, (void *)&buf2), err, TAG,
+                              "Get RGB buffers failed");
+        }
+#endif
+#if (SOC_MIPI_DSI_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+        if (priv_cfg->disp_type ==  LVGL_PORT_DISP_TYPE_DSI) {
+            buffer_size = disp_cfg->hres * disp_cfg->vres;
+            ESP_GOTO_ON_ERROR(esp_lcd_dpi_panel_get_frame_buffer(disp_cfg->panel_handle, 2, (void *)&buf1, (void *)&buf2), err, TAG,
+                              "Get RGB buffers failed");
+        }
 #endif
 
         trans_sem = xSemaphoreCreateCounting(1, 0);
@@ -480,7 +490,7 @@ static bool lvgl_port_flush_io_ready_callback(esp_lcd_panel_io_handle_t panel_io
     return false;
 }
 
-#if (CONFIG_IDF_TARGET_ESP32P4 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
+#if (SOC_MIPI_DSI_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
 static bool lvgl_port_flush_dpi_panel_ready_callback(esp_lcd_panel_handle_t panel_io,
         esp_lcd_dpi_panel_event_data_t *edata, void *user_ctx)
 {
@@ -508,7 +518,7 @@ static bool lvgl_port_flush_dpi_vsync_ready_callback(esp_lcd_panel_handle_t pane
 }
 #endif
 
-#if CONFIG_IDF_TARGET_ESP32S3 && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#if (SOC_LCDCAM_RGB_LCD_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0))
 static bool lvgl_port_flush_rgb_vsync_ready_callback(esp_lcd_panel_handle_t panel_io,
         const esp_lcd_rgb_panel_event_data_t *edata, void *user_ctx)
 {
