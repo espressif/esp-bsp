@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.8.0
+
+### Features
+
+- Supported RGB/MIPI-DSI interfaces for chips by SOC_*
+- Added ESP32P4 support to RGB Example
+- Updated support for RGB565 swapped color format
+- Supported LCD_RGB_ISR_IRAM_SAFE for RGB panels
+
 ## 2.7.2
 
 ### Features

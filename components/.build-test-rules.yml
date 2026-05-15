@@ -4,6 +4,13 @@ components/esp_lvgl_port:
     - "components/lcd_touch/**"
     - "components/lcd/**"
 
+components/esp_lvgl_port/examples/rgb_lcd:
+  depends_filepatterns:
+    - "components/esp_lvgl_port/**"
+  enable:
+    - if: IDF_TARGET in ["esp32s3", "esp32p4"]
+      reason: Supports only targets with RGB peripheral
+
 components/esp_lvgl_port/test_apps/simd:
   depends_filepatterns:
     - "components/esp_lvgl_port/**"
