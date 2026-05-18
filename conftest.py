@@ -119,11 +119,6 @@ def pytest_generate_tests(metafunc):
         )
 
 
-@pytest.fixture
-def build_dir(build_dir: str) -> str:
-    return f'{build_dir}'
-
-
 # This fixing using cache when used "-n auto" (parallel)
 def pytest_configure(config):
     # If run pytest-xdist (parallel), set unique cache dir

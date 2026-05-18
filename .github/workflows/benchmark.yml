@@ -79,10 +79,7 @@ jobs:
           # Run benchmarks with custom config
           pytest \
             ${{ env.BENCHMARK_PROJECT_DIR }}/pytest_display_lvgl_benchmark.py \
-            --suppress-no-test-exit-code \
             --junit-xml=${{ env.TEST_RESULT_NAME }}.xml \
-            --ignore-glob '*/managed_components/*' \
-            --ignore=.github \
             -n auto
       - name: Combine reports into metrics
         env:
