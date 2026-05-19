@@ -16,15 +16,7 @@ on:
   schedule:
     - cron: '0 0 * * *'  # every day at midnight
   workflow_dispatch:
-    inputs:
-      WFType:
-        description: 'Workflow type'
-        required: true
-        default: 'Build + Tests'
-        type: choice
-        options:
-        - Build + Tests
-        - Build + Tests + Benchmark
+
 
 # Cancel previous CI, if running and changed label or pushed PR (Prevent to wait for runners)
 concurrency:
@@ -134,7 +126,7 @@ jobs:
 
   run-target:
     name: Run apps
-    if: github.repository_owner == 'espressif' && !contains(github.event.pull_request.labels.*.name, 'Build only')
+    if: github.repository_owner == 'espressif'
     needs: build
     strategy:
       fail-fast: false
@@ -148,12 +140,9 @@ jobs:
           - example: "test_example_camera_video"
           - example: "test_example_lvgl_demos"
           - example: "test_example_generic_button_led"
-          - example: "test_example_lvgl_benchmark"
     env:
       TEST_RESULT_NAME: test_results_${{ matrix.runner.example }}_${{ matrix.idf_ver }}
-      BENCHMARK_RESULT_NAME: benchmark_${{ matrix.runner.example }}_${{ matrix.idf_ver }}
       TEST_RESULT_FILE: test_results_${{ matrix.runner.example }}_${{ matrix.idf_ver }}.xml
-      PYTEST_BENCHMARK_IGNORE: ${{ (contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master') && format(' ') || format('--ignore=examples/display_lvgl_benchmark') }}
     runs-on: [self-hosted, Linux, bspwall]
     container:
       image: espressif/idf:${{ matrix.idf_ver }}
@@ -164,11 +153,6 @@ jobs:
         with:
           pattern: app_binaries_${{ matrix.idf_ver }}_*
           merge-multiple: true
-      - name: Download latest results
-        uses: actions/download-artifact@v8
-        with:
-          pattern: benchmark_*
-          path: benchmark/
       - name: Run apps
         run: |
           export IDF_PYTHON_CHECK_CONSTRAINTS=yes
@@ -178,7 +162,7 @@ jobs:
 
           export PYTEST_EMBEDDED_CACHE_DIR=/tmp/pytest-embedded-cache-dummy
           mkdir -p /tmp/pytest-embedded-cache-dummy
-          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} -k "${{ matrix.runner.example }} and not test_example_display_sensors" -n auto ${{ env.PYTEST_BENCHMARK_IGNORE }}
+          pytest --suppress-no-test-exit-code --ignore-glob '*/managed_components/*' --ignore=.github --junit-xml=${{ env.TEST_RESULT_FILE }} -k "${{ matrix.runner.example }} and not test_example_display_sensors" -n auto
       - name: Upload test results
         uses: actions/upload-artifact@v7
         if: always()
@@ -187,60 +171,3 @@ jobs:
           path: |
             ${{ env.TEST_RESULT_FILE }}
             *.log
-            benchmark_*.md
-            benchmark_*.json
-            benchmark.json
-      - name: Update benchmark release
-        uses: pyTooling/Actions/releaser@r0
-        if: github.ref_name == 'master' && env.benchmark_files_exist == 'true'
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: |
-            benchmark_*.json
-            benchmark_*.md
-          tag: benchmark-latest
-
-  publish-results:
-    name: Publish Test results
-    needs:
-      - run-target
-    if: github.repository_owner == 'espressif' && always() && github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'Build only')
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Download Test results
-        uses: actions/download-artifact@v8
-        with:
-          pattern: test_results_*
-          path: test_results
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          files: test_results/**/*.xml
-      - name: Find benchmark result files
-        if: (contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master')
-        id: find_files
-        run: |
-          OUTPUT_FILE="combined_benchmarks.md"
-          echo "" > $OUTPUT_FILE
-          python <<EOF
-          import glob
-
-          files = sorted(glob.glob("test_results/**/benchmark_*.md"))
-          print(files)
-          output_file = "combined_benchmarks.md"
-
-          with open(output_file, "w", encoding="utf-8") as outfile:
-              for file in files:
-                  with open(file, "r", encoding="utf-8") as infile:
-                      outfile.write(infile.read() + "\n\n")
-
-          print(f"Merged {len(files)} files into {output_file}")
-          EOF
-
-          echo "output_file=$OUTPUT_FILE" >> "$GITHUB_ENV"
-      - name: Comment PR
-        if: (contains(github.event.pull_request.labels.*.name, 'Run benchmark') || contains(inputs.WFType, 'Build + Tests + Benchmark') || github.ref_name == 'master')
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          comment-tag: benchmark_results
-          file-path: ${{ env.output_file }}
