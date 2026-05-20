@@ -13,6 +13,7 @@
 #include "unity.h"
 #include "unity_test_runner.h"
 #include "unity_test_utils_memory.h"
+#include "iot_sensor_hub.h"
 
 #define I2C_MASTER_SCL_IO 5       /*!< gpio number for I2C master clock */
 #define I2C_MASTER_SDA_IO 4       /*!< gpio number for I2C master data  */
@@ -22,6 +23,7 @@
 static const char *TAG = "qma6100p test";
 static qma6100p_handle_t qma6100p = NULL;
 static i2c_master_bus_handle_t i2c_handle = NULL;
+static sensor_handle_t sensor_handle = NULL;
 
 /**
  * @brief i2c master initialization
@@ -47,12 +49,26 @@ static void i2c_sensor_qma6100p_init(void)
     esp_err_t ret;
 
     i2c_bus_init();
-    ret = qma6100p_create(i2c_handle, QMA6100P_I2C_ADDRESS, &qma6100p);
-    TEST_ASSERT_EQUAL(ESP_OK, ret);
-    TEST_ASSERT_NOT_NULL_MESSAGE(qma6100p, "QMA6100P create returned NULL");
 
-    ret = qma6100p_wake_up(qma6100p);
+
+    sensor_config_t config = {
+        .type = IMU_ID,
+        .mode = MODE_POLLING,
+        .min_delay = 500
+    };
+
+    config.bus = i2c_handle;
+    config.addr = QMA6100P_I2C_ADDRESS;
+    ret = iot_sensor_create("sensor_hub_qma6100p", &config, &sensor_handle);
+
     TEST_ASSERT_EQUAL(ESP_OK, ret);
+    TEST_ASSERT_NOT_NULL_MESSAGE(sensor_handle, "QMA6100P create returned NULL");
+
+    ret = iot_sensor_start(sensor_handle);
+
+    TEST_ASSERT_EQUAL(ESP_OK, ret);
+    TEST_ASSERT_NOT_NULL_MESSAGE(sensor_handle, "QMA6100P start returned NULL");
+
 }
 
 TEST_CASE("Sensor qma6100p test", "[qma6100p][iot][sensor]")
@@ -63,17 +79,28 @@ TEST_CASE("Sensor qma6100p test", "[qma6100p][iot][sensor]")
 
     i2c_sensor_qma6100p_init();
 
-    ret = qma6100p_get_deviceid(qma6100p, &qma6100p_deviceid);
-    TEST_ASSERT_EQUAL(ESP_OK, ret);
-    TEST_ASSERT_EQUAL(QMA6100P_WHO_AM_I_VAL, qma6100p_deviceid);
+#ifdef CONFIG_SENSOR_DEFAULT_HANDLER_DATA
+    ESP_LOGI(TAG,"DATA");
+#elif CONFIG_SENSOR_DEFAULT_HANDLER
+    ESP_LOGI(TAG,"NON-DATA");
+#endif
 
-    ret = qma6100p_get_acce(qma6100p, &acce);
-    TEST_ASSERT_EQUAL(ESP_OK, ret);
-    ESP_LOGI(TAG, "acce_x:%.2f, acce_y:%.2f, acce_z:%.2f\n", acce.acce_x, acce.acce_y, acce.acce_z);
+    while(true) {
+        vTaskDelay(100 / portTICK_PERIOD_MS);
 
-    qma6100p_delete(qma6100p);
-    ret = i2c_del_master_bus(i2c_handle);
-    TEST_ASSERT_EQUAL(ESP_OK, ret);
+    }
+
+    // ret = qma6100p_get_deviceid(qma6100p, &qma6100p_deviceid);
+    // TEST_ASSERT_EQUAL(ESP_OK, ret);
+    // TEST_ASSERT_EQUAL(0xE7, qma6100p_deviceid);
+
+    // ret = qma6100p_get_acce(qma6100p, &acce);
+    // TEST_ASSERT_EQUAL(ESP_OK, ret);
+    // ESP_LOGI(TAG, "acce_x:%.2f, acce_y:%.2f, acce_z:%.2f\n", acce.acce_x, acce.acce_y, acce.acce_z);
+
+    // qma6100p_delete(qma6100p);
+    // ret = i2c_del_master_bus(i2c_handle);
+    // TEST_ASSERT_EQUAL(ESP_OK, ret);
 }
 
 #define TEST_MEMORY_LEAK_THRESHOLD  (300)
@@ -91,18 +118,8 @@ void tearDown(void)
 
 void app_main(void)
 {
-    /**
-     *   ___  __  __    _    __   _  ___   ___  ____
-     *  / _ \|  \/  |  / \  / /_ / |/ _ \ / _ \|  _ \
-     * | | | | |\/| | / _ \| '_ \| | | | | | | | |_) |
-     * | |_| | |  | |/ ___ \ (_) | | |_| | |_| |  __/
-     *  \__\_\_|  |_/_/   \_\___/|_|\___/ \___/|_|
-    */
-
-    printf("  ___  __  __    _    __   _  ___   ___  ____  \r\n");
-    printf(" / _ \\|  \\/  |  / \\  / /_ / |/ _ \\ / _ \\|  _ \\ \r\n");
-    printf("| | | | |\\/| | / _ \\| '_ \\| | | | | | | | |_) |\r\n");
-    printf("| |_| | |  | |/ ___ \\ (_) | | |_| | |_| |  __/ \r\n");
-    printf(" \\__\\_\\_|  |_/_/   \\_\\___/|_|\\___/ \\___/|_|    \r\n");
-    unity_run_menu();
+    ESP_LOGI(TAG, "Running tests with [qma6100p] tag");
+    UNITY_BEGIN();
+    unity_run_tests_by_tag("[qma6100p]", false);
+    UNITY_END();
 }

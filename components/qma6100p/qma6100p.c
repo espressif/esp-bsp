@@ -82,6 +82,13 @@ static esp_err_t qma6100p_read(qma6100p_handle_t sensor, const uint8_t reg_start
     return i2c_master_transmit_receive(sens->i2c_handle, reg_buff, sizeof(reg_buff), data_buf, data_len, -1);
 }
 
+
+esp_err_t qma6100p_impl_init(bus_handle_t bus_handle, uint8_t addr);
+esp_err_t qma6100p_impl_deinit(void);
+esp_err_t qma6100p_impl_test (void);
+esp_err_t qma6100p_impl_acquire_acce (float *acce_x, float *acce_y, float *acce_z);
+esp_err_t qma6100p_impl_acquire_gyro(float *gyro_x, float *gyro_y, float *gyro_z);
+
 esp_err_t qma6100p_create(i2c_master_bus_handle_t i2c_bus, const uint8_t dev_addr, qma6100p_handle_t *handle_ret)
 {
     esp_err_t ret = ESP_OK;
@@ -503,7 +510,7 @@ esp_err_t qma6100p_impl_test (void)
 
     ESP_RETURN_ON_ERROR(qma6100p_get_deviceid(sensor_hub_qma6100p_handle, &device_id), TAG,
                         "Failed to read the device id");
-    if (device_id == QMA6100P_WHO_AM_I_VAL) {
+    if (device_id == 0xE7) {
         return ESP_OK;
     } else {
         return ESP_FAIL;
