@@ -13,3 +13,5 @@ idf_component_register(
 
 include(package_manager)
 cu_pkg_define_version(${CMAKE_CURRENT_LIST_DIR})
+
+target_link_libraries(${COMPONENT_LIB} INTERFACE "-u qma6100p_impl_init")

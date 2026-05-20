@@ -20,6 +20,7 @@ extern "C" {
 
 #define QMA6100P_I2C_ADDRESS         0x12u /*!< I2C address with AD0 pin low */
 #define QMA6100P_I2C_ADDRESS_1       0x13u /*!< I2C address with AD0 pin high */
+#define QMA7981_I2C_ADDRESS          0xE7u
 #define QMA6100P_WHO_AM_I_VAL        0x90u
 
 typedef enum {

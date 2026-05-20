@@ -13,6 +13,8 @@
 #include "esp_err.h"
 #include "esp_check.h"
 
+#include "iot_sensor_hub.h"
+
 #define I2C_CLK_SPEED 400000
 
 #define QMA6100P_WHO_AM_I             0x00u
@@ -466,3 +468,75 @@ esp_err_t qma6100p_get_fifo_data(qma6100p_handle_t sensor, uint8_t *data)
 {
     return qma6100p_read(sensor, QMA6100P_FIFO_DATA, data, 1);
 }
+
+
+/*******************************************************************************
+* Sensor hub implementation
+*******************************************************************************/
+
+static qma6100p_handle_t sensor_hub_qma6100p_handle = NULL;
+
+esp_err_t qma6100p_impl_init(bus_handle_t bus_handle, uint8_t addr)
+{
+    esp_err_t ret = ESP_OK;
+    ESP_RETURN_ON_ERROR(qma6100p_create(bus_handle, addr, &sensor_hub_qma6100p_handle), TAG,
+                        "Failed to initialize");
+
+    // Set a reasonable default configuration
+    ret = qma6100p_wake_up(sensor_hub_qma6100p_handle);
+    if (ret != ESP_OK) {
+        qma6100p_delete(sensor_hub_qma6100p_handle);
+        return ret;
+    }
+    return ESP_OK;
+}
+
+esp_err_t qma6100p_impl_deinit(void)
+{
+    qma6100p_delete(sensor_hub_qma6100p_handle);
+    return ESP_OK;
+}
+
+esp_err_t qma6100p_impl_test (void)
+{
+    uint8_t device_id;
+
+    ESP_RETURN_ON_ERROR(qma6100p_get_deviceid(sensor_hub_qma6100p_handle, &device_id), TAG,
+                        "Failed to read the device id");
+    if (device_id == QMA6100P_WHO_AM_I_VAL) {
+        return ESP_OK;
+    } else {
+        return ESP_FAIL;
+    }
+}
+
+esp_err_t qma6100p_impl_acquire_acce (float *acce_x, float *acce_y, float *acce_z)
+{
+    qma6100p_acce_value_t value;
+
+    ESP_RETURN_ON_ERROR(qma6100p_get_acce(sensor_hub_qma6100p_handle, &value), TAG,
+                        "Failed to read accelerometer data");
+    *acce_x = value.acce_x;
+    *acce_y = value.acce_y;
+    *acce_z = value.acce_z;
+    return ESP_OK;
+}
+
+esp_err_t qma6100p_impl_acquire_gyro(float *gyro_x, float *gyro_y, float *gyro_z)
+{
+    *gyro_x = 0;
+    *gyro_y = 0;
+    *gyro_z = 0;
+    return ESP_OK;
+}
+
+
+static imu_impl_t qma6100p_impl = {
+    .init = qma6100p_impl_init,
+    .deinit = qma6100p_impl_deinit,
+    .test = qma6100p_impl_test,
+    .acquire_acce = qma6100p_impl_acquire_acce,
+    .acquire_gyro = qma6100p_impl_acquire_gyro,
+};
+
+SENSOR_HUB_DETECT_FN(IMU_ID, sensor_hub_qma6100p, &qma6100p_impl);

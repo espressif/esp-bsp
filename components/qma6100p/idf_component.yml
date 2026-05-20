@@ -4,3 +4,6 @@ url: https://github.com/espressif/esp-bsp/tree/master/components/qma6100p
 dependencies:
   idf : ">=5.2"
   cmake_utilities: "0.*"
+  sensor_hub:
+    version: ^0.1.4
+    public: true
