@@ -531,10 +531,7 @@ esp_err_t qma6100p_impl_acquire_acce (float *acce_x, float *acce_y, float *acce_
 
 esp_err_t qma6100p_impl_acquire_gyro(float *gyro_x, float *gyro_y, float *gyro_z)
 {
-    *gyro_x = 0;
-    *gyro_y = 0;
-    *gyro_z = 0;
-    return ESP_OK;
+    return ESP_ERR_NOT_SUPPORTED;
 }
 
 
