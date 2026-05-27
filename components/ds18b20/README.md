@@ -63,6 +63,28 @@ for (int i = 0; i < ds18b20_device_num; i ++) {
 }
 ```
 
+## Sensor hub
+
+Measurement taking can be delegated to a sensor hub task.
+This functionality is enabled using the DS18B20_SENSOR_HUB configuration.
+It can be started after initializing a onewire bus.
+
+```c
+    sensor_config_t config = {
+        .type = HUMITURE_ID,
+        .mode = MODE_POLLING,
+        .min_delay = EXAMPLE_MEASUREMENT_PERIOD,
+        .bus = onewire_bus_handle,
+        // The address is unused because DS18B20 sensor hub implementation expects only a single device on a bus
+        .addr = 22,
+    };
+
+    ESP_ERROR_CHECK(iot_sensor_create("sensor_hub_ds18b20", &config, &sensor_handle));
+    ESP_ERROR_CHECK(iot_sensor_start(sensor_handle));
+```
+
+NOTE: Only a single DS18B20 device is supported.
+
 ## Reference
 
 * See [DS18B20 datasheet](https://www.analog.com/media/en/technical-documentation/data-sheets/ds18b20.pdf)

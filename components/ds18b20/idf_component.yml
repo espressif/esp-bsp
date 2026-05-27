@@ -1,4 +1,4 @@
-version: "0.3.1~1"
+version: "0.4.0"
 description: DS18B20 device driver
 url: https://github.com/espressif/esp-bsp/tree/master/components/ds18b20
 tags:
@@ -6,3 +6,8 @@ tags:
   - one_wire
 dependencies:
   onewire_bus: "^1.1.0"
+  sensor_hub:
+    version: ^0.1.4
+    public: true
+    matches:
+      - if: $CONFIG{DS18B20_SENSOR_HUB} == True

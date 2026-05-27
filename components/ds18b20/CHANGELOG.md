@@ -1,3 +1,7 @@
+## 0.4.0
+
+- Added optional sensor hub integration
+
 ## 0.3.1
 
 - Bump dependency `onewire_bus` to `^1.1.0` to align with new backend capabilities (including UART backend support).
