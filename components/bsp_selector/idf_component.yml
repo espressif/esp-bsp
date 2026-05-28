@@ -135,6 +135,13 @@ dependencies:
     matches:
       - if: $CONFIG{ESP_BOX_3} == 1 && $CONFIG{BSP_SELECT_GLIB_SEL} == 1
 
+  esp32_s31_korvo_1:
+    version: "*"
+    public: true
+    override_path: "../../bsp/esp32_s31_korvo_1"
+    matches:
+      - if: $CONFIG{ESP32_S31_KORVO_1} == 1 && $CONFIG{BSP_SELECT_GLIB_SEL} == 1
+
   esp-box-3_noglib:
     version: "*"
     public: true

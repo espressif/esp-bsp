@@ -1,0 +1,147 @@
+menu "Board Support Package (ESP32-S31-Korvo-1)"
+
+    config BSP_ERROR_CHECK
+        bool "Enable error check in BSP"
+        default y
+        help
+            Error check assert the application before returning the error code.
+    menu "I2C"
+        config BSP_I2C_NUM
+            int "I2C peripheral index"
+            default 1
+            range 0 2
+            help
+                Pick the I2C you want to use.
+    endmenu
+    menu "Storage"
+        menu "SPIFFS - Virtual File System"
+            config BSP_SPIFFS_FORMAT_ON_MOUNT_FAIL
+                bool "Format SPIFFS if mounting fails"
+                default n
+                help
+                    Format SPIFFS if it fails to mount the filesystem.
+
+            config BSP_SPIFFS_MOUNT_POINT
+                string "SPIFFS mount point"
+                default "/spiffs"
+                help
+                    Mount point of SPIFFS in the Virtual File System.
+
+            config BSP_SPIFFS_PARTITION_LABEL
+                string "Partition label of SPIFFS"
+                default "storage"
+                help
+                    Partition label which stores SPIFFS.
+
+            config BSP_SPIFFS_MAX_FILES
+                int "Max files supported for SPIFFS VFS"
+                default 5
+                help
+                    Supported max files for SPIFFS in the Virtual File System.
+        endmenu
+        menu "SD card - Virtual File System"
+            config BSP_SD_FORMAT_ON_MOUNT_FAIL
+                bool "Format SD card if mounting fails"
+                default n
+                help
+                    The SDMMC host will format (FAT) the SD card if it fails to mount the filesystem.
+
+            config BSP_SD_MOUNT_POINT
+                string "SD card mount point"
+                default "/sdcard"
+                help
+                    Mount point of the SD card in the Virtual File System
+
+        endmenu
+    endmenu
+    menu "Display"
+
+        config BSP_LCD_DRAW_BUF_HEIGHT
+        int "LCD framebuf height"
+        default 100
+        range 10 240
+        help
+            Framebuf is used for lvgl rendering output.
+
+        config BSP_LCD_DRAW_BUF_DOUBLE
+        bool "LCD double framebuf"
+        default y
+        help
+            Whether to enable double framebuf.
+        config BSP_LCD_RGB_BUFFER_NUMS
+            int "Set number of frame buffers"
+            default 1
+            range 1 3
+            help
+                Let RGB LCD driver create a specified number of frame-size buffers. Only when it is set to multiple can the avoiding tearing be turned on.
+
+        config BSP_DISPLAY_LVGL_AVOID_TEAR
+            bool "Avoid tearing effect"
+            depends on BSP_LCD_RGB_BUFFER_NUMS > 1
+            default "n"
+            help
+                Avoid tearing effect through LVGL buffer mode and double frame buffers of LCD.
+
+        choice BSP_DISPLAY_LVGL_MODE
+            depends on BSP_DISPLAY_LVGL_AVOID_TEAR
+            prompt "Select LVGL buffer mode"
+            default BSP_DISPLAY_LVGL_FULL_REFRESH
+            config BSP_DISPLAY_LVGL_FULL_REFRESH
+                bool "Full refresh"
+            config BSP_DISPLAY_LVGL_DIRECT_MODE
+                bool "Direct mode"
+        endchoice
+
+        choice BSP_LCD_RGB_REFRESH_MODE
+            prompt "Select the refresh mode for RGB LCD"
+            default BSP_LCD_RGB_REFRESH_AUTO
+            config BSP_LCD_RGB_REFRESH_AUTO
+                bool "Auto refresh mode"
+                help
+                    Refresh the LCD in the most common way.
+            config BSP_LCD_RGB_BOUNCE_BUFFER_MODE
+                bool "Bounce buffer mode"
+                help
+                    Enable bounce buffer mode can achieve higher PCLK frequency at the cost of higher CPU consumption.
+        endchoice
+
+        config BSP_LCD_RGB_BOUNCE_BUFFER_HEIGHT
+            depends on BSP_LCD_RGB_BOUNCE_BUFFER_MODE
+            int "Bounce buffer height"
+            default 10
+            help
+                Height of bounce buffer. The width of the buffer is the same as that of the LCD.
+    endmenu
+    menu "Camera"
+        config BSP_CAMERA_XCLK_LEDC_CH
+        int "LEDC channel index"
+        default 2
+        range 0 7
+        help
+            LEDC channel is used to generate PWM signal that controls camera clock.
+            Set LEDC index that should be used.
+    endmenu
+    menu "LEDs"
+        choice BSP_LED_RGB_BACKEND
+            prompt "Adressable RGB LED backend peripheral"
+            default BSP_LED_RGB_BACKEND_RMT
+            help
+                Select the backend peripheral to drive the LED strip.
+
+            config BSP_LED_RGB_BACKEND_RMT
+                bool "RMT"
+            if BSP_ESP_IDF_VERSION>="5.0"
+                config BSP_LED_RGB_BACKEND_SPI
+                    bool "SPI"
+            endif
+        endchoice
+    endmenu
+    menu "Audio"
+        config BSP_I2S_NUM
+            int "I2S peripheral index"
+            default 1
+            range 0 2
+            help
+                Pick the I2S you want to use.
+    endmenu
+endmenu

@@ -1,0 +1,6 @@
+# SquareLine LVGL example - depends on generated BSP
+description: "ESP-BSP SquareLine LVGL Example for ESP32-S31-Korvo-1"
+targets:
+  - esp32s31
+dependencies:
+  esp32_s31_korvo_1: ">=1.0.0"
