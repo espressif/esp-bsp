@@ -4,6 +4,13 @@ if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
     return()
 endif()
 
+# Use the cmakev2-native build when running under cmakev2. The v1 code below
+# stays as is for legacy IDF builds.
+if(IDF_BUILD_V2)
+    include(CMakeLists_v2.txt)
+    return()
+endif()
+
 set(ADD_SRCS "")
 set(ADD_LIBS "")
 set(PRIV_REQ "")

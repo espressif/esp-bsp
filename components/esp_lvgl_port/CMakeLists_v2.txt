@@ -1,0 +1,143 @@
+# Native cmakev2 component definition for esp_lvgl_port.
+#
+# Dispatched from CMakeLists.txt when IDF_BUILD_V2 is set. No
+# idf_component_register shim: the build system derives the v1-style
+# component properties (SRCS, INCLUDE_DIRS, PRIV_INCLUDE_DIRS, REQUIRES,
+# PRIV_REQUIRES) from this target's sources and link libraries via
+# __set_component_cmakev1_properties (tools/cmakev2/component.cmake).
+
+# Local helper standing in for a missing public cmakev2 API: a non-fatal
+# version of idf_component_include. The framework only provides
+# idf_component_include(<name>), which aborts the build when <name> is not
+# discovered, and __get_component_interface (underscore-prefixed, internal)
+# for a non-fatal lookup. Until idf_component_include grows an OPTIONAL flag
+# or an idf_component_get_interface gets promoted to a public API, we wrap
+# the internal call here so it appears in exactly one place.
+#
+# <name> resolves through the v2 interface cache: a short name like "button"
+# matches either the local "button" component or the managed "espressif__button"
+# variant, transparently.
+#
+# On success: <out_iface> is set to the component's INTERFACE target.
+# On miss:    <out_iface> is set to the empty string, and no include happens.
+function(_lvgl_port_optional_include name out_iface)
+    __get_component_interface(COMPONENT "${name}" OUTPUT _iface)
+    if(_iface STREQUAL "NOTFOUND")
+        set(${out_iface} "" PARENT_SCOPE)
+        return()
+    endif()
+    idf_component_include("${name}")
+    set(${out_iface} ${_iface} PARENT_SCOPE)
+endfunction()
+
+# Include LVGL up front so its CMakeLists.txt runs (populating COMPONENT_VERSION
+# and the LVGL_VERSION env var) before we decide on PORT_PATH. Capture the
+# interface target into lvgl_iface so we can link to it without caring whether
+# the install is local (idf::lvgl) or managed (idf::lvgl__lvgl).
+idf_component_include(lvgl INTERFACE lvgl_iface)
+
+# LVGL version: manager-set COMPONENT_VERSION (managed install), or env var
+# from LVGL's own CMakeLists.txt (local install, LVGL >= 9.2).
+idf_component_get_property(lvgl_ver lvgl COMPONENT_VERSION)
+if(NOT lvgl_ver)
+    set(lvgl_ver $ENV{LVGL_VERSION})
+endif()
+if("${lvgl_ver}" STREQUAL "")
+    message("Could not determine LVGL version, assuming v9.x")
+    set(lvgl_ver "9.0.0")
+endif()
+message(STATUS "LVGL version: ${lvgl_ver}")
+
+if(lvgl_ver VERSION_LESS "9.0.0")
+    message(VERBOSE "Compiling esp_lvgl_port for LVGL8")
+    set(PORT_FOLDER "lvgl8")
+else()
+    message(VERBOSE "Compiling esp_lvgl_port for LVGL9")
+    set(PORT_FOLDER "lvgl9")
+endif()
+set(PORT_PATH "src/${PORT_FOLDER}")
+
+# Create the library with the base sources. Subsequent blocks extend it
+# directly via target_sources / target_link_libraries.
+add_library(${COMPONENT_TARGET} STATIC
+    "${PORT_PATH}/esp_lvgl_port.c"
+    "${PORT_PATH}/esp_lvgl_port_disp.c"
+)
+target_include_directories(${COMPONENT_TARGET} PUBLIC  "include")
+target_include_directories(${COMPONENT_TARGET} PRIVATE "priv_include")
+
+# Public dep: esp_lcd. lvgl_iface was captured above.
+idf_component_include(esp_lcd)
+target_link_libraries(${COMPONENT_TARGET} PUBLIC idf::esp_lcd ${lvgl_iface})
+
+# Private dep: esp_timer.
+idf_component_include(esp_timer)
+target_link_libraries(${COMPONENT_TARGET} PRIVATE idf::esp_timer)
+
+# Target-specific: ESP32-P4 picks up the PPA driver.
+idf_build_get_property(target IDF_TARGET)
+if(${target} STREQUAL "esp32p4")
+    idf_component_include(esp_driver_ppa)
+    target_sources(${COMPONENT_TARGET} PRIVATE "src/common/ppa/lcd_ppa.c")
+    target_link_libraries(${COMPONENT_TARGET} PRIVATE idf::esp_driver_ppa)
+endif()
+
+# Optional integrations.
+
+# button
+_lvgl_port_optional_include(button button_iface)
+if(button_iface)
+    target_sources(${COMPONENT_TARGET} PRIVATE "${PORT_PATH}/esp_lvgl_port_button.c")
+    target_link_libraries(${COMPONENT_TARGET} PRIVATE ${button_iface})
+endif()
+
+# esp_lcd_touch
+_lvgl_port_optional_include(esp_lcd_touch touch_iface)
+if(touch_iface)
+    target_sources(${COMPONENT_TARGET} PRIVATE "${PORT_PATH}/esp_lvgl_port_touch.c")
+    target_link_libraries(${COMPONENT_TARGET} PRIVATE ${touch_iface})
+endif()
+
+# knob
+_lvgl_port_optional_include(knob knob_iface)
+if(knob_iface)
+    target_sources(${COMPONENT_TARGET} PRIVATE "${PORT_PATH}/esp_lvgl_port_knob.c")
+    target_link_libraries(${COMPONENT_TARGET} PRIVATE ${knob_iface})
+endif()
+
+# usb_host_hid
+_lvgl_port_optional_include(usb_host_hid usbhid_iface)
+if(usbhid_iface)
+    target_sources(${COMPONENT_TARGET} PRIVATE
+        "${PORT_PATH}/esp_lvgl_port_usbhid.c"
+        "images/${PORT_FOLDER}/img_cursor.c"
+    )
+    target_link_libraries(${COMPONENT_TARGET} PRIVATE ${usbhid_iface})
+endif()
+
+# SIMD assembly for 9.1.x on ESP32 / ESP32-S3. ASM sources, the lvgl include
+# path, and the -u link directives all live in one block now that
+# COMPONENT_TARGET is the live target.
+if((lvgl_ver VERSION_GREATER_EQUAL "9.1.0") AND (lvgl_ver VERSION_LESS "9.2.0"))
+    if(CONFIG_IDF_TARGET_ESP32 OR CONFIG_IDF_TARGET_ESP32S3)
+        message(VERBOSE "Compiling SIMD")
+        if(CONFIG_IDF_TARGET_ESP32S3)
+            file(GLOB_RECURSE ASM_SRCS "${PORT_PATH}/simd/*_esp32s3.S")
+        else()
+            file(GLOB_RECURSE ASM_SRCS "${PORT_PATH}/simd/*_esp32.S")
+        endif()
+        file(GLOB_RECURSE ASM_MACROS "${PORT_PATH}/simd/lv_macro_*.S")
+        target_sources(${COMPONENT_TARGET} PRIVATE ${ASM_MACROS} ${ASM_SRCS})
+
+        # Expose include path to LVGL so its sources can pick up our headers.
+        idf_component_get_property(lvgl_lib lvgl COMPONENT_LIB)
+        target_include_directories(${lvgl_lib} PRIVATE "include")
+
+        # Force-link the SIMD symbols.
+        set_property(TARGET ${COMPONENT_TARGET} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_argb8888_esp")
+        set_property(TARGET ${COMPONENT_TARGET} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_rgb565_esp")
+        set_property(TARGET ${COMPONENT_TARGET} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_color_blend_to_rgb888_esp")
+        set_property(TARGET ${COMPONENT_TARGET} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_rgb565_blend_normal_to_rgb565_esp")
+        set_property(TARGET ${COMPONENT_TARGET} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u lv_rgb888_blend_normal_to_rgb888_esp")
+    endif()
+endif()

@@ -7,13 +7,23 @@ function(lvgl_port_create_c_image image_path output_path color_format compressio
     idf_build_get_property(python PYTHON)
 
     #Get LVGL version
-    idf_build_get_property(build_components BUILD_COMPONENTS)
-    if(lvgl IN_LIST build_components)
-        set(lvgl_name lvgl) # Local component
-        set(lvgl_ver $ENV{LVGL_VERSION}) # Get the version from env variable (set from LVGL v9.2)
+    idf_build_get_property(_idf_v2 IDF_BUILD_V2)
+    if(_idf_v2)
+        # cmakev2: short name resolves to either the local or managed variant.
+        idf_component_get_property(lvgl_name lvgl COMPONENT_NAME)
+        idf_component_get_property(lvgl_ver  lvgl COMPONENT_VERSION)
+        if(NOT lvgl_ver)
+            set(lvgl_ver $ENV{LVGL_VERSION})
+        endif()
     else()
-        set(lvgl_name lvgl__lvgl) # Managed component
-        idf_component_get_property(lvgl_ver ${lvgl_name} COMPONENT_VERSION) # Get the version from esp-idf build system
+        idf_build_get_property(build_components BUILD_COMPONENTS)
+        if(lvgl IN_LIST build_components)
+            set(lvgl_name lvgl) # Local component
+            set(lvgl_ver $ENV{LVGL_VERSION}) # Get the version from env variable (set from LVGL v9.2)
+        else()
+            set(lvgl_name lvgl__lvgl) # Managed component
+            idf_component_get_property(lvgl_ver ${lvgl_name} COMPONENT_VERSION) # Get the version from esp-idf build system
+        endif()
     endif()
 
     if("${lvgl_ver}" STREQUAL "")
