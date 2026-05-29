@@ -1,0 +1,31 @@
+menu "Example Configuration"
+
+    config EXAMPLE_ONEWIRE_BUS_GPIO
+        int "1-Wire bus GPIO number"
+        range 0 48
+        default 0
+        help
+            GPIO used by the 1-Wire bus.
+
+    config EXAMPLE_ONEWIRE_ENABLE_INTERNAL_PULLUP
+        bool "Enable internal pull-up resistor on bus GPIO"
+        default y
+        help
+            Enable this when there is no external pull-up resistor on the
+            1-Wire data line.
+
+    config EXAMPLE_ONEWIRE_UART_PORT_NUM
+        int "UART port number (for UART backend)"
+        range 0 2
+        default 1
+        help
+            UART port index passed to onewire_new_bus_uart().
+
+    config EXAMPLE_MEASUREMENT_PERIOD
+        int "Temperature measurement period"
+        range 50 5000
+        default 500
+        help
+            Delay between each temperature measurement
+
+endmenu

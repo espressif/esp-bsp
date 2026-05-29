@@ -27,6 +27,13 @@ components/ds18b20/examples/ds18b20_read:
     - if: CONFIG_NAME == "uart" and SOC_UART_SUPPORTED != 1
       reason: UART backend variant requires SOC UART support
 
+components/ds18b20/examples/ds18b20_sensor_hub:
+  depends_filepatterns:
+    - "components/ds18b20/**"
+  disable:
+    - if: CONFIG_NAME == "uart"
+      reason: ESP32
+
 components/qma6100p:
   depends_filepatterns:
     - "components/qma6100p/**"
