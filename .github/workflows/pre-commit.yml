@@ -8,8 +8,12 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - name: Install doxygen
-      run: sudo apt-get install -y doxygen
+    - name: Install Doxygen
+      run: |
+        wget https://www.doxygen.nl/files/doxygen-1.16.1.linux.bin.tar.gz
+        tar -xzf doxygen-1.16.1.linux.bin.tar.gz
+        mv doxygen-1.16.1/bin/doxygen /usr/local/bin/
+        doxygen --version
     - uses: actions/checkout@v6
     - uses: actions/setup-python@v5.2.0
     - uses: pre-commit/action@v3.0.1
