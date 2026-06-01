@@ -517,7 +517,7 @@ esp_codec_dev_close(mic_codec_dev);
 |  esp\_codec\_dev\_handle\_t | [**bsp\_audio\_codec\_microphone\_init**](#function-bsp_audio_codec_microphone_init) (void) <br>_Initialize microphone codec device._ |
 |  esp\_codec\_dev\_handle\_t | [**bsp\_audio\_codec\_speaker\_init**](#function-bsp_audio_codec_speaker_init) (void) <br>_Initialize speaker codec device._ |
 |  esp\_err\_t | [**bsp\_audio\_init**](#function-bsp_audio_init) (const i2s\_std\_config\_t \*i2s\_config) <br>_Init audio._ |
-|  esp\_err\_t | [**bsp\_audio\_poweramp\_enable**](#function-bsp_audio_poweramp_enable) (bool enable) <br>_Enable/disable audio power amplifier (deprecated)_ |
+|  esp\_err\_t | [**bsp\_audio\_poweramp\_enable**](#function-bsp_audio_poweramp_enable) (bool enable) <br>_Enable/disable audio power amplifier (deprecated)._ |
 
 ## Macros
 
@@ -619,7 +619,7 @@ This function will be called in `bsp_audio_codec_speaker_init()` and`bsp_audio_c
 * other error codes
 ### function `bsp_audio_poweramp_enable`
 
-_Enable/disable audio power amplifier (deprecated)_
+_Enable/disable audio power amplifier (deprecated)._
 ```c
 esp_err_t bsp_audio_poweramp_enable (
     bool enable
@@ -765,12 +765,12 @@ Below are some of the most relevant predefined constants:
 
 | Type | Name |
 | ---: | :--- |
-|  esp\_err\_t | [**bsp\_display\_backlight\_off**](#function-bsp_display_backlight_off) (void) <br>_Turn off display backlight (Useless, just for compatibility)_ |
-|  esp\_err\_t | [**bsp\_display\_backlight\_on**](#function-bsp_display_backlight_on) (void) <br>_Turn on display backlight (Useless, just for compatibility)_ |
-|  esp\_err\_t | [**bsp\_display\_brightness\_init**](#function-bsp_display_brightness_init) (void) <br>_Initialize display's brightness (Useless, just for compatibility)_ |
-|  esp\_err\_t | [**bsp\_display\_brightness\_set**](#function-bsp_display_brightness_set) (int brightness\_percent) <br>_Set display's brightness (Useless, just for compatibility)_ |
+|  esp\_err\_t | [**bsp\_display\_backlight\_off**](#function-bsp_display_backlight_off) (void) <br>_Turn off display backlight (Useless, just for compatibility)._ |
+|  esp\_err\_t | [**bsp\_display\_backlight\_on**](#function-bsp_display_backlight_on) (void) <br>_Turn on display backlight (Useless, just for compatibility)._ |
+|  esp\_err\_t | [**bsp\_display\_brightness\_init**](#function-bsp_display_brightness_init) (void) <br>_Initialize display's brightness (Useless, just for compatibility)._ |
+|  esp\_err\_t | [**bsp\_display\_brightness\_set**](#function-bsp_display_brightness_set) (int brightness\_percent) <br>_Set display's brightness (Useless, just for compatibility)._ |
 |  uint16\_t | [**bsp\_display\_get\_h\_res**](#function-bsp_display_get_h_res) (void) <br>_Get display horizontal resolution._ |
-|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)_ |
+|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)._ |
 |  uint16\_t | [**bsp\_display\_get\_v\_res**](#function-bsp_display_get_v_res) (void) <br>_Get display vertical resolution._ |
 |  bool | [**bsp\_display\_lock**](#function-bsp_display_lock) (uint32\_t timeout\_ms) <br>_Take LVGL mutex._ |
 |  esp\_err\_t | [**bsp\_display\_new**](#function-bsp_display_new) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, esp\_lcd\_panel\_handle\_t \*ret\_panel, esp\_lcd\_panel\_io\_handle\_t \*ret\_io) <br>_Create new display panel._ |
@@ -854,7 +854,7 @@ Variables:
 
 ### function `bsp_display_backlight_off`
 
-_Turn off display backlight (Useless, just for compatibility)_
+_Turn off display backlight (Useless, just for compatibility)._
 ```c
 esp_err_t bsp_display_backlight_off (
     void
@@ -869,7 +869,7 @@ esp_err_t bsp_display_backlight_off (
 * ESP\_ERR\_NOT\_SUPPORTED: Always
 ### function `bsp_display_backlight_on`
 
-_Turn on display backlight (Useless, just for compatibility)_
+_Turn on display backlight (Useless, just for compatibility)._
 ```c
 esp_err_t bsp_display_backlight_on (
     void
@@ -884,7 +884,7 @@ esp_err_t bsp_display_backlight_on (
 * ESP\_ERR\_NOT\_SUPPORTED: Always
 ### function `bsp_display_brightness_init`
 
-_Initialize display's brightness (Useless, just for compatibility)_
+_Initialize display's brightness (Useless, just for compatibility)._
 ```c
 esp_err_t bsp_display_brightness_init (
     void
@@ -899,7 +899,7 @@ esp_err_t bsp_display_brightness_init (
 * ESP\_ERR\_NOT\_SUPPORTED: Always
 ### function `bsp_display_brightness_set`
 
-_Set display's brightness (Useless, just for compatibility)_
+_Set display's brightness (Useless, just for compatibility)._
 ```c
 esp_err_t bsp_display_brightness_set (
     int brightness_percent
@@ -939,7 +939,7 @@ This function should be called after calling `bsp_display_new()` or`bsp_display_
 Horizontal resolution. Return 0 if error occurred.
 ### function `bsp_display_get_input_dev`
 
-_Get pointer to input device (touch, buttons, ...)_
+_Get pointer to input device (touch, buttons, ...)._
 ```c
 lv_indev_t * bsp_display_get_input_dev (
     void
