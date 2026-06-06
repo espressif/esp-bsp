@@ -16,6 +16,9 @@
 
 #include "lv_demos.h"
 #include "bsp/esp-bsp.h"
+#ifdef BSP_GRAPHICS
+#include "esp_bsp_graphics.h"
+#endif
 
 static char *TAG = "app_main";
 

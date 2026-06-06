@@ -1,0 +1,14 @@
+version: "1.0.0"
+description: BSP Graphics LVGL
+url: https://github.com/espressif/esp-bsp/tree/master/components/bsp_graphics_lvgl
+
+tags:
+   - bsp
+
+dependencies:
+  idf : ">=5.3"
+
+  espressif/esp_lvgl_port:
+    version: "^2"
+    public: true
+    override_path: "../../../components/esp_lvgl_port"

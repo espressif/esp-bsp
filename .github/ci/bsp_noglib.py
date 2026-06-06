@@ -40,7 +40,6 @@ def remove_esp_lvgl_port(bsp_path):
         del deps["espressif/esp_lvgl_port"]
     except KeyError:
         print("{}: could not remove esp_lvgl_port".format(str(bsp_path)))
-        return 1
     try:
         del deps["lvgl/lvgl"]
     except KeyError:

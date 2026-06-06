@@ -18,6 +18,9 @@
 #include "lvgl.h"
 
 #include "example_display.h"
+#ifdef BSP_GRAPHICS
+#include "esp_bsp_graphics.h"
+#endif
 
 typedef enum : uint32_t {NOTIFY_FORMAT, } notif_task_t;
 

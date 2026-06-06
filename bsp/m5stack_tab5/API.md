@@ -882,7 +882,6 @@ Below are some of the most relevant predefined constants:
 
 | Type | Name |
 | ---: | :--- |
-| struct | [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) <br>_BSP display (LVGL) configuration structure._ |
 | struct | [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) <br>_BSP display low level configuration structure._ |
 | struct | [**bsp\_lcd\_handles\_t**](#struct-bsp_lcd_handles_t) <br>_BSP display return handles._ |
 | struct | [**bsp\_touch\_config\_t**](#struct-bsp_touch_config_t) <br>_BSP touch configuration structure._ |
@@ -899,14 +898,8 @@ Below are some of the most relevant predefined constants:
 |  void | [**bsp\_display\_delete**](#function-bsp_display_delete) (void) <br>_Delete display panel._ |
 |  esp\_err\_t | [**bsp\_display\_enter\_sleep**](#function-bsp_display_enter_sleep) (void) <br>_Set display enter sleep mode._ |
 |  esp\_err\_t | [**bsp\_display\_exit\_sleep**](#function-bsp_display_exit_sleep) (void) <br>_Set display exit sleep mode._ |
-|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)_ |
-|  bool | [**bsp\_display\_lock**](#function-bsp_display_lock) (uint32\_t timeout\_ms) <br>_Take LVGL mutex._ |
 |  esp\_err\_t | [**bsp\_display\_new**](#function-bsp_display_new) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, esp\_lcd\_panel\_handle\_t \*ret\_panel, esp\_lcd\_panel\_io\_handle\_t \*ret\_io) <br>_Create new display panel._ |
 |  esp\_err\_t | [**bsp\_display\_new\_with\_handles**](#function-bsp_display_new_with_handles) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, [**bsp\_lcd\_handles\_t**](#struct-bsp_lcd_handles_t) \*ret\_handles) <br>_Create new display panel._ |
-|  void | [**bsp\_display\_rotate**](#function-bsp_display_rotate) (lv\_display\_t \*disp, lv\_disp\_rotation\_t rotation) <br>_Rotate screen._ |
-|  lv\_display\_t \* | [**bsp\_display\_start**](#function-bsp_display_start) (void) <br>_Initialize display._ |
-|  lv\_display\_t \* | [**bsp\_display\_start\_with\_config**](#function-bsp_display_start_with_config) (const [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) \*cfg) <br>_Initialize display._ |
-|  void | [**bsp\_display\_unlock**](#function-bsp_display_unlock) (void) <br>_Give LVGL mutex._ |
 |  esp\_err\_t | [**bsp\_touch\_new**](#function-bsp_touch_new) (const [**bsp\_touch\_config\_t**](#struct-bsp_touch_config_t) \*config, esp\_lcd\_touch\_handle\_t \*ret\_touch) <br>_Create new touchscreen._ |
 
 ## Macros
@@ -933,26 +926,6 @@ Below are some of the most relevant predefined constants:
 
 
 ## Structures and Types Documentation
-
-### struct `bsp_display_cfg_t`
-
-_BSP display (LVGL) configuration structure._
-
-Variables:
-
--  unsigned int buff_dma  <br>Allocated LVGL buffer will be DMA capable
-
--  unsigned int buff_spiram  <br>Allocated LVGL buffer will be in PSRAM
-
--  uint32\_t buffer_size  <br>Size of the buffer for the screen in pixels
-
--  bool double_buffer  <br>True, if should be allocated two buffers
-
--  struct [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) flags  
-
--  lvgl\_port\_cfg\_t lvgl_port_cfg  <br>LVGL port configuration
-
--  unsigned int sw_rotate  <br>Use software rotation (slower), The feature is unavailable under avoid-tear mode
 
 ### struct `bsp_display_config_t`
 
@@ -1147,50 +1120,6 @@ All the display (LCD, backlight, touch) will exit sleep mode.
 
 * ESP\_OK on success
 * ESP\_ERR\_NOT\_SUPPORTED if this function is not supported by the panel
-### function `bsp_display_get_input_dev`
-
-_Get pointer to input device (touch, buttons, ...)_
-```c
-lv_indev_t * bsp_display_get_input_dev (
-    void
-) 
-```
-
-
-**Note:**
-
-The LVGL input device is initialized in [**bsp\_display\_start()**](#function-bsp_display_start) function.
-
-
-
-**Returns:**
-
-Pointer to LVGL input device or NULL when not initialized
-### function `bsp_display_lock`
-
-_Take LVGL mutex._
-```c
-bool bsp_display_lock (
-    uint32_t timeout_ms
-) 
-```
-
-
-**Parameters:**
-
-
-* `timeout_ms` Timeout in [ms]. 0 will block indefinitely. 
-
-
-**Returns:**
-
-true Mutex was taken 
-
-
-
-**Returns:**
-
-false Mutex was NOT taken
 ### function `bsp_display_new`
 
 _Create new display panel._
@@ -1269,75 +1198,6 @@ bsp_display_delete();
 
 * ESP\_OK On success
 * Other errors from underlying esp\_lcd driver
-### function `bsp_display_rotate`
-
-_Rotate screen._
-```c
-void bsp_display_rotate (
-    lv_display_t *disp,
-    lv_disp_rotation_t rotation
-) 
-```
-
-
-Display must be already initialized by calling [**bsp\_display\_start()**](#function-bsp_display_start)
-
-
-
-**Parameters:**
-
-
-* `disp` Pointer to LVGL display 
-* `rotation` Angle of the display rotation
-### function `bsp_display_start`
-
-_Initialize display._
-```c
-lv_display_t * bsp_display_start (
-    void
-) 
-```
-
-
-This function initializes SPI, display controller and starts LVGL handling task. LCD backlight must be enabled separately by calling [**bsp\_display\_brightness\_set()**](#function-bsp_display_brightness_set)
-
-
-
-**Returns:**
-
-Pointer to LVGL display or NULL when error occurred
-### function `bsp_display_start_with_config`
-
-_Initialize display._
-```c
-lv_display_t * bsp_display_start_with_config (
-    const bsp_display_cfg_t *cfg
-) 
-```
-
-
-This function initializes SPI, display controller and starts LVGL handling task. LCD backlight must be enabled separately by calling [**bsp\_display\_brightness\_set()**](#function-bsp_display_brightness_set)
-
-
-
-**Parameters:**
-
-
-* `cfg` display configuration
-
-
-**Returns:**
-
-Pointer to LVGL display or NULL when error occurred
-### function `bsp_display_unlock`
-
-_Give LVGL mutex._
-```c
-void bsp_display_unlock (
-    void
-) 
-```
-
 ### function `bsp_touch_new`
 
 _Create new touchscreen._

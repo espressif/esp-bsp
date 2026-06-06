@@ -222,14 +222,15 @@ def get_capabilities_table(header_path, bsp_path, bsp_name, manifest):
                     if component_versions is not None:
                         components = [c for c, _ in component_versions]
                         versions = [v for _, v in component_versions]
-                    table_data.append(
-                        {
-                            "Available": ":heavy_check_mark:",
-                            "Capability": ":black_circle: " + 'LVGL_PORT',
-                            "Controller/Codec":  "",
-                            "Component": "<br/>".join(components),
-                            "Version": "<br/>".join(versions),
-                        })
+                        if versions:
+                            table_data.append(
+                                {
+                                    "Available": ":heavy_check_mark:",
+                                    "Capability": ":black_circle: " + 'LVGL_PORT',
+                                    "Controller/Codec":  "",
+                                    "Component": "<br/>".join(components),
+                                    "Version": "<br/>".join(versions),
+                                })
         return table_data
 
 

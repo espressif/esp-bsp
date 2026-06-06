@@ -14,6 +14,9 @@
 #include <stdio.h>
 #include "bsp/esp-bsp.h"
 #include "esp_log.h"
+#ifdef BSP_GRAPHICS
+#include "esp_bsp_graphics.h"
+#endif
 
 #define IMU_SAMPLING_PERIOD             300
 #define HUMITURE_SAMPLING_PERIOD        500

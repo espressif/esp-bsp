@@ -23,6 +23,9 @@
 #include "lvgl.h"
 #include "app_disp_fs.h"
 #include "esp_jpeg_dec.h"
+#ifdef BSP_GRAPHICS
+#include "esp_bsp_graphics.h"
+#endif
 
 /* SPIFFS mount root */
 #define FS_MNT_PATH  BSP_SPIFFS_MOUNT_POINT

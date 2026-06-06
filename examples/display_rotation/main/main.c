@@ -13,6 +13,9 @@
 
 #include "esp_log.h"
 #include "bsp/esp-bsp.h"
+#ifdef BSP_GRAPHICS
+#include "esp_bsp_graphics.h"
+#endif
 #include "lvgl.h"
 #if BSP_CAPS_IMU
 #include "icm42670.h"

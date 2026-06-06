@@ -14,6 +14,9 @@
 #include "bsp/esp-bsp.h"
 #include "lvgl.h"
 #include "esp_lvgl_port.h"
+#ifdef BSP_GRAPHICS
+#include "esp_bsp_graphics.h"
+#endif
 
 static const char *TAG = "example";
 
