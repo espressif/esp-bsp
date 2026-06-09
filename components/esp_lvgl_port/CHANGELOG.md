@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.8.1
+
+### Fixes
+
+- Fixed callbacks for DPI by IDF update (`on_refresh_done` --> `on_frame_buf_complete`)
+
 ## 2.8.0
 
 ### Features

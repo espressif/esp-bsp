@@ -130,7 +130,11 @@ lv_display_t *lvgl_port_add_disp_dsi(const lvgl_port_display_cfg_t *disp_cfg,
 #if (SOC_MIPI_DSI_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
         esp_lcd_dpi_panel_event_callbacks_t cbs = {0};
         if (dsi_cfg->flags.avoid_tearing) {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 4, 0)
+            cbs.on_frame_buf_complete = lvgl_port_flush_dpi_vsync_ready_callback;
+#else
             cbs.on_refresh_done = lvgl_port_flush_dpi_vsync_ready_callback;
+#endif
         } else {
             cbs.on_color_trans_done = lvgl_port_flush_dpi_panel_ready_callback;
         }
