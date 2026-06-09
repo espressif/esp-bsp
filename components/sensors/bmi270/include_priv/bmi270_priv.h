@@ -23,8 +23,8 @@ extern "C" {
 #define BMI270_CMD_SOFT_RESET               0xB6
 #define BMI270_STATUS_INIT_OK               0x01
 
-#define BMI270_ACC_EN_MSK                   0x02
-#define BMI270_GYR_EN_MSK                   0x04
+#define BMI270_GYR_EN_MSK                   0x02
+#define BMI270_ACC_EN_MSK                   0x04
 #define BMI270_TEMP_EN_MSK                  0x08
 #define BMI270_ODR_MSK                      0xF0
 #define BMI270_GYR_RANGE_MSK                0xF8
