@@ -52,6 +52,11 @@ menu "BSP Selector"
         default 1 if BSP_SELECT_ESP32_S3_KORVO_2
         default 0
 
+    config ESP32_S31_KORVO_1
+        int
+        default 1 if BSP_SELECT_ESP32_S31_KORVO_1
+        default 0
+
     config ESP32_S3_LCD_EV_BOARD
         int
         default 1 if BSP_SELECT_ESP32_S3_LCD_EV_BOARD
@@ -163,6 +168,10 @@ menu "BSP Selector"
         config BSP_SELECT_ESP32_S3_KORVO_2
             depends on IDF_TARGET_ESP32S3
             bool "ESP32_S3_KORVO_2"
+
+        config BSP_SELECT_ESP32_S31_KORVO_1
+            depends on IDF_TARGET_ESP32S31
+            bool "ESP32_S31_KORVO_1"
 
         config BSP_SELECT_ESP32_S3_LCD_EV_BOARD
             depends on IDF_TARGET_ESP32S3

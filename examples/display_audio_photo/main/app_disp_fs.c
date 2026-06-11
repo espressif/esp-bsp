@@ -32,10 +32,10 @@
    I2S peripheral -> I2S buffer (DMA) -> App buffer (RAM) -> SPIFFS buffer -> External SPI Flash.
    Vice versa for playback. */
 #define BUFFER_SIZE     (1024)
-#define SAMPLE_RATE     (22050)
+#define SAMPLE_RATE     (16000)
 #define DEFAULT_VOLUME  (70)
 /* The recording will be RECORDING_LENGTH * BUFFER_SIZE long (in bytes)
-   With sampling frequency 22050 Hz and 16bit mono resolution it equals to ~3.715 seconds */
+   With sampling frequency 16000 Hz and 16bit mono resolution it equals to 5.12 seconds */
 #define RECORDING_LENGTH (160)
 
 #define REC_FILENAME    FS_MNT_PATH"/recording.wav"

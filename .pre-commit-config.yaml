@@ -164,6 +164,9 @@ repos:
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp_vocat", "-i", "bsp/esp_vocat/doxygen/xml", "-o", "bsp/esp_vocat/API.md"]
         files: ^bsp/esp_vocat/
+      - id: doxygen-api-md
+        args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_s31_korvo_1", "-i", "bsp/esp32_s31_korvo_1/doxygen/xml", "-o", "bsp/esp32_s31_korvo_1/API.md"]
+        files: ^bsp/esp32_s31_korvo_1/
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1

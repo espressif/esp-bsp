@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -181,12 +181,16 @@ static void example_display_progress_screen(const char *message)
 // Initialize the display and show the initial screen
 esp_err_t example_display_init()
 {
+    esp_err_t err = ESP_OK;
     // This function is only called by the main task
     main_task_handle = xTaskGetCurrentTaskHandle();
 
     ESP_RETURN_ON_ERROR(!bsp_display_start(), TAG, "Failed to start a display");
 
-    ESP_RETURN_ON_ERROR(bsp_display_backlight_on(), TAG, "Failed to turn on backlight");
+    err = bsp_display_backlight_on();
+    if (err != ESP_OK && err != ESP_ERR_NOT_SUPPORTED) {
+        ESP_RETURN_ON_ERROR(err, TAG, "Failed to turn on backlight");
+    }
 
     bsp_display_lock(0);
     example_display_progress_screen("Mounting and testing\nthe SD card...");

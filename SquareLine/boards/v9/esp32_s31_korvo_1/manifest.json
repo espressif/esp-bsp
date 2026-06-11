@@ -1,0 +1,20 @@
+{
+ "name": "ESP32-S31-Korvo-1",
+ "version": "1.0.0",
+ "mcu": "ESP32S31",
+
+ "screen_width": "800",
+ "screen_height": "480",
+ "screen_circle": false,
+ "screen_color_swap": false,
+
+ "supported_lvgl_version": "9.1.*, 9.2.*, 9.3.*",
+
+ "short_description": "ESP32-S31-Korvo-1 BSP for SquareLine Studio.",
+ "long_description": "The ESP32-S31-Korvo-1 V1.1 is a multimedia development board based on the ESP32-S31 chip. It features a dual-microphone array and supports speech recognition as well as near- and far-field wake-up. The board also integrates peripherals such as LCD, camera, and microSD, and supports JPEG-based video streaming for low-cost, low-power, connected audio/video and graphical UI product development.",
+
+ "placeholders": {
+  "__ESP_BOARD_INCLUDE__": "bsp/esp-bsp.h",
+  "__ESP_BOARD_I2C_INIT__": ""
+ }
+}
