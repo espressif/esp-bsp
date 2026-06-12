@@ -380,7 +380,7 @@ esp_codec_dev_close(mic_codec_dev);
 | Type | Name |
 | ---: | :--- |
 |  esp\_codec\_dev\_handle\_t | [**bsp\_audio\_codec\_speaker\_init**](#function-bsp_audio_codec_speaker_init) (void) <br>_Initialize speaker codec device._ |
-|  const audio\_codec\_data\_if\_t \* | [**bsp\_audio\_get\_codec\_itf**](#function-bsp_audio_get_codec_itf) (void) <br>_Get codec I2S interface (initialized in bsp\_audio\_init)_ |
+|  const audio\_codec\_data\_if\_t \* | [**bsp\_audio\_get\_codec\_itf**](#function-bsp_audio_get_codec_itf) (void) <br>_Get codec I2S interface (initialized in bsp\_audio\_init)._ |
 |  esp\_err\_t | [**bsp\_audio\_init**](#function-bsp_audio_init) (const i2s\_std\_config\_t \*i2s\_config) <br>_Init audio._ |
 
 ## Macros
@@ -411,7 +411,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init (
 Pointer to codec device handle or NULL when error occurred
 ### function `bsp_audio_get_codec_itf`
 
-_Get codec I2S interface (initialized in bsp\_audio\_init)_
+_Get codec I2S interface (initialized in bsp\_audio\_init)._
 ```c
 const audio_codec_data_if_t * bsp_audio_get_codec_itf (
     void
@@ -590,7 +590,7 @@ Below are some of the most relevant predefined constants:
 |  void | [**bsp\_display\_delete**](#function-bsp_display_delete) (void) <br>_Delete display panel._ |
 |  esp\_err\_t | [**bsp\_display\_enter\_sleep**](#function-bsp_display_enter_sleep) (void) <br>_Set display enter sleep mode._ |
 |  esp\_err\_t | [**bsp\_display\_exit\_sleep**](#function-bsp_display_exit_sleep) (void) <br>_Set display exit sleep mode._ |
-|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)_ |
+|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)._ |
 |  bool | [**bsp\_display\_lock**](#function-bsp_display_lock) (uint32\_t timeout\_ms) <br>_Take LVGL mutex._ |
 |  esp\_err\_t | [**bsp\_display\_new**](#function-bsp_display_new) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, esp\_lcd\_panel\_handle\_t \*ret\_panel, esp\_lcd\_panel\_io\_handle\_t \*ret\_io) <br>_Create new display panel._ |
 |  esp\_err\_t | [**bsp\_display\_new\_with\_handles**](#function-bsp_display_new_with_handles) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, [**bsp\_lcd\_handles\_t**](#struct-bsp_lcd_handles_t) \*ret\_handles) <br>_Create new display panel._ |
@@ -637,7 +637,7 @@ Variables:
 
 -  bool double_buffer  <br>True, if should be allocated two buffers
 
--  struct [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) flags  
+-  anonymous struct flags  
 
 -  lvgl\_port\_cfg\_t lvgl_port_cfg  <br>LVGL port configuration
 
@@ -819,7 +819,7 @@ All the display (LCD, backlight, touch) will exit sleep mode.
 * ESP\_ERR\_NOT\_SUPPORTED if this function is not supported by the panel
 ### function `bsp_display_get_input_dev`
 
-_Get pointer to input device (touch, buttons, ...)_
+_Get pointer to input device (touch, buttons, ...)._
 ```c
 lv_indev_t * bsp_display_get_input_dev (
     void

@@ -246,9 +246,9 @@ sdmmc_card_print_info(stdout, sdcard);
 |  void | [**bsp\_sdcard\_get\_sdspi\_host**](#function-bsp_sdcard_get_sdspi_host) (const int slot, sdmmc\_host\_t \*config) <br>_Get SD card SPI host config._ |
 |  esp\_err\_t | [**bsp\_sdcard\_mount**](#function-bsp_sdcard_mount) (void) <br>_Mount microSD card to virtual file system._ |
 |  void | [**bsp\_sdcard\_sdmmc\_get\_slot**](#function-bsp_sdcard_sdmmc_get_slot) (const int slot, sdmmc\_slot\_config\_t \*config) <br>_Get SD card MMC slot config._ |
-|  esp\_err\_t | [**bsp\_sdcard\_sdmmc\_mount**](#function-bsp_sdcard_sdmmc_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (MMC mode)_ |
+|  esp\_err\_t | [**bsp\_sdcard\_sdmmc\_mount**](#function-bsp_sdcard_sdmmc_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (MMC mode)._ |
 |  void | [**bsp\_sdcard\_sdspi\_get\_slot**](#function-bsp_sdcard_sdspi_get_slot) (const spi\_host\_device\_t spi\_host, sdspi\_device\_config\_t \*config) <br>_Get SD card SPI slot config._ |
-|  esp\_err\_t | [**bsp\_sdcard\_sdspi\_mount**](#function-bsp_sdcard_sdspi_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (SPI mode)_ |
+|  esp\_err\_t | [**bsp\_sdcard\_sdspi\_mount**](#function-bsp_sdcard_sdspi_mount) ([**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) \*cfg) <br>_Mount microSD card to virtual file system (SPI mode)._ |
 |  esp\_err\_t | [**bsp\_sdcard\_unmount**](#function-bsp_sdcard_unmount) (void) <br>_Unmount micorSD card from virtual file system._ |
 |  esp\_err\_t | [**bsp\_spiffs\_mount**](#function-bsp_spiffs_mount) (void) <br>_Mount SPIFFS to virtual file system._ |
 |  esp\_err\_t | [**bsp\_spiffs\_unmount**](#function-bsp_spiffs_unmount) (void) <br>_Unmount SPIFFS from virtual file system._ |
@@ -289,7 +289,7 @@ Variables:
 
 -  const sdspi\_device\_config\_t \* sdspi  
 
--  union [**bsp\_sdcard\_cfg\_t**](#struct-bsp_sdcard_cfg_t) slot  
+-  anonymous union slot  
 
 
 ## Functions Documentation
@@ -376,7 +376,7 @@ void bsp_sdcard_sdmmc_get_slot (
 * `config` Structure which will be filled
 ### function `bsp_sdcard_sdmmc_mount`
 
-_Mount microSD card to virtual file system (MMC mode)_
+_Mount microSD card to virtual file system (MMC mode)._
 ```c
 esp_err_t bsp_sdcard_sdmmc_mount (
     bsp_sdcard_cfg_t *cfg
@@ -417,7 +417,7 @@ void bsp_sdcard_sdspi_get_slot (
 * `config` Structure which will be filled
 ### function `bsp_sdcard_sdspi_mount`
 
-_Mount microSD card to virtual file system (SPI mode)_
+_Mount microSD card to virtual file system (SPI mode)._
 ```c
 esp_err_t bsp_sdcard_sdspi_mount (
     bsp_sdcard_cfg_t *cfg
@@ -628,7 +628,7 @@ Below are some of the most relevant predefined constants:
 |  esp\_err\_t | [**bsp\_display\_backlight\_on**](#function-bsp_display_backlight_on) (void) <br>_Turn on display backlight._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_init**](#function-bsp_display_brightness_init) (void) <br>_Initialize display's brightness._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_set**](#function-bsp_display_brightness_set) (int brightness\_percent) <br>_Set display's brightness._ |
-|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)_ |
+|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)._ |
 |  bool | [**bsp\_display\_lock**](#function-bsp_display_lock) (uint32\_t timeout\_ms) <br>_Take LVGL mutex._ |
 |  esp\_err\_t | [**bsp\_display\_new**](#function-bsp_display_new) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, esp\_lcd\_panel\_handle\_t \*ret\_panel, esp\_lcd\_panel\_io\_handle\_t \*ret\_io) <br>_Create new display panel._ |
 |  void | [**bsp\_display\_rotate**](#function-bsp_display_rotate) (lv\_display\_t \*disp, lv\_disp\_rotation\_t rotation) <br>_Rotate screen._ |
@@ -677,7 +677,7 @@ Variables:
 
 -  bool double_buffer  <br>True, if should be allocated two buffers
 
--  struct [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) flags  
+-  anonymous struct flags  
 
 -  lvgl\_port\_cfg\_t lvgl_port_cfg  <br>LVGL port configuration
 
@@ -780,7 +780,7 @@ Brightness is controlled with PWM signal to a pin controlling backlight. Brightn
 * ESP\_ERR\_INVALID\_ARG Parameter error
 ### function `bsp_display_get_input_dev`
 
-_Get pointer to input device (touch, buttons, ...)_
+_Get pointer to input device (touch, buttons, ...)._
 ```c
 lv_indev_t * bsp_display_get_input_dev (
     void

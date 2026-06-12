@@ -96,7 +96,7 @@ repos:
         description: Forces to replace line ending by the UNIX 'lf' character
 
   - repo: https://github.com/espressif/doxybook
-    rev: v0.2.4
+    rev: v0.3.1
     hooks:
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp_wrover_kit", "-i", "bsp/esp_wrover_kit/doxygen/xml", "-o", "bsp/esp_wrover_kit/API.md"]

@@ -533,7 +533,7 @@ esp_codec_dev_close(mic_codec_dev);
 | ---: | :--- |
 |  esp\_codec\_dev\_handle\_t | [**bsp\_audio\_codec\_microphone\_init**](#function-bsp_audio_codec_microphone_init) (void) <br>_Initialize microphone codec device._ |
 |  esp\_codec\_dev\_handle\_t | [**bsp\_audio\_codec\_speaker\_init**](#function-bsp_audio_codec_speaker_init) (void) <br>_Initialize speaker codec device._ |
-|  const audio\_codec\_data\_if\_t \* | [**bsp\_audio\_get\_codec\_itf**](#function-bsp_audio_get_codec_itf) (void) <br>_Get codec I2S interface (initialized in bsp\_audio\_init)_ |
+|  const audio\_codec\_data\_if\_t \* | [**bsp\_audio\_get\_codec\_itf**](#function-bsp_audio_get_codec_itf) (void) <br>_Get codec I2S interface (initialized in bsp\_audio\_init)._ |
 |  esp\_err\_t | [**bsp\_audio\_init**](#function-bsp_audio_init) (const i2s\_std\_config\_t \*i2s\_config) <br>_Init audio._ |
 
 ## Macros
@@ -579,7 +579,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init (
 Pointer to codec device handle or NULL when error occurred
 ### function `bsp_audio_get_codec_itf`
 
-_Get codec I2S interface (initialized in bsp\_audio\_init)_
+_Get codec I2S interface (initialized in bsp\_audio\_init)._
 ```c
 const audio_codec_data_if_t * bsp_audio_get_codec_itf (
     void
@@ -759,7 +759,7 @@ Below are some of the most relevant predefined constants:
 |  esp\_err\_t | [**bsp\_display\_backlight\_on**](#function-bsp_display_backlight_on) (void) <br>_Turn on display backlight._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_init**](#function-bsp_display_brightness_init) (void) <br>_Initialize display's brightness._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_set**](#function-bsp_display_brightness_set) (int brightness\_percent) <br>_Set display's brightness._ |
-|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)_ |
+|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)._ |
 |  bool | [**bsp\_display\_lock**](#function-bsp_display_lock) (uint32\_t timeout\_ms) <br>_Take LVGL mutex._ |
 |  esp\_err\_t | [**bsp\_display\_new**](#function-bsp_display_new) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, esp\_lcd\_panel\_handle\_t \*ret\_panel, esp\_lcd\_panel\_io\_handle\_t \*ret\_io) <br>_Create new display panel._ |
 |  void | [**bsp\_display\_rotate**](#function-bsp_display_rotate) (lv\_display\_t \*disp, lv\_disp\_rotation\_t rotation) <br>_Rotate screen._ |
@@ -805,7 +805,7 @@ Variables:
 
 -  bool double_buffer  <br>True, if should be allocated two buffers
 
--  struct [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) flags  
+-  anonymous struct flags  
 
 -  lvgl\_port\_cfg\_t lvgl_port_cfg  <br>LVGL port configuration
 
@@ -908,7 +908,7 @@ Brightness is controlled with PWM signal to a pin controlling backlight. Brightn
 * ESP\_ERR\_INVALID\_ARG Parameter error
 ### function `bsp_display_get_input_dev`
 
-_Get pointer to input device (touch, buttons, ...)_
+_Get pointer to input device (touch, buttons, ...)._
 ```c
 lv_indev_t * bsp_display_get_input_dev (
     void
