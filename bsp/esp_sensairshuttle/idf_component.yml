@@ -1,0 +1,37 @@
+
+version: "1.0.0"
+description: Board Support Package (BSP) for ESP-SensairShuttle
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/sensairshuttle
+
+targets:
+  - esp32c5
+
+tags:
+  - bsp
+
+dependencies:
+  idf: ">=5.2"
+
+  esp_codec_dev:
+    version: "~1.5"
+    public: true
+
+  espressif/esp_lvgl_port:
+    version: "^2"
+    public: true
+
+  espressif/esp_lcd_touch_cst816s:
+    version: "*"
+    public: false
+
+  button:
+    version: "^4"
+    public: true
+
+  led_indicator:
+    version: "^2"
+    public: true
+
+  espressif/bmi270:
+    version: "*"
+    public: true

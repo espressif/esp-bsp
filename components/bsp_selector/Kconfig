@@ -7,6 +7,11 @@ menu "BSP Selector"
         default 1 if BSP_SELECT_ESP_BSP_DEVKIT
         default 0
 
+    config ESP_BSP_SENSAIRSHUTTLE
+        int
+        default 1 if BSP_SELECT_ESP_BSP_SENSAIRSHUTTLE
+        default 0
+
     config ESP_BSP_GENERIC
         int
         default 1 if BSP_SELECT_ESP_BSP_GENERIC
@@ -120,6 +125,7 @@ menu "BSP Selector"
 
     choice BSP_SELECT
         prompt "Select BSP"
+        default BSP_SELECT_ESP_BSP_SENSAIRSHUTTLE if IDF_TARGET_ESP32C5
         default BSP_SELECT_ESP_WROVER_KIT if IDF_TARGET_ESP32
         default BSP_SELECT_ESP_BOX_3 if IDF_TARGET_ESP32S3
         default BSP_SELECT_ESP32_P4_FUNCTION_EV_BOARD if IDF_TARGET_ESP32P4
@@ -132,6 +138,10 @@ menu "BSP Selector"
 
         config BSP_SELECT_ESP_BSP_DEVKIT
             bool "ESP_BSP_DEVKIT"
+
+        config BSP_SELECT_ESP_BSP_SENSAIRSHUTTLE
+            depends on IDF_TARGET_ESP32C5
+            bool "ESP_BSP_SENSAIRSHUTTLE"
 
         config BSP_SELECT_ESP_BSP_GENERIC
             depends on BSP_SELECT_GLIB
