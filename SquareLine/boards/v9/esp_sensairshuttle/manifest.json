@@ -1,0 +1,16 @@
+{
+ "name": "ESP-SensairShuttle",
+ "version": "1.0.0",
+ "mcu": "ESP32C5",
+ "screen_width": "240",
+ "screen_height": "284",
+ "screen_circle": false,
+ "screen_color_swap": false,
+ "supported_lvgl_version": "9.1.*, 9.2.*, 9.3.*",
+ "short_description": "ESP-SensairShuttle BSP for SquareLine Studio.",
+ "long_description": "ESP-SensairShuttle is a development board jointly launched by Espressif and Bosch Sensortec for motion sensing and large language model human-computer interaction scenarios, dedicated to promoting the deep integration of multimodal sensing and intelligent interaction technologies. The platform covers typical application scenarios such as AI toys, smart homes, sports health, and smart offices, supporting a complete technical chain from environmental sensing, behavior understanding to intelligent feedback, providing a more natural, real-time, and intelligent interaction experience for next-generation intelligent terminals.",
+ "placeholders": {
+  "__ESP_BOARD_INCLUDE__": "bsp/esp-bsp.h",
+  "__ESP_BOARD_I2C_INIT__": ""
+ }
+}
