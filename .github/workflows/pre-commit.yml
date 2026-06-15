@@ -7,13 +7,23 @@ on:
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
+    env:
+      DOXYGEN_VERSION: 1.16.1
     steps:
+    - name: Cache Doxygen
+      id: cache-doxygen
+      uses: actions/cache@v5
+      with:
+        path: /usr/local/bin/doxygen
+        key: ${{ env.DOXYGEN_VERSION }}-${{ runner.os }}-doxygen
     - name: Install Doxygen
+      if: steps.cache-doxygen.outputs.cache-hit != 'true'
       run: |
-        wget https://www.doxygen.nl/files/doxygen-1.16.1.linux.bin.tar.gz
-        tar -xzf doxygen-1.16.1.linux.bin.tar.gz
-        mv doxygen-1.16.1/bin/doxygen /usr/local/bin/
-        doxygen --version
+        wget https://www.doxygen.nl/files/doxygen-${{ env.DOXYGEN_VERSION }}.linux.bin.tar.gz
+        tar -xzf doxygen-${{ env.DOXYGEN_VERSION }}.linux.bin.tar.gz
+        mv doxygen-${{ env.DOXYGEN_VERSION }}/bin/doxygen /usr/local/bin/
+    - name: Print doxygen version
+      run: doxygen --version
     - uses: actions/checkout@v6
     - uses: actions/setup-python@v5.2.0
     - uses: pre-commit/action@v3.0.1
