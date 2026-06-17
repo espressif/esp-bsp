@@ -1,0 +1,6 @@
+# SquareLine LVGL example - depends on generated BSP
+description: "ESP-BSP SquareLine LVGL Example for ESP-SensairShuttle"
+targets:
+  - esp32c5
+dependencies:
+  esp_sensairshuttle: ">=1.0.0"
