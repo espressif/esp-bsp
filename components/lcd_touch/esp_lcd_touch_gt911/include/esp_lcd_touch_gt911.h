@@ -56,8 +56,8 @@ typedef struct {
  */
 #define ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG()             \
     {                                                   \
-        .scl_speed_hz = 100000,                         \
         .dev_addr = ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS, \
+        .scl_speed_hz = 100000,                         \
         .control_phase_bytes = 1,                       \
         .dc_bit_offset = 0,                             \
         .lcd_cmd_bits = 16,                             \
