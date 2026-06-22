@@ -44,8 +44,8 @@ esp_err_t esp_lcd_touch_new_i2c_ft5x06(const esp_lcd_panel_io_handle_t io, const
  */
 #define ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG()                \
     {                                                       \
-        .scl_speed_hz = 100000,                             \
         .dev_addr = ESP_LCD_TOUCH_IO_I2C_FT5x06_ADDRESS,    \
+        .scl_speed_hz = 100000,                             \
         .control_phase_bytes = 1,                           \
         .dc_bit_offset = 0,                                 \
         .lcd_cmd_bits = 8,                                  \
