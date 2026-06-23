@@ -96,7 +96,7 @@ jobs:
           path: |
             ${{ env.BENCHMARK_PROJECT_DIR }}/build_*/benchmark_*.json
             ${{ env.BENCHMARK_PROJECT_DIR }}/build_*/size.json
-            *.log
+            /tmp/pytest-embedded/**/*.log
       - name: Upload benchmark metrics
         uses: actions/upload-artifact@v7
         if: always()
