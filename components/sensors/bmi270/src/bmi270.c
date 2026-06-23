@@ -326,6 +326,93 @@ esp_err_t bmi270_set_gyro_range(bmi270_handle_t *dev_handle, bmi270_gyro_range_e
     return ESP_OK;
 }
 
+esp_err_t bmi270_set_acce_bwp(const bmi270_handle_t *dev_handle, bmi270_acce_bwp_e bwp)
+{
+    ESP_RETURN_ON_FALSE(dev_handle != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the device handle must not be NULL");
+
+    uint8_t data;
+
+    if (!dev_handle->initialized) {
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    ESP_RETURN_ON_ERROR(read_register(dev_handle, BMI270_ACC_CONF_REG, &data, 1), TAG,
+                        "Failed to read accelerometer configuration");
+    data = (data & BMI270_ACC_BWP_MSK) | ((uint8_t)bwp << BMI270_ACC_BWP_POS);
+    ESP_RETURN_ON_ERROR(write_register(dev_handle, BMI270_ACC_CONF_REG, &data, 1), TAG,
+                        "Failed to configure accelerometer BWP");
+    return ESP_OK;
+}
+
+esp_err_t bmi270_set_acce_filter_perf(const bmi270_handle_t *dev_handle, bmi270_perf_e perf)
+{
+    ESP_RETURN_ON_FALSE(dev_handle != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the device handle must not be NULL");
+
+    uint8_t data;
+
+    if (!dev_handle->initialized) {
+        return ESP_ERR_INVALID_STATE;
+    }
+    ESP_RETURN_ON_ERROR(read_register(dev_handle, BMI270_ACC_CONF_REG, &data, 1), TAG,
+                        "Failed to read accelerometer configuration");
+    data = (data & BMI270_ACC_FILTER_PERF_MSK) | ((uint8_t)perf << BMI270_ACC_FILTER_PERF_POS);
+    ESP_RETURN_ON_ERROR(write_register(dev_handle, BMI270_ACC_CONF_REG, &data, 1), TAG,
+                        "Failed to configure accelerometer filter performance mode");
+    return ESP_OK;
+}
+
+esp_err_t bmi270_set_gyro_bwp(const bmi270_handle_t *dev_handle, bmi270_gyro_bwp_e bwp)
+{
+    ESP_RETURN_ON_FALSE(dev_handle != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the device handle must not be NULL");
+
+    uint8_t data;
+
+    if (!dev_handle->initialized) {
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    ESP_RETURN_ON_ERROR(read_register(dev_handle, BMI270_GYR_CONF_REG, &data, 1), TAG,
+                        "Failed to read gyroscope configuration");
+    data = (data & BMI270_GYR_BWP_MSK) | ((uint8_t)bwp << BMI270_GYR_BWP_POS);
+    ESP_RETURN_ON_ERROR(write_register(dev_handle, BMI270_GYR_CONF_REG, &data, 1), TAG,
+                        "Failed to configure gyroscope BWP");
+    return ESP_OK;
+}
+
+esp_err_t bmi270_set_gyro_noise_perf(const bmi270_handle_t *dev_handle, bmi270_perf_e perf)
+{
+    ESP_RETURN_ON_FALSE(dev_handle != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the device handle must not be NULL");
+
+    uint8_t data;
+
+    if (!dev_handle->initialized) {
+        return ESP_ERR_INVALID_STATE;
+    }
+    ESP_RETURN_ON_ERROR(read_register(dev_handle, BMI270_GYR_CONF_REG, &data, 1), TAG,
+                        "Failed to read gyroscope configuration");
+    data = (data & BMI270_GYR_NOISE_PERF_MSK) | ((uint8_t)perf << BMI270_GYR_NOISE_PERF_POS);
+    ESP_RETURN_ON_ERROR(write_register(dev_handle, BMI270_GYR_CONF_REG, &data, 1), TAG,
+                        "Failed to configure gyroscope noise performance mode");
+    return ESP_OK;
+}
+
+esp_err_t bmi270_set_gyro_filter_perf(const bmi270_handle_t *dev_handle, bmi270_perf_e perf)
+{
+    ESP_RETURN_ON_FALSE(dev_handle != NULL, ESP_ERR_INVALID_ARG, TAG, "Pointer to the device handle must not be NULL");
+
+    uint8_t data;
+
+    if (!dev_handle->initialized) {
+        return ESP_ERR_INVALID_STATE;
+    }
+    ESP_RETURN_ON_ERROR(read_register(dev_handle, BMI270_GYR_CONF_REG, &data, 1), TAG,
+                        "Failed to read gyroscope configuration");
+    data = (data & BMI270_GYR_FILTER_PERF_MSK) | ((uint8_t)perf << BMI270_GYR_FILTER_PERF_POS);
+    ESP_RETURN_ON_ERROR(write_register(dev_handle, BMI270_GYR_CONF_REG, &data, 1), TAG,
+                        "Failed to configure gyroscope filter performance mode");
+    return ESP_OK;
+}
+
 /*******************************************************************************
 * Private functions
 *******************************************************************************/

@@ -20,6 +20,12 @@ extern "C" {
 #define BMI270_SOFT_RESET_TIME_MS           10
 #define BMI270_STATUS_CHECK_PERIOD_MS       50
 
+#define BMI270_ACC_BWP_POS                  4
+#define BMI270_ACC_FILTER_PERF_POS          7
+#define BMI270_GYR_BWP_POS                  4
+#define BMI270_GYR_NOISE_PERF_POS           6
+#define BMI270_GYR_FILTER_PERF_POS          7
+
 #define BMI270_CMD_SOFT_RESET               0xB6
 #define BMI270_STATUS_INIT_OK               0x01
 
@@ -27,6 +33,11 @@ extern "C" {
 #define BMI270_ACC_EN_MSK                   0x04
 #define BMI270_TEMP_EN_MSK                  0x08
 #define BMI270_ODR_MSK                      0xF0
+#define BMI270_ACC_BWP_MSK                  0x8F
+#define BMI270_ACC_FILTER_PERF_MSK          0x7F
+#define BMI270_GYR_BWP_MSK                  0xCF
+#define BMI270_GYR_NOISE_PERF_MSK           0xBF
+#define BMI270_GYR_FILTER_PERF_MSK          0x7F
 #define BMI270_GYR_RANGE_MSK                0xF8
 
 #define BMI270_CHIP_ID_REG                  0x00
