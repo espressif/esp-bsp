@@ -6,7 +6,7 @@ from pytest_embedded import Dut
 
 
 @pytest.mark.esp32_p4_eye
-@pytest.mark.esp32_s3_eye
+# @pytest.mark.esp32_s3_eye // Temporary disabled due to dead HW
 @pytest.mark.esp32_s3_korvo_2
 @pytest.mark.m5stack_core_s3
 @pytest.mark.m5stack_tab5
