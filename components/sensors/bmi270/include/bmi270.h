@@ -79,6 +79,28 @@ typedef enum {
     BMI270_GYR_RANGE_125_DPS
 } bmi270_gyro_range_e;
 
+typedef enum {
+    BMI270_ACC_BWP_OSR4_AVG1 = 0,
+    BMI270_ACC_BWP_OSR2_AVG2,
+    BMI270_ACC_BWP_NORM_AVG4,
+    BMI270_ACC_BWP_CIC_AVG8,
+    BMI270_ACC_BWP_RES_AVG16,
+    BMI270_ACC_BWP_RES_AVG32,
+    BMI270_ACC_BWP_RES_AVG64,
+    BMI270_ACC_BWP_RES_AVG128
+} bmi270_acce_bwp_e;
+
+typedef enum {
+    BMI270_GYR_BWP_OSR4 = 0,
+    BMI270_GYR_BWP_OSR2,
+    BMI270_GYR_BWP_NORM
+} bmi270_gyro_bwp_e;
+
+typedef enum {
+    BMI270_POWER_OPTIMIZED = 0,
+    BMI270_PERFORMANCE_OPTIMIZED
+} bmi270_perf_e;
+
 /**
  * @brief Driver interface configuration structure
  * @note The SPI interface is currently not supported
@@ -250,6 +272,66 @@ esp_err_t bmi270_set_acce_range(bmi270_handle_t *dev_handle, bmi270_acce_range_e
  *     - Or other errors from the underlying I2C driver
  */
 esp_err_t bmi270_set_gyro_range(bmi270_handle_t *dev_handle, bmi270_gyro_range_e range);
+
+/**
+ * @brief Set accelerometer bandwidth parameter
+ *
+ * @param[in]  dev_handle   Initialized BMI270 handle
+ * @param[in]  bwp          Accelerometer bandwidth parameter
+ *
+ * @return
+ *     - ESP_OK             Success
+ *     - Or other errors from the underlying I2C driver
+ */
+esp_err_t bmi270_set_acce_bwp(const bmi270_handle_t *dev_handle, bmi270_acce_bwp_e bwp);
+
+/**
+ * @brief Set accelerometer filter performance mode
+ *
+ * @param[in]  dev_handle   Initialized BMI270 handle
+ * @param[in]  perf         Accelerometer filter performance mode
+ *
+ * @return
+ *     - ESP_OK             Success
+ *     - Or other errors from the underlying I2C driver
+ */
+esp_err_t bmi270_set_acce_filter_perf(const bmi270_handle_t *dev_handle, bmi270_perf_e perf);
+
+/**
+ * @brief Set gyroscope bandwidth parameter
+ *
+ * @param[in]  dev_handle   Initialized BMI270 handle
+ * @param[in]  bwp          Gyroscope bandwidth parameter
+ *
+ * @return
+ *     - ESP_OK             Success
+ *     - Or other errors from the underlying I2C driver
+ */
+esp_err_t bmi270_set_gyro_bwp(const bmi270_handle_t *dev_handle, bmi270_gyro_bwp_e bwp);
+
+/**
+ * @brief Set gyroscope noise performance mode
+ *
+ * @param[in]  dev_handle   Initialized BMI270 handle
+ * @param[in]  perf         Gyroscope noise performance mode
+ *
+ * @return
+ *     - ESP_OK             Success
+ *     - Or other errors from the underlying I2C driver
+ */
+esp_err_t bmi270_set_gyro_noise_perf(const bmi270_handle_t *dev_handle, bmi270_perf_e perf);
+
+/**
+ * @brief Set gyroscope filter performance mode
+ *
+ * @param[in]  dev_handle   Initialized BMI270 handle
+ * @param[in]  perf         Gyroscope filter performance mode
+ *
+ * @return
+ *     - ESP_OK             Success
+ *     - Or other errors from the underlying I2C driver
+ */
+esp_err_t bmi270_set_gyro_filter_perf(const bmi270_handle_t *dev_handle, bmi270_perf_e perf);
 
 #ifdef __cplusplus
 }
