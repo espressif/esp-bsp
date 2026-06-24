@@ -1,5 +1,5 @@
 
-version: "1.0.0"
+version: "1.0.0~1"
 description: Board Support Package (BSP) for ESP32-S31-Korvo-1
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32-s31-korvo-1
 
@@ -41,3 +41,12 @@ dependencies:
   usb:
     version: "^1"
     public: true
+
+examples:
+  - path: ../../examples/display
+  - path: ../../examples/display_audio_photo
+  - path: ../../examples/display_camera_video
+  - path: ../../examples/display_lvgl_demos
+  - path: ../../examples/display_lvgl_benchmark
+  - path: ../../examples/display_sdcard
+  - path: ../../examples/display_usb_hid
