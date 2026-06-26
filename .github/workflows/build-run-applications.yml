@@ -170,4 +170,4 @@ jobs:
           name: ${{ env.TEST_RESULT_NAME }}
           path: |
             ${{ env.TEST_RESULT_FILE }}
-            *.log
+            /tmp/pytest-embedded/**/*.log
