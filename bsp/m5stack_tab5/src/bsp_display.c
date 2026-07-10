@@ -158,22 +158,28 @@ static bsp_tab5_board_version_t bsp_get_board_version(void)
         esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_ST7123_CONFIG();
         uint8_t fw_version = 0;
 
-        if (esp_lcd_new_panel_io_i2c(bsp_i2c_get_handle(), &tp_io_config, &tp_io_handle) == ESP_OK) {
-            if (esp_lcd_panel_io_rx_param(tp_io_handle, 0x0000, &fw_version, sizeof(fw_version)) == ESP_OK) {
-                if (fw_version == 1) {
-                    ESP_LOGI(TAG, "Discovered board version 3 (LCD ST7121, Touch ST712x, FW %u)", fw_version);
-                    board_ver = BSP_TAB5_BOARD_VERSION_ST7121;
-                } else if (fw_version == 3) {
-                    ESP_LOGI(TAG, "Discovered board version 2 (LCD ST7123, Touch ST7123, FW %u)", fw_version);
-                    board_ver = BSP_TAB5_BOARD_VERSION_ST7123;
-                }
-            }
-            esp_lcd_panel_io_del(tp_io_handle);
+        ret = esp_lcd_new_panel_io_i2c(bsp_i2c_get_handle(), &tp_io_config, &tp_io_handle);
+        if (ret != ESP_OK) {
+            ESP_LOGW(TAG, "Failed to create ST712x touch IO: %s", esp_err_to_name(ret));
+            return BSP_TAB5_BOARD_VERSION_UNKNOWN;
         }
 
-        if (board_ver == BSP_TAB5_BOARD_VERSION_UNKNOWN) {
-            ESP_LOGW(TAG, "Discovered ST712x touch controller with unknown FW %u, defaulting to ST7123", fw_version);
+        ret = esp_lcd_panel_io_rx_param(tp_io_handle, 0x0000, &fw_version, sizeof(fw_version));
+        esp_lcd_panel_io_del(tp_io_handle);
+        if (ret != ESP_OK) {
+            ESP_LOGW(TAG, "Failed to read ST712x firmware version: %s", esp_err_to_name(ret));
+            return BSP_TAB5_BOARD_VERSION_UNKNOWN;
+        }
+
+        if (fw_version == 1) {
+            ESP_LOGI(TAG, "Discovered board version 3 (LCD ST7121, Touch ST712x, FW %u)", fw_version);
+            board_ver = BSP_TAB5_BOARD_VERSION_ST7121;
+        } else if (fw_version == 3) {
+            ESP_LOGI(TAG, "Discovered board version 2 (LCD ST7123, Touch ST7123, FW %u)", fw_version);
             board_ver = BSP_TAB5_BOARD_VERSION_ST7123;
+        } else {
+            ESP_LOGW(TAG, "Unsupported ST712x firmware version: %u", fw_version);
+            return BSP_TAB5_BOARD_VERSION_UNKNOWN;
         }
     } else if (i2c_master_probe(bsp_i2c_get_handle(), ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS_BACKUP, 100) == ESP_OK) {
         ESP_LOGI(TAG, "Discovered board version 1 (LCD ILI9881C, Touch GT911)");
@@ -209,6 +215,8 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     ESP_RETURN_ON_ERROR(bsp_enable_dsi_phy_power(), TAG, "DSI PHY power failed");
 
     bsp_tab5_board_version_t board_version = bsp_get_board_version();
+    ESP_RETURN_ON_FALSE(board_version != BSP_TAB5_BOARD_VERSION_UNKNOWN, ESP_ERR_NOT_SUPPORTED, TAG, "Unsupported board version");
+
     uint32_t lane_bit_rate_mbps = config->dsi_bus.lane_bit_rate_mbps;
     if (board_version == BSP_TAB5_BOARD_VERSION_ST7123 ||
             board_version == BSP_TAB5_BOARD_VERSION_ST7121) {
