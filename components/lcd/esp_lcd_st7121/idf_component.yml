@@ -1,0 +1,7 @@
+version: "1.0.0"
+targets:
+  - esp32p4
+description: ESP LCD ST7121 (MIPI DSI)
+url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_st7121
+dependencies:
+  idf: ">=5.4"

@@ -36,6 +36,11 @@ dependencies:
     version: "*"
     public: false
 
+  espressif/esp_lcd_st7121:
+    version: "*"
+    public: false
+    override_path: "../../components/lcd/esp_lcd_st7121"
+
   espressif/esp_lcd_ili9881c:
     version: "*"
     public: false
