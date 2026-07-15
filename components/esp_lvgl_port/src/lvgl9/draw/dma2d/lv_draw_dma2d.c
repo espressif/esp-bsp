@@ -166,6 +166,7 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_esp_dma2d_layer(lv_draw_task_t *t, const lv_d
 
     lv_draw_image_dsc_t new_draw_dsc = *draw_dsc;
     new_draw_dsc.src = layer_to_draw->draw_buf;
+    new_draw_dsc.header = layer_to_draw->draw_buf->header;
     lv_draw_esp_dma2d_image(t, &new_draw_dsc, coords);
 }
 

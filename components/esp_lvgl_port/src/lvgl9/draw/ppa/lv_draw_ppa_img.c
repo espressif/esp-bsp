@@ -16,6 +16,7 @@
 
 #include "draw/lv_draw_image_private.h"
 #include "draw/lv_image_decoder_private.h"
+#include "draw/sw/lv_draw_sw.h"
 
 static void lv_draw_img_ppa_core(lv_draw_task_t *t, const lv_draw_image_dsc_t *draw_dsc,
                                  const lv_image_decoder_dsc_t *decoder_dsc, lv_draw_image_sup_t *sup,
@@ -147,7 +148,8 @@ static void LV_ATTRIBUTE_FAST_MEM lv_draw_img_ppa_core(lv_draw_task_t *t, const 
         esp_err_t srm_ret = ppa_do_scale_rotate_mirror(u->srm_client, &srm_cfg);
         if (srm_ret != ESP_OK) {
             lv_draw_ppa_cancel_op(u);
-            LV_LOG_WARN("PPA SRM failed: %d", srm_ret);
+            LV_LOG_WARN("PPA SRM failed: %d, falling back to SW", (int)srm_ret);
+            lv_draw_sw_image(t, draw_dsc, img_coords);
         }
         return;
     }
@@ -207,7 +209,8 @@ static void LV_ATTRIBUTE_FAST_MEM lv_draw_img_ppa_core(lv_draw_task_t *t, const 
     esp_err_t ret = ppa_do_blend(u->blend_client, &cfg);
     if (ret != ESP_OK) {
         lv_draw_ppa_cancel_op(u);
-        LV_LOG_WARN("PPA draw_img blend failed: %d", ret);
+        LV_LOG_WARN("PPA draw_img blend failed: %d, falling back to SW", (int)ret);
+        lv_draw_sw_image(t, draw_dsc, img_coords);
     }
 }
 
