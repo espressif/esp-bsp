@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Fixed callbacks for DPI by IDF update (`on_refresh_done` --> `on_frame_buf_complete`)
+- Keep DPI avoid-tearing on `on_refresh_done` for IDF 5.5 (field is not present on DPI callbacks)
 
 ## 2.8.0
 
