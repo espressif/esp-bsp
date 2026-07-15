@@ -11,6 +11,17 @@ components/esp_lvgl_port/examples/rgb_lcd:
     - if: IDF_TARGET in ["esp32s3", "esp32p4"]
       reason: Supports only targets with RGB peripheral
 
+components/esp_lvgl_port/test_apps/lvgl_port:
+  depends_filepatterns:
+    - "components/esp_lvgl_port/**"
+    - "components/lcd_touch/**"
+    - "components/lcd/**"
+  disable:
+    - if: CONFIG_NAME == "ppa_dma2d" and IDF_TARGET not in ["esp32p4"]
+      reason: PPA/DMA2D LVGL draw units require ESP32-P4
+    - if: CONFIG_NAME == "ppa_dma2d" and IDF_VERSION < "5.4.0"
+      reason: ESP32-P4 support requires IDF >= 5.4
+
 components/esp_lvgl_port/test_apps/simd:
   depends_filepatterns:
     - "components/esp_lvgl_port/**"
