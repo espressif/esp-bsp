@@ -583,18 +583,16 @@ static int32_t LV_ATTRIBUTE_FAST_MEM ppa_dispatch(lv_draw_unit_t *draw_unit, lv_
      * scheduler unblocked, releases the CPU through xSemaphoreTake (the
      * IDLE task can run, watchdog fed) and still benefits from the producer
      * pipelining sub-ops into the PPA queue. */
-    if (atomic_load(&u->pending_ops) > 0) {
 #if LV_USE_PPA_STATS
-        int64_t t0 = esp_timer_get_time();
+    int64_t t0 = esp_timer_get_time();
 #endif
-        xSemaphoreTake(u->done_sem, portMAX_DELAY);
+    lv_draw_ppa_wait_pending_ops(u);
 #if LV_USE_PPA_STATS
-        int64_t dt = esp_timer_get_time() - t0;
-        if (dt > 0) {
-            atomic_fetch_add(&u->stat_total_wait_us, (unsigned long long)dt);
-        }
-#endif
+    int64_t dt = esp_timer_get_time() - t0;
+    if (dt > 0) {
+        atomic_fetch_add(&u->stat_total_wait_us, (unsigned long long)dt);
     }
+#endif
     lv_draw_ppa_finalize_active_task(u);
     return 1;
 #else
@@ -626,10 +624,8 @@ static int32_t LV_ATTRIBUTE_FAST_MEM ppa_delete(lv_draw_unit_t *draw_unit)
         u->a8_scratch_size = 0;
     }
 #if LV_USE_PPA_ASYNC
-    if (u->done_sem) {
-        vSemaphoreDelete(u->done_sem);
-        u->done_sem = NULL;
-    }
+    /* Static semaphore: must not call vSemaphoreDelete. */
+    u->done_sem = NULL;
 #endif
 #if LV_USE_PPA_RUNTIME_TUNING || LV_USE_PPA_STATS
     if (lv_draw_ppa_unit_instance == u) {
@@ -825,6 +821,18 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_finalize_active_task(lv_draw_ppa_unit_t *
     lv_draw_dispatch_request();
 }
 
+void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_wait_pending_ops(lv_draw_ppa_unit_t *u)
+{
+    if (atomic_load(&u->pending_ops) > 0) {
+        xSemaphoreTake(u->done_sem, portMAX_DELAY);
+    } else {
+        /* Wait for in-flight PPA sub-ops. The last ISR Gives done_sem; if that
+         * Give lands before we sample pending_ops, drain the leftover token so
+         * the next task does not observe a stale completion. */
+        xSemaphoreTake(u->done_sem, 0);
+    }
+}
+
 static int32_t LV_ATTRIBUTE_FAST_MEM ppa_wait_for_finish(lv_draw_unit_t *draw_unit)
 {
     lv_draw_ppa_unit_t *u = (lv_draw_ppa_unit_t *)draw_unit;
@@ -835,21 +843,16 @@ static int32_t LV_ATTRIBUTE_FAST_MEM ppa_wait_for_finish(lv_draw_unit_t *draw_un
     /* Block until the ISR signals completion. The PPA driver itself is
      * FreeRTOS-aware and already blocks the producer when the per-client queue
      * is full, so this wait covers only the in-flight portion of the work. */
-    if (atomic_load(&u->pending_ops) > 0) {
 #if LV_USE_PPA_STATS
-        int64_t t0 = esp_timer_get_time();
+    int64_t t0 = esp_timer_get_time();
 #endif
-        /* portMAX_DELAY: the PPA hardware finishes any submitted op in a
-         * deterministic time, so an indefinite wait is the right policy here.
-         * If the timeout becomes a concern we can lower it via Kconfig later. */
-        xSemaphoreTake(u->done_sem, portMAX_DELAY);
+    lv_draw_ppa_wait_pending_ops(u);
 #if LV_USE_PPA_STATS
-        int64_t dt = esp_timer_get_time() - t0;
-        if (dt > 0) {
-            atomic_fetch_add(&u->stat_total_wait_us, (unsigned long long)dt);
-        }
-#endif
+    int64_t dt = esp_timer_get_time() - t0;
+    if (dt > 0) {
+        atomic_fetch_add(&u->stat_total_wait_us, (unsigned long long)dt);
     }
+#endif
 
     lv_draw_ppa_finalize_active_task(u);
     return 0;

@@ -144,6 +144,9 @@ bool lv_draw_ppa_trans_done_cb(ppa_client_handle_t client, ppa_event_data_t *evt
 /* Finish the active task: cache invalidate, tile release, mark finished and
  * kick the LVGL dispatcher. Used by wait_for_finish and runtime retune. */
 void lv_draw_ppa_finalize_active_task(lv_draw_ppa_unit_t *u);
+
+/* Wait for in-flight sub-ops and drain a possible stale done_sem token. */
+void lv_draw_ppa_wait_pending_ops(lv_draw_ppa_unit_t *u);
 #endif
 
 #if LV_USE_PPA_TILE_COMPOSER
