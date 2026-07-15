@@ -115,6 +115,26 @@ if(usbhid_iface)
     target_link_libraries(${COMPONENT_TARGET} PRIVATE ${usbhid_iface})
 endif()
 
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/esp_lvgl_port_draw_units.cmake)
+
+if(NOT lvgl_ver VERSION_LESS "9.0.0")
+    esp_lvgl_port_draw_units_collect_srcs(DRAW_UNIT_SRCS)
+    if(DRAW_UNIT_SRCS)
+        target_sources(${COMPONENT_TARGET} PRIVATE ${DRAW_UNIT_SRCS})
+    endif()
+    esp_lvgl_port_draw_units_configure(${COMPONENT_TARGET} "${lvgl_ver}")
+    if(CONFIG_ESP_LVGL_PORT_USE_PPA OR CONFIG_ESP_LVGL_PORT_USE_ESP_DMA2D)
+        idf_component_include(esp_mm)
+        target_link_libraries(${COMPONENT_TARGET} PRIVATE idf::esp_mm)
+    endif()
+    if(CONFIG_ESP_LVGL_PORT_USE_PPA)
+        idf_component_include(esp_driver_ppa)
+        target_link_libraries(${COMPONENT_TARGET} PRIVATE idf::esp_driver_ppa)
+    endif()
+else()
+    esp_lvgl_port_draw_units_check_lvgl_version("${lvgl_ver}")
+endif()
+
 # SIMD assembly for 9.1.x on ESP32 / ESP32-S3. ASM sources, the lvgl include
 # path, and the -u link directives all live in one block now that
 # COMPONENT_TARGET is the live target.

@@ -5,6 +5,167 @@ menu "ESP LVGL PORT"
         bool "Enable PPA for screen rotation"
         default n
         help
-            Enables using PPA for screen rotation.
+            Enables using PPA for screen rotation (display pipeline, not the
+            LVGL draw-unit path).
+
+    menu "LVGL draw units (PPA / DMA2D)"
+        # LVGL major is not a Kconfig symbol here. CMake rejects enabling these
+        # options when LVGL < 9.0.0; LVGL 8 builds leave the options unused.
+
+        config ESP_LVGL_PORT_USE_PPA
+            bool "Use Espressif PPA as an LVGL draw unit"
+            depends on SOC_PPA_SUPPORTED
+            default n
+            help
+                Register the out-of-tree PPA draw unit after lv_init().
+                Requires LVGL 9+. Only intended for SoCs with PPA (e.g. ESP32-P4).
+
+        config ESP_LVGL_PORT_USE_PPA_TRANSFORM
+            bool "PPA SRM for image/layer transform (rotate/scale/mirror)"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+
+        config ESP_LVGL_PORT_USE_PPA_LAYER
+            bool "PPA blend for identity layer composition"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+            help
+                Route LV_DRAW_TASK_TYPE_LAYER tasks without rotation/scale/mirror
+                to the PPA blend client.
+
+        config ESP_LVGL_PORT_USE_PPA_BORDER
+            bool "PPA fills for rectangular borders"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+
+        config ESP_LVGL_PORT_USE_PPA_MASK_RECT
+            bool "PPA fills for sharp-corner mask rectangles"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+
+        config ESP_LVGL_PORT_USE_PPA_TILE_COMPOSER
+            bool "PSRAM tile pool for multi-pass PPA operations"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA && ESP_LVGL_PORT_USE_PPA_LAYER && ESP_LVGL_PORT_USE_PPA_ASYNC
+
+        config ESP_LVGL_PORT_PPA_TILE_SIZE
+            int "PPA tile composer side length (square, ARGB8888)"
+            depends on ESP_LVGL_PORT_USE_PPA_TILE_COMPOSER
+            default 256
+            range 64 512
+
+        config ESP_LVGL_PORT_PPA_TILE_POOL_SIZE
+            int "PPA tile composer pool depth"
+            depends on ESP_LVGL_PORT_USE_PPA_TILE_COMPOSER
+            default 4
+            range 1 8
+
+        config ESP_LVGL_PORT_USE_PPA_GRADIENT
+            bool "Decompose H/V gradient fills into PPA strips"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+
+        config ESP_LVGL_PORT_PPA_GRADIENT_STEPS
+            int "Number of bands per accelerated gradient"
+            depends on ESP_LVGL_PORT_USE_PPA_GRADIENT
+            default 32
+            range 4 128
+
+        config ESP_LVGL_PORT_USE_PPA_ROUND_FILL
+            bool "Decompose rounded rectangular fills into PPA scanlines"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+
+        config ESP_LVGL_PORT_PPA_ROUND_FILL_MIN_RADIUS
+            int "Minimum radius accepted by the PPA round fill path"
+            depends on ESP_LVGL_PORT_USE_PPA_ROUND_FILL
+            default 16
+            range 1 256
+
+        config ESP_LVGL_PORT_USE_PPA_ARC
+            bool "PPA border path for full-ring arcs"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA && ESP_LVGL_PORT_USE_PPA_BORDER
+
+        config ESP_LVGL_PORT_USE_PPA_LABEL
+            bool "PPA A8 blend for bitmap text glyphs"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+            help
+                Experimental. The evaluate path may still be disabled in the
+                draw unit sources.
+
+        config ESP_LVGL_PORT_USE_PPA_LINE
+            bool "PPA fill for axis-aligned lines"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+
+        config ESP_LVGL_PORT_USE_PPA_TRIANGLE
+            bool "Decompose axis-aligned right triangles into PPA scanlines"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+
+        config ESP_LVGL_PORT_USE_PPA_RUNTIME_TUNING
+            bool "Runtime API to retune PPA burst length and queue depth"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+
+        config ESP_LVGL_PORT_USE_PPA_STATS
+            bool "PPA draw unit statistics counters"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+
+        config ESP_LVGL_PORT_USE_PPA_ASYNC
+            bool "Non-blocking PPA dispatch"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+
+        config ESP_LVGL_PORT_PPA_FILL_PENDING_TRANS
+            int "PPA fill client maximum pending transactions"
+            depends on ESP_LVGL_PORT_USE_PPA_ASYNC
+            default 16
+            range 1 512
+
+        config ESP_LVGL_PORT_PPA_BLEND_PENDING_TRANS
+            int "PPA blend client maximum pending transactions"
+            depends on ESP_LVGL_PORT_USE_PPA_ASYNC
+            default 16
+            range 1 512
+
+        config ESP_LVGL_PORT_PPA_SRM_PENDING_TRANS
+            int "PPA SRM client maximum pending transactions"
+            depends on ESP_LVGL_PORT_USE_PPA_ASYNC
+            default 16
+            range 1 512
+
+        config ESP_LVGL_PORT_USE_PPA_IMG
+            bool "PPA accelerator for image draw"
+            default n
+            depends on ESP_LVGL_PORT_USE_PPA
+
+        config ESP_LVGL_PORT_PPA_BURST_LENGTH
+            int "PPA burst length in bytes"
+            depends on ESP_LVGL_PORT_USE_PPA
+            default 128
+            help
+                Supported values are typically 8, 16, 32, 64 and 128.
+
+        config ESP_LVGL_PORT_USE_ESP_DMA2D
+            bool "Use Espressif DMA2D as an LVGL draw unit (copy / convert)"
+            default n
+            depends on IDF_TARGET_ESP32P4
+            help
+                Register the out-of-tree DMA2D draw unit after lv_init().
+                Requires LVGL 9+. Coexists with the PPA draw unit: DMA2D for
+                blit/convert, PPA for fill/blend.
+
+        config ESP_LVGL_PORT_ESP_DMA2D_BURST_LENGTH
+            int "DMA2D burst length in bytes"
+            depends on ESP_LVGL_PORT_USE_ESP_DMA2D
+            default 64
+            help
+                Supported values are 8, 16, 32, 64 and 128.
+
+    endmenu
 
 endmenu

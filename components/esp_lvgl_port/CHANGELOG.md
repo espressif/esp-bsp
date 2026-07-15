@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Added out-of-tree PPA and DMA2D LVGL draw units (LVGL 9+, SoC-gated) registered after `lv_init()`
+
 ### Fixes
 
 - Keep DPI avoid-tearing on `on_refresh_done` for IDF 5.5 (field is not present on DPI callbacks)

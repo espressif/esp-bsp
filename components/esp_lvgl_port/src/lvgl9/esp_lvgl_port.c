@@ -20,6 +20,13 @@
 #include "esp_lvgl_port_priv.h"
 #include "lvgl.h"
 
+#if CONFIG_ESP_LVGL_PORT_USE_PPA
+#include "ppa/lv_draw_ppa.h"
+#endif
+#if CONFIG_ESP_LVGL_PORT_USE_ESP_DMA2D
+#include "dma2d/lv_draw_esp_dma2d.h"
+#endif
+
 static const char *TAG = "LVGL";
 
 /*******************************************************************************
@@ -211,6 +218,12 @@ static void lvgl_port_task(void *arg)
 
     /* LVGL init */
     lv_init();
+#if CONFIG_ESP_LVGL_PORT_USE_PPA
+    lv_draw_ppa_init();
+#endif
+#if CONFIG_ESP_LVGL_PORT_USE_ESP_DMA2D
+    lv_draw_esp_dma2d_init();
+#endif
     /* LVGL is initialized, notify lvgl_port_init() function about it */
     xTaskNotifyGive(task_to_notify);
     /* Tick init */
