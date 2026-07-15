@@ -11,16 +11,20 @@
 
 #include "lv_draw_esp_dma2d_private.h"
 #include "lv_draw_esp_dma2d.h"
+#include "lv_draw_esp_buf.h"
 
 #if LV_USE_ESP_DMA2D
 
 #include "esp_heap_caps.h"
+#include "esp_log.h"
 
 /*******************************************************************************
 * Defines
 *******************************************************************************/
 
 #define DMA2D_DESC_ALIGN 64U
+
+static const char *TAG = "LVGL_DMA2D";
 
 /*******************************************************************************
 * Function definitions
@@ -30,6 +34,7 @@ static int32_t dma2d_evaluate(lv_draw_unit_t *draw_unit, lv_draw_task_t *task);
 static int32_t dma2d_dispatch(lv_draw_unit_t *draw_unit, lv_layer_t *layer);
 static int32_t dma2d_delete(lv_draw_unit_t *draw_unit);
 static void dma2d_execute_drawing(lv_draw_dma2d_unit_t *u);
+static void dma2d_disable_unit(lv_draw_dma2d_unit_t *u);
 
 static bool image_task_basic_supported(const lv_draw_image_dsc_t *dsc);
 static dma2d_data_burst_length_t burst_length_from_config(void);
@@ -40,6 +45,9 @@ static dma2d_data_burst_length_t burst_length_from_config(void);
 
 void LV_ATTRIBUTE_FAST_MEM lv_draw_esp_dma2d_init(void)
 {
+    /* Install esp_cache_msync handlers even when PPA is off so DMA2D blits stay coherent. */
+    lv_draw_esp_buf_init_handlers();
+
     lv_draw_dma2d_unit_t *u = lv_draw_create_unit(sizeof(lv_draw_dma2d_unit_t));
     LV_ASSERT_NULL(u);
     if (u == NULL) {
@@ -54,6 +62,8 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_esp_dma2d_init(void)
     u->done_sem = xSemaphoreCreateBinaryStatic(&u->done_sem_buffer);
     LV_ASSERT_NULL(u->done_sem);
     if (u->done_sem == NULL) {
+        ESP_LOGE(TAG, "Failed to create done semaphore");
+        dma2d_disable_unit(u);
         return;
     }
 
@@ -64,6 +74,8 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_esp_dma2d_init(void)
     esp_err_t ret = dma2d_acquire_pool(&pool_cfg, &u->dma2d_pool);
     LV_ASSERT(ret == ESP_OK);
     if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to acquire DMA2D pool: %s", esp_err_to_name(ret));
+        dma2d_disable_unit(u);
         return;
     }
 
@@ -78,6 +90,8 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_esp_dma2d_init(void)
     LV_ASSERT_MALLOC(u->dma2d_trans);
 
     if (u->tx_desc == NULL || u->rx_desc == NULL || u->dma2d_trans == NULL) {
+        ESP_LOGE(TAG, "Failed to allocate DMA2D descriptors/transaction");
+        dma2d_disable_unit(u);
         return;
     }
 
@@ -255,23 +269,37 @@ static int32_t LV_ATTRIBUTE_FAST_MEM dma2d_dispatch(lv_draw_unit_t *draw_unit, l
     return 1;
 }
 
+static void dma2d_disable_unit(lv_draw_dma2d_unit_t *u)
+{
+    /* Unit stays on LVGL's list (no mid-life remove API); stop claiming tasks
+     * and free any partially acquired resources so SW draw covers everything. */
+    u->base_unit.evaluate_cb = NULL;
+    u->base_unit.dispatch_cb = NULL;
+    dma2d_delete(&u->base_unit);
+}
+
 static int32_t LV_ATTRIBUTE_FAST_MEM dma2d_delete(lv_draw_unit_t *draw_unit)
 {
     lv_draw_dma2d_unit_t *u = (lv_draw_dma2d_unit_t *)draw_unit;
     if (u->tx_desc) {
         free(u->tx_desc);
+        u->tx_desc = NULL;
     }
     if (u->rx_desc) {
         free(u->rx_desc);
+        u->rx_desc = NULL;
     }
     if (u->dma2d_trans) {
         free(u->dma2d_trans);
+        u->dma2d_trans = NULL;
     }
     if (u->dma2d_pool) {
         dma2d_release_pool(u->dma2d_pool);
+        u->dma2d_pool = NULL;
     }
     if (u->done_sem) {
-        vSemaphoreDelete(u->done_sem);
+        /* Static semaphore: just drop the handle; buffer lives in the unit. */
+        u->done_sem = NULL;
     }
     return 0;
 }

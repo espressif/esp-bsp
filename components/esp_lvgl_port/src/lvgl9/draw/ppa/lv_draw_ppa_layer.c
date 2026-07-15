@@ -61,8 +61,8 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_layer(lv_draw_task_t *t, const lv_draw_im
  * destination and the PPA driver does not guarantee ordering across clients;
  * pass 3 stays asynchronous and benefits from the same wait_for_finish_cb
  * path used by the simpler PPA workers. The active tile is owned by the draw
- * unit (`pending_tile`) and released from `ppa_finalize_task` so it is never
- * reused while the last PPA op is still in flight.
+ * unit (`pending_tile`) and released from `lv_draw_ppa_finalize_active_task`
+ * so it is never reused while the last PPA op is still in flight.
  *
  * To keep the tile single-buffered we only accept tasks whose composed area
  * fits inside `LV_PPA_TILE_SIZE`. Layers larger than that fall back to SW;
@@ -164,7 +164,7 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_layer_composite(lv_draw_task_t *t, const 
     uint32_t src_bpp  = lv_color_format_get_bpp(src_buf->header.cf);
     uint32_t dest_bpp = lv_color_format_get_bpp(dest_buf->header.cf);
     if (src_bpp == 0 || dest_bpp == 0) {
-        return;
+        goto release;
     }
     uint32_t src_pic_w  = (src_buf->header.stride * 8U) / src_bpp;
     uint32_t dest_pic_w = (dest_buf->header.stride * 8U) / dest_bpp;
@@ -247,8 +247,8 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_layer_composite(lv_draw_task_t *t, const 
     }
 
     /* Pass 3: blend the recolored tile over the destination using global opa.
-     * This is the only async pass; the tile is released by ppa_finalize_task
-     * once the ISR signals completion. */
+     * This is the only async pass; the tile is released by
+     * lv_draw_ppa_finalize_active_task once the ISR signals completion. */
     float opa_ratio = (float)dsc->opa / 255.0f;
     if (opa_ratio <= 0.0f) {
         opa_ratio = 1.0f / 256.0f;
@@ -298,7 +298,7 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_layer_composite(lv_draw_task_t *t, const 
         }
     }
 
-    /* Tile released later by ppa_finalize_task once pass 3 completes. */
+    /* Tile released later by lv_draw_ppa_finalize_active_task once pass 3 completes. */
     return;
 
 release:

@@ -96,8 +96,8 @@ typedef struct lv_draw_ppa_unit {
     /* Round-robin cursor used by the tile allocator. */
     uint32_t tile_cursor;
     /* Tile borrowed for the active task. The release is deferred to
-     * ppa_finalize_task so the buffer is not reused while the last hardware
-     * pass that consumes it is still pending in the PPA queue. */
+     * lv_draw_ppa_finalize_active_task so the buffer is not reused while the
+     * last hardware pass that consumes it is still pending in the PPA queue. */
     lv_draw_ppa_tile_t *pending_tile;
 #endif
 #if LV_USE_PPA_RUNTIME_TUNING
@@ -140,6 +140,10 @@ extern lv_draw_ppa_unit_t *lv_draw_ppa_unit_instance;
 /* Shared ISR completion callback. Exposed so the runtime tuning module can
  * re-register it on the new client handle after a re-registration. */
 bool lv_draw_ppa_trans_done_cb(ppa_client_handle_t client, ppa_event_data_t *evt, void *user_data);
+
+/* Finish the active task: cache invalidate, tile release, mark finished and
+ * kick the LVGL dispatcher. Used by wait_for_finish and runtime retune. */
+void lv_draw_ppa_finalize_active_task(lv_draw_ppa_unit_t *u);
 #endif
 
 #if LV_USE_PPA_TILE_COMPOSER

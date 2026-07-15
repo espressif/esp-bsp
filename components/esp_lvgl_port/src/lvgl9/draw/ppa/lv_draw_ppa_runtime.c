@@ -130,13 +130,14 @@ static esp_err_t reregister_client(lv_draw_ppa_unit_t *u, lv_draw_ppa_client_kin
     }
 
 #if LV_USE_PPA_ASYNC
-    /* Drain any in-flight work before unregistering the affected client. */
+    /* Drain any in-flight work before unregistering the affected client.
+     * Finalize through the shared helper so cache invalidate / tile release
+     * and dispatch_request stay consistent with wait_for_finish. */
     if (u->task_act != NULL) {
         if (atomic_load(&u->pending_ops) > 0) {
             xSemaphoreTake(u->done_sem, portMAX_DELAY);
         }
-        u->task_act->state = LV_DRAW_TASK_STATE_FINISHED;
-        u->task_act = NULL;
+        lv_draw_ppa_finalize_active_task(u);
     }
 #endif
 

@@ -37,7 +37,6 @@ extern "C" {
 
 void lv_draw_ppa_init(void);
 void lv_draw_ppa_deinit(void);
-void lv_draw_buf_ppa_init_handlers(void);
 
 void lv_draw_ppa_fill(lv_draw_task_t *t, const lv_draw_fill_dsc_t *dsc,
                       const lv_area_t *coords);

@@ -11,6 +11,7 @@
 
 #include "lv_draw_ppa_private.h"
 #include "lv_draw_ppa.h"
+#include "lv_draw_esp_buf.h"
 #include "draw/lv_draw_image_private.h"
 
 #if LV_USE_PPA
@@ -42,7 +43,6 @@ static bool ppa_rotation_supported(int32_t rotation);
 static bool ppa_srm_clip_ok(const lv_draw_task_t *t, const lv_draw_image_dsc_t *dsc);
 #if LV_USE_PPA_ASYNC
 static int32_t ppa_wait_for_finish(lv_draw_unit_t *draw_unit);
-static void ppa_finalize_task(lv_draw_ppa_unit_t *u);
 #endif
 
 /*******************************************************************************
@@ -55,7 +55,7 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_init(void)
     ppa_client_config_t cfg = {0};
 
     /* Create draw unit */
-    lv_draw_buf_ppa_init_handlers();
+    lv_draw_esp_buf_init_handlers();
     lv_draw_ppa_unit_t *draw_ppa_unit = lv_draw_create_unit(sizeof(lv_draw_ppa_unit_t));
     draw_ppa_unit->base_unit.evaluate_cb = ppa_evaluate;
     draw_ppa_unit->base_unit.dispatch_cb  = ppa_dispatch;
@@ -488,9 +488,20 @@ static int32_t LV_ATTRIBUTE_FAST_MEM ppa_evaluate(lv_draw_unit_t *u, lv_draw_tas
 #if LV_USE_PPA_TILE_COMPOSER
         /* Recolor combined with global opa needs the tile composer; check
          * eligibility first because identity_layer below would otherwise
-         * reject these tasks via the recolor_opa<=MIN constraint. */
+         * reject these tasks via the recolor_opa<=MIN constraint. Also
+         * reject areas larger than the single tile — composite cannot draw
+         * them and must not claim the task (would skip SW fallback). */
         if (is_identity && lv_draw_ppa_layer_recolor_opa_supported(dsc)) {
-            layer_ok = true;
+            lv_area_t draw_area;
+            if (lv_area_intersect(&draw_area, &t->area, &t->clip_area)) {
+                int32_t block_w = lv_area_get_width(&draw_area);
+                int32_t block_h = lv_area_get_height(&draw_area);
+                if (block_w > 0 && block_h > 0
+                        && block_w <= LV_PPA_TILE_SIZE
+                        && block_h <= LV_PPA_TILE_SIZE) {
+                    layer_ok = true;
+                }
+            }
         }
 #endif
 
@@ -584,15 +595,15 @@ static int32_t LV_ATTRIBUTE_FAST_MEM ppa_dispatch(lv_draw_unit_t *draw_unit, lv_
         }
 #endif
     }
-    ppa_finalize_task(u);
+    lv_draw_ppa_finalize_active_task(u);
     return 1;
 #else
     u->task_act->state = LV_DRAW_TASK_STATE_FINISHED;
     u->task_act = NULL;
     lv_draw_dispatch_request();
 #if LV_USE_PPA_STATS
-    /* Sync finalization path mirrors what ppa_finalize_task does in async mode
-     * so the telemetry counter reflects every task accepted by the unit. */
+    /* Sync finalization path mirrors what lv_draw_ppa_finalize_active_task does
+     * in async mode so the telemetry counter reflects every task accepted. */
     atomic_fetch_add(&u->stat_total_tasks, 1u);
 #endif
 
@@ -777,7 +788,7 @@ bool LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_trans_done_cb(ppa_client_handle_t client,
     return higher_priority_woken == pdTRUE;
 }
 
-static void LV_ATTRIBUTE_FAST_MEM ppa_finalize_task(lv_draw_ppa_unit_t *u)
+void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_finalize_active_task(lv_draw_ppa_unit_t *u)
 {
     lv_draw_task_t *t = u->task_act;
     if (t == NULL) {
@@ -786,8 +797,8 @@ static void LV_ATTRIBUTE_FAST_MEM ppa_finalize_task(lv_draw_ppa_unit_t *u)
 
     /* Hardware just finished writing the destination buffer. Invalidate the CPU
      * cache so subsequent readers (next draw unit, display flush) observe the
-     * fresh pixels instead of stale lines. The handler installed in
-     * lv_draw_ppa_buf.c performs the actual `esp_cache_msync`. */
+     * fresh pixels instead of stale lines. The handler installed by
+     * lv_draw_esp_buf_init_handlers() performs the actual `esp_cache_msync`. */
     lv_layer_t *layer  = t->target_layer;
     lv_draw_buf_t *buf = layer ? layer->draw_buf : NULL;
     if (buf != NULL) {
@@ -840,7 +851,7 @@ static int32_t LV_ATTRIBUTE_FAST_MEM ppa_wait_for_finish(lv_draw_unit_t *draw_un
 #endif
     }
 
-    ppa_finalize_task(u);
+    lv_draw_ppa_finalize_active_task(u);
     return 0;
 }
 
