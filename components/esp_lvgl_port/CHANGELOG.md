@@ -14,6 +14,7 @@
 - Release PPA tile on composite early-exit; finalize active task on runtime retune
 - Install shared cache handlers for DMA2D-only builds; disable DMA2D unit on init failure
 - Drain stale PPA done_sem tokens after async completion races; do not delete static semaphores
+- Sync DMA2D source buffers before blit; fall back to SW when DMA2D blit fails
 
 ### Documentation
 

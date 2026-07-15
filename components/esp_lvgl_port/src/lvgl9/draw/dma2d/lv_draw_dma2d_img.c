@@ -13,6 +13,8 @@
 
 #if LV_USE_ESP_DMA2D
 
+#include "draw/sw/lv_draw_sw.h"
+
 static void lv_draw_dma2d_image_core(lv_draw_task_t *t, const lv_draw_image_dsc_t *draw_dsc,
                                      const lv_image_decoder_dsc_t *decoder_dsc, lv_draw_image_sup_t *sup,
                                      const lv_area_t *img_coords, const lv_area_t *clipped_img_area);
@@ -71,6 +73,11 @@ static void LV_ATTRIBUTE_FAST_MEM lv_draw_dma2d_image_core(lv_draw_task_t *t, co
     uint32_t block_w = (uint32_t)lv_area_get_width(&src_area);
     uint32_t block_h = (uint32_t)lv_area_get_height(&src_area);
 
+    /* Source may still hold dirty lines in the CPU cache (decoded/CPU fills).
+     * Dest writeback happens in dma2d_execute_drawing; sync source here so DMA
+     * reads coherent RAM. */
+    lv_draw_buf_invalidate_cache((lv_draw_buf_t *)decoded, NULL);
+
     esp_err_t ret = lv_draw_esp_dma2d_blit(u,
                                            decoded->data, src_pic_w, decoded->header.h,
                                            src_area.x1, src_area.y1,
@@ -79,7 +86,10 @@ static void LV_ATTRIBUTE_FAST_MEM lv_draw_dma2d_image_core(lv_draw_task_t *t, co
                                            block_w, block_h,
                                            src_cf, dst_cf);
     if (ret != ESP_OK) {
-        LV_LOG_WARN("DMA2D image blit failed: %d", ret);
+        /* Preferred-unit dispatch already claimed this task; SW redraw so LVGL
+         * does not keep a blank/stale area after a failed DMA2D enqueue. */
+        LV_LOG_WARN("DMA2D image blit failed (%d), falling back to SW", (int)ret);
+        lv_draw_sw_image(t, draw_dsc, img_coords);
     }
 }
 
