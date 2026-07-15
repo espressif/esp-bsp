@@ -159,6 +159,33 @@ esp_err_t LV_ATTRIBUTE_FAST_MEM lv_draw_esp_dma2d_blit(lv_draw_dma2d_unit_t *u,
     }
 
     if (xSemaphoreTake(u->done_sem, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        /* Abort in-flight DMA before any SW fallback redraws the same dst. */
+        bool need_yield = false;
+        esp_err_t end_ret = dma2d_force_end(u->dma2d_trans, &need_yield);
+        (void)need_yield;
+
+        if (end_ret == ESP_ERR_INVALID_STATE) {
+            /* Completed between timeout and force_end. */
+            (void)xSemaphoreTake(u->done_sem, 0);
+            return ESP_OK;
+        }
+
+        if (end_ret == ESP_ERR_INVALID_ARG) {
+            /* Still queued (no rx_chan yet); wait for pick, then abort or finish. */
+            if (xSemaphoreTake(u->done_sem, pdMS_TO_TICKS(1000)) == pdTRUE) {
+                return ESP_OK;
+            }
+            end_ret = dma2d_force_end(u->dma2d_trans, &need_yield);
+            if (end_ret == ESP_ERR_INVALID_STATE) {
+                (void)xSemaphoreTake(u->done_sem, 0);
+                return ESP_OK;
+            }
+        }
+
+        (void)xSemaphoreTake(u->done_sem, 0);
+        if (end_ret != ESP_OK) {
+            LV_LOG_WARN("DMA2D force_end after timeout failed: %d", (int)end_ret);
+        }
         return ESP_ERR_TIMEOUT;
     }
 

@@ -17,6 +17,7 @@
 - Sync DMA2D source buffers before blit; fall back to SW when DMA2D blit fails
 - Fall back to SW when PPA tile-composer cannot acquire a tile or a pass fails
 - Copy child layer draw_buf header in DMA2D layer path; SW fallback on PPA image enqueue errors
+- Abort in-flight DMA2D blit on wait timeout before SW fallback redraws the destination
 
 ### Documentation
 
