@@ -120,7 +120,7 @@ esp_err_t lv_draw_ppa_set_burst_length(lv_draw_ppa_client_kind_t client,
  * @return ESP_OK on success.
  */
 esp_err_t lv_draw_ppa_set_pending_trans(lv_draw_ppa_client_kind_t client,
-                                        uint8_t pending);
+                                        uint16_t pending);
 #endif
 
 #if LV_USE_PPA_STATS

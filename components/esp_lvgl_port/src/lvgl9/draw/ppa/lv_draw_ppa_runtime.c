@@ -44,7 +44,7 @@ esp_err_t lv_draw_ppa_set_burst_length(lv_draw_ppa_client_kind_t client, lv_draw
     return reregister_client(u, client);
 }
 
-esp_err_t lv_draw_ppa_set_pending_trans(lv_draw_ppa_client_kind_t client, uint8_t pending)
+esp_err_t lv_draw_ppa_set_pending_trans(lv_draw_ppa_client_kind_t client, uint16_t pending)
 {
     lv_draw_ppa_unit_t *u = lv_draw_ppa_unit_instance;
     if (u == NULL) {
@@ -53,7 +53,7 @@ esp_err_t lv_draw_ppa_set_pending_trans(lv_draw_ppa_client_kind_t client, uint8_
     if (client >= LV_DRAW_PPA_CLIENT_COUNT) {
         return ESP_ERR_INVALID_ARG;
     }
-    if (pending == 0 || pending > 512) {
+    if (pending == 0 || pending > 512u) {
         return ESP_ERR_INVALID_ARG;
     }
 

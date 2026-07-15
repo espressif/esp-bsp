@@ -16,6 +16,7 @@
 #if LV_USE_PPA
 
 #include "draw/lv_draw_private.h"
+#include "draw/lv_draw_mask.h"
 #include "display/lv_display_private.h"
 #include "misc/lv_area_private.h"
 
