@@ -15,6 +15,7 @@ This component helps with using LVGL with Espressif's LCD and touch drivers. It 
 * Add/remove navigation buttons input (using [`button`](https://github.com/espressif/esp-iot-solution/tree/master/components/button))
 * Add/remove encoder input (using [`knob`](https://github.com/espressif/esp-iot-solution/tree/master/components/knob))
 * Add/remove USB HID mouse/keyboard input (using [`usb_host_hid`](https://components.espressif.com/components/espressif/usb_host_hid))
+* Optional out-of-tree LVGL draw units for ESP32-P4 ([PPA](https://docs.espressif.com/projects/esp-idf/en/latest/esp32p4/api-reference/peripherals/ppa.html) and DMA2D), registered after `lv_init()`
 
 ## LVGL Version
 
@@ -248,6 +249,27 @@ Every LVGL calls must be protected with these lock/unlock commands:
     /* Screen operation done -> release for the other task */
     lvgl_port_unlock();
 ```
+
+### LVGL draw units (PPA / DMA2D)
+
+On ESP32-P4 (LVGL 9+), `esp_lvgl_port` can register Espressif hardware draw units so LVGL offloads fill, blend, image, and related tasks to PPA and/or DMA2D. Enable them under **Component config → ESP LVGL PORT → LVGL draw units (PPA / DMA2D)** (prefix `CONFIG_ESP_LVGL_PORT_*`).
+
+```
+CONFIG_ESP_LVGL_PORT_USE_PPA=y
+CONFIG_ESP_LVGL_PORT_USE_ESP_DMA2D=y
+CONFIG_LV_DRAW_BUF_ALIGN=64
+```
+
+Notes:
+
+* Requires LVGL 9+. CMake fails the build if the draw units are enabled with LVGL 8.
+* Keep stock LVGL `CONFIG_LV_USE_PPA` unset when using `CONFIG_ESP_LVGL_PORT_USE_PPA` (duplicate draw-unit symbols).
+* `CONFIG_LV_DRAW_BUF_ALIGN` must match the L2 cache line size (typically 64 on ESP32-P4).
+* PPA and DMA2D can be enabled together: DMA2D covers blit/convert; PPA covers fill/blend and the optional feature set (layer, border, gradient, …).
+* The units are initialized automatically from `lvgl_port_init()` after `lv_init()`. Public headers: `ppa/lv_draw_ppa.h` and `dma2d/lv_draw_esp_dma2d.h`.
+* CI builds this path on ESP32-P4 via `test_apps/lvgl_port` config `ppa_dma2d`.
+
+This path is independent of **Enable PPA for screen rotation** (`CONFIG_LVGL_PORT_ENABLE_PPA`), which only accelerates display rotation in the flush pipeline.
 
 ### Rotating screen
 

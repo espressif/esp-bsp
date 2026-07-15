@@ -9,6 +9,11 @@
 ### Fixes
 
 - Keep DPI avoid-tearing on `on_refresh_done` for IDF 5.5 (field is not present on DPI callbacks)
+- Build out-of-tree PPA/DMA2D draw units against LVGL from the Component Registry
+
+### Documentation
+
+- Documented PPA/DMA2D LVGL draw unit options and CI compile coverage on ESP32-P4
 
 ## 2.8.0
 
