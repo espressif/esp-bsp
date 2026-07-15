@@ -5,22 +5,18 @@
  */
 
 /**
- * @file lv_draw_ppa_runtime.c
- *
+ * @file
+ * @brief PPA runtime tuning and stats
  */
-
-/*********************
- *      INCLUDES
- *********************/
 
 #include "lv_draw_ppa_private.h"
 #include "lv_draw_ppa.h"
 
 #if LV_USE_PPA_RUNTIME_TUNING || LV_USE_PPA_STATS
 
-/**********************
- *  STATIC PROTOTYPES
- **********************/
+/*******************************************************************************
+* Function definitions
+*******************************************************************************/
 
 #if LV_USE_PPA_RUNTIME_TUNING
 static ppa_client_handle_t *client_handle_slot(lv_draw_ppa_unit_t *u, lv_draw_ppa_client_kind_t kind);
@@ -28,9 +24,9 @@ static esp_err_t reregister_client(lv_draw_ppa_unit_t *u, lv_draw_ppa_client_kin
 static ppa_data_burst_length_t burst_to_driver(lv_draw_ppa_burst_kind_t b);
 #endif
 
-/**********************
- *   GLOBAL FUNCTIONS
- **********************/
+/*******************************************************************************
+* Public API functions
+*******************************************************************************/
 
 #if LV_USE_PPA_RUNTIME_TUNING
 
@@ -101,9 +97,9 @@ void lv_draw_ppa_reset_stats(void)
 
 #endif /* LV_USE_PPA_STATS */
 
-/**********************
- *   STATIC FUNCTIONS
- **********************/
+/*******************************************************************************
+* Private functions
+*******************************************************************************/
 
 #if LV_USE_PPA_RUNTIME_TUNING
 

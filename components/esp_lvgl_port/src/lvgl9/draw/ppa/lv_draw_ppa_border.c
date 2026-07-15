@@ -5,22 +5,18 @@
  */
 
 /**
- * @file lv_draw_ppa_border.c
- *
+ * @file
+ * @brief PPA border draw
  */
-
-/*********************
- *      INCLUDES
- *********************/
 
 #include "lv_draw_ppa_private.h"
 #include "lv_draw_ppa.h"
 
 #if LV_USE_PPA_BORDER
 
-/**********************
- *  STATIC PROTOTYPES
- **********************/
+/*******************************************************************************
+* Function definitions
+*******************************************************************************/
 
 static int32_t int_sqrt(int32_t v);
 static int32_t corner_inset(int32_t rout, int32_t dy);
@@ -33,9 +29,9 @@ static void enqueue_strip(lv_draw_ppa_unit_t *u, lv_draw_buf_t *draw_buf,
                           const lv_area_t *strip, const lv_area_t *clip,
                           uint32_t fill_color);
 
-/**********************
- *   GLOBAL FUNCTIONS
- **********************/
+/*******************************************************************************
+* Public API functions
+*******************************************************************************/
 
 void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_border(lv_draw_task_t *t, const lv_draw_border_dsc_t *dsc,
         const lv_area_t *coords)
@@ -78,9 +74,9 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_border(lv_draw_task_t *t, const lv_draw_b
     draw_border_rounded(u, draw_buf, dsc, &rel_coords, &rel_clip, rout, fill_color);
 }
 
-/**********************
- *   STATIC FUNCTIONS
- **********************/
+/*******************************************************************************
+* Private functions
+*******************************************************************************/
 
 static void LV_ATTRIBUTE_FAST_MEM draw_border_sharp(lv_draw_ppa_unit_t *u, lv_draw_buf_t *draw_buf,
         const lv_draw_border_dsc_t *dsc,

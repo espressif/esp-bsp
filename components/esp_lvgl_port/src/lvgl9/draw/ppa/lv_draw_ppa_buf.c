@@ -5,13 +5,10 @@
  */
 
 /**
- * @file lv_draw_ppa_buf.c
- *
+ * @file
+ * @brief PPA draw buffer handlers
  */
 
-/*********************
- *      INCLUDES
- *********************/
 #include "lv_draw_ppa_private.h"
 #include "lv_draw_ppa.h"
 
@@ -19,31 +16,23 @@
 #include LV_STDINT_INCLUDE
 #include "draw/lv_draw_buf_private.h"
 
-/*********************
- *      DEFINES
- *********************/
-
-/**********************
- *      TYPEDEFS
- *********************/
-
-/**********************
- *  STATIC PROTOTYPES
- *********************/
+/*******************************************************************************
+* Function definitions
+*******************************************************************************/
 static void invalidate_cache(const lv_draw_buf_t *draw_buf, const lv_area_t *area);
 
-/**********************
- *   GLOBAL FUNCTIONS
- *********************/
+/*******************************************************************************
+* Public API functions
+*******************************************************************************/
 void LV_ATTRIBUTE_FAST_MEM lv_draw_buf_ppa_init_handlers(void)
 {
     lv_draw_buf_handlers_t *handlers = lv_draw_buf_get_handlers();
     handlers->invalidate_cache_cb = invalidate_cache;
 }
 
-/**********************
- *   STATIC FUNCTIONS
- *********************/
+/*******************************************************************************
+* Private functions
+*******************************************************************************/
 
 static void LV_ATTRIBUTE_FAST_MEM invalidate_cache(const lv_draw_buf_t *draw_buf, const lv_area_t *area)
 {

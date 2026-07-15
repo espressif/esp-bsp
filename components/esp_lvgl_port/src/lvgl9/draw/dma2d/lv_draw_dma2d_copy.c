@@ -5,17 +5,17 @@
  */
 
 /**
- * @file lv_draw_dma2d_copy.c
- *
+ * @file
+ * @brief ESP DMA2D buffer copy
  */
 
 #include "lv_draw_esp_dma2d_private.h"
 
 #if LV_USE_ESP_DMA2D
 
-#include <soc/dma2d_channel.h>
-#include <esp_cache.h>
-#include <esp_heap_caps.h>
+#include "soc/dma2d_channel.h"
+#include "esp_cache.h"
+#include "esp_heap_caps.h"
 
 static void LV_ATTRIBUTE_FAST_MEM fill_dma_desc_2d(dma2d_descriptor_t *desc,
         void *buf,

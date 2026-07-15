@@ -5,20 +5,12 @@
  */
 
 /**
- * @file lv_draw_ppa_private.h
- *
+ * @file
+ * @brief PPA LVGL draw unit (private)
  */
 
-#ifndef LV_DRAW_PPA_PRIVATE_H
-#define LV_DRAW_PPA_PRIVATE_H
+#pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/*********************
-*      INCLUDES
-*********************/
 #include "lvgl_public.h"
 
 #if LV_USE_PPA
@@ -27,36 +19,40 @@ extern "C" {
 #include "display/lv_display_private.h"
 #include "misc/lv_area_private.h"
 
-/* The ppa driver depends heavily on the esp-idf headers*/
-#include <sdkconfig.h>
+/* The ppa driver depends heavily on the esp-idf headers */
+#include "sdkconfig.h"
 #include <stdatomic.h>
 
 #if (CONFIG_LV_DRAW_BUF_ALIGN != CONFIG_CACHE_L2_CACHE_LINE_SIZE)
 #error "CONFIG_LV_DRAW_BUF_ALIGN must be equal to CONFIG_CACHE_L2_CACHE_LINE_SIZE!"
 #endif
 
-
 #ifndef CONFIG_SOC_PPA_SUPPORTED
 #error "This SoC does not support PPA"
 #endif
 
-#include <driver/ppa.h>
-#include <esp_heap_caps.h>
-#include <esp_err.h>
-#include <hal/color_hal.h>
-#include <esp_cache.h>
-#include <esp_log.h>
+#include "driver/ppa.h"
+#include "esp_heap_caps.h"
+#include "esp_err.h"
+#include "hal/color_hal.h"
+#include "esp_cache.h"
+#include "esp_log.h"
 #if LV_USE_PPA_ASYNC
-#include <freertos/FreeRTOS.h>
-#include <freertos/semphr.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #endif
-/*********************
-*      DEFINES
-*********************/
 
-/**********************
-*      TYPEDEFS
-**********************/
+#endif /* LV_USE_PPA */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if LV_USE_PPA
+
+/*******************************************************************************
+* Types definitions
+*******************************************************************************/
 #if LV_USE_PPA_TILE_COMPOSER
 /* Single intermediate buffer used to chain multi-pass PPA operations. Tiles
  * live in PSRAM and are aligned to the L2 cache line so they can serve as
@@ -120,6 +116,10 @@ typedef struct lv_draw_ppa_unit {
 #endif
 } lv_draw_ppa_unit_t;
 
+/*******************************************************************************
+* Public API
+*******************************************************************************/
+
 void lv_draw_ppa_solid_op(lv_draw_ppa_unit_t *u, lv_draw_buf_t *draw_buf,
                           const lv_area_t *rel_area, uint32_t argb_color);
 
@@ -150,21 +150,9 @@ lv_draw_ppa_tile_t *lv_draw_ppa_tile_acquire(lv_draw_ppa_unit_t *u);
 void lv_draw_ppa_tile_release(lv_draw_ppa_unit_t *u, lv_draw_ppa_tile_t *tile);
 #endif
 
-/**********************
-*  STATIC PROTOTYPES
-**********************/
-
-/**********************
-* GLOBAL PROTOTYPES
-**********************/
-
-/**********************
-*      MACROS
-**********************/
-
-/**********************
-*   STATIC FUNCTIONS
-**********************/
+/*******************************************************************************
+* Private functions
+*******************************************************************************/
 
 /* Color-format support mirrors what the PPA hardware advertises in
  * ppa_blend_color_mode_t / ppa_srm_color_mode_t / ppa_fill_color_mode_t.
@@ -361,7 +349,5 @@ static inline void lv_draw_ppa_cancel_op(lv_draw_ppa_unit_t *u)
 #endif /* LV_USE_PPA */
 
 #ifdef __cplusplus
-} /*extern "C"*/
+}
 #endif
-
-#endif /* LV_DRAW_PPA_PRIVATE_H */

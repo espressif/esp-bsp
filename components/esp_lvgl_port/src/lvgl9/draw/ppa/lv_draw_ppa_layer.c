@@ -5,13 +5,9 @@
  */
 
 /**
- * @file lv_draw_ppa_layer.c
- *
+ * @file
+ * @brief PPA layer composite draw
  */
-
-/*********************
- *      INCLUDES
- *********************/
 
 #include "lv_draw_ppa_private.h"
 #include "lv_draw_ppa.h"
@@ -22,9 +18,9 @@
 #include "draw/lv_draw_image_private.h"
 #endif
 
-/**********************
- *   GLOBAL FUNCTIONS
- **********************/
+/*******************************************************************************
+* Public API functions
+*******************************************************************************/
 
 /* Layer composition entry point. The actual blit reuses the image worker
  * because, from the PPA point of view, drawing a finalized child layer onto

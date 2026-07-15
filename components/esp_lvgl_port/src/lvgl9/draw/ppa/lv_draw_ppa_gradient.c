@@ -5,31 +5,27 @@
  */
 
 /**
- * @file lv_draw_ppa_gradient.c
- *
+ * @file
+ * @brief PPA gradient fill draw
  */
-
-/*********************
- *      INCLUDES
- *********************/
 
 #include "lv_draw_ppa_private.h"
 #include "lv_draw_ppa.h"
 
 #if LV_USE_PPA_GRADIENT
 
-/**********************
- *  STATIC PROTOTYPES
- **********************/
+/*******************************************************************************
+* Function definitions
+*******************************************************************************/
 
 static uint32_t mix_color_u32(lv_color_t a, lv_color_t b, uint32_t mix_q8);
 static uint32_t grad_color_u32(const lv_grad_dsc_t *grad, uint8_t pos_frac, lv_opa_t fill_opa);
 static void enqueue_strip(lv_draw_ppa_unit_t *u, lv_draw_buf_t *draw_buf,
                           const lv_area_t *strip, const lv_area_t *buf_area, uint32_t color);
 
-/**********************
- *   GLOBAL FUNCTIONS
- **********************/
+/*******************************************************************************
+* Public API functions
+*******************************************************************************/
 
 void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_gradient(lv_draw_task_t *t, const lv_draw_fill_dsc_t *dsc,
         const lv_area_t *coords)
@@ -105,9 +101,9 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_gradient(lv_draw_task_t *t, const lv_draw
     }
 }
 
-/**********************
- *   STATIC FUNCTIONS
- **********************/
+/*******************************************************************************
+* Private functions
+*******************************************************************************/
 
 static uint32_t LV_ATTRIBUTE_FAST_MEM mix_color_u32(lv_color_t a, lv_color_t b, uint32_t mix_q8)
 {

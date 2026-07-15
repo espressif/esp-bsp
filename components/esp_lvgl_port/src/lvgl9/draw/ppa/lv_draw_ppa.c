@@ -5,13 +5,9 @@
  */
 
 /**
- * @file lv_draw_ppa.c
- *
+ * @file
+ * @brief PPA LVGL draw unit
  */
-
-/*********************
-*      INCLUDES
-*********************/
 
 #include "lv_draw_ppa_private.h"
 #include "lv_draw_ppa.h"
@@ -20,28 +16,28 @@
 #if LV_USE_PPA
 
 #if LV_USE_PPA_STATS
-#include <esp_timer.h>
+#include "esp_timer.h"
 #endif
 
 #if LV_USE_PPA_RUNTIME_TUNING || LV_USE_PPA_STATS
 lv_draw_ppa_unit_t *lv_draw_ppa_unit_instance = NULL;
 #endif
 
-/*********************
-*      DEFINES
-*********************/
+/*******************************************************************************
+* Defines
+*******************************************************************************/
 
 #define DRAW_UNIT_ID_PPA         80
 #define DRAW_UNIT_PPA_PREF_SCORE 70
 
-/**********************
-*  STATIC PROTOTYPES
-**********************/
+/*******************************************************************************
+* Function definitions
+*******************************************************************************/
 
 static int32_t ppa_evaluate(lv_draw_unit_t *draw_unit, lv_draw_task_t *task);
 static int32_t ppa_dispatch(lv_draw_unit_t *draw_unit, lv_layer_t *layer);
 static int32_t ppa_delete(lv_draw_unit_t *draw_unit);
-static void  ppa_execute_drawing(lv_draw_ppa_unit_t *u);
+static void ppa_execute_drawing(lv_draw_ppa_unit_t *u);
 static bool ppa_rotation_supported(int32_t rotation);
 static bool ppa_srm_clip_ok(const lv_draw_task_t *t, const lv_draw_image_dsc_t *dsc);
 #if LV_USE_PPA_ASYNC
@@ -49,9 +45,9 @@ static int32_t ppa_wait_for_finish(lv_draw_unit_t *draw_unit);
 static void ppa_finalize_task(lv_draw_ppa_unit_t *u);
 #endif
 
-/**********************
-*   GLOBAL FUNCTIONS
-**********************/
+/*******************************************************************************
+* Public API functions
+*******************************************************************************/
 
 void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_init(void)
 {
@@ -196,9 +192,9 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_deinit(void)
     /* No global deinit required */
 }
 
-/**********************
-*   STATIC FUNCTIONS
-**********************/
+/*******************************************************************************
+* Private functions
+*******************************************************************************/
 static int32_t LV_ATTRIBUTE_FAST_MEM ppa_evaluate(lv_draw_unit_t *u, lv_draw_task_t *t)
 {
     LV_UNUSED(u);

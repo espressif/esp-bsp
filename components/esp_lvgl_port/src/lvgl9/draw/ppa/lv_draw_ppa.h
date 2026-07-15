@@ -5,20 +5,11 @@
  */
 
 /**
- * @file lv_draw_ppa.h
- *
+ * @file
+ * @brief PPA LVGL draw unit
  */
 
-#ifndef LV_DRAW_PPA_H
-#define LV_DRAW_PPA_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/*********************
- *      INCLUDES
- *********************/
+#pragma once
 
 #include "lvgl_public.h"
 
@@ -29,20 +20,20 @@ extern "C" {
 #include "misc/lv_area_private.h"
 
 #if LV_USE_PPA_RUNTIME_TUNING
-#include <esp_err.h>
+#include "esp_err.h"
 #endif
 
-/*********************
- *      DEFINES
- *********************/
+#endif /* LV_USE_PPA */
 
-/**********************
- *      TYPEDEFS
- **********************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/**********************
- * GLOBAL PROTOTYPES
- **********************/
+#if LV_USE_PPA
+
+/*******************************************************************************
+* Public API
+*******************************************************************************/
 
 void lv_draw_ppa_init(void);
 void lv_draw_ppa_deinit(void);
@@ -145,14 +136,8 @@ void lv_draw_ppa_get_stats(lv_draw_ppa_stats_t *out);
 void lv_draw_ppa_reset_stats(void);
 #endif
 
-/**********************
- *      MACROS
- **********************/
-
 #endif /* LV_USE_PPA */
 
 #ifdef __cplusplus
-} /*extern "C"*/
+}
 #endif
-
-#endif /* LV_DRAW_PPA_H */

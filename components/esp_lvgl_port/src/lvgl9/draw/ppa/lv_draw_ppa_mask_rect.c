@@ -5,29 +5,25 @@
  */
 
 /**
- * @file lv_draw_ppa_mask_rect.c
- *
+ * @file
+ * @brief PPA mask rect draw
  */
-
-/*********************
- *      INCLUDES
- *********************/
 
 #include "lv_draw_ppa_private.h"
 #include "lv_draw_ppa.h"
 
 #if LV_USE_PPA_MASK_RECT
 
-/**********************
- *  STATIC PROTOTYPES
- **********************/
+/*******************************************************************************
+* Function definitions
+*******************************************************************************/
 
 static void enqueue_clear(lv_draw_ppa_unit_t *u, lv_draw_buf_t *draw_buf,
                           const lv_area_t *area, const lv_area_t *buf_area);
 
-/**********************
- *   GLOBAL FUNCTIONS
- **********************/
+/*******************************************************************************
+* Public API functions
+*******************************************************************************/
 
 void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_mask_rect(lv_draw_task_t *t, const lv_draw_mask_rect_dsc_t *dsc)
 {
@@ -79,9 +75,9 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_mask_rect(lv_draw_task_t *t, const lv_dra
     }
 }
 
-/**********************
- *   STATIC FUNCTIONS
- **********************/
+/*******************************************************************************
+* Private functions
+*******************************************************************************/
 
 static void LV_ATTRIBUTE_FAST_MEM enqueue_clear(lv_draw_ppa_unit_t *u, lv_draw_buf_t *draw_buf,
         const lv_area_t *area, const lv_area_t *buf_area)

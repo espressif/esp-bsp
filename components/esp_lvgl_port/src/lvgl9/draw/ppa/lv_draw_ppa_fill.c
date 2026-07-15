@@ -5,8 +5,8 @@
  */
 
 /**
- * @file lv_draw_ppa_fill.c
- *
+ * @file
+ * @brief PPA fill draw
  */
 
 #include "lv_draw_ppa_private.h"

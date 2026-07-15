@@ -5,29 +5,25 @@
  */
 
 /**
- * @file lv_draw_ppa_tile.c
- *
+ * @file
+ * @brief PPA intermediate tile pool
  */
-
-/*********************
- *      INCLUDES
- *********************/
 
 #include "lv_draw_ppa_private.h"
 #include "lv_draw_ppa.h"
 
 #if LV_USE_PPA_TILE_COMPOSER
 
-/*********************
- *      DEFINES
- *********************/
+/*******************************************************************************
+* Defines
+*******************************************************************************/
 
 #define TILE_BYTES_PER_PIXEL 4U /* tiles are always ARGB8888 */
 #define TILE_SIZE_BYTES (TILE_BYTES_PER_PIXEL * (uint32_t)LV_PPA_TILE_SIZE * (uint32_t)LV_PPA_TILE_SIZE)
 
-/**********************
- *   GLOBAL FUNCTIONS
- **********************/
+/*******************************************************************************
+* Public API functions
+*******************************************************************************/
 
 /* Allocate `LV_PPA_TILE_POOL_SIZE` tiles in PSRAM with cache-line alignment.
  * The pool is created once at draw-unit init and lives for the lifetime of

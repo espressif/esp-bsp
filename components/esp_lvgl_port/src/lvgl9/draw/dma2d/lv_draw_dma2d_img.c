@@ -5,8 +5,8 @@
  */
 
 /**
- * @file lv_draw_dma2d_img.c
- *
+ * @file
+ * @brief ESP DMA2D image draw
  */
 
 #include "lv_draw_esp_dma2d_private.h"

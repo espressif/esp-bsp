@@ -5,22 +5,18 @@
  */
 
 /**
- * @file lv_draw_ppa_triangle.c
- *
+ * @file
+ * @brief PPA triangle draw
  */
-
-/*********************
- *      INCLUDES
- *********************/
 
 #include "lv_draw_ppa_private.h"
 #include "lv_draw_ppa.h"
 
 #if LV_USE_PPA_TRIANGLE
 
-/**********************
- *  STATIC PROTOTYPES
- **********************/
+/*******************************************************************************
+* Function definitions
+*******************************************************************************/
 
 static bool detect_right_triangle(const lv_draw_triangle_dsc_t *dsc,
                                   lv_point_t *out_corner, lv_point_t *out_hx, lv_point_t *out_hy);
@@ -28,9 +24,9 @@ static void enqueue_scanline(lv_draw_ppa_unit_t *u, lv_draw_buf_t *draw_buf,
                              const lv_area_t *line, const lv_area_t *clip,
                              const lv_area_t *buf_area, uint32_t color);
 
-/**********************
- *   GLOBAL FUNCTIONS
- **********************/
+/*******************************************************************************
+* Public API functions
+*******************************************************************************/
 
 /* Hardware path for axis-aligned right triangles, i.e. triangles where two of
  * the three vertices share the same x or the same y so one of the edges is
@@ -107,9 +103,9 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_triangle(lv_draw_task_t *t, const lv_draw
     }
 }
 
-/**********************
- *   STATIC FUNCTIONS
- **********************/
+/*******************************************************************************
+* Private functions
+*******************************************************************************/
 
 /* Identify the right-angle vertex of an axis-aligned triangle. We look for a
  * vertex that shares y with one neighbour and x with the other; if no such

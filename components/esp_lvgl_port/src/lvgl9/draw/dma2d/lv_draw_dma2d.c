@@ -5,30 +5,26 @@
  */
 
 /**
- * @file lv_draw_dma2d.c
- *
+ * @file
+ * @brief ESP DMA2D LVGL draw unit
  */
-
-/*********************
-*      INCLUDES
-*********************/
 
 #include "lv_draw_esp_dma2d_private.h"
 #include "lv_draw_esp_dma2d.h"
 
 #if LV_USE_ESP_DMA2D
 
-#include <esp_heap_caps.h>
+#include "esp_heap_caps.h"
 
-/*********************
-*      DEFINES
-*********************/
+/*******************************************************************************
+* Defines
+*******************************************************************************/
 
 #define DMA2D_DESC_ALIGN 64U
 
-/**********************
-*  STATIC PROTOTYPES
-**********************/
+/*******************************************************************************
+* Function definitions
+*******************************************************************************/
 
 static int32_t dma2d_evaluate(lv_draw_unit_t *draw_unit, lv_draw_task_t *task);
 static int32_t dma2d_dispatch(lv_draw_unit_t *draw_unit, lv_layer_t *layer);
@@ -38,9 +34,9 @@ static void dma2d_execute_drawing(lv_draw_dma2d_unit_t *u);
 static bool image_task_basic_supported(const lv_draw_image_dsc_t *dsc);
 static dma2d_data_burst_length_t burst_length_from_config(void);
 
-/**********************
-*   GLOBAL FUNCTIONS
-**********************/
+/*******************************************************************************
+* Public API functions
+*******************************************************************************/
 
 void LV_ATTRIBUTE_FAST_MEM lv_draw_esp_dma2d_init(void)
 {
@@ -159,9 +155,9 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_esp_dma2d_layer(lv_draw_task_t *t, const lv_d
     lv_draw_esp_dma2d_image(t, &new_draw_dsc, coords);
 }
 
-/**********************
-*   STATIC FUNCTIONS
-**********************/
+/*******************************************************************************
+* Private functions
+*******************************************************************************/
 
 static bool LV_ATTRIBUTE_FAST_MEM image_task_basic_supported(const lv_draw_image_dsc_t *dsc)
 {

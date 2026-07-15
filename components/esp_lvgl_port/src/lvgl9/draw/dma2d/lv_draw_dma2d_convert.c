@@ -5,8 +5,8 @@
  */
 
 /**
- * @file lv_draw_dma2d_convert.c
- *
+ * @file
+ * @brief ESP DMA2D color convert
  */
 
 #include "lv_draw_esp_dma2d_private.h"

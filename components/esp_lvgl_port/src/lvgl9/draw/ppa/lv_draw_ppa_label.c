@@ -5,8 +5,8 @@
  */
 
 /**
- * @file lv_draw_ppa_label.c
- *
+ * @file
+ * @brief PPA label/glyph draw
  */
 
 #include "lv_draw_ppa_private.h"

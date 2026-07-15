@@ -5,20 +5,11 @@
  */
 
 /**
- * @file lv_draw_esp_dma2d_private.h
- *
+ * @file
+ * @brief ESP DMA2D LVGL draw unit (private)
  */
 
-#ifndef LV_DRAW_ESP_DMA2D_PRIVATE_H
-#define LV_DRAW_ESP_DMA2D_PRIVATE_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/*********************
- *      INCLUDES
- *********************/
+#pragma once
 
 #include "lvgl_public.h"
 
@@ -30,21 +21,29 @@ extern "C" {
 #include "draw/lv_draw_image_private.h"
 #include "draw/lv_image_decoder_private.h"
 
-#include <esp_private/dma2d.h>
-#include <hal/color_types.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/semphr.h>
+#include "esp_private/dma2d.h"
+#include "hal/color_types.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
-/*********************
- *      DEFINES
- *********************/
+#endif /* LV_USE_ESP_DMA2D */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if LV_USE_ESP_DMA2D
+
+/*******************************************************************************
+* Defines
+*******************************************************************************/
 
 #define DRAW_UNIT_ID_ESP_DMA2D         81
 #define DRAW_UNIT_ESP_DMA2D_PREF_SCORE 60
 
-/**********************
- *      TYPEDEFS
- **********************/
+/*******************************************************************************
+* Types definitions
+*******************************************************************************/
 
 typedef struct {
     color_space_pixel_format_t pixel_format;
@@ -68,9 +67,9 @@ typedef struct lv_draw_dma2d_unit {
     bool use_tx_csc;
 } lv_draw_dma2d_unit_t;
 
-/**********************
- * GLOBAL PROTOTYPES
- **********************/
+/*******************************************************************************
+* Public API
+*******************************************************************************/
 
 bool lv_draw_esp_dma2d_task_supported(const lv_draw_task_t *t, bool *is_convert);
 void lv_draw_esp_dma2d_image(lv_draw_task_t *t, const lv_draw_image_dsc_t *draw_dsc, const lv_area_t *coords);
@@ -90,7 +89,5 @@ esp_err_t lv_draw_esp_dma2d_blit(lv_draw_dma2d_unit_t *u,
 #endif /* LV_USE_ESP_DMA2D */
 
 #ifdef __cplusplus
-} /*extern "C"*/
+}
 #endif
-
-#endif /*LV_DRAW_ESP_DMA2D_PRIVATE_H*/

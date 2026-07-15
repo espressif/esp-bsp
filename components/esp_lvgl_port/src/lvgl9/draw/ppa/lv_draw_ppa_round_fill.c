@@ -5,31 +5,27 @@
  */
 
 /**
- * @file lv_draw_ppa_round_fill.c
- *
+ * @file
+ * @brief PPA rounded fill draw
  */
-
-/*********************
- *      INCLUDES
- *********************/
 
 #include "lv_draw_ppa_private.h"
 #include "lv_draw_ppa.h"
 
 #if LV_USE_PPA_ROUND_FILL
 
-/**********************
- *  STATIC PROTOTYPES
- **********************/
+/*******************************************************************************
+* Function definitions
+*******************************************************************************/
 
 static int32_t int_sqrt(int32_t v);
 static void enqueue_strip(lv_draw_ppa_unit_t *u, lv_draw_buf_t *draw_buf,
                           const lv_area_t *strip, const lv_area_t *clip,
                           const lv_area_t *buf_area, uint32_t color);
 
-/**********************
- *   GLOBAL FUNCTIONS
- **********************/
+/*******************************************************************************
+* Public API functions
+*******************************************************************************/
 
 /* Decompose a rounded rectangle fill into a body band plus 2*radius scanlines
  * that approximate the four rounded corners. Each scanline writes a single
@@ -127,9 +123,9 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_round_fill(lv_draw_task_t *t, const lv_dr
     }
 }
 
-/**********************
- *   STATIC FUNCTIONS
- **********************/
+/*******************************************************************************
+* Private functions
+*******************************************************************************/
 
 /* Newton's method, integer-only. Good to ~one ULP for the radii LVGL uses
  * (well under 1e6), keeps the worker in IRAM-friendly territory. */

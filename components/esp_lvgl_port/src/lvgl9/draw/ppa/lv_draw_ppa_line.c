@@ -5,22 +5,18 @@
  */
 
 /**
- * @file lv_draw_ppa_line.c
- *
+ * @file
+ * @brief PPA line draw
  */
-
-/*********************
- *      INCLUDES
- *********************/
 
 #include "lv_draw_ppa_private.h"
 #include "lv_draw_ppa.h"
 
 #if LV_USE_PPA_LINE
 
-/**********************
- *  STATIC PROTOTYPES
- **********************/
+/*******************************************************************************
+* Function definitions
+*******************************************************************************/
 
 static void enqueue_segment(lv_draw_ppa_unit_t *u, lv_draw_buf_t *draw_buf,
                             const lv_area_t *strip, const lv_area_t *clip,
@@ -28,9 +24,9 @@ static void enqueue_segment(lv_draw_ppa_unit_t *u, lv_draw_buf_t *draw_buf,
 static void draw_round_cap(lv_draw_task_t *t, int32_t cx, int32_t cy, int32_t width,
                            lv_color_t color, lv_opa_t opa);
 
-/**********************
- *   GLOBAL FUNCTIONS
- **********************/
+/*******************************************************************************
+* Public API functions
+*******************************************************************************/
 
 void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_line(lv_draw_task_t *t, const lv_draw_line_dsc_t *dsc)
 {
@@ -90,9 +86,9 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_line(lv_draw_task_t *t, const lv_draw_lin
     }
 }
 
-/**********************
- *   STATIC FUNCTIONS
- **********************/
+/*******************************************************************************
+* Private functions
+*******************************************************************************/
 
 static void LV_ATTRIBUTE_FAST_MEM enqueue_segment(lv_draw_ppa_unit_t *u, lv_draw_buf_t *draw_buf,
         const lv_area_t *strip, const lv_area_t *clip,

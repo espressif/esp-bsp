@@ -5,8 +5,8 @@
  */
 
 /**
- * @file lv_draw_ppa_arc.c
- *
+ * @file
+ * @brief PPA arc draw
  */
 
 #include "lv_draw_ppa_private.h"

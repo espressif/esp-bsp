@@ -5,8 +5,8 @@
  */
 
 /**
- * @file lv_draw_ppa_img.c
- *
+ * @file
+ * @brief PPA image draw
  */
 
 #include "lv_draw_ppa_private.h"
@@ -23,7 +23,6 @@ static void lv_draw_img_ppa_core(lv_draw_task_t *t, const lv_draw_image_dsc_t *d
 static bool ppa_rotation_to_srm_angle(int32_t rotation, ppa_srm_rotation_angle_t *angle_out);
 static bool ppa_transform_requested(const lv_draw_image_dsc_t *draw_dsc);
 static void ppa_srm_apply_opa(ppa_srm_oper_config_t *cfg, lv_color_format_t src_cf, lv_opa_t opa);
-
 
 void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_img(lv_draw_task_t *t, const lv_draw_image_dsc_t *dsc,
         const lv_area_t *coords)
