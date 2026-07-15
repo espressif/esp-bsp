@@ -1,6 +1,0 @@
-description: ESP-BSP SquareLine LVGL Example
-dependencies:
-  idf: ">=5.2"
-  ws_7inch:
-    version: "1.0"
-    override_path: "../components/ws_7inch"
