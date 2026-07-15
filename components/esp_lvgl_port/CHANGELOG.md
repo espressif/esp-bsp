@@ -15,6 +15,7 @@
 - Install shared cache handlers for DMA2D-only builds; disable DMA2D unit on init failure
 - Drain stale PPA done_sem tokens after async completion races; do not delete static semaphores
 - Sync DMA2D source buffers before blit; fall back to SW when DMA2D blit fails
+- Fall back to SW when PPA tile-composer cannot acquire a tile or a pass fails
 
 ### Documentation
 

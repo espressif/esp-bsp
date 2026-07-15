@@ -16,6 +16,7 @@
 
 #if LV_USE_PPA_TILE_COMPOSER
 #include "draw/lv_draw_image_private.h"
+#include "draw/sw/lv_draw_sw.h"
 #endif
 
 /*******************************************************************************
@@ -146,13 +147,13 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_layer_composite(lv_draw_task_t *t, const 
     if (block_w > LV_PPA_TILE_SIZE || block_h > LV_PPA_TILE_SIZE) {
         LV_LOG_WARN("PPA composite area %" PRId32 "x%" PRId32 " exceeds tile size %d",
                     block_w, block_h, LV_PPA_TILE_SIZE);
-        return;
+        goto sw_fallback;
     }
 
     lv_draw_ppa_tile_t *tile = lv_draw_ppa_tile_acquire(u);
     if (tile == NULL) {
-        LV_LOG_WARN("PPA composite: no free tile in pool");
-        return;
+        LV_LOG_WARN("PPA composite: no free tile in pool, falling back to SW");
+        goto sw_fallback;
     }
     u->pending_tile = tile;
 
@@ -304,6 +305,10 @@ void LV_ATTRIBUTE_FAST_MEM lv_draw_ppa_layer_composite(lv_draw_task_t *t, const 
 release:
     lv_draw_ppa_tile_release(u, tile);
     u->pending_tile = NULL;
+    /* Preferred-unit path already claimed the task; recover with SW so a failed
+     * composite pass (or bpp/config reject after acquire) does not leave a hole. */
+sw_fallback:
+    lv_draw_sw_layer(t, dsc, coords);
 }
 
 #endif /* LV_USE_PPA_TILE_COMPOSER */
