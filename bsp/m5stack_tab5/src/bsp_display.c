@@ -215,11 +215,11 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     ESP_RETURN_ON_ERROR(bsp_enable_dsi_phy_power(), TAG, "DSI PHY power failed");
 
     bsp_tab5_board_version_t board_version = bsp_get_board_version();
-    ESP_RETURN_ON_FALSE(board_version != BSP_TAB5_BOARD_VERSION_UNKNOWN, ESP_ERR_NOT_SUPPORTED, TAG, "Unsupported board version");
+    ESP_GOTO_ON_FALSE(board_version != BSP_TAB5_BOARD_VERSION_UNKNOWN, ESP_ERR_NOT_SUPPORTED, err, TAG,
+                      "Unsupported board version");
 
     uint32_t lane_bit_rate_mbps = config->dsi_bus.lane_bit_rate_mbps;
-    if (board_version == BSP_TAB5_BOARD_VERSION_ST7123 ||
-            board_version == BSP_TAB5_BOARD_VERSION_ST7121) {
+    if (board_version == BSP_TAB5_BOARD_VERSION_ST7121) {
         lane_bit_rate_mbps = BSP_LCD_ST712X_MIPI_DSI_LANE_BITRATE_MBPS;
     }
 
