@@ -46,6 +46,7 @@ jobs:
           - m5stack_tab5
           - esp_vocat
           - esp32_s31_korvo_1
+          - esp_sensairshuttle
     steps:
       - uses: actions/checkout@v6
 

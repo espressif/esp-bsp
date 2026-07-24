@@ -15,6 +15,13 @@ dependencies:
     matches:
       - if: $CONFIG{ESP_BSP_DEVKIT} == 1
 
+  esp_sensairshuttle:
+    version: "*"
+    public: true
+    override_path: "../../bsp/esp_sensairshuttle"
+    matches:
+      - if: $CONFIG{ESP_SENSAIRSHUTTLE} == 1
+
   esp_bsp_generic:
     version: "*"
     public: true
