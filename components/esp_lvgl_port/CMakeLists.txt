@@ -20,6 +20,15 @@ if(${target} STREQUAL "esp32p4")
     list(APPEND ADD_LIBS idf::esp_driver_ppa)
     list(APPEND PRIV_REQ esp_driver_ppa)
 endif()
+if(CONFIG_ESP_LVGL_PORT_USE_PPA OR CONFIG_ESP_LVGL_PORT_USE_ESP_DMA2D)
+    # Draw units use esp_cache.h (esp_mm) and, for DMA2D, esp_private/dma2d.h.
+    list(APPEND PRIV_REQ esp_mm)
+    list(APPEND ADD_LIBS idf::esp_mm)
+endif()
+if(CONFIG_ESP_LVGL_PORT_USE_PPA)
+    list(APPEND PRIV_REQ esp_driver_ppa)
+    list(APPEND ADD_LIBS idf::esp_driver_ppa)
+endif()
 
 # This component uses a CMake workaround, so we can compile esp_lvgl_port for both LVGL8.x and LVGL9.x
 # At the time of idf_component_register() we don't know which LVGL version is used, so we only register an INTERFACE component (with no sources)
@@ -120,6 +129,14 @@ if((lvgl_ver VERSION_GREATER_EQUAL "9.1.0") AND (lvgl_ver VERSION_LESS "9.2.0"))
     endif()
 endif()
 
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/esp_lvgl_port_draw_units.cmake)
+
+# Out-of-tree PPA/DMA2D draw units (LVGL 9+ only; sources added when present)
+if(NOT lvgl_ver VERSION_LESS "9.0.0")
+    esp_lvgl_port_draw_units_collect_srcs(DRAW_UNIT_SRCS)
+    list(APPEND ADD_SRCS ${DRAW_UNIT_SRCS})
+endif()
+
 # Here we create the real lvgl_port_lib
 add_library(lvgl_port_lib STATIC
     ${PORT_PATH}/esp_lvgl_port.c
@@ -136,6 +153,12 @@ target_link_libraries(lvgl_port_lib PRIVATE
     idf::esp_timer
     ${ADD_LIBS}
     )
+
+if(NOT lvgl_ver VERSION_LESS "9.0.0")
+    esp_lvgl_port_draw_units_configure(lvgl_port_lib "${lvgl_ver}")
+else()
+    esp_lvgl_port_draw_units_check_lvgl_version("${lvgl_ver}")
+endif()
 
 # Finally, link the lvgl_port_lib its esp-idf interface library
 target_link_libraries(${COMPONENT_LIB} INTERFACE lvgl_port_lib)

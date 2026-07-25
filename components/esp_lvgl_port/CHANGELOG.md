@@ -2,9 +2,26 @@
 
 ## Unreleased
 
+### Features
+
+- Added out-of-tree PPA and DMA2D LVGL draw units (LVGL 9+, SoC-gated) registered after `lv_init()`
+
 ### Fixes
 
-- Fixed callbacks for DPI by IDF update (`on_refresh_done` --> `on_frame_buf_complete`)
+- Keep DPI avoid-tearing on `on_refresh_done` for IDF 5.5 (field is not present on DPI callbacks)
+- Build out-of-tree PPA/DMA2D draw units against LVGL from the Component Registry
+- Reject oversized PPA tile-composer layer tasks in evaluate (allow SW fallback)
+- Release PPA tile on composite early-exit; finalize active task on runtime retune
+- Install shared cache handlers for DMA2D-only builds; disable DMA2D unit on init failure
+- Drain stale PPA done_sem tokens after async completion races; do not delete static semaphores
+- Sync DMA2D source buffers before blit; fall back to SW when DMA2D blit fails
+- Fall back to SW when PPA tile-composer cannot acquire a tile or a pass fails
+- Copy child layer draw_buf header in DMA2D layer path; SW fallback on PPA image enqueue errors
+- Abort in-flight DMA2D blit on wait timeout before SW fallback redraws the destination
+
+### Documentation
+
+- Documented PPA/DMA2D LVGL draw unit options and CI compile coverage on ESP32-P4
 
 ## 2.8.0
 
