@@ -135,7 +135,7 @@ static int bsp_get_board_version(void)
     }
 
     /* Enable Feature */
-    BSP_ERROR_CHECK_RETURN_NULL(bsp_feature_enable(BSP_FEATURE_TOUCH, true));
+    BSP_ERROR_CHECK(bsp_feature_enable(BSP_FEATURE_TOUCH, true), 0);
 
     vTaskDelay(pdMS_TO_TICKS(500));
 
@@ -259,9 +259,11 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     };
 
     /* Select vendor config by board version */
-    if (bsp_get_board_version() == 1) {
+    const int board_ver = bsp_get_board_version();
+    ESP_GOTO_ON_FALSE(board_ver == 1 || board_ver == 2, ESP_ERR_NOT_SUPPORTED, err, TAG, "Unknown board version");
+    if (board_ver == 1) {
         vendor_config = &vendor_config_ili9881c;
-    } else if (bsp_get_board_version() == 2) {
+    } else {
         vendor_config = &vendor_config_st7123;
     }
 
@@ -275,10 +277,10 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     };
 
     /* Select LCD panel by board version */
-    if (bsp_get_board_version() == 1) {
+    if (board_ver == 1) {
         ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9881c(ret_handles->io, &panel_config, &ret_handles->panel),
                           err, TAG, "New panel failed");
-    } else if (bsp_get_board_version() == 2) {
+    } else {
         ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7123(ret_handles->io, &panel_config, &ret_handles->panel),
                           err, TAG, "New panel failed");
     }
@@ -412,7 +414,9 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
 
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     /* Select LCD Touch by board version */
-    if (bsp_get_board_version() == 1) {
+    const int board_ver = bsp_get_board_version();
+    ESP_RETURN_ON_FALSE(board_ver == 1 || board_ver == 2, ESP_ERR_NOT_SUPPORTED, TAG, "Unknown board version");
+    if (board_ver == 1) {
 
         /*
         * Keep LCD touch interrupt pin in low for working touch
@@ -435,7 +439,7 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
         ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(bsp_i2c_get_handle(), &tp_io_config, &tp_io_handle), TAG, "");
         ESP_RETURN_ON_ERROR(esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, ret_touch),
                             TAG, "New touch driver initialization failed");
-    } else if (bsp_get_board_version() == 2) {
+    } else {
         const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_ST7123_CONFIG();
         ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(bsp_i2c_get_handle(), &tp_io_config, &tp_io_handle), TAG, "");
         ESP_RETURN_ON_ERROR(esp_lcd_touch_new_i2c_st7123(tp_io_handle, &tp_cfg, ret_touch),
