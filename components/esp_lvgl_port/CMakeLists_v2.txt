@@ -105,15 +105,27 @@ if(knob_iface)
     target_link_libraries(${COMPONENT_TARGET} PRIVATE ${knob_iface})
 endif()
 
-# usb_host_hid
-_lvgl_port_optional_include(usb_host_hid usbhid_iface)
-if(usbhid_iface)
+# cherryusb HID
+_lvgl_port_optional_include(cherryusb cherryusb_iface)
+if(cherryusb_iface)
     target_sources(${COMPONENT_TARGET} PRIVATE
-        "${PORT_PATH}/esp_lvgl_port_usbhid.c"
-        "images/${PORT_FOLDER}/img_cursor.c"
+        "${cherryusb_dir}/platform/lvgl/usbh_hid_lvgl.c"
+        "${cherryusb_dir}/platform/lvgl/image_cursor.c"
+        "${PORT_PATH}/esp_lvgl_port_usbhid_cherryusb.c"
     )
-    target_link_libraries(${COMPONENT_TARGET} PRIVATE ${usbhid_iface})
+    target_link_libraries(${COMPONENT_TARGET} PRIVATE ${cherryusb_iface})
+else()
+    # usb_host_hid
+    _lvgl_port_optional_include(usb_host_hid usbhid_iface)
+    if(usbhid_iface)
+        target_sources(${COMPONENT_TARGET} PRIVATE
+            "${PORT_PATH}/esp_lvgl_port_usbhid.c"
+            "images/${PORT_FOLDER}/img_cursor.c"
+        )
+        target_link_libraries(${COMPONENT_TARGET} PRIVATE ${usbhid_iface})
+    endif()
 endif()
+
 
 # SIMD assembly for 9.1.x on ESP32 / ESP32-S3. ASM sources, the lvgl include
 # path, and the -u link directives all live in one block now that

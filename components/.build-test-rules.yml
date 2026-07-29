@@ -11,6 +11,13 @@ components/esp_lvgl_port/examples/rgb_lcd:
     - if: IDF_TARGET in ["esp32s3", "esp32p4"]
       reason: Supports only targets with RGB peripheral
 
+components/esp_lvgl_port/examples/display_usb_hid:
+  depends_filepatterns:
+    - "components/esp_lvgl_port/**"
+  enable:
+    - if: IDF_TARGET in ["esp32p4"] and IDF_VERSION >= "5.4.0"
+      reason: Supports only targets with MIPI peripheral and IDF >= 5.4
+
 components/esp_lvgl_port/test_apps/simd:
   depends_filepatterns:
     - "components/esp_lvgl_port/**"

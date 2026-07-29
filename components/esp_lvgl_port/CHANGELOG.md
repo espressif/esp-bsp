@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 2.9.0
+
+### Features
+
+- Support for CherryUSB stack (input device)
 
 ### Fixes
 

@@ -14,7 +14,7 @@
 #include "esp_err.h"
 #include "lvgl.h"
 
-#if __has_include ("usb/hid_host.h")
+#if __has_include ("usb/hid_host.h") || __has_include ("platform/lvgl/usbh_hid_lvgl.h")
 #define ESP_LVGL_PORT_USB_HOST_HID_COMPONENT 1
 #endif
 

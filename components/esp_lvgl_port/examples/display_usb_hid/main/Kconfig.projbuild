@@ -1,0 +1,26 @@
+menu "Example Configuration"
+
+    config EX_USB_STACK_IDF
+        int
+        default 1 if EXAMPLE_USB_STACK_IDF
+        default 0
+
+    config EX_USB_STACK_CHERRYUSB
+        int
+        default 1 if EXAMPLE_USB_STACK_CHERRYUSB
+        default 0
+
+    choice EXAMPLE_USB_STACK
+        prompt "USB Stack"
+        default EXAMPLE_USB_STACK_IDF
+        help
+            Select the USB Stack
+
+        config EXAMPLE_USB_STACK_IDF
+            bool "Espressif's USB Stack"
+
+        config EXAMPLE_USB_STACK_CHERRYUSB
+            bool "CherryUSB"
+    endchoice
+
+endmenu
