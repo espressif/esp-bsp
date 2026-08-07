@@ -1,0 +1,22 @@
+description: BSP Display USB HID Example
+
+dependencies:
+  idf: '>=5.4'
+
+  m5stack_tab5:
+    version: '*'
+    override_path: "../../../../../bsp/m5stack_tab5"
+
+  esp_lvgl_port:
+    version: "*"
+    override_path: "../../../"
+
+  usb_host_hid:
+    version: '^1'
+    matches:
+    - if: $CONFIG{EX_USB_STACK_IDF} == 1
+
+  cherry-embedded/cherryusb:
+    version: '^1'
+    matches:
+    - if: $CONFIG{EX_USB_STACK_CHERRYUSB} == 1
