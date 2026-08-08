@@ -31,6 +31,12 @@ static const char *TAG = "M5Stack";
 #define BSP_AXP192_ADDR  0x34
 #define BSP_AXP2101_ADDR 0x34
 
+#if defined(CONFIG_BSP_PMU_AXP2101)
+/* AXP2101 register map differs from the AXP192 - these are AXP2101-only. */
+#define BSP_AXP2101_REG_ALDO_EN  0x90   // ALDO1~4 / BLDO1~2 enable
+#define BSP_AXP2101_ALDO2_BIT    0x02   // ALDO2 = LCD/touch reset rail (Core2 v1.1)
+#endif
+
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
 static lv_display_t *disp;
 static lv_indev_t *disp_indev = NULL;
@@ -120,6 +126,18 @@ static uint8_t read8bit(uint8_t sub_addr)
 
     return reg_data[0];
 }
+
+// Like read8bit(), but propagates I2C read failures instead of silently
+// returning 0. Use this where a failed read must NOT be treated as a valid
+// register value (e.g. read-modify-write of a power rail control register,
+// where a bogus 0 would disable rails). AXP2101-only: it is only used by the
+// Core2 v1.1 LCD reset path below.
+#if defined(CONFIG_BSP_PMU_AXP2101)
+static esp_err_t read8bit_checked(uint8_t sub_addr, uint8_t *out)
+{
+    return i2c_master_transmit_receive(axp2101_h, &sub_addr, 1, out, 1, 1000);
+}
+#endif
 
 esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
 {
@@ -410,6 +428,40 @@ esp_err_t bsp_display_brightness_init(void)
     const uint8_t axp_hgled_val[] = {0x69, 0b00010011};
     ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, axp_hgled_val, sizeof(axp_hgled_val), 1000),
                         TAG, "I2C write failed");
+
+    // On Core2 v1.1 the LCD (and touch) reset line is not a GPIO - it is the
+    // AXP2101 ALDO2 rail (reg 0x90 bit1). BSP_LCD_RST is GPIO_NUM_NC, so
+    // esp_lcd_panel_reset() only issues a software reset and the ILI9342 never
+    // gets a hardware reset on a cold boot, leaving the display blank. Pulse
+    // ALDO2 low->high to hardware-reset the panel here, before the SPI panel
+    // init in bsp_display_new(). This mirrors the reset pulse the AXP192 path
+    // performs via GPIO4 (reg 0x96 bit1) further below.
+    //
+    // Read the current ALDO control register once with error checking: a failed
+    // read must not be treated as 0, otherwise the read-modify-write below would
+    // clear every ALDO/BLDO enable bit and power down rails we depend on.
+    const uint8_t aldo_en_reg = BSP_AXP2101_REG_ALDO_EN;
+    uint8_t aldo_ctrl = 0;
+    ESP_RETURN_ON_ERROR(read8bit_checked(aldo_en_reg, &aldo_ctrl), TAG,
+                        "Failed to read PMU reg 0x%02X", aldo_en_reg);
+    const uint8_t lcd_rst_low[] = {aldo_en_reg, aldo_ctrl &(uint8_t)(~BSP_AXP2101_ALDO2_BIT)};   // ALDO2 off: assert reset
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, lcd_rst_low, sizeof(lcd_rst_low), 1000),
+                        TAG, "I2C write failed");
+    // ALDO2 is a power rail, not a RESX pin, so this is a power-down: hold it
+    // off long enough for the rail to fall below the panel's power-on-reset
+    // threshold. Off-discharge is enabled above (reg 0x10), so per the AXP2101
+    // datasheet a disabled LDO is actively discharged "through an internal
+    // resistor," collapsing the rail in a few ms; 20 ms is ample POR margin.
+    vTaskDelay(pdMS_TO_TICKS(20));
+    const uint8_t lcd_rst_high[] = {aldo_en_reg, aldo_ctrl | BSP_AXP2101_ALDO2_BIT};  // ALDO2 on: release reset
+    ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, lcd_rst_high, sizeof(lcd_rst_high), 1000),
+                        TAG, "I2C write failed");
+    // Panel is powered again. The ILI9342 needs ~5 ms (datasheet: hardware
+    // reset -> first command) for its supplies/clocks to stabilize before it
+    // will accept commands; use 10 ms for a little margin since ALDO2 is a real
+    // power ramp, not just a RESX toggle. The 120 ms Sleep Out (SLPOUT) timing
+    // is handled later by esp_lcd_panel_init(), so it is not duplicated here.
+    vTaskDelay(pdMS_TO_TICKS(10));
 #elif defined(CONFIG_BSP_PMU_AXP192)
     read8bit(0x12);
 
