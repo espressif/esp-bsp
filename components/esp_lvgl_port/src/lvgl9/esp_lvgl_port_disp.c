@@ -751,9 +751,11 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
         _lvgl_port_transform_monochrome(drv, area, &color_map);
     }
 
+    bool transfer_started = false;
     if (disp_ctx->flags.direct_mode || disp_ctx->flags.full_refresh) {
         if (lv_disp_flush_is_last(drv)) {
             esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, 0, 0, lv_disp_get_hor_res(drv), lv_disp_get_ver_res(drv), color_map);
+            transfer_started = true;
             if (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI) {
                 /* Waiting for the last frame buffer to complete transmission */
                 xSemaphoreTake(disp_ctx->trans_sem, 0);
@@ -762,10 +764,15 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
         }
     } else {
         esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
+        transfer_started = true;
     }
 
+    /* RGB / DSI(+direct/full_refresh): ready here (master). SPI/I80 after draw: panel IO callback.
+     * SPI/I80 intermediate direct/full: no draw — signal ready so multi-area frames cannot hang. */
     if (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI
             && (disp_ctx->flags.direct_mode || disp_ctx->flags.full_refresh))) {
+        lv_disp_flush_ready(drv);
+    } else if (!transfer_started) {
         lv_disp_flush_ready(drv);
     }
 }
