@@ -38,8 +38,8 @@ static const bsp_button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
             .adc_handle = &bsp_adc_handle,
             .adc_channel = ADC_CHANNEL_0,
             .button_index = BSP_BUTTON_SET,
-            .min = (185), // middle is 285
-            .max = (385)
+            .min = (244), // middle is 344
+            .max = (444)
         }
 
     },
@@ -49,8 +49,8 @@ static const bsp_button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
             .adc_handle = &bsp_adc_handle,
             .adc_channel = ADC_CHANNEL_0,
             .button_index = BSP_BUTTON_MODE,
-            .min = (671), // middle is 771
-            .max = (871)
+            .min = (643), // middle is 743
+            .max = (843)
         }
 
     },
@@ -60,8 +60,8 @@ static const bsp_button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
             .adc_handle = &bsp_adc_handle,
             .adc_channel = ADC_CHANNEL_0,
             .button_index = BSP_BUTTON_VOLP,
-            .min = (1550), // middle is 1650
-            .max = (1750)
+            .min = (1600), // middle is 1700
+            .max = (1800)
         }
 
     },
@@ -71,8 +71,8 @@ static const bsp_button_config_t bsp_button_config[BSP_BUTTON_NUM] = {
             .adc_handle = &bsp_adc_handle,
             .adc_channel = ADC_CHANNEL_0,
             .button_index = BSP_BUTTON_VOLM,
-            .min = (1145), // middle is 1245
-            .max = (1345)
+            .min = (1118), // middle is 1218
+            .max = (1318)
         }
 
     },

@@ -206,16 +206,16 @@
             "BSP_BUTTON_ADC_CHANNEL": "ADC_CHANNEL_0",
             "BSP_BUTTON_1_NAME": "SET",
             "BSP_BUTTON_1_TYPE": "ADC",
-            "BSP_BUTTON_1_ADC_VALUE": "1870",
+            "BSP_BUTTON_1_ADC_VALUE": "344",
             "BSP_BUTTON_2_NAME": "MODE",
             "BSP_BUTTON_2_TYPE": "ADC",
-            "BSP_BUTTON_2_ADC_VALUE": "1340",
+            "BSP_BUTTON_2_ADC_VALUE": "743",
             "BSP_BUTTON_3_NAME": "VOLP",
             "BSP_BUTTON_3_TYPE": "ADC",
-            "BSP_BUTTON_3_ADC_VALUE": "819",
+            "BSP_BUTTON_3_ADC_VALUE": "1700",
             "BSP_BUTTON_4_NAME": "VOLM",
             "BSP_BUTTON_4_TYPE": "ADC",
-            "BSP_BUTTON_4_ADC_VALUE": "380"
+            "BSP_BUTTON_4_ADC_VALUE": "1218"
         },
         {
             "name": "LED",
