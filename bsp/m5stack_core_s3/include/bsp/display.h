@@ -38,6 +38,12 @@
 #define BSP_LCD_H_RES              (320)
 #define BSP_LCD_V_RES              (240)
 
+/** LCD panel ID inferred from the FT5x06 touch-controller firmware ID. */
+typedef enum {
+    BSP_DISPLAY_PANEL_ID_ILI9342C = 0x10, /*!< Original CoreS3 display */
+    BSP_DISPLAY_PANEL_ID_ILI9342E = 0x12, /*!< New CoreS3 display */
+} bsp_display_panel_id_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -107,6 +113,16 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
  *      - Other errors from underlying esp_lcd driver
  */
 esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_lcd_handles_t *ret_handles);
+
+/**
+ * @brief Get the display panel ID detected during display initialization
+ *
+ * If detection failed, the BSP uses the original ILI9342C panel as its
+ * compatibility fallback and returns BSP_DISPLAY_PANEL_ID_ILI9342C.
+ *
+ * @return Detected or fallback display panel ID
+ */
+bsp_display_panel_id_t bsp_display_get_panel_id(void);
 
 /**
  * @brief Delete display panel
