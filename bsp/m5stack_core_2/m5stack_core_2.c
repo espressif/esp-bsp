@@ -35,6 +35,7 @@ static const char *TAG = "M5Stack";
 /* AXP2101 register map differs from the AXP192 - these are AXP2101-only. */
 #define BSP_AXP2101_REG_ALDO_EN  0x90   // ALDO1~4 / BLDO1~2 enable
 #define BSP_AXP2101_ALDO2_BIT    0x02   // ALDO2 = LCD/touch reset rail (Core2 v1.1)
+#define BSP_AXP2101_BLDO1_BIT    0x10   // BLDO1 = LCD backlight rail (Core2 v1.1)
 #endif
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
@@ -130,8 +131,8 @@ static uint8_t read8bit(uint8_t sub_addr)
 // Like read8bit(), but propagates I2C read failures instead of silently
 // returning 0. Use this where a failed read must NOT be treated as a valid
 // register value (e.g. read-modify-write of a power rail control register,
-// where a bogus 0 would disable rails). AXP2101-only: it is only used by the
-// Core2 v1.1 LCD reset path below.
+// where a bogus 0 would disable rails). AXP2101-only: used by the Core2 v1.1
+// LCD reset path and the backlight rail control below.
 #if defined(CONFIG_BSP_PMU_AXP2101)
 static esp_err_t read8bit_checked(uint8_t sub_addr, uint8_t *out)
 {
@@ -542,6 +543,24 @@ esp_err_t bsp_display_brightness_set(int brightness_percent)
 
     ESP_LOGI(TAG, "Setting LCD backlight: %d%%", brightness_percent);
 #if defined(CONFIG_BSP_PMU_AXP2101)
+    // Reg 0x96 only sets the BLDO1 voltage, whose usable floor (~2.5 V) still
+    // lights the panel, so treat 0% as a rail cut (0x90 bit4) rather than a dim.
+    // read8bit_checked() so a failed read can't be seen as 0 and clear all rails.
+    const uint8_t aldo_en_reg = BSP_AXP2101_REG_ALDO_EN;
+    uint8_t aldo_ctrl = 0;
+    ESP_RETURN_ON_ERROR(read8bit_checked(aldo_en_reg, &aldo_ctrl), TAG,
+                        "Failed to read PMU reg 0x%02X", aldo_en_reg);
+    const uint8_t desired_en = (brightness_percent == 0)
+                               ? (uint8_t)(aldo_ctrl & (uint8_t)(~BSP_AXP2101_BLDO1_BIT))
+                               : (uint8_t)(aldo_ctrl | BSP_AXP2101_BLDO1_BIT);
+    if (desired_en != aldo_ctrl) {
+        const uint8_t bl_en[] = {aldo_en_reg, desired_en};
+        ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, bl_en, sizeof(bl_en), 1000),
+                            TAG, "I2C write failed");
+    }
+    if (brightness_percent == 0) {
+        return ESP_OK;
+    }
     const uint8_t reg_val      = 20 + ((8 * brightness_percent) / 100);  // 0b00000 ~ 0b11100; under 20, it is too dark
     const uint8_t lcd_bl_val[] = {0x96, reg_val};                        // AXP BLDO1 voltage
     ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, lcd_bl_val, sizeof(lcd_bl_val), 1000),
