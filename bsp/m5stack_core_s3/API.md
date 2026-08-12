@@ -956,7 +956,6 @@ Below are some of the most relevant predefined constants:
 | ---: | :--- |
 | struct | [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) <br>_BSP display (LVGL) configuration structure._ |
 | struct | [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) <br>_BSP display low level configuration structure._ |
-| enum  | [**bsp\_display\_panel\_id\_t**](#enum-bsp_display_panel_id_t)  <br> |
 | struct | [**bsp\_lcd\_handles\_t**](#struct-bsp_lcd_handles_t) <br>_BSP display return handles._ |
 | struct | [**bsp\_touch\_config\_t**](#struct-bsp_touch_config_t) <br>_BSP touch configuration structure._ |
 
@@ -973,7 +972,6 @@ Below are some of the most relevant predefined constants:
 |  esp\_err\_t | [**bsp\_display\_enter\_sleep**](#function-bsp_display_enter_sleep) (void) <br>_Set display enter sleep mode._ |
 |  esp\_err\_t | [**bsp\_display\_exit\_sleep**](#function-bsp_display_exit_sleep) (void) <br>_Set display exit sleep mode._ |
 |  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)._ |
-|  [**bsp\_display\_panel\_id\_t**](#enum-bsp_display_panel_id_t) | [**bsp\_display\_get\_panel\_id**](#function-bsp_display_get_panel_id) (void) <br>_Get the display panel ID detected during display initialization._ |
 |  bool | [**bsp\_display\_lock**](#function-bsp_display_lock) (uint32\_t timeout\_ms) <br>_Take LVGL mutex._ |
 |  esp\_err\_t | [**bsp\_display\_new**](#function-bsp_display_new) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, esp\_lcd\_panel\_handle\_t \*ret\_panel, esp\_lcd\_panel\_io\_handle\_t \*ret\_io) <br>_Create new display panel._ |
 |  esp\_err\_t | [**bsp\_display\_new\_with\_handles**](#function-bsp_display_new_with_handles) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, [**bsp\_lcd\_handles\_t**](#struct-bsp_lcd_handles_t) \*ret\_handles) <br>_Create new display panel._ |
@@ -1038,17 +1036,6 @@ Variables:
 
 -  int max_transfer_sz  <br>Maximum transfer size, in bytes.
 
-### enum `bsp_display_panel_id_t`
-
-```c
-enum bsp_display_panel_id_t {
-    BSP_DISPLAY_PANEL_ID_ILI9342C = 0x10,
-    BSP_DISPLAY_PANEL_ID_ILI9342E = 0x12
-};
-```
-
-
-LCD panel ID inferred from the FT5x06 touch-controller firmware ID.
 ### struct `bsp_lcd_handles_t`
 
 _BSP display return handles._
@@ -1247,23 +1234,6 @@ The LVGL input device is initialized in [**bsp\_display\_start()**](#function-bs
 **Returns:**
 
 Pointer to LVGL input device or NULL when not initialized
-### function `bsp_display_get_panel_id`
-
-_Get the display panel ID detected during display initialization._
-```c
-bsp_display_panel_id_t bsp_display_get_panel_id (
-    void
-) 
-```
-
-
-If detection failed, the BSP uses the original ILI9342C panel as its compatibility fallback and returns BSP\_DISPLAY\_PANEL\_ID\_ILI9342C.
-
-
-
-**Returns:**
-
-Detected or fallback display panel ID
 ### function `bsp_display_lock`
 
 _Take LVGL mutex._

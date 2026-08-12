@@ -13,6 +13,7 @@
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_ili9341.h"
+#include "ili9342e_init_cmds.h"
 #include "esp_lcd_touch_ft5x06.h"
 #include "freertos/task.h"
 #include "bsp/display.h"
@@ -27,136 +28,85 @@ static lv_display_t *disp;
 static bsp_lcd_handles_t disp_handles;
 static lv_indev_t *disp_indev_touch = NULL;
 static esp_lcd_touch_handle_t tp;   // LCD touch handle
-static bsp_display_panel_id_t s_display_panel_id = BSP_DISPLAY_PANEL_ID_ILI9342C;
 
 // Bit number used to represent command and parameter
 #define LCD_CMD_BITS           8
 #define LCD_PARAM_BITS         8
 #define LCD_LEDC_CH            CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH
 
-#define BSP_FT5X06_ADDR                    0x38
-#define BSP_FT5X06_CIPHER_REG              0xA3
 #define BSP_FT5X06_FIRMID_REG              0xA6
-#define BSP_FT5X06_VENDID_REG              0xA8
 #define BSP_FT5X06_ILI9342C_FIRMID         0x10
 #define BSP_FT5X06_ILI9342E_FIRMID         0x12
-#define BSP_FT5X06_M5STACK_VENDOR          0x11
 #define BSP_FT5X06_VERSION_I2C_FREQ_HZ     100000
 #define BSP_FT5X06_STARTUP_DELAY_MS        300
 #define BSP_FT5X06_VERSION_RETRIES         5
 #define BSP_FT5X06_RETRY_DELAY_MS          20
 #define BSP_FT5X06_I2C_TIMEOUT_MS          100
 
-static const ili9341_lcd_init_cmd_t ili9342e_init_cmds[] = {
-    {0xDD, (uint8_t []){0x01}, 1, 0},
-    {0x3A, (uint8_t []){0x55}, 1, 0},
-    {0x21, NULL, 0, 0},
-    {0x36, (uint8_t []){0x08}, 1, 0},
-    {0xD5, (uint8_t []){0x00}, 1, 0},
-    {0xB1, (uint8_t []){0x22}, 1, 0},
-    {0xC8, (uint8_t []){0x38}, 1, 0},
-    {0xCB, (uint8_t []){0x1C}, 1, 0},
-    {0xC9, (uint8_t []){0x1A}, 1, 0},
-    {0xCA, (uint8_t []){0x1A}, 1, 0},
-    {0xB7, (uint8_t []){0x5A, 0x41, 0x11, 0x19}, 4, 0},
-    {0xE4, (uint8_t []){0x04, 0x08, 0x11, 0x06, 0x12, 0x07, 0x3A, 0x76, 0x47, 0x07, 0x0F, 0x0A, 0x11, 0x19, 0x05}, 15, 0},
-    {0xE5, (uint8_t []){0x02, 0x03, 0x07, 0x06, 0x12, 0x07, 0x36, 0x5F, 0x48, 0x06, 0x10, 0x0C, 0x16, 0x14, 0x09}, 15, 0},
-    {0x11, NULL, 0, 120},
-    {0x29, NULL, 0, 120},
-};
-
-static esp_err_t bsp_lcd_read_touch_reg(i2c_master_dev_handle_t touch_handle, uint8_t reg_addr, uint8_t *value)
+/*
+ * This function was manually added to generated code.
+ * It selects the board version using the touch-controller firmware ID.
+ * Returns 1 for ILI9342C and 2 for ILI9342E.
+ */
+static int bsp_get_board_version(void)
 {
-    return i2c_master_transmit_receive(touch_handle, &reg_addr, 1, value, 1, BSP_FT5X06_I2C_TIMEOUT_MS);
-}
+    static int board_ver = 0;
+    if (board_ver > 0) {
+        return board_ver;
+    }
 
-static esp_err_t bsp_lcd_detect_panel_id(bsp_display_panel_id_t *panel_id)
-{
-    ESP_RETURN_ON_FALSE(panel_id, ESP_ERR_INVALID_ARG, TAG, "Invalid panel ID output");
-
-    *panel_id = BSP_DISPLAY_PANEL_ID_ILI9342C;
+    board_ver = 1;
+    esp_err_t ret = bsp_feature_enable(BSP_FEATURE_TOUCH, true);
+    if (ret != ESP_OK) {
+        ESP_LOGW(TAG, "Touch version detection unavailable: %s; using ILI9342C", esp_err_to_name(ret));
+        return board_ver;
+    }
 
     const i2c_device_config_t touch_config = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-        .device_address = BSP_FT5X06_ADDR,
+        .device_address = ESP_LCD_TOUCH_IO_I2C_FT5x06_ADDRESS,
         .scl_speed_hz = BSP_FT5X06_VERSION_I2C_FREQ_HZ,
     };
     i2c_master_dev_handle_t touch_handle = NULL;
-    esp_err_t add_device_ret = i2c_master_bus_add_device(bsp_i2c_get_handle(), &touch_config, &touch_handle);
-    if (add_device_ret != ESP_OK) {
-        ESP_LOGW(TAG, "Failed to create touch version I2C device: %s; panel:ILI9342C",
-                 esp_err_to_name(add_device_ret));
-        return ESP_OK;
+    ret = i2c_master_bus_add_device(bsp_i2c_get_handle(), &touch_config, &touch_handle);
+    if (ret != ESP_OK) {
+        ESP_LOGW(TAG, "Failed to access touch controller: %s; using ILI9342C", esp_err_to_name(ret));
+        return board_ver;
     }
 
-    uint8_t touch_cipher = 0;
     uint8_t touch_firmid = 0;
-    uint8_t touch_vendid = 0;
-    bool touch_info_valid = false;
-    esp_err_t work_mode_ret = ESP_FAIL;
-    esp_err_t cipher_ret = ESP_FAIL;
-    esp_err_t firmid_ret = ESP_FAIL;
-    esp_err_t vendid_ret = ESP_FAIL;
-
     vTaskDelay(pdMS_TO_TICKS(BSP_FT5X06_STARTUP_DELAY_MS));
-    for (int retry = 0; retry < BSP_FT5X06_VERSION_RETRIES && !touch_info_valid; retry++) {
+    for (int retry = 0; retry < BSP_FT5X06_VERSION_RETRIES; retry++) {
         const uint8_t work_mode[] = {0x00, 0x00};
-        touch_cipher = 0;
-        touch_firmid = 0;
-        touch_vendid = 0;
-        work_mode_ret = i2c_master_transmit(touch_handle, work_mode, sizeof(work_mode), BSP_FT5X06_I2C_TIMEOUT_MS);
-        cipher_ret = bsp_lcd_read_touch_reg(touch_handle, BSP_FT5X06_CIPHER_REG, &touch_cipher);
-        firmid_ret = bsp_lcd_read_touch_reg(touch_handle, BSP_FT5X06_FIRMID_REG, &touch_firmid);
-        vendid_ret = bsp_lcd_read_touch_reg(touch_handle, BSP_FT5X06_VENDID_REG, &touch_vendid);
-
-        touch_info_valid = work_mode_ret == ESP_OK
-                           && firmid_ret == ESP_OK
-                           && vendid_ret == ESP_OK
-                           && touch_vendid == BSP_FT5X06_M5STACK_VENDOR
-                           && (touch_firmid == BSP_FT5X06_ILI9342C_FIRMID
-                               || touch_firmid == BSP_FT5X06_ILI9342E_FIRMID);
-        if (!touch_info_valid) {
-            vTaskDelay(pdMS_TO_TICKS(BSP_FT5X06_RETRY_DELAY_MS));
+        ret = i2c_master_transmit(touch_handle, work_mode, sizeof(work_mode), BSP_FT5X06_I2C_TIMEOUT_MS);
+        if (ret == ESP_OK) {
+            uint8_t reg_addr = BSP_FT5X06_FIRMID_REG;
+            ret = i2c_master_transmit_receive(touch_handle, &reg_addr, 1, &touch_firmid, 1,
+                                              BSP_FT5X06_I2C_TIMEOUT_MS);
+            if (ret == ESP_OK && (touch_firmid == BSP_FT5X06_ILI9342C_FIRMID ||
+                                  touch_firmid == BSP_FT5X06_ILI9342E_FIRMID)) {
+                break;
+            }
+            ret = ESP_ERR_INVALID_RESPONSE;
         }
+        vTaskDelay(pdMS_TO_TICKS(BSP_FT5X06_RETRY_DELAY_MS));
     }
 
-    ESP_RETURN_ON_ERROR(i2c_master_bus_rm_device(touch_handle), TAG,
-                        "Failed to remove touch version I2C device");
-
-    if (!touch_info_valid) {
-        ESP_LOGW(TAG,
-                 "CoreS3 touch version read failed (WORK:%s / CIPHER:%s,0x%02X / FIRMID:%s,0x%02X / VENDID:%s,0x%02X), panel:ILI9342C",
-                 esp_err_to_name(work_mode_ret), esp_err_to_name(cipher_ret), touch_cipher,
-                 esp_err_to_name(firmid_ret), touch_firmid, esp_err_to_name(vendid_ret), touch_vendid);
-        return ESP_OK;
+    esp_err_t remove_ret = i2c_master_bus_rm_device(touch_handle);
+    if (remove_ret != ESP_OK) {
+        ESP_LOGW(TAG, "Failed to remove touch I2C device: %s", esp_err_to_name(remove_ret));
     }
 
-    bool use_ili9342e = touch_firmid == BSP_FT5X06_ILI9342E_FIRMID;
-    *panel_id = use_ili9342e ? BSP_DISPLAY_PANEL_ID_ILI9342E : BSP_DISPLAY_PANEL_ID_ILI9342C;
-    ESP_LOGI(TAG, "CoreS3 touch CIPHER:0x%02X / FIRMID:0x%02X / VENDID:0x%02X, panel:%s",
-             touch_cipher, touch_firmid, touch_vendid, use_ili9342e ? "ILI9342E" : "ILI9342C");
-    return ESP_OK;
-}
-
-static esp_err_t bsp_lcd_apply_ili9342e_init(esp_lcd_panel_io_handle_t io)
-{
-    ESP_RETURN_ON_FALSE(io, ESP_ERR_INVALID_ARG, TAG, "Invalid LCD panel IO");
-
-    for (size_t i = 0; i < sizeof(ili9342e_init_cmds) / sizeof(ili9342e_init_cmds[0]); i++) {
-        ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, ili9342e_init_cmds[i].cmd,
-                            ili9342e_init_cmds[i].data, ili9342e_init_cmds[i].data_bytes),
-                            TAG, "Send ILI9342E command 0x%02X failed", ili9342e_init_cmds[i].cmd);
-        if (ili9342e_init_cmds[i].delay_ms > 0) {
-            vTaskDelay(pdMS_TO_TICKS(ili9342e_init_cmds[i].delay_ms));
-        }
+    if (ret == ESP_OK && touch_firmid == BSP_FT5X06_ILI9342E_FIRMID) {
+        board_ver = 2;
+        ESP_LOGI(TAG, "Discovered board version 2 (LCD ILI9342E)");
+    } else if (ret == ESP_OK) {
+        ESP_LOGI(TAG, "Discovered board version 1 (LCD ILI9342C, touch FIRMID:0x%02X)", touch_firmid);
+    } else {
+        ESP_LOGW(TAG, "Failed to read touch FIRMID: %s; using ILI9342C", esp_err_to_name(ret));
     }
 
-    return ESP_OK;
-}
-
-bsp_display_panel_id_t bsp_display_get_panel_id(void)
-{
-    return s_display_panel_id;
+    return board_ver;
 }
 
 esp_err_t bsp_display_brightness_init(void)
@@ -183,15 +133,9 @@ esp_err_t bsp_display_backlight_on(void)
 esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_handle_t *ret_panel,
                           esp_lcd_panel_io_handle_t *ret_io)
 {
-    ESP_RETURN_ON_FALSE(config && ret_panel && ret_io, ESP_ERR_INVALID_ARG, TAG, "Invalid argument");
-
-    *ret_panel = NULL;
-    *ret_io = NULL;
-    bsp_lcd_handles_t handles = {0};
-    esp_err_t ret = bsp_display_new_with_handles(config, &handles);
-    if (ret != ESP_OK) {
-        return ret;
-    }
+    esp_err_t ret = ESP_OK;
+    bsp_lcd_handles_t handles;
+    ret = bsp_display_new_with_handles(config, &handles);
 
     *ret_panel = handles.panel;
     *ret_io = handles.io;
@@ -202,13 +146,7 @@ esp_err_t bsp_display_new(const bsp_display_config_t *config, esp_lcd_panel_hand
 esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_lcd_handles_t *ret_handles)
 {
     esp_err_t ret = ESP_OK;
-    bsp_display_panel_id_t panel_id = BSP_DISPLAY_PANEL_ID_ILI9342C;
-    ESP_RETURN_ON_FALSE(config && ret_handles, ESP_ERR_INVALID_ARG, TAG, "Invalid argument");
-    ESP_RETURN_ON_FALSE(config->max_transfer_sz > 0, ESP_ERR_INVALID_ARG, TAG, "Invalid transfer size");
-    *ret_handles = (bsp_lcd_handles_t) {
-        0
-    };
-    s_display_panel_id = BSP_DISPLAY_PANEL_ID_ILI9342C;
+    assert(config != NULL && config->max_transfer_sz > 0);
 
     /* Enable Feature */
     BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_LCD, true));
@@ -232,39 +170,35 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)BSP_LCD_SPI_NUM, &io_config, &ret_handles->io),
                       err, TAG, "New panel IO failed");
     disp_handles.io = ret_handles->io;
+    const ili9341_vendor_config_t vendor_config = {
+        .init_cmds = ili9342e_init_cmds,
+        .init_cmds_size = sizeof(ili9342e_init_cmds) / sizeof(ili9342e_init_cmds[0]),
+    };
+
     ESP_LOGD(TAG, "Install LCD driver");
-    const esp_lcd_panel_dev_config_t panel_config = {
+    esp_lcd_panel_dev_config_t panel_config = {
         .reset_gpio_num = BSP_LCD_RST,
         .flags.reset_active_high = 0,
         .rgb_ele_order = BSP_LCD_COLOR_SPACE,
         .bits_per_pixel = BSP_LCD_BITS_PER_PIXEL,
     };
+
+    /* Select LCD initialization commands by board version */
+    if (bsp_get_board_version() == 2) {
+        panel_config.vendor_config = (void *)&vendor_config;
+    }
+
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9341(ret_handles->io, &panel_config, &ret_handles->panel),
                       err, TAG, "New panel failed");
     disp_handles.panel = ret_handles->panel;
 
-    ESP_GOTO_ON_ERROR(esp_lcd_panel_reset(ret_handles->panel), err, TAG, "Reset panel failed");
-    ESP_GOTO_ON_ERROR(esp_lcd_panel_init(ret_handles->panel), err, TAG, "Initialize panel failed");
+    esp_lcd_panel_reset(ret_handles->panel);
+    esp_lcd_panel_init(ret_handles->panel);
+    esp_lcd_panel_invert_color(ret_handles->panel, true);
+    esp_lcd_panel_swap_xy(ret_handles->panel, false);
+    esp_lcd_panel_mirror(ret_handles->panel, false, false);
 
-    esp_err_t touch_enable_ret = bsp_feature_enable(BSP_FEATURE_TOUCH, true);
-    if (touch_enable_ret == ESP_OK) {
-        ESP_GOTO_ON_ERROR(bsp_lcd_detect_panel_id(&panel_id), err, TAG, "Detect display panel failed");
-        if (panel_id == BSP_DISPLAY_PANEL_ID_ILI9342E) {
-            ESP_GOTO_ON_ERROR(bsp_lcd_apply_ili9342e_init(ret_handles->io), err, TAG,
-                              "Initialize ILI9342E panel failed");
-        }
-    } else {
-        ESP_LOGW(TAG, "Touch version detection unavailable: %s; panel:ILI9342C",
-                 esp_err_to_name(touch_enable_ret));
-    }
-
-    ESP_GOTO_ON_ERROR(esp_lcd_panel_invert_color(ret_handles->panel, true), err, TAG, "Invert panel colors failed");
-    ESP_GOTO_ON_ERROR(esp_lcd_panel_swap_xy(ret_handles->panel, false), err, TAG, "Set panel swap failed");
-    ESP_GOTO_ON_ERROR(esp_lcd_panel_mirror(ret_handles->panel, false, false), err, TAG, "Set panel mirror failed");
-
-    s_display_panel_id = panel_id;
-    ESP_LOGI(TAG, "Display initialized with resolution %dx%d, panel:%s", BSP_LCD_H_RES, BSP_LCD_V_RES,
-             panel_id == BSP_DISPLAY_PANEL_ID_ILI9342E ? "ILI9342E" : "ILI9342C");
+    ESP_LOGI(TAG, "Display initialized with resolution %dx%d", BSP_LCD_H_RES, BSP_LCD_V_RES);
     return ret;
 
 err:
