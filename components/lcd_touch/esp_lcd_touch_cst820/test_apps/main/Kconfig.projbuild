@@ -1,0 +1,31 @@
+menu "CST820 test harness"
+
+    config TEST_TOUCH_I2C_PORT
+        int "I2C port used by the CST820 test"
+        default 0
+
+    config TEST_TOUCH_I2C_SDA
+        int "SDA GPIO used by the CST820 test"
+        default 8
+
+    config TEST_TOUCH_I2C_SCL
+        int "SCL GPIO used by the CST820 test"
+        default 18
+
+    config TEST_TOUCH_GPIO_INT
+        int "INT GPIO used by the CST820 test"
+        default 3
+
+    config TEST_TOUCH_GPIO_RST
+        int "RST GPIO used by the CST820 test"
+        default 4
+
+    config TEST_TOUCH_X_MAX
+        int "Maximum X coordinate reported by the CST820"
+        default 460
+
+    config TEST_TOUCH_Y_MAX
+        int "Maximum Y coordinate reported by the CST820"
+        default 460
+
+endmenu

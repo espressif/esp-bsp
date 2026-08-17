@@ -1,0 +1,10 @@
+menu "ESP LCD TOUCH - CST820"
+
+    config ESP_LCD_TOUCH_CST820_DISABLE_READ_ID
+        bool "Disable reading the controller ID during initialization"
+        default n
+        help
+            Some module firmware variants do not expose the ID register.
+            Enable this option if initialization fails while reading register 0xA7.
+
+endmenu
