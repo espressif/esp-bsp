@@ -50,3 +50,9 @@ components/bh1750:
     - "components/bh1750/**"
   disable:
     - if: IDF_VERSION < "5.3.0"
+
+components/rx8130ce:
+  depends_filepatterns:
+    - "components/rx8130ce/**"
+  disable:
+    - if: IDF_VERSION < "5.3.0"

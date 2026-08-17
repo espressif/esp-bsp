@@ -1,0 +1,8 @@
+version: "0.4.0"
+description: I2C driver for the Epson RX8130CE real-time clock
+url: https://github.com/espressif/esp-bsp/tree/master/components/rx8130ce
+license: Apache-2.0
+tags: [rtc, clock, calendar, alarm, i2c]
+
+dependencies:
+  idf: ">=5.3"
