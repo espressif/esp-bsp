@@ -1,0 +1,7 @@
+version: "0.3.0"
+description: I2C driver for the onsemi FUSB303B USB Type-C port controller
+url: https://github.com/espressif/esp-bsp/tree/master/components/fusb303b
+license: Apache-2.0
+
+dependencies:
+  idf: ">=5.3"
