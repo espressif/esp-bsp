@@ -50,3 +50,9 @@ components/bh1750:
     - "components/bh1750/**"
   disable:
     - if: IDF_VERSION < "5.3.0"
+
+components/tg28_sw:
+  depends_filepatterns:
+    - "components/tg28_sw/**"
+  disable:
+    - if: IDF_VERSION < "5.3.0"

@@ -1,0 +1,8 @@
+version: "0.4.0"
+description: I2C driver for the TG28 switch-charger PMIC
+url: https://github.com/espressif/esp-bsp/tree/master/components/tg28_sw
+license: Apache-2.0
+tags: [power, pmic, charger, i2c]
+
+dependencies:
+  idf: ">=5.3"
