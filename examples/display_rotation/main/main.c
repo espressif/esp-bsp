@@ -25,7 +25,7 @@ LV_IMG_DECLARE(esp_logo)
 
 static lv_disp_t *display;
 static lv_obj_t *lbl_rotation;
-static lv_disp_rotation_t rotation = LV_DISPLAY_ROTATION_0;
+static lv_display_rotation_t rotation = LV_DISPLAY_ROTATION_0;
 #if BSP_CAPS_IMU
 static icm42670_handle_t imu = NULL;
 #endif
@@ -35,7 +35,7 @@ static icm42670_handle_t imu = NULL;
 * Private functions
 *******************************************************************************/
 
-static uint16_t app_lvgl_get_rotation_degrees(lv_disp_rotation_t rotation)
+static uint16_t app_lvgl_get_rotation_degrees(lv_display_rotation_t rotation)
 {
     switch (rotation) {
     case LV_DISPLAY_ROTATION_0:
