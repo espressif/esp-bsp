@@ -1,5 +1,5 @@
 
-version: "2.1.0"
+version: "2.1.0~1"
 description: Board Support Package (BSP) for ESP32-C3-LCDKit
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_c3_lcdkit
 

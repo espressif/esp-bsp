@@ -257,7 +257,7 @@ lv_indev_t *bsp_display_get_input_dev(void)
     return NULL;
 }
 
-void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation)
+void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation)
 {
     lv_disp_set_rotation(disp, rotation);
 }

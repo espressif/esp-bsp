@@ -1,5 +1,5 @@
 
-version: "1.0.0"
+version: "1.0.0~1"
 description: Board Support Package (BSP) for ESP-SensairShuttle
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/sensairshuttle
 

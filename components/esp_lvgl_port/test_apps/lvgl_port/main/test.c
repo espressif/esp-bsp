@@ -265,7 +265,7 @@ static esp_err_t app_lvgl_deinit(void)
 
 static void _app_button_cb(lv_event_t *e)
 {
-    lv_disp_rotation_t rotation = lv_disp_get_rotation(lvgl_disp);
+    lv_display_rotation_t rotation = lv_disp_get_rotation(lvgl_disp);
     rotation++;
     if (rotation > LV_DISPLAY_ROTATION_270) {
         rotation = LV_DISPLAY_ROTATION_0;

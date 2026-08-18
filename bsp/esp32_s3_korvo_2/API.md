@@ -1322,7 +1322,7 @@ _Rotate screen._
 ```c
 void bsp_display_rotate (
     lv_display_t *disp,
-    lv_disp_rotation_t rotation
+    lv_display_rotation_t rotation
 ) 
 ```
 
