@@ -441,7 +441,7 @@ void bsp_display_unlock(void);
  * @param[in] disp Pointer to LVGL display
  * @param[in] rotation Angle of the display rotation
  */
-void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
+void bsp_display_rotate(lv_display_t *disp, lv_display_rotation_t rotation);
 
 /** @} */ // end of display
 
