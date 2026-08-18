@@ -137,7 +137,7 @@ esp_err_t esp_lcd_new_panel_ili9341(const esp_lcd_panel_io_handle_t io,
 #else
     ili9341->base.disp_on_off = panel_ili9341_disp_on_off;
 #endif
-    ili9341->base.disp_sleep()
+    ili9341->base.disp_sleep = panel_ili9341_disp_sleep;
     *ret_panel = &(ili9341->base);
     ESP_LOGD(TAG, "new ili9341 panel @%p", ili9341);
 
@@ -399,7 +399,7 @@ static esp_err_t panel_ili9341_disp_on_off(esp_lcd_panel_t *panel, bool on_off)
     return ESP_OK;
 }
 
-static esp_err_t panel_ili9341_sleep(esp_lcd_panel_t *panel, bool sleep)
+static esp_err_t panel_ili9341_disp_sleep(esp_lcd_panel_t *panel, bool sleep)
 {
     ili9341_panel_t *ili9341 = __containerof(panel, ili9341_panel_t, base);
     esp_lcd_panel_io_handle_t io = ili9341->io;
