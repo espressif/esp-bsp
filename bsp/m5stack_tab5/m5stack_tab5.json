@@ -301,12 +301,6 @@
             "min_idf": "0"
         },
         {
-            "name": "espressif/esp_lcd_st7121",
-            "version": "*",
-            "public": "false",
-            "min_idf": "0"
-        },
-        {
             "name": "espressif/esp_lcd_touch_st7123",
             "version": "*",
             "public": "false",

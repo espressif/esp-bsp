@@ -17,9 +17,9 @@
 #include "sd_pwr_ctrl_by_on_chip_ldo.h"
 #include "esp_lcd_ili9881c.h"
 #include "esp_lcd_st7123.h"
-#include "esp_lcd_st7121.h"
 #include "disp_init_data.h"
 #include "disp_init_data_1.h"
+#include "disp_init_data_st7121.h"
 #include "esp_lcd_touch_gt911.h"
 #include "esp_lcd_touch_st7123.h"
 #include "bsp/display.h"
@@ -326,9 +326,9 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
             .dpi_config = &dpi_config_st7123,
         },
     };
-    const st7121_vendor_config_t vendor_config_st7121 = {
-        .init_cmds      = NULL,
-        .init_cmds_size = 0,
+    const st7123_vendor_config_t vendor_config_st7121 = {
+        .init_cmds      = disp_init_data_st7121,
+        .init_cmds_size = sizeof(disp_init_data_st7121) / sizeof(disp_init_data_st7121[0]),
         .mipi_config = {
             .dsi_bus = ret_handles->mipi_dsi_bus,
             .dpi_config = &dpi_config_st7121,
@@ -358,11 +358,9 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     if (board_version == BSP_TAB5_BOARD_VERSION_ILI9881C_GT911) {
         ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9881c(ret_handles->io, &panel_config, &ret_handles->panel),
                           err, TAG, "New panel failed");
-    } else if (board_version == BSP_TAB5_BOARD_VERSION_ST7123) {
+    } else if (board_version == BSP_TAB5_BOARD_VERSION_ST7123 ||
+               board_version == BSP_TAB5_BOARD_VERSION_ST7121) {
         ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7123(ret_handles->io, &panel_config, &ret_handles->panel),
-                          err, TAG, "New panel failed");
-    } else if (board_version == BSP_TAB5_BOARD_VERSION_ST7121) {
-        ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7121(ret_handles->io, &panel_config, &ret_handles->panel),
                           err, TAG, "New panel failed");
     }
     disp_handles.panel = ret_handles->panel;
