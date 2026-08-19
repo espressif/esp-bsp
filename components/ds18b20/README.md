@@ -83,7 +83,7 @@ It can be started after initializing a onewire bus.
     ESP_ERROR_CHECK(iot_sensor_start(sensor_handle));
 ```
 
-NOTE: Only a single DS18B20 device is supported.
+NOTE: Only a single DS18B20 device is supported "by Sensor hub" (the DS18B20 device driver itself does not carry this limitation).
 
 ## Reference
 
