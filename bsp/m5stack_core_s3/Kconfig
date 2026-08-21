@@ -68,6 +68,18 @@ menu "Board Support Package (M5Stack Core S3)"
         default y
         help
             Whether to enable double framebuf.
+
+        config BSP_LCD_PIXEL_CLOCK_MHZ
+        int "LCD SPI pixel clock (MHz)"
+        default 40
+        range 1 80
+        help
+            SPI clock frequency (in MHz) used to drive the LCD panel.
+            A higher clock shortens the frame flush time and yields
+            smoother animation, but values above the panel/board wiring
+            tolerance can cause visual artifacts or tearing. The default
+            of 40 MHz is the conservative, board-validated value; raise it
+            only if your specific board tolerates it.
     endmenu
     menu "Camera"
     endmenu

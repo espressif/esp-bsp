@@ -469,7 +469,11 @@ esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
  *
  * Display's backlight must be enabled explicitly by calling bsp_display_backlight_on()
  **************************************************************************************************/
+#ifdef CONFIG_BSP_LCD_PIXEL_CLOCK_MHZ
+#define BSP_LCD_PIXEL_CLOCK_HZ     (CONFIG_BSP_LCD_PIXEL_CLOCK_MHZ * 1000 * 1000)
+#else
 #define BSP_LCD_PIXEL_CLOCK_HZ     (40 * 1000 * 1000)
+#endif
 #define BSP_LCD_SPI_NUM            (SPI3_HOST)
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
