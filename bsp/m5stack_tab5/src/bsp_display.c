@@ -218,17 +218,12 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     ESP_GOTO_ON_FALSE(board_version != BSP_TAB5_BOARD_VERSION_UNKNOWN, ESP_ERR_NOT_SUPPORTED, err, TAG,
                       "Unsupported board version");
 
-    uint32_t lane_bit_rate_mbps = config->dsi_bus.lane_bit_rate_mbps;
-    if (board_version == BSP_TAB5_BOARD_VERSION_ST7121) {
-        lane_bit_rate_mbps = BSP_LCD_ST712X_MIPI_DSI_LANE_BITRATE_MBPS;
-    }
-
     /* create MIPI DSI bus first, it will initialize the DSI PHY as well */
     esp_lcd_dsi_bus_config_t bus_config = {
         .bus_id = 0,
         .num_data_lanes = BSP_LCD_MIPI_DSI_LANE_NUM,
         .phy_clk_src = config->dsi_bus.phy_clk_src,
-        .lane_bit_rate_mbps = lane_bit_rate_mbps,
+        .lane_bit_rate_mbps = config->dsi_bus.lane_bit_rate_mbps,
     };
     ESP_RETURN_ON_ERROR(esp_lcd_new_dsi_bus(&bus_config, &ret_handles->mipi_dsi_bus), TAG, "New DSI bus init failed");
     disp_handles.mipi_dsi_bus = ret_handles->mipi_dsi_bus;
@@ -409,12 +404,15 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
     esp_lcd_panel_io_handle_t io_handle = NULL;
-    const bsp_display_config_t bsp_disp_cfg = {
+    bsp_display_config_t bsp_disp_cfg = {
         .dsi_bus = {
             .phy_clk_src = 0, // let the driver to choose the default clock source
             .lane_bit_rate_mbps = BSP_LCD_MIPI_DSI_LANE_BITRATE_MBPS,
         }
     };
+    if (bsp_get_board_version() == BSP_TAB5_BOARD_VERSION_ST7121) {
+        bsp_disp_cfg.dsi_bus.lane_bit_rate_mbps = BSP_LCD_ST712X_MIPI_DSI_LANE_BITRATE_MBPS;
+    }
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&bsp_disp_cfg, &disp_handles.panel, &io_handle));
 
     esp_lcd_panel_disp_on_off(disp_handles.panel, true);
