@@ -409,32 +409,29 @@ static esp_err_t io_write_register_verified(const tg28_sw_register_io_t *io,
 }
 
 static esp_err_t io_reset_gauge_mcu(const tg28_sw_register_io_t *io,
-                                    bool *reset_released)
+                                    bool *reset_released,
+                                    bool *reset_completed)
 {
-    *reset_released = true;
-    uint8_t mode = 0;
-    ESP_RETURN_ON_ERROR(io->read(io->context, TG28_SW_REG_MODE, &mode,
-                                 sizeof(mode)), TAG,
-                        "fuel-gauge MCU mode read failed");
+    *reset_released = false;
+    *reset_completed = false;
 
     /* Once reset assertion is attempted, always try to release it even when
      * the write readback fails: the PMIC may have accepted the write before
      * the I2C error was reported. A second deassert attempt handles one
-     * transient write/readback failure. The out parameter lets cleanup keep
-     * the watchdog disabled if release still cannot be confirmed. */
-    *reset_released = false;
+     * transient write/readback failure. REG17 bit3 is a separate RWAC reset
+     * command, so use the exact hardware-guide 0x04 -> 0x00 sequence instead
+     * of carrying a sampled bit3 through an RMW. */
     const esp_err_t assert_error = io_write_register_verified(
                                        io, TG28_SW_REG_MODE,
-                                       mode | TG28_SW_GAUGE_MCU_RESET_MASK,
+                                       TG28_SW_GAUGE_MCU_RESET_MASK,
                                        TG28_SW_GAUGE_MCU_RESET_MASK);
-    const uint8_t released_mode = mode & ~TG28_SW_GAUGE_MCU_RESET_MASK;
     esp_err_t release_error = io_write_register_verified(
-                                  io, TG28_SW_REG_MODE, released_mode,
+                                  io, TG28_SW_REG_MODE, 0,
                                   TG28_SW_GAUGE_MCU_RESET_MASK);
     if (release_error != ESP_OK) {
         const esp_err_t retry_error = io_write_register_verified(
                                           io, TG28_SW_REG_MODE,
-                                          released_mode,
+                                          0,
                                           TG28_SW_GAUGE_MCU_RESET_MASK);
         if (retry_error == ESP_OK) {
             *reset_released = true;
@@ -444,6 +441,8 @@ static esp_err_t io_reset_gauge_mcu(const tg28_sw_register_io_t *io,
     } else {
         *reset_released = true;
     }
+
+    *reset_completed = assert_error == ESP_OK && *reset_released;
 
     return assert_error != ESP_OK ? assert_error : release_error;
 }
@@ -455,22 +454,59 @@ static esp_err_t io_set_gauge_control(const tg28_sw_register_io_t *io,
                                       value, TG28_SW_GAUGE_CONTROL_WRITE_MASK);
 }
 
+static esp_err_t io_set_gauge_control_safely(const tg28_sw_register_io_t *io,
+        uint8_t value)
+{
+    /* Closing BROM while selecting a known source is idempotent. Retry once
+     * when either the write or its verification read fails: the first write
+     * may already have landed, and completing this transition is required
+     * before resetting or restoring modules. */
+    esp_err_t error = io_set_gauge_control(io, value);
+    if (error != ESP_OK) {
+        error = io_set_gauge_control(io, value);
+    }
+    return error;
+}
+
 static esp_err_t finish_battery_model_io(const tg28_sw_register_io_t *io,
         uint8_t final_gauge_control, bool gauge_control_touched,
-        uint8_t original_modules, bool modules_touched,
-        bool reset_released, esp_err_t operation_error)
+        uint8_t original_modules, uint8_t prepared_modules,
+        bool modules_touched, bool modules_prepared_confirmed,
+        bool entry_reset_released, esp_err_t operation_error)
 {
+    esp_err_t module_prepare_error = ESP_OK;
+    if (gauge_control_touched && modules_touched &&
+            !modules_prepared_confirmed) {
+        /* An abnormal open-BROM entry requires cleanup even when the first
+         * REG18 preparation failed. Retry it so the gauge is confirmed on
+         * and the charger/watchdog are confirmed off for the recovery reset. */
+        module_prepare_error = io_write_register_verified(
+                                   io, TG28_SW_REG_MODULE_ENABLE,
+                                   prepared_modules,
+                                   TG28_SW_MODULE_ENABLE_WRITE_MASK);
+        modules_prepared_confirmed = module_prepare_error == ESP_OK;
+    }
+
     esp_err_t gauge_cleanup_error = ESP_OK;
-    bool gauge_state_safe = reset_released;
+    bool gauge_state_safe = entry_reset_released;
     if (gauge_control_touched) {
         /* One REGA2 transaction both closes BROM and selects the source that
          * the final reset must activate. This mirrors the vendor sequence and
          * avoids a reset between two partially-applied control writes. */
-        gauge_cleanup_error = io_set_gauge_control(
+        gauge_cleanup_error = io_set_gauge_control_safely(
                                   io, final_gauge_control &
                                   ~TG28_SW_BROM_WRITER_ENABLE_MASK);
         if (gauge_cleanup_error == ESP_OK) {
-            gauge_cleanup_error = io_reset_gauge_mcu(io, &gauge_state_safe);
+            bool cleanup_reset_released = false;
+            bool cleanup_reset_completed = false;
+            gauge_cleanup_error = io_reset_gauge_mcu(
+                                      io, &cleanup_reset_released,
+                                      &cleanup_reset_completed);
+            /* A released REG17 bit2 is not enough here: the confirmed reset
+             * pulse is what switches the running gauge away from a partial
+             * or stale SRAM image. */
+            gauge_state_safe = cleanup_reset_completed &&
+                               modules_prepared_confirmed;
         } else {
             gauge_state_safe = false;
         }
@@ -478,9 +514,11 @@ static esp_err_t finish_battery_model_io(const tg28_sw_register_io_t *io,
 
     esp_err_t module_restore_error = ESP_OK;
     if (modules_touched && gauge_state_safe) {
-        /* Restore the complete entry state only after BROM is closed and
-         * REG17 reset release is confirmed. Otherwise leave the prepared
-         * charger/watchdog-off, gauge-on state for explicit recovery. */
+        /* Before the first REGA2 write, an early failure leaves the model
+         * state unchanged and a confirmed released reset is sufficient to
+         * restore REG18. Once REGA2/BROM has been touched, gauge_state_safe
+         * requires verified BROM close, confirmed preparation, and a complete
+         * REG17 pulse. Otherwise do not issue a restoration write. */
         module_restore_error = io_write_register_verified(
                                    io, TG28_SW_REG_MODULE_ENABLE,
                                    original_modules,
@@ -489,6 +527,9 @@ static esp_err_t finish_battery_model_io(const tg28_sw_register_io_t *io,
 
     if (gauge_cleanup_error != ESP_OK) {
         return gauge_cleanup_error;
+    }
+    if (module_prepare_error != ESP_OK) {
+        return module_prepare_error;
     }
     if (module_restore_error != ESP_OK) {
         return module_restore_error;
@@ -1267,14 +1308,41 @@ esp_err_t tg28_sw_program_battery_model_io(const tg28_sw_register_io_t *io,
     if (error != ESP_OK) {
         return error;
     }
-    ESP_RETURN_ON_FALSE((gauge_control & TG28_SW_BROM_WRITER_ENABLE_MASK) == 0,
-                        ESP_ERR_INVALID_STATE, TAG,
-                        "BROM writer was enabled before model programming");
+    const bool recover_open_brom =
+        !!(gauge_control & TG28_SW_BROM_WRITER_ENABLE_MASK);
+    if (recover_open_brom) {
+        /* An open BROM window can be left by an interrupted earlier access.
+         * Its SRAM contents are untrusted, so recover through ROM. */
+        gauge_control &= ~(TG28_SW_BROM_UPDATE_MARK_MASK |
+                           TG28_SW_BROM_WRITER_ENABLE_MASK);
+    }
+
+    bool gauge_control_touched = recover_open_brom;
+    if (recover_open_brom) {
+        /* Close BROM and select ROM before REG18 can enable a disabled gauge.
+         * Otherwise gauge startup could execute the potentially partial SRAM
+         * image selected by the abnormal entry value. */
+        error = io_set_gauge_control_safely(io, gauge_control);
+        if (error != ESP_OK) {
+            return error;
+        }
+    }
 
     uint8_t module_enable = 0;
     error = io->read(io->context, TG28_SW_REG_MODULE_ENABLE,
                      &module_enable, sizeof(module_enable));
     if (error != ESP_OK) {
+        if (recover_open_brom) {
+            /* The module state is unknown, so do not write REG18. Completing
+             * a reset after the verified ROM selection is still the safest
+             * way to stop a potentially partial SRAM runtime. */
+            bool reset_released = false;
+            bool reset_completed = false;
+            const esp_err_t reset_error = io_reset_gauge_mcu(
+                                              io, &reset_released,
+                                              &reset_completed);
+            return reset_error != ESP_OK ? reset_error : error;
+        }
         return error;
     }
 
@@ -1285,16 +1353,20 @@ esp_err_t tg28_sw_program_battery_model_io(const tg28_sw_register_io_t *io,
         (module_enable | TG28_SW_GAUGE_ENABLE_MASK) &
         ~(TG28_SW_CHARGER_ENABLE_MASK | TG28_SW_WATCHDOG_ENABLE_MASK);
     bool modules_touched = modules_prepared != module_enable;
-    bool gauge_control_touched = false;
+    bool modules_prepared_confirmed = !modules_touched;
     bool reset_released = true;
+    bool reset_completed = false;
     if (modules_touched) {
         error = io_write_register_verified(io, TG28_SW_REG_MODULE_ENABLE,
                                            modules_prepared,
                                            TG28_SW_MODULE_ENABLE_WRITE_MASK);
+        modules_prepared_confirmed = error == ESP_OK;
     }
     if (error == ESP_OK) {
         io->delay_ms(io->context, TG28_SW_CHARGER_SETTLE_MS);
-        error = io_reset_gauge_mcu(io, &reset_released);
+    }
+    if (error == ESP_OK) {
+        error = io_reset_gauge_mcu(io, &reset_released, &reset_completed);
     }
 
     /* The design guide programs and verifies the BROM window with bit4
@@ -1347,7 +1419,9 @@ esp_err_t tg28_sw_program_battery_model_io(const tg28_sw_register_io_t *io,
                                          gauge_control);
     return finish_battery_model_io(io, final_gauge_control,
                                    gauge_control_touched, module_enable,
-                                   modules_touched, reset_released, error);
+                                   modules_prepared, modules_touched,
+                                   modules_prepared_confirmed,
+                                   reset_released, error);
 }
 
 esp_err_t tg28_sw_program_battery_model(tg28_sw_handle_t handle,
@@ -2412,14 +2486,41 @@ esp_err_t tg28_sw_read_battery_model_io(const tg28_sw_register_io_t *io,
     if (error != ESP_OK) {
         return error;
     }
-    ESP_RETURN_ON_FALSE((gauge_control & TG28_SW_BROM_WRITER_ENABLE_MASK) == 0,
-                        ESP_ERR_INVALID_STATE, TAG,
-                        "BROM writer was enabled before model read");
+    const bool recover_open_brom =
+        !!(gauge_control & TG28_SW_BROM_WRITER_ENABLE_MASK);
+    if (recover_open_brom) {
+        /* Do not trust an SRAM selection paired with an already-open BROM
+         * window: the previous access may have written only part of it. */
+        gauge_control &= ~(TG28_SW_BROM_UPDATE_MARK_MASK |
+                           TG28_SW_BROM_WRITER_ENABLE_MASK);
+    }
+
+    bool gauge_control_touched = recover_open_brom;
+    if (recover_open_brom) {
+        /* Close BROM and select ROM before REG18 can enable a disabled gauge.
+         * Otherwise gauge startup could execute the potentially partial SRAM
+         * image selected by the abnormal entry value. */
+        error = io_set_gauge_control_safely(io, gauge_control);
+        if (error != ESP_OK) {
+            return error;
+        }
+    }
 
     uint8_t module_enable = 0;
     error = io->read(io->context, TG28_SW_REG_MODULE_ENABLE,
                      &module_enable, sizeof(module_enable));
     if (error != ESP_OK) {
+        if (recover_open_brom) {
+            /* The module state is unknown, so do not write REG18. Completing
+             * a reset after the verified ROM selection is still the safest
+             * way to stop a potentially partial SRAM runtime. */
+            bool reset_released = false;
+            bool reset_completed = false;
+            const esp_err_t reset_error = io_reset_gauge_mcu(
+                                              io, &reset_released,
+                                              &reset_completed);
+            return reset_error != ESP_OK ? reset_error : error;
+        }
         return error;
     }
 
@@ -2430,20 +2531,22 @@ esp_err_t tg28_sw_read_battery_model_io(const tg28_sw_register_io_t *io,
         (module_enable | TG28_SW_GAUGE_ENABLE_MASK) &
         ~TG28_SW_WATCHDOG_ENABLE_MASK;
     const bool modules_touched = modules_prepared != module_enable;
-    bool gauge_control_touched = false;
+    bool modules_prepared_confirmed = !modules_touched;
     bool reset_released = true;
+    bool reset_completed = false;
     if (modules_touched) {
         error = io_write_register_verified(io, TG28_SW_REG_MODULE_ENABLE,
                                            modules_prepared,
                                            TG28_SW_MODULE_ENABLE_WRITE_MASK);
+        modules_prepared_confirmed = error == ESP_OK;
     }
 
     /* REGA2 bit4 chooses the model source used by the gauge MCU after reset;
-     * it does not choose a different REGA1 read window. Keep the entry source
-     * unchanged, reset the gauge, then perform the documented 0 -> 1 BROM
-     * transition before streaming REGA1. */
+     * it does not choose a different REGA1 read window. Keep a normal entry
+     * source unchanged. For an abnormal already-open window, close it on ROM
+     * first. Then reset and perform the documented 0 -> 1 BROM transition. */
     if (error == ESP_OK) {
-        error = io_reset_gauge_mcu(io, &reset_released);
+        error = io_reset_gauge_mcu(io, &reset_released, &reset_completed);
     }
     if (error == ESP_OK) {
         gauge_control_touched = true;
@@ -2460,7 +2563,9 @@ esp_err_t tg28_sw_read_battery_model_io(const tg28_sw_register_io_t *io,
 
     return finish_battery_model_io(io, gauge_control,
                                    gauge_control_touched, module_enable,
-                                   modules_touched, reset_released, error);
+                                   modules_prepared, modules_touched,
+                                   modules_prepared_confirmed,
+                                   reset_released, error);
 }
 
 esp_err_t tg28_sw_read_battery_model(tg28_sw_handle_t handle,

@@ -648,10 +648,15 @@ esp_err_t tg28_sw_get_low_battery_warning(tg28_sw_handle_t handle,
  * returns ESP_ERR_INVALID_SIZE. The model content is battery-specific and
  * must come from the battery supplier. If any model byte may have been
  * written but the operation cannot be verified, cleanup deliberately selects
- * ROM instead of restoring an entry SRAM selection. If safe BROM close/reset
- * release cannot be confirmed, the function leaves the charger and watchdog
- * disabled and the gauge enabled for explicit recovery and returns the
- * cleanup error.
+ * ROM instead of restoring an entry SRAM selection. After REGA2/BROM access
+ * has begun, the saved REG18 state is restored only if safe BROM close, REG18
+ * preparation, and the complete reset pulse are all confirmed. If the initial
+ * REG18 preparation fails on a normal closed-BROM entry before REGA2 is
+ * touched, the model state is unchanged, so the function restores the saved
+ * REG18 byte and returns the original error. A later call can recover an
+ * already-open BROM window in the same power session: it closes BROM and
+ * selects ROM before enabling a disabled gauge, resets the gauge, and only
+ * then starts a new download.
  */
 esp_err_t tg28_sw_program_battery_model(tg28_sw_handle_t handle,
                                         const uint8_t *model, size_t size);
@@ -662,17 +667,23 @@ esp_err_t tg28_sw_program_battery_model(tg28_sw_handle_t handle,
  *
  * Temporarily enables the gauge and pauses its watchdog, resets the gauge
  * MCU, opens BROM, reads 128 bytes from REGA1, atomically closes BROM while
- * preserving the entry REGA2 source-selection bit, resets the gauge MCU, and
- * restores the original module-enable state. size must equal
+ * preserving the entry REGA2 source-selection bit during a normal call,
+ * resets the gauge MCU, and restores the original module-enable state. size
+ * must equal
  * TG28_SW_BATTERY_MODEL_SIZE. The charger state is preserved, and a disabled
  * gauge is returned to the disabled state.
  *
  * REGA2 bit4 selects ROM or SRAM for the gauge MCU after reset; it does not
  * select a different REGA1 read window. This function therefore leaves bit4
- * unchanged and returns the BROM parameter image exposed by REGA1. If safe
- * BROM close/reset release cannot be confirmed, the function leaves the
- * watchdog disabled and the gauge enabled rather than restoring a state that
- * could reset an unsafe gauge.
+ * unchanged and returns the BROM parameter image exposed by REGA1. After
+ * REGA2/BROM access has begun, the saved REG18 state is restored only if safe
+ * BROM close, REG18 preparation, and the complete reset pulse are all
+ * confirmed. An initial REG18 preparation failure on a normal closed-BROM
+ * entry occurs before REGA2 is touched, so the unchanged model state permits
+ * restoration of the saved REG18 byte before returning the original error.
+ * If BROM is already open on entry, the function treats SRAM as potentially
+ * partial, closes BROM and selects ROM before enabling a disabled gauge,
+ * resets the gauge, and leaves ROM selected after the read.
  */
 esp_err_t tg28_sw_read_battery_model(tg28_sw_handle_t handle,
                                      uint8_t *model, size_t size);
