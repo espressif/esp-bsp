@@ -5,10 +5,143 @@
  */
 
 #include <assert.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "tg28_sw.h"
 #include "tg28_sw_priv.h"
+
+#define TEST_REG_MODE          0x17
+#define TEST_REG_MODULE_ENABLE 0x18
+#define TEST_REG_MODEL         0xA1
+#define TEST_REG_GAUGE_CONTROL 0xA2
+#define TEST_GAUGE_RESET_MASK  (1U << 2)
+#define TEST_GAUGE_ENABLE_MASK (1U << 3)
+#define TEST_CHARGER_MASK      (1U << 1)
+#define TEST_WATCHDOG_MASK     (1U << 0)
+#define TEST_SOURCE_MASK       (1U << 4)
+#define TEST_BROM_MASK         (1U << 0)
+
+typedef struct {
+    uint8_t registers[256];
+    uint8_t rom[TG28_SW_BATTERY_MODEL_SIZE];
+    uint8_t sram[TG28_SW_BATTERY_MODEL_SIZE];
+    size_t model_index;
+    bool active_sram;
+    bool brom_window_sram;
+    unsigned reset_count;
+    unsigned delay_count;
+    uint8_t fail_read_reg;
+    unsigned fail_read_on;
+    unsigned read_count[256];
+    uint8_t fail_write_reg;
+    unsigned fail_write_on;
+    unsigned fail_write_times;
+    bool failed_write_applies;
+    unsigned write_count[256];
+} fake_tg28_t;
+
+static void fake_apply_write(fake_tg28_t *fake, uint8_t reg, uint8_t value)
+{
+    if (reg == TEST_REG_MODEL) {
+        if ((fake->registers[TEST_REG_GAUGE_CONTROL] & TEST_BROM_MASK) &&
+                fake->model_index < TG28_SW_BATTERY_MODEL_SIZE) {
+            fake->sram[fake->model_index++] = value;
+            fake->brom_window_sram = true;
+        }
+        return;
+    }
+
+    const uint8_t previous = fake->registers[reg];
+    fake->registers[reg] = value;
+    if (reg == TEST_REG_GAUGE_CONTROL &&
+            !(previous & TEST_BROM_MASK) && (value & TEST_BROM_MASK)) {
+        fake->model_index = 0;
+    }
+    if (reg == TEST_REG_MODE &&
+            (previous & TEST_GAUGE_RESET_MASK) &&
+            !(value & TEST_GAUGE_RESET_MASK)) {
+        ++fake->reset_count;
+        if (fake->registers[TEST_REG_MODULE_ENABLE] & TEST_GAUGE_ENABLE_MASK) {
+            fake->active_sram =
+                !!(fake->registers[TEST_REG_GAUGE_CONTROL] & TEST_SOURCE_MASK);
+        }
+        fake->brom_window_sram = false;
+    }
+}
+
+static esp_err_t fake_read(void *context, uint8_t reg, void *data, size_t size)
+{
+    fake_tg28_t *fake = context;
+    assert(size == 1);
+    ++fake->read_count[reg];
+    if (reg == fake->fail_read_reg &&
+            fake->read_count[reg] == fake->fail_read_on) {
+        return ESP_ERR_TIMEOUT;
+    }
+
+    uint8_t value = fake->registers[reg];
+    if (reg == TEST_REG_MODEL &&
+            (fake->registers[TEST_REG_GAUGE_CONTROL] & TEST_BROM_MASK) &&
+            fake->model_index < TG28_SW_BATTERY_MODEL_SIZE) {
+        const uint8_t *window = fake->brom_window_sram ? fake->sram :
+                                fake->rom;
+        value = window[fake->model_index++];
+    }
+    *(uint8_t *)data = value;
+    return ESP_OK;
+}
+
+static esp_err_t fake_write(void *context, uint8_t reg, const void *data,
+                            size_t size)
+{
+    fake_tg28_t *fake = context;
+    assert(size == 1);
+    ++fake->write_count[reg];
+    const uint8_t value = *(const uint8_t *)data;
+    const unsigned fail_write_times = fake->fail_write_times == 0 ?
+                                      1 : fake->fail_write_times;
+    if (reg == fake->fail_write_reg && fake->fail_write_on != 0 &&
+            fake->write_count[reg] >= fake->fail_write_on &&
+            fake->write_count[reg] < fake->fail_write_on + fail_write_times) {
+        if (fake->failed_write_applies) {
+            fake_apply_write(fake, reg, value);
+        }
+        return ESP_ERR_TIMEOUT;
+    }
+    fake_apply_write(fake, reg, value);
+    return ESP_OK;
+}
+
+static void fake_delay_ms(void *context, uint32_t milliseconds)
+{
+    fake_tg28_t *fake = context;
+    assert(milliseconds == 1000);
+    ++fake->delay_count;
+}
+
+static tg28_sw_register_io_t fake_io(fake_tg28_t *fake)
+{
+    return (tg28_sw_register_io_t) {
+        .context = fake,
+        .read = fake_read,
+        .write = fake_write,
+        .delay_ms = fake_delay_ms,
+    };
+}
+
+static void fake_init(fake_tg28_t *fake, uint8_t gauge_control,
+                      uint8_t module_enable)
+{
+    memset(fake, 0, sizeof(*fake));
+    fake->registers[TEST_REG_GAUGE_CONTROL] = gauge_control;
+    fake->registers[TEST_REG_MODULE_ENABLE] = module_enable;
+    fake->active_sram = !!(gauge_control & TEST_SOURCE_MASK);
+    for (size_t i = 0; i < TG28_SW_BATTERY_MODEL_SIZE; ++i) {
+        fake->rom[i] = (uint8_t)(i ^ 0xA5);
+        fake->sram[i] = (uint8_t)(i ^ 0x5A);
+    }
+}
 
 static void test_chip_id_and_names(void)
 {
@@ -417,11 +550,185 @@ static void test_feature_block_null_rejections(void)
     assert(tg28_sw_set_batfet_off_state_enable(NULL, true) == ESP_ERR_INVALID_ARG);
     assert(tg28_sw_get_batfet_off_state_enable(NULL, &flag) == ESP_ERR_INVALID_ARG);
     assert(tg28_sw_write_register(NULL, 0x10, 0x00) == ESP_ERR_INVALID_ARG);
-    assert(tg28_sw_read_battery_model(NULL, TG28_SW_BATTERY_MODEL_SRAM, NULL, 0) ==
+    assert(tg28_sw_read_battery_model(NULL, NULL, 0) ==
            ESP_ERR_INVALID_ARG);
 
     /* The 14-bit ts_cfg_data bound is validated before any bus access. */
     assert(tg28_sw_set_ts_fixed_threshold(NULL, 0x4000) == ESP_ERR_INVALID_ARG);
+}
+
+static void test_battery_model_read_state_machine(void)
+{
+    fake_tg28_t fake;
+    uint8_t model[TG28_SW_BATTERY_MODEL_SIZE] = {0};
+
+    /* REGA1 exposes one BROM parameter image; REGA2 bit4 selects the runtime
+     * source for the gauge MCU and must remain unchanged throughout a read. */
+    fake_init(&fake, TEST_SOURCE_MASK, 0x00);
+    tg28_sw_register_io_t io = fake_io(&fake);
+    assert(tg28_sw_read_battery_model_io(&io, model, sizeof(model)) == ESP_OK);
+    assert(memcmp(model, fake.rom, sizeof(model)) == 0);
+    assert(fake.registers[TEST_REG_GAUGE_CONTROL] == TEST_SOURCE_MASK);
+    assert(fake.registers[TEST_REG_MODULE_ENABLE] == 0x00);
+    assert(fake.reset_count == 2);
+
+    memset(model, 0, sizeof(model));
+    fake_init(&fake, 0x00,
+              TEST_GAUGE_ENABLE_MASK | TEST_CHARGER_MASK | TEST_WATCHDOG_MASK);
+    io = fake_io(&fake);
+    assert(tg28_sw_read_battery_model_io(&io, model, sizeof(model)) == ESP_OK);
+    assert(memcmp(model, fake.rom, sizeof(model)) == 0);
+    assert(fake.registers[TEST_REG_GAUGE_CONTROL] == 0x00);
+    assert(fake.registers[TEST_REG_MODULE_ENABLE] ==
+           (TEST_GAUGE_ENABLE_MASK | TEST_CHARGER_MASK | TEST_WATCHDOG_MASK));
+    assert(fake.reset_count == 2);
+}
+
+static void test_battery_model_read_failures(void)
+{
+    fake_tg28_t fake;
+    uint8_t model[TG28_SW_BATTERY_MODEL_SIZE] = {0};
+
+    /* If the entry REGA2 snapshot cannot be read, no register may be written
+     * and no reset may occur. */
+    fake_init(&fake, TEST_SOURCE_MASK,
+              TEST_GAUGE_ENABLE_MASK | TEST_WATCHDOG_MASK);
+    fake.fail_read_reg = TEST_REG_GAUGE_CONTROL;
+    fake.fail_read_on = 1;
+    tg28_sw_register_io_t io = fake_io(&fake);
+    assert(tg28_sw_read_battery_model_io(&io, model, sizeof(model)) ==
+           ESP_ERR_TIMEOUT);
+    assert(fake.write_count[TEST_REG_GAUGE_CONTROL] == 0);
+    assert(fake.write_count[TEST_REG_MODE] == 0);
+    assert(fake.write_count[TEST_REG_MODULE_ENABLE] == 0);
+
+    /* If reset assertion was accepted but its readback fails, the helper
+     * must still release REG17 bit2 before restoring the entry watchdog. */
+    fake_init(&fake, TEST_SOURCE_MASK,
+              TEST_GAUGE_ENABLE_MASK | TEST_WATCHDOG_MASK);
+    fake.fail_read_reg = TEST_REG_MODE;
+    fake.fail_read_on = 2;
+    io = fake_io(&fake);
+    assert(tg28_sw_read_battery_model_io(&io, model, sizeof(model)) ==
+           ESP_ERR_TIMEOUT);
+    assert(!(fake.registers[TEST_REG_MODE] & TEST_GAUGE_RESET_MASK));
+    assert(fake.registers[TEST_REG_MODULE_ENABLE] ==
+           (TEST_GAUGE_ENABLE_MASK | TEST_WATCHDOG_MASK));
+    assert(fake.write_count[TEST_REG_GAUGE_CONTROL] == 0);
+
+    /* One failed deassert write is retried. The operation still reports the
+     * transport error, but reset is released and modules can be restored. */
+    fake_init(&fake, TEST_SOURCE_MASK,
+              TEST_GAUGE_ENABLE_MASK | TEST_WATCHDOG_MASK);
+    fake.fail_write_reg = TEST_REG_MODE;
+    fake.fail_write_on = 2;
+    io = fake_io(&fake);
+    assert(tg28_sw_read_battery_model_io(&io, model, sizeof(model)) ==
+           ESP_ERR_TIMEOUT);
+    assert(!(fake.registers[TEST_REG_MODE] & TEST_GAUGE_RESET_MASK));
+    assert(fake.registers[TEST_REG_MODULE_ENABLE] ==
+           (TEST_GAUGE_ENABLE_MASK | TEST_WATCHDOG_MASK));
+
+    /* If both deassert attempts fail, reset remains unconfirmed and cleanup
+     * must not restore a watchdog that could later reset an unsafe gauge. */
+    fake_init(&fake, TEST_SOURCE_MASK,
+              TEST_GAUGE_ENABLE_MASK | TEST_WATCHDOG_MASK);
+    fake.fail_write_reg = TEST_REG_MODE;
+    fake.fail_write_on = 2;
+    fake.fail_write_times = 2;
+    io = fake_io(&fake);
+    assert(tg28_sw_read_battery_model_io(&io, model, sizeof(model)) ==
+           ESP_ERR_TIMEOUT);
+    assert(fake.registers[TEST_REG_MODE] & TEST_GAUGE_RESET_MASK);
+    assert(!(fake.registers[TEST_REG_MODULE_ENABLE] & TEST_WATCHDOG_MASK));
+
+    /* A model-stream error must close BROM, restore the entry source, reset
+     * on the restored source, and restore watchdog/module state. */
+    fake_init(&fake, TEST_SOURCE_MASK,
+              TEST_GAUGE_ENABLE_MASK | TEST_CHARGER_MASK | TEST_WATCHDOG_MASK);
+    fake.fail_read_reg = TEST_REG_MODEL;
+    fake.fail_read_on = 17;
+    io = fake_io(&fake);
+    assert(tg28_sw_read_battery_model_io(&io, model, sizeof(model)) ==
+           ESP_ERR_TIMEOUT);
+    assert(fake.registers[TEST_REG_GAUGE_CONTROL] == TEST_SOURCE_MASK);
+    assert(fake.registers[TEST_REG_MODULE_ENABLE] ==
+           (TEST_GAUGE_ENABLE_MASK | TEST_CHARGER_MASK | TEST_WATCHDOG_MASK));
+    assert(fake.reset_count == 2);
+
+    /* If the final atomic REGA2 close/restore cannot be confirmed, do not
+     * reset on the temporary source and do not re-enable the watchdog. */
+    fake_init(&fake, TEST_SOURCE_MASK,
+              TEST_GAUGE_ENABLE_MASK | TEST_WATCHDOG_MASK);
+    fake.fail_write_reg = TEST_REG_GAUGE_CONTROL;
+    fake.fail_write_on = 3;
+    io = fake_io(&fake);
+    assert(tg28_sw_read_battery_model_io(&io, model, sizeof(model)) ==
+           ESP_ERR_TIMEOUT);
+    assert(fake.registers[TEST_REG_GAUGE_CONTROL] & TEST_BROM_MASK);
+    assert(fake.reset_count == 1);
+    assert(!(fake.registers[TEST_REG_MODULE_ENABLE] & TEST_WATCHDOG_MASK));
+
+    /* A write timeout after the PMIC accepted the safe final byte is
+     * resolved by readback and may proceed with reset/module restoration. */
+    fake_init(&fake, TEST_SOURCE_MASK,
+              TEST_GAUGE_ENABLE_MASK | TEST_WATCHDOG_MASK);
+    fake.fail_write_reg = TEST_REG_GAUGE_CONTROL;
+    fake.fail_write_on = 3;
+    fake.failed_write_applies = true;
+    io = fake_io(&fake);
+    assert(tg28_sw_read_battery_model_io(&io, model, sizeof(model)) == ESP_OK);
+    assert(fake.registers[TEST_REG_GAUGE_CONTROL] == TEST_SOURCE_MASK);
+    assert(fake.registers[TEST_REG_MODULE_ENABLE] ==
+           (TEST_GAUGE_ENABLE_MASK | TEST_WATCHDOG_MASK));
+    assert(fake.reset_count == 2);
+}
+
+static void test_battery_model_program_state_machine(void)
+{
+    fake_tg28_t fake;
+    uint8_t model[TG28_SW_BATTERY_MODEL_SIZE];
+    for (size_t i = 0; i < sizeof(model); ++i) {
+        model[i] = (uint8_t)(0xF0 ^ i);
+    }
+
+    fake_init(&fake, 0x00,
+              TEST_GAUGE_ENABLE_MASK | TEST_CHARGER_MASK | TEST_WATCHDOG_MASK);
+    tg28_sw_register_io_t io = fake_io(&fake);
+    assert(tg28_sw_program_battery_model_io(&io, model, sizeof(model)) == ESP_OK);
+    assert(memcmp(fake.sram, model, sizeof(model)) == 0);
+    assert(fake.registers[TEST_REG_GAUGE_CONTROL] == TEST_SOURCE_MASK);
+    assert(fake.registers[TEST_REG_MODULE_ENABLE] ==
+           (TEST_GAUGE_ENABLE_MASK | TEST_CHARGER_MASK | TEST_WATCHDOG_MASK));
+    assert(fake.delay_count == 1);
+    assert(fake.reset_count == 2);
+
+    /* A partial write falls back to ROM even when SRAM was selected on
+     * entry, so cleanup cannot activate the incomplete SRAM image. */
+    fake_init(&fake, TEST_SOURCE_MASK,
+              TEST_GAUGE_ENABLE_MASK | TEST_CHARGER_MASK | TEST_WATCHDOG_MASK);
+    fake.fail_write_reg = TEST_REG_MODEL;
+    fake.fail_write_on = 17;
+    io = fake_io(&fake);
+    assert(tg28_sw_program_battery_model_io(&io, model, sizeof(model)) ==
+           ESP_ERR_TIMEOUT);
+    assert(fake.registers[TEST_REG_GAUGE_CONTROL] == 0x00);
+    assert(fake.registers[TEST_REG_MODULE_ENABLE] ==
+           (TEST_GAUGE_ENABLE_MASK | TEST_CHARGER_MASK | TEST_WATCHDOG_MASK));
+    assert(fake.reset_count == 2);
+
+    /* The same no-reset rule applies when program cleanup cannot confirm
+     * that BROM is closed and the entry source is restored. */
+    fake_init(&fake, 0x00,
+              TEST_GAUGE_ENABLE_MASK | TEST_WATCHDOG_MASK);
+    fake.fail_write_reg = TEST_REG_GAUGE_CONTROL;
+    fake.fail_write_on = 5;
+    io = fake_io(&fake);
+    assert(tg28_sw_program_battery_model_io(&io, model, sizeof(model)) ==
+           ESP_ERR_TIMEOUT);
+    assert(fake.registers[TEST_REG_GAUGE_CONTROL] & TEST_BROM_MASK);
+    assert(fake.reset_count == 1);
+    assert(!(fake.registers[TEST_REG_MODULE_ENABLE] & TEST_WATCHDOG_MASK));
 }
 
 void app_main(void)
@@ -441,4 +748,8 @@ void app_main(void)
     test_powerkey_level_coding();
     test_feature_block_enum_codings();
     test_feature_block_null_rejections();
+    test_battery_model_read_state_machine();
+    test_battery_model_read_failures();
+    test_battery_model_program_state_machine();
+    printf("tg28_sw tests: PASSED\n");
 }

@@ -637,47 +637,44 @@ esp_err_t tg28_sw_get_low_battery_warning(tg28_sw_handle_t handle,
  * Download and verify a battery-specific fuel-gauge model through REGA1.
  *
  * The sequence follows the vendor reference driver: temporarily disable the
- * charger and the PMIC watchdog, reset the gauge MCU, open BROM, stream the
- * model, reopen BROM for verification, set the update mark, reset the gauge
- * MCU, and restore the original REG18 module-enable state. Call once per
- * boot, or pass the model in the create configuration to have the driver do
- * so automatically.
+ * charger and the PMIC watchdog, temporarily enable the gauge if necessary,
+ * reset the gauge MCU, open BROM, stream the model, reopen BROM for
+ * verification, atomically close BROM and select SRAM, reset the gauge MCU,
+ * and restore the original REG18 module-enable state. Call once per boot, or
+ * pass the model in the create configuration to have the driver do so
+ * automatically.
  *
  * size must equal TG28_SW_BATTERY_MODEL_SIZE (128 bytes); any other size
  * returns ESP_ERR_INVALID_SIZE. The model content is battery-specific and
- * must come from the battery supplier.
+ * must come from the battery supplier. If any model byte may have been
+ * written but the operation cannot be verified, cleanup deliberately selects
+ * ROM instead of restoring an entry SRAM selection. If safe BROM close/reset
+ * release cannot be confirmed, the function leaves the charger and watchdog
+ * disabled and the gauge enabled for explicit recovery and returns the
+ * cleanup error.
  */
 esp_err_t tg28_sw_program_battery_model(tg28_sw_handle_t handle,
                                         const uint8_t *model, size_t size);
 
-/** Fuel-gauge battery-model storage area selection (REGA2 bit4, datasheet
- * 6.13.2.87). */
-typedef enum {
-    /** Factory ROM area. */
-    TG28_SW_BATTERY_MODEL_ROM = 0,
-    /** SRAM area - the area tg28_sw_program_battery_model() writes and the
-     *  gauge learns into. */
-    TG28_SW_BATTERY_MODEL_SRAM = 1,
-} tg28_sw_battery_model_source_t;
-
 /**
- * @brief Read back the fuel-gauge battery model (REGA1 window, datasheet
+ * @brief Read the fuel-gauge BROM parameter image (REGA1 window, datasheet
  * 6.13.2.86; procedure per hardware design guide 6.2).
  *
- * Mirrors the verification half of tg28_sw_program_battery_model(): gauge
- * MCU reset, BROM open, source select, 128 sequential reads of REGA1, BROM
- * close, gauge reset. size must equal TG28_SW_BATTERY_MODEL_SIZE. The
- * charger state is not touched, and the REGA2 model-source bit is restored
- * to the value found on entry, so a POR-default (ROM) gauge keeps its
- * source after the read.
+ * Temporarily enables the gauge and pauses its watchdog, resets the gauge
+ * MCU, opens BROM, reads 128 bytes from REGA1, atomically closes BROM while
+ * preserving the entry REGA2 source-selection bit, resets the gauge MCU, and
+ * restores the original module-enable state. size must equal
+ * TG28_SW_BATTERY_MODEL_SIZE. The charger state is preserved, and a disabled
+ * gauge is returned to the disabled state.
  *
- * EVT note: whether the gauge's automatic learning (datasheet 6.11) lands
- * in the readable SRAM area, and whether the ROM area holds a meaningful
- * factory default, are hardware-verification items - dump both areas and
- * compare against a known-good model to find out.
+ * REGA2 bit4 selects ROM or SRAM for the gauge MCU after reset; it does not
+ * select a different REGA1 read window. This function therefore leaves bit4
+ * unchanged and returns the BROM parameter image exposed by REGA1. If safe
+ * BROM close/reset release cannot be confirmed, the function leaves the
+ * watchdog disabled and the gauge enabled rather than restoring a state that
+ * could reset an unsafe gauge.
  */
 esp_err_t tg28_sw_read_battery_model(tg28_sw_handle_t handle,
-                                     tg28_sw_battery_model_source_t source,
                                      uint8_t *model, size_t size);
 
 /** Set one regulator to an exactly representable voltage. */

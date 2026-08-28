@@ -113,10 +113,14 @@
 #define TG28_SW_VINDPM_MASK              0x0F
 #define TG28_SW_BROM_UPDATE_MARK_MASK    (1U << 4)
 #define TG28_SW_BROM_WRITER_ENABLE_MASK  (1U << 0)
+#define TG28_SW_GAUGE_CONTROL_WRITE_MASK ((1U << 5) | \
+                                           TG28_SW_BROM_UPDATE_MARK_MASK | \
+                                           TG28_SW_BROM_WRITER_ENABLE_MASK)
 /* REG18 module enables (datasheet 6.13.2.14). */
 #define TG28_SW_GAUGE_ENABLE_MASK        (1U << 3)
 #define TG28_SW_BACKUP_CHARGE_ENABLE_MASK (1U << 2)
 #define TG28_SW_WATCHDOG_ENABLE_MASK     (1U << 0)
+#define TG28_SW_MODULE_ENABLE_WRITE_MASK  0x0F
 /* REG19 watchdog control (datasheet 6.13.2.15). */
 #define TG28_SW_WATCHDOG_ACTION_MASK     0x30
 #define TG28_SW_WATCHDOG_CLEAR_MASK      (1U << 3)
@@ -367,21 +371,129 @@ static esp_err_t update_bits(tg28_sw_handle_t handle, uint8_t reg,
     return write_registers(handle, reg, &current, sizeof(current));
 }
 
-static esp_err_t reset_gauge_mcu(tg28_sw_handle_t handle)
+static esp_err_t device_io_read(void *context, uint8_t reg, void *data,
+                                size_t size)
 {
-    ESP_RETURN_ON_ERROR(update_bits(handle, TG28_SW_REG_MODE,
-                                    TG28_SW_GAUGE_MCU_RESET_MASK,
-                                    TG28_SW_GAUGE_MCU_RESET_MASK),
-                        TAG, "fuel-gauge MCU reset assert failed");
-    return update_bits(handle, TG28_SW_REG_MODE,
-                       TG28_SW_GAUGE_MCU_RESET_MASK, 0);
+    return read_registers((tg28_sw_handle_t)context, reg, data, size);
 }
 
-static esp_err_t set_brom_writer(tg28_sw_handle_t handle, bool enable)
+static esp_err_t device_io_write(void *context, uint8_t reg, const void *data,
+                                 size_t size)
 {
-    return update_bits(handle, TG28_SW_REG_FUEL_GAUGE_CONTROL,
-                       TG28_SW_BROM_WRITER_ENABLE_MASK,
-                       enable ? TG28_SW_BROM_WRITER_ENABLE_MASK : 0);
+    return write_registers((tg28_sw_handle_t)context, reg, data, size);
+}
+
+static void device_io_delay_ms(void *context, uint32_t milliseconds)
+{
+    (void)context;
+    vTaskDelay(pdMS_TO_TICKS(milliseconds));
+}
+
+static esp_err_t io_write_register_verified(const tg28_sw_register_io_t *io,
+        uint8_t reg, uint8_t value, uint8_t verify_mask)
+{
+    const esp_err_t write_error = io->write(io->context, reg, &value,
+                                            sizeof(value));
+    uint8_t current = 0;
+    const esp_err_t read_error = io->read(io->context, reg, &current,
+                                          sizeof(current));
+    if (read_error != ESP_OK) {
+        return write_error != ESP_OK ? write_error : read_error;
+    }
+    if ((current & verify_mask) != (value & verify_mask)) {
+        return write_error != ESP_OK ? write_error : ESP_ERR_INVALID_RESPONSE;
+    }
+    /* An I2C timeout can be reported after the PMIC accepted the byte. A
+     * matching readback proves the requested register state is in place. */
+    return ESP_OK;
+}
+
+static esp_err_t io_reset_gauge_mcu(const tg28_sw_register_io_t *io,
+                                    bool *reset_released)
+{
+    *reset_released = true;
+    uint8_t mode = 0;
+    ESP_RETURN_ON_ERROR(io->read(io->context, TG28_SW_REG_MODE, &mode,
+                                 sizeof(mode)), TAG,
+                        "fuel-gauge MCU mode read failed");
+
+    /* Once reset assertion is attempted, always try to release it even when
+     * the write readback fails: the PMIC may have accepted the write before
+     * the I2C error was reported. A second deassert attempt handles one
+     * transient write/readback failure. The out parameter lets cleanup keep
+     * the watchdog disabled if release still cannot be confirmed. */
+    *reset_released = false;
+    const esp_err_t assert_error = io_write_register_verified(
+                                       io, TG28_SW_REG_MODE,
+                                       mode | TG28_SW_GAUGE_MCU_RESET_MASK,
+                                       TG28_SW_GAUGE_MCU_RESET_MASK);
+    const uint8_t released_mode = mode & ~TG28_SW_GAUGE_MCU_RESET_MASK;
+    esp_err_t release_error = io_write_register_verified(
+                                  io, TG28_SW_REG_MODE, released_mode,
+                                  TG28_SW_GAUGE_MCU_RESET_MASK);
+    if (release_error != ESP_OK) {
+        const esp_err_t retry_error = io_write_register_verified(
+                                          io, TG28_SW_REG_MODE,
+                                          released_mode,
+                                          TG28_SW_GAUGE_MCU_RESET_MASK);
+        if (retry_error == ESP_OK) {
+            *reset_released = true;
+        } else {
+            return retry_error;
+        }
+    } else {
+        *reset_released = true;
+    }
+
+    return assert_error != ESP_OK ? assert_error : release_error;
+}
+
+static esp_err_t io_set_gauge_control(const tg28_sw_register_io_t *io,
+                                      uint8_t value)
+{
+    return io_write_register_verified(io, TG28_SW_REG_FUEL_GAUGE_CONTROL,
+                                      value, TG28_SW_GAUGE_CONTROL_WRITE_MASK);
+}
+
+static esp_err_t finish_battery_model_io(const tg28_sw_register_io_t *io,
+        uint8_t final_gauge_control, bool gauge_control_touched,
+        uint8_t original_modules, bool modules_touched,
+        bool reset_released, esp_err_t operation_error)
+{
+    esp_err_t gauge_cleanup_error = ESP_OK;
+    bool gauge_state_safe = reset_released;
+    if (gauge_control_touched) {
+        /* One REGA2 transaction both closes BROM and selects the source that
+         * the final reset must activate. This mirrors the vendor sequence and
+         * avoids a reset between two partially-applied control writes. */
+        gauge_cleanup_error = io_set_gauge_control(
+                                  io, final_gauge_control &
+                                  ~TG28_SW_BROM_WRITER_ENABLE_MASK);
+        if (gauge_cleanup_error == ESP_OK) {
+            gauge_cleanup_error = io_reset_gauge_mcu(io, &gauge_state_safe);
+        } else {
+            gauge_state_safe = false;
+        }
+    }
+
+    esp_err_t module_restore_error = ESP_OK;
+    if (modules_touched && gauge_state_safe) {
+        /* Restore the complete entry state only after BROM is closed and
+         * REG17 reset release is confirmed. Otherwise leave the prepared
+         * charger/watchdog-off, gauge-on state for explicit recovery. */
+        module_restore_error = io_write_register_verified(
+                                   io, TG28_SW_REG_MODULE_ENABLE,
+                                   original_modules,
+                                   TG28_SW_MODULE_ENABLE_WRITE_MASK);
+    }
+
+    if (gauge_cleanup_error != ESP_OK) {
+        return gauge_cleanup_error;
+    }
+    if (module_restore_error != ESP_OK) {
+        return module_restore_error;
+    }
+    return operation_error;
 }
 
 /* The encode/decode helpers below are intentionally non-static so the
@@ -1138,63 +1250,84 @@ esp_err_t tg28_sw_get_vindpm(tg28_sw_handle_t handle, uint16_t *millivolts)
     return error;
 }
 
-esp_err_t tg28_sw_program_battery_model(tg28_sw_handle_t handle,
-                                        const uint8_t *model, size_t size)
+esp_err_t tg28_sw_program_battery_model_io(const tg28_sw_register_io_t *io,
+        const uint8_t *model, size_t size)
 {
+    ESP_RETURN_ON_FALSE(io != NULL && io->read != NULL && io->write != NULL &&
+                        io->delay_ms != NULL, ESP_ERR_INVALID_ARG, TAG,
+                        "invalid register transport");
     ESP_RETURN_ON_FALSE(model != NULL, ESP_ERR_INVALID_ARG,
                         TAG, "battery model is NULL");
-    /* The gauge BROM window takes exactly TG28_SW_BATTERY_MODEL_SIZE bytes
-     * (hardware design guide 6.2): fewer leaves a partial model and more is
-     * undefined behavior. */
     ESP_RETURN_ON_FALSE(size == TG28_SW_BATTERY_MODEL_SIZE, ESP_ERR_INVALID_SIZE,
                         TAG, "battery model must be exactly %u bytes", TG28_SW_BATTERY_MODEL_SIZE);
-    ESP_RETURN_ON_ERROR(lock_device(handle), TAG, "device lock failed");
+
+    uint8_t gauge_control = 0;
+    esp_err_t error = io->read(io->context, TG28_SW_REG_FUEL_GAUGE_CONTROL,
+                               &gauge_control, sizeof(gauge_control));
+    if (error != ESP_OK) {
+        return error;
+    }
+    ESP_RETURN_ON_FALSE((gauge_control & TG28_SW_BROM_WRITER_ENABLE_MASK) == 0,
+                        ESP_ERR_INVALID_STATE, TAG,
+                        "BROM writer was enabled before model programming");
 
     uint8_t module_enable = 0;
-    esp_err_t error = read_registers(handle, TG28_SW_REG_MODULE_ENABLE,
-                                     &module_enable, sizeof(module_enable));
-    const bool module_state_valid = error == ESP_OK;
-    bool brom_open = false;
-    if (error == ESP_OK) {
-        /* Pause both the charger and the watchdog for the whole download:
-         * the 128-byte stream plus verification outlasts the shortest
-         * watchdog period, and a mid-download expiry would reset or
-         * power-cycle the PMU and leave a partial model behind. REG18 is
-         * restored from the saved image on every exit path below. */
-        const uint8_t modules_paused = module_enable &
-                                       ~(TG28_SW_CHARGER_ENABLE_MASK |
-                                         TG28_SW_WATCHDOG_ENABLE_MASK);
-        error = write_registers(handle, TG28_SW_REG_MODULE_ENABLE,
-                                &modules_paused, sizeof(modules_paused));
+    error = io->read(io->context, TG28_SW_REG_MODULE_ENABLE,
+                     &module_enable, sizeof(module_enable));
+    if (error != ESP_OK) {
+        return error;
+    }
+
+    /* The hardware guide assumes the gauge is running while BROM is
+     * accessed. Pause the charger and watchdog, but force the gauge module
+     * on so source selection and the reset pulse take effect. */
+    const uint8_t modules_prepared =
+        (module_enable | TG28_SW_GAUGE_ENABLE_MASK) &
+        ~(TG28_SW_CHARGER_ENABLE_MASK | TG28_SW_WATCHDOG_ENABLE_MASK);
+    bool modules_touched = modules_prepared != module_enable;
+    bool gauge_control_touched = false;
+    bool reset_released = true;
+    if (modules_touched) {
+        error = io_write_register_verified(io, TG28_SW_REG_MODULE_ENABLE,
+                                           modules_prepared,
+                                           TG28_SW_MODULE_ENABLE_WRITE_MASK);
     }
     if (error == ESP_OK) {
-        vTaskDelay(pdMS_TO_TICKS(TG28_SW_CHARGER_SETTLE_MS));
-        error = reset_gauge_mcu(handle);
+        io->delay_ms(io->context, TG28_SW_CHARGER_SETTLE_MS);
+        error = io_reset_gauge_mcu(io, &reset_released);
+    }
+
+    /* The design guide programs and verifies the BROM window with bit4
+     * clear (REGA2 0x00 -> 0x01). Preserve the undocumented/RW bit5 from
+     * the entry snapshot while forcing ROM/source bit4 low during access. */
+    const uint8_t brom_control = gauge_control &
+                                 ~(TG28_SW_BROM_UPDATE_MARK_MASK |
+                                   TG28_SW_BROM_WRITER_ENABLE_MASK);
+    if (error == ESP_OK) {
+        gauge_control_touched = true;
+        error = io_set_gauge_control(io, brom_control);
     }
     if (error == ESP_OK) {
-        error = set_brom_writer(handle, false);
+        error = io_set_gauge_control(io, brom_control |
+                                     TG28_SW_BROM_WRITER_ENABLE_MASK);
     }
-    if (error == ESP_OK) {
-        error = set_brom_writer(handle, true);
-        brom_open = error == ESP_OK;
-    }
+    const bool model_write_started = error == ESP_OK;
     for (size_t i = 0; error == ESP_OK && i < size; ++i) {
-        error = write_registers(handle, TG28_SW_REG_BATTERY_MODEL,
-                                &model[i], sizeof(model[i]));
+        error = io->write(io->context, TG28_SW_REG_BATTERY_MODEL,
+                          &model[i], sizeof(model[i]));
     }
 
     if (error == ESP_OK) {
-        error = set_brom_writer(handle, false);
-        brom_open = error != ESP_OK;
+        error = io_set_gauge_control(io, brom_control);
     }
     if (error == ESP_OK) {
-        error = set_brom_writer(handle, true);
-        brom_open = error == ESP_OK;
+        error = io_set_gauge_control(io, brom_control |
+                                     TG28_SW_BROM_WRITER_ENABLE_MASK);
     }
     for (size_t i = 0; error == ESP_OK && i < size; ++i) {
         uint8_t value = 0;
-        error = read_registers(handle, TG28_SW_REG_BATTERY_MODEL,
-                               &value, sizeof(value));
+        error = io->read(io->context, TG28_SW_REG_BATTERY_MODEL,
+                         &value, sizeof(value));
         if (error == ESP_OK && value != model[i]) {
             ESP_LOGE(TAG, "battery model verification failed at byte %u",
                      (unsigned)i);
@@ -1202,35 +1335,38 @@ esp_err_t tg28_sw_program_battery_model(tg28_sw_handle_t handle,
         }
     }
 
-    esp_err_t cleanup_error = ESP_OK;
-    if (brom_open) {
-        cleanup_error = set_brom_writer(handle, false);
-    }
-    if (error == ESP_OK && cleanup_error == ESP_OK) {
-        cleanup_error = update_bits(handle, TG28_SW_REG_FUEL_GAUGE_CONTROL,
-                                    TG28_SW_BROM_UPDATE_MARK_MASK,
-                                    TG28_SW_BROM_UPDATE_MARK_MASK);
-    }
-    /* Always reset the gauge MCU before restoring the module enables,
-     * including on a failed download or verification, so it cannot remain
-     * in BROM state. */
-    const esp_err_t gauge_reset_error = reset_gauge_mcu(handle);
-    if (cleanup_error == ESP_OK) {
-        cleanup_error = gauge_reset_error;
-    }
-    const esp_err_t restore_error = module_state_valid ?
-                                    write_registers(handle,
-                                            TG28_SW_REG_MODULE_ENABLE,
-                                            &module_enable,
-                                            sizeof(module_enable)) : ESP_OK;
+    /* Once any model byte may have been written, an error must fall back to
+     * ROM. Restoring an entry SRAM selection could activate a partial or
+     * unverified model on the cleanup reset. */
+    const uint8_t final_gauge_control = error == ESP_OK ?
+                                        gauge_control |
+                                        TG28_SW_BROM_UPDATE_MARK_MASK :
+                                        (model_write_started ?
+                                         gauge_control &
+                                         ~TG28_SW_BROM_UPDATE_MARK_MASK :
+                                         gauge_control);
+    return finish_battery_model_io(io, final_gauge_control,
+                                   gauge_control_touched, module_enable,
+                                   modules_touched, reset_released, error);
+}
+
+esp_err_t tg28_sw_program_battery_model(tg28_sw_handle_t handle,
+                                        const uint8_t *model, size_t size)
+{
+    ESP_RETURN_ON_FALSE(model != NULL, ESP_ERR_INVALID_ARG,
+                        TAG, "battery model is NULL");
+    ESP_RETURN_ON_FALSE(size == TG28_SW_BATTERY_MODEL_SIZE, ESP_ERR_INVALID_SIZE,
+                        TAG, "battery model must be exactly %u bytes", TG28_SW_BATTERY_MODEL_SIZE);
+    ESP_RETURN_ON_ERROR(lock_device(handle), TAG, "device lock failed");
+    const tg28_sw_register_io_t io = {
+        .context = handle,
+        .read = device_io_read,
+        .write = device_io_write,
+        .delay_ms = device_io_delay_ms,
+    };
+    const esp_err_t error = tg28_sw_program_battery_model_io(&io, model, size);
     unlock_device(handle);
-    if (error != ESP_OK) {
-        return error;
-    }
-    if (cleanup_error != ESP_OK) {
-        return cleanup_error;
-    }
-    return restore_error;
+    return error;
 }
 
 esp_err_t tg28_sw_regulator_set_voltage(tg28_sw_handle_t handle,
@@ -2261,60 +2397,86 @@ esp_err_t tg28_sw_write_register(tg28_sw_handle_t handle, uint8_t register_addre
     return error;
 }
 
+esp_err_t tg28_sw_read_battery_model_io(const tg28_sw_register_io_t *io,
+                                        uint8_t *model, size_t size)
+{
+    ESP_RETURN_ON_FALSE(io != NULL && io->read != NULL && io->write != NULL,
+                        ESP_ERR_INVALID_ARG, TAG,
+                        "invalid register transport");
+    ESP_RETURN_ON_FALSE(model != NULL, ESP_ERR_INVALID_ARG, TAG, "model buffer is NULL");
+    ESP_RETURN_ON_FALSE(size == TG28_SW_BATTERY_MODEL_SIZE, ESP_ERR_INVALID_SIZE,
+                        TAG, "battery model must be exactly %u bytes", TG28_SW_BATTERY_MODEL_SIZE);
+    uint8_t gauge_control = 0;
+    esp_err_t error = io->read(io->context, TG28_SW_REG_FUEL_GAUGE_CONTROL,
+                               &gauge_control, sizeof(gauge_control));
+    if (error != ESP_OK) {
+        return error;
+    }
+    ESP_RETURN_ON_FALSE((gauge_control & TG28_SW_BROM_WRITER_ENABLE_MASK) == 0,
+                        ESP_ERR_INVALID_STATE, TAG,
+                        "BROM writer was enabled before model read");
+
+    uint8_t module_enable = 0;
+    error = io->read(io->context, TG28_SW_REG_MODULE_ENABLE,
+                     &module_enable, sizeof(module_enable));
+    if (error != ESP_OK) {
+        return error;
+    }
+
+    /* A disabled gauge returns a repeated byte from REGA1 on real TG28
+     * hardware. Temporarily enable it and pause the watchdog, preserving the
+     * charger and every other module bit. */
+    const uint8_t modules_prepared =
+        (module_enable | TG28_SW_GAUGE_ENABLE_MASK) &
+        ~TG28_SW_WATCHDOG_ENABLE_MASK;
+    const bool modules_touched = modules_prepared != module_enable;
+    bool gauge_control_touched = false;
+    bool reset_released = true;
+    if (modules_touched) {
+        error = io_write_register_verified(io, TG28_SW_REG_MODULE_ENABLE,
+                                           modules_prepared,
+                                           TG28_SW_MODULE_ENABLE_WRITE_MASK);
+    }
+
+    /* REGA2 bit4 chooses the model source used by the gauge MCU after reset;
+     * it does not choose a different REGA1 read window. Keep the entry source
+     * unchanged, reset the gauge, then perform the documented 0 -> 1 BROM
+     * transition before streaming REGA1. */
+    if (error == ESP_OK) {
+        error = io_reset_gauge_mcu(io, &reset_released);
+    }
+    if (error == ESP_OK) {
+        gauge_control_touched = true;
+        error = io_set_gauge_control(io, gauge_control);
+    }
+    if (error == ESP_OK) {
+        error = io_set_gauge_control(io, gauge_control |
+                                     TG28_SW_BROM_WRITER_ENABLE_MASK);
+    }
+    for (size_t i = 0; error == ESP_OK && i < size; ++i) {
+        error = io->read(io->context, TG28_SW_REG_BATTERY_MODEL,
+                         &model[i], sizeof(model[i]));
+    }
+
+    return finish_battery_model_io(io, gauge_control,
+                                   gauge_control_touched, module_enable,
+                                   modules_touched, reset_released, error);
+}
+
 esp_err_t tg28_sw_read_battery_model(tg28_sw_handle_t handle,
-                                     tg28_sw_battery_model_source_t source,
                                      uint8_t *model, size_t size)
 {
     ESP_RETURN_ON_FALSE(model != NULL, ESP_ERR_INVALID_ARG, TAG, "model buffer is NULL");
     ESP_RETURN_ON_FALSE(size == TG28_SW_BATTERY_MODEL_SIZE, ESP_ERR_INVALID_SIZE,
                         TAG, "battery model must be exactly %u bytes", TG28_SW_BATTERY_MODEL_SIZE);
-    ESP_RETURN_ON_FALSE(source >= TG28_SW_BATTERY_MODEL_ROM &&
-                        source <= TG28_SW_BATTERY_MODEL_SRAM,
-                        ESP_ERR_INVALID_ARG, TAG, "invalid model source");
     ESP_RETURN_ON_ERROR(lock_device(handle), TAG, "device lock failed");
-
-    /* Mirror the verification half of tg28_sw_program_battery_model():
-     * gauge reset, BROM open, source select, 128 reads of REGA1, BROM
-     * close, gauge reset. No register content is modified apart from the
-     * REGA2 source-select bit, which is restored to the value found on
-     * entry: forcing SRAM here would leave a POR-default (ROM) gauge
-     * running from an unprogrammed model. */
-    uint8_t gauge_control = 0;
-    esp_err_t error = read_registers(handle, TG28_SW_REG_FUEL_GAUGE_CONTROL,
-                                     &gauge_control, sizeof(gauge_control));
-    if (error == ESP_OK) {
-        error = reset_gauge_mcu(handle);
-    }
-    if (error == ESP_OK) {
-        error = set_brom_writer(handle, false);
-    }
-    if (error == ESP_OK) {
-        error = set_brom_writer(handle, true);
-    }
-    if (error == ESP_OK) {
-        error = update_bits(handle, TG28_SW_REG_FUEL_GAUGE_CONTROL,
-                            TG28_SW_BROM_UPDATE_MARK_MASK,
-                            source == TG28_SW_BATTERY_MODEL_SRAM ?
-                            TG28_SW_BROM_UPDATE_MARK_MASK : 0);
-    }
-    for (size_t i = 0; error == ESP_OK && i < size; ++i) {
-        error = read_registers(handle, TG28_SW_REG_BATTERY_MODEL,
-                               &model[i], sizeof(model[i]));
-    }
-
-    esp_err_t cleanup_error = set_brom_writer(handle, false);
-    if (cleanup_error == ESP_OK) {
-        cleanup_error = update_bits(handle, TG28_SW_REG_FUEL_GAUGE_CONTROL,
-                                    TG28_SW_BROM_UPDATE_MARK_MASK,
-                                    gauge_control & TG28_SW_BROM_UPDATE_MARK_MASK);
-    }
-    const esp_err_t gauge_reset_error = reset_gauge_mcu(handle);
-    if (cleanup_error == ESP_OK) {
-        cleanup_error = gauge_reset_error;
-    }
+    const tg28_sw_register_io_t io = {
+        .context = handle,
+        .read = device_io_read,
+        .write = device_io_write,
+        .delay_ms = device_io_delay_ms,
+    };
+    const esp_err_t error = tg28_sw_read_battery_model_io(&io, model, size);
     unlock_device(handle);
-    if (error != ESP_OK) {
-        return error;
-    }
-    return cleanup_error;
+    return error;
 }
