@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -35,11 +35,11 @@
 #define TEST_LCD_BK_LIGHT_OFF_LEVEL     !TEST_LCD_BK_LIGHT_ON_LEVEL
 
 #if TEST_LCD_BIT_PER_PIXEL == 24
-#define TEST_MIPI_DPI_PX_FORMAT         (LCD_COLOR_PIXEL_FORMAT_RGB888)
+#define TEST_MIPI_DPI_PX_FORMAT         (LCD_COLOR_FMT_RGB888)
 #elif TEST_LCD_BIT_PER_PIXEL == 18
-#define TEST_MIPI_DPI_PX_FORMAT         (LCD_COLOR_PIXEL_FORMAT_RGB666)
+#define TEST_MIPI_DPI_PX_FORMAT         (LCD_COLOR_FMT_RGB666)
 #elif TEST_LCD_BIT_PER_PIXEL == 16
-#define TEST_MIPI_DPI_PX_FORMAT         (LCD_COLOR_PIXEL_FORMAT_RGB565)
+#define TEST_MIPI_DPI_PX_FORMAT         (LCD_COLOR_FMT_RGB565)
 #endif
 
 #define TEST_DELAY_TIME_MS                      (3000)

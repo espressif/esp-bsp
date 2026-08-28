@@ -478,8 +478,6 @@ static esp_err_t panel_lt9611_reset(esp_lcd_panel_t *panel)
         gpio_set_level(lt9611->reset_gpio_num, lt9611->reset_level);
         vTaskDelay(pdMS_TO_TICKS(20));
         gpio_set_level(lt9611->reset_gpio_num, !lt9611->reset_level);
-        vTaskDelay(pdMS_TO_TICKS(20));
-        gpio_set_level(lt9611->reset_gpio_num, lt9611->reset_level);
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 
@@ -496,12 +494,11 @@ static esp_err_t panel_lt9611_init(esp_lcd_panel_t *panel)
     ESP_RETURN_ON_ERROR(lt9611_write_reg(lt9611, 0x80EE, 0x01), TAG, "enable register access failed");
 
     if (!lt9611->dpi_started) {
-        ESP_RETURN_ON_ERROR(lt9611_configure_video_path(lt9611), TAG, "configure video path failed");
+        // Start the DPI source before enabling the LT9611 HDMI output.
         ESP_RETURN_ON_ERROR(lt9611->init(panel), TAG, "initialize MIPI DPI panel failed");
         lt9611->dpi_started = true;
-    } else {
-        ESP_RETURN_ON_ERROR(lt9611_configure_video_path(lt9611), TAG, "configure video path failed");
     }
+    ESP_RETURN_ON_ERROR(lt9611_configure_video_path(lt9611), TAG, "configure video path failed");
 
     ESP_LOGI(TAG, "LT9611 initialization done (HPD=%s)", lt9611_get_hpd(lt9611) ? "yes" : "no");
     return ESP_OK;
