@@ -48,10 +48,13 @@ manual, switching-element characteristics). Independently,
 so the low-backup-voltage flag can assert even while charging stays
 disabled. The
 configured policy is applied after normal power-up and as part of the `VLF=1`
-full-register initialization. After `VLF=1`, the driver waits for oscillator
-startup and initializes all documented user registers. The calendar starts at
-the explicit recovery epoch 2000-01-01 00:00:00 (Saturday), and the
-application should set real time before relying on timestamps.
+full-register initialization. A successful runtime charge-policy change is
+also retained for a later recovery. After `VLF=1`, the driver waits for
+oscillator startup and initializes all documented user registers. When this
+happens during `rx8130ce_create()`, the calendar starts at the explicit
+recovery epoch 2000-01-01 00:00:00 (Saturday), and the application should set
+real time before relying on timestamps. Runtime recovery through
+`rx8130ce_set_time()` uses the caller's requested time instead.
 
 ## Basic use
 
@@ -79,9 +82,15 @@ selects the same defaults.
 ## Setting time
 
 `rx8130ce_set_time()` validates the complete calendar value, sets the device
-`STOP` bit, writes all seven calendar registers in one transaction, clears the
-voltage-loss flag, and restores the original control register. Weekday uses
-`0` for Sunday through `6` for Saturday.
+`STOP` bit, writes all seven calendar registers in one transaction, and
+restarts the counter. Weekday uses `0` for Sunday through `6` for Saturday.
+
+If `VLF` is already set or appears during the update, all register contents
+are invalid. The call waits for oscillator startup and performs a complete
+recovery with the requested calendar and the most recent backup-charge policy;
+only after the counter runs again is `VLF` cleared. Alarm, timer, FOUT/update
+mode, digital offset, and user RAM are reset to safe defaults and must be
+configured again after the call succeeds.
 
 The RTC application manual warns that voltage detection and supply switching
 are affected while `STOP` is set. The driver therefore keeps that interval to
@@ -110,9 +119,10 @@ preset (registers 1Ah-1Bh, 1-65535 counts) and the source clock selected by
 `rx8130ce_timer_source_t`, from 4096 Hz (244.14 us per count) down to
 1/3600 Hz (one hour per count). The driver holds the timer-enable bit cleared while the
 settings change, as the application manual requires, and clears any latched
-`TF`. With `timer.enable` set, the countdown then starts from the preset;
-with it cleared, the timer stays stopped and the counter registers hold the
-preset for readback. For the 4096 Hz, 64 Hz, and 1 Hz source clocks the
+`TF`. Programming a new timer also clears a prior `rx8130ce_timer_pause(true)`
+state. With `timer.enable` set, the countdown then starts from the preset; with
+it cleared, the timer stays stopped and the counter registers hold the preset
+for readback. For the 4096 Hz, 64 Hz, and 1 Hz source clocks the
 first countdown can be up to one period of the selected source clock
 shorter than configured; for the 1/60 Hz and 1/3600 Hz source clocks it can
 be up to one second shorter (application manual 14.2.2).
@@ -141,10 +151,15 @@ detection is enabled through `rx8130ce_config_t.backup_voltage_low_detect`
 reached); it never sets while charging stays disabled on a primary cell.
 
 `rx8130ce_get_and_clear_interrupts()` returns the complete flag register and
-clears only `UF`, `TF`, and `AF`. Voltage-loss, backup, and reset evidence is
-left unchanged. GPIO interrupt registration belongs to the board or
+clears only the observed `UF`, `TF`, and `AF`. Its W0C writes preserve every
+other flag, including a different event latched after the read transaction.
+Voltage-loss, backup, and reset evidence is left unchanged. GPIO interrupt registration belongs to the board or
 application because the RX8130CE `/IRQ` output may be shared with another
 device.
+
+Raw multi-register reads are restricted to one 16-byte auto-increment page.
+The device wraps `1Fh` to `10h` (and similarly for the other pages), so callers
+must issue a new read instead of crossing `1Fh`, `2Fh`, or `3Fh`.
 
 ## References
 

@@ -261,7 +261,15 @@ esp_err_t rx8130ce_get_time(rx8130ce_handle_t handle,
                             rx8130ce_time_t *time,
                             rx8130ce_status_t *status);
 
-/** Set the calendar while the time counter is protected by the STOP bit. */
+/**
+ * Set the calendar while the time counter is protected by the STOP bit.
+ *
+ * If VLF is already set or appears during the update, every register is
+ * invalid. The driver then waits for oscillator startup and performs a full
+ * recovery using the requested calendar and the most recent backup-charge
+ * policy. Alarm, timer, FOUT/update mode, user RAM, and digital offset are
+ * reset to safe defaults and must be configured again after this call.
+ */
 esp_err_t rx8130ce_set_time(rx8130ce_handle_t handle,
                             const rx8130ce_time_t *time);
 
@@ -274,10 +282,12 @@ esp_err_t rx8130ce_get_status(rx8130ce_handle_t handle,
  *
  * Advisory and read-only: nothing is cleared or reconfigured. When
  * init_recommended comes back true, register contents are untrustworthy;
- * recover by re-setting the calendar with rx8130ce_set_time() (which clears
- * VLF) and re-applying alarm/timer settings. Note that rx8130ce_create()
- * already performs the full initialization when it finds VLF=1, so a true
- * result at runtime means the backup supply dropped out after creation.
+ * recover with rx8130ce_set_time(), which reinitializes the complete register
+ * map and clears VLF only after the counter restarts. Then reapply alarm,
+ * timer, FOUT/update mode, user RAM, and digital-offset settings. Note that
+ * rx8130ce_create() already performs the full initialization when it finds
+ * VLF=1, so a true result at runtime means the backup supply dropped out
+ * after creation.
  */
 esp_err_t rx8130ce_check_power(rx8130ce_handle_t handle,
                                rx8130ce_power_check_t *out_check);
@@ -291,6 +301,8 @@ esp_err_t rx8130ce_check_power(rx8130ce_handle_t handle,
  * enable only when the board carries a rechargeable backup source. The
  * default after rx8130ce_create() comes from
  * rx8130ce_config_t.backup_charge_enable (off unless configured otherwise).
+ * A successful Control1 update also becomes the policy used by any later
+ * VLF recovery.
  * Every call re-applies the configured charge cutoff and VBLFE setting, so
  * charging can never (re-)start with the cutoff-less BFVSEL setting.
  */
@@ -336,8 +348,8 @@ esp_err_t rx8130ce_clear_alarm(rx8130ce_handle_t handle);
  * Selective variant of rx8130ce_get_and_clear_interrupts() for the shared
  * /IRQ line: only AF is cleared, UF/TF and the remaining flags are left
  * untouched. Per the datasheet the flag clears when written 0 and ignores
- * writes of 1, so the read-modify-write used here cannot disturb other
- * flags. alarm_flag may be NULL to just clear.
+ * writes of 1; the driver writes 1 to every non-target W0C flag so an event
+ * raised after the read is preserved. alarm_flag may be NULL to just clear.
  */
 esp_err_t rx8130ce_get_and_clear_alarm_flag(rx8130ce_handle_t handle,
         bool *alarm_flag);
@@ -347,9 +359,9 @@ esp_err_t rx8130ce_get_and_clear_alarm_flag(rx8130ce_handle_t handle,
  *
  * The timer-enable bit is held cleared while the preset and source clock change, as required by
  * the application manual, and any latched timer flag is cleared. The
- * countdown starts from the preset when timer.enable is true; false leaves
- * the timer stopped. Use rx8130ce_timer_irq_enable() to route the timer event
- * to the /IRQ pin.
+ * paused state is cleared. The countdown starts from the preset when
+ * timer.enable is true; false leaves the timer stopped. Use
+ * rx8130ce_timer_irq_enable() to route the timer event to the /IRQ pin.
  */
 esp_err_t rx8130ce_set_timer(rx8130ce_handle_t handle,
                              const rx8130ce_timer_t *timer);
@@ -371,7 +383,12 @@ esp_err_t rx8130ce_timer_irq_enable(rx8130ce_handle_t handle, bool enable);
 /** Enable or disable the time update interrupt on the /IRQ pin (UIE). */
 esp_err_t rx8130ce_update_irq_enable(rx8130ce_handle_t handle, bool enable);
 
-/** Read and clear the update, timer, and alarm interrupt flags. */
+/**
+ * Read and clear the observed update, timer, and alarm interrupt flags.
+ *
+ * Other W0C flags, including events raised after the read transaction, are
+ * preserved.
+ */
 esp_err_t rx8130ce_get_and_clear_interrupts(rx8130ce_handle_t handle,
         uint8_t *flags);
 
@@ -436,7 +453,9 @@ esp_err_t rx8130ce_get_fout(rx8130ce_handle_t handle, rx8130ce_fout_t *out_frequ
 /**
  * Select the time update interrupt period (second or minute update).
  *
- * The /IRQ routing itself is controlled by rx8130ce_update_irq_enable().
+ * UIE is temporarily gated while USEL changes, as recommended by the
+ * application manual, then restored to its previous state. The /IRQ routing
+ * itself is controlled by rx8130ce_update_irq_enable().
  */
 esp_err_t rx8130ce_set_update_irq_mode(rx8130ce_handle_t handle, rx8130ce_update_irq_mode_t mode);
 
@@ -467,7 +486,9 @@ esp_err_t rx8130ce_timer_pause(rx8130ce_handle_t handle, bool pause);
 /**
  * Write the battery-backed user RAM (registers 20h-23h).
  *
+ * @param handle Device handle.
  * @param offset Byte offset into the 4-byte user RAM, 0-3.
+ * @param data Bytes to write.
  * @param length Byte count; offset + length must not exceed
  *        RX8130CE_USER_RAM_SIZE.
  */
@@ -511,10 +532,11 @@ esp_err_t rx8130ce_get_digital_offset(rx8130ce_handle_t handle, bool *out_enable
  * The application manual restricts access to the documented user registers
  * (13.2.1 note *6); the complete [start, start + length) window is
  * validated against them, so a transfer crossing into a reserved register
- * is rejected. Reads follow the device auto-increment wrap-around (1Fh
- * wraps to 10h, 2Fh to 20h, 3Fh to 30h; appman 14.12.4). Use this for
- * feature blocks without a structured API (SMPTSEL/RSVSEL power-detection
- * tuning and similar).
+ * is rejected. A transfer must also stay within one 16-byte auto-increment
+ * page; crossing 1Fh, 2Fh, or 3Fh is rejected because the device would wrap
+ * within that page. Start another read at the next linear address instead.
+ * Use this for feature blocks without a structured API (SMPTSEL/RSVSEL
+ * power-detection tuning and similar).
  */
 esp_err_t rx8130ce_read_registers(rx8130ce_handle_t handle, uint8_t start_register,
                                   uint8_t *data, size_t length);
@@ -524,8 +546,9 @@ esp_err_t rx8130ce_read_registers(rx8130ce_handle_t handle, uint8_t start_regist
  *
  * See rx8130ce_read_registers() for the address policy. Writes a single
  * register; no driver state is updated, so prefer the structured APIs
- * whenever one exists for the target field. In register 31h only bit 0
- * (VBLFE) is defined; keep the remaining manufacturer test bits at 0.
+ * whenever one exists for the target field. The Control0 TEST bit is always
+ * forced to 0. In register 31h only bit 0 (VBLFE) is defined; keep the
+ * remaining manufacturer test bits at 0.
  */
 esp_err_t rx8130ce_write_register(rx8130ce_handle_t handle, uint8_t reg,
                                   uint8_t value);

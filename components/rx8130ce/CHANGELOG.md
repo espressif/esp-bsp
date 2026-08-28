@@ -14,9 +14,11 @@
 * Add a per-device mutex so concurrent calls from application tasks and the shared interrupt service cannot interleave the read-modify-write sequences of `set_time`/`set_alarm`/`set_timer` and the IRQ helpers, matching the concurrency model of the tg28_sw driver
 * Reject `scl_speed_hz` above the 400 kHz device limit in `rx8130ce_create()` instead of accepting an out-of-spec bus speed
 * Restore the previous AIE state in `rx8130ce_set_alarm()` on every exit path: a failed write no longer leaves the alarm interrupt permanently gated off after it was disabled in CONTROL0 for the register update window
-* Clear the `STOP` bit on every error exit of `rx8130ce_set_time()` and of the `VLF=1` full initialization; the flag register is written last there, so `VLF` clears only after the counter restart succeeds and a failed initialization is retried by the next `rx8130ce_create()` instead of returning success with a halted clock
-* Validate the complete register window in `rx8130ce_read_registers()` against the user registers (10h-23h, 30h, 31h) instead of only the start address: transfers crossing into a reserved register are rejected
-* Wait one extra FreeRTOS tick for the 35 ms backup recovery time in `rx8130ce_create()` so tick rounding can never shorten it
+* Make `rx8130ce_set_time()` recover a runtime `VLF` with the same complete register initialization used at creation, using the requested calendar and latest charge policy; normal time updates no longer touch FLAGS, and full recovery clears `VLF` only after the counter restart succeeds
+* Clear W0C flags with target masks instead of stale read-modify-write images, preserving unrelated hardware events that arrive between I2C transactions
+* Clear `TSTP` when programming a new fixed-cycle timer so `timer.enable=true` resumes a previously paused countdown, and gate `UIE` while changing the update interrupt period
+* Validate the complete register window in `rx8130ce_read_registers()` against the user registers (10h-23h, 30h, 31h) and reject reads that cross a 16-byte hardware wrap boundary
+* Guarantee the 35 ms backup recovery and oscillator-start waits despite FreeRTOS tick rounding and scheduler phase
 
 ## v0.3.0 - 2026-07-31
 
