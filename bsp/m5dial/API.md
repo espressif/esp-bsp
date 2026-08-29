@@ -478,7 +478,6 @@ Below are some of the most relevant predefined constants:
 - `BSP_LCD_V_RES` - Vertical resolution in pixels
 - `BSP_LCD_SPI_NUM` - SPI bus used by the LCD (if applicable)
 
-
 ### Display and Touch API Reference
 
 ## Structures and Types
@@ -497,7 +496,7 @@ Below are some of the most relevant predefined constants:
 |  esp\_err\_t | [**bsp\_display\_backlight\_on**](#function-bsp_display_backlight_on) (void) <br>_Turn on display backlight._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_init**](#function-bsp_display_brightness_init) (void) <br>_Initialize display's brightness._ |
 |  esp\_err\_t | [**bsp\_display\_brightness\_set**](#function-bsp_display_brightness_set) (int brightness\_percent) <br>_Set display's brightness._ |
-|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)_ |
+|  lv\_indev\_t \* | [**bsp\_display\_get\_input\_dev**](#function-bsp_display_get_input_dev) (void) <br>_Get pointer to input device (touch, buttons, ...)._ |
 |  bool | [**bsp\_display\_lock**](#function-bsp_display_lock) (uint32\_t timeout\_ms) <br>_Take LVGL mutex._ |
 |  esp\_err\_t | [**bsp\_display\_new**](#function-bsp_display_new) (const [**bsp\_display\_config\_t**](#struct-bsp_display_config_t) \*config, esp\_lcd\_panel\_handle\_t \*ret\_panel, esp\_lcd\_panel\_io\_handle\_t \*ret\_io) <br>_Create new display panel._ |
 |  void | [**bsp\_display\_rotate**](#function-bsp_display_rotate) (lv\_display\_t \*disp, lv\_display\_rotation\_t rotation) <br>_Rotate screen._ |
@@ -548,7 +547,7 @@ Variables:
 
 -  bool double_buffer  <br>True, if should be allocated two buffers
 
--  struct [**bsp\_display\_cfg\_t**](#struct-bsp_display_cfg_t) flags  
+-  anonymous struct flags  
 
 -  lvgl\_port\_cfg\_t lvgl_port_cfg  <br>LVGL port configuration
 
@@ -659,7 +658,7 @@ Brightness is controlled with PWM signal to a pin controlling backlight. Brightn
 * ESP\_ERR\_INVALID\_ARG Parameter error
 ### function `bsp_display_get_input_dev`
 
-_Get pointer to input device (touch, buttons, ...)_
+_Get pointer to input device (touch, buttons, ...)._
 ```c
 lv_indev_t * bsp_display_get_input_dev (
     void
@@ -778,7 +777,7 @@ This function initializes SPI, display controller and starts LVGL handling task.
 
 **Returns:**
 
-Pointer to LVGL display or NULL when error occured
+Pointer to LVGL display or NULL when error occurred
 ### function `bsp_display_start_with_config`
 
 _Initialize display._
@@ -801,7 +800,7 @@ This function initializes SPI, display controller and starts LVGL handling task.
 
 **Returns:**
 
-Pointer to LVGL display or NULL when error occured
+Pointer to LVGL display or NULL when error occurred
 ### function `bsp_display_unlock`
 
 _Give LVGL mutex._

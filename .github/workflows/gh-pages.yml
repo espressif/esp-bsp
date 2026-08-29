@@ -10,6 +10,10 @@ on:
       branches:
       - master
 
+permissions:
+  pages: write
+  id-token: write
+
 jobs:
 
   build-launchpad:
@@ -17,12 +21,12 @@ jobs:
       component_manager_ver: "2.2.*"
     strategy:
       matrix:
-        idf_ver: ["release-v5.4"]
+        idf_ver: ["release-v5.5"]
     runs-on: ubuntu-latest
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'recursive'
 
@@ -36,14 +40,14 @@ jobs:
       - name: Action for building binaries and config.toml
         env:
           IDF_EXTRA_ACTIONS_PATH: "${{ github.workspace }}/examples"
-        uses: espressif/idf-examples-launchpad-ci-action@v1.0.3
+        uses: espressif/idf-examples-launchpad-ci-action@v1.0.4
         with:
           idf_version: ${{ matrix.idf_ver }}
           parallel_count: 5
           config_file: examples/.idf_build_apps.toml
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: built_files
           path: binaries/
@@ -52,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0  # all git history
 
@@ -68,7 +72,7 @@ jobs:
           python .github/ci/release_checker.py > site/release_checker.html
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release_checker
           path: site/
@@ -89,13 +93,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download built files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: built_files
           path: binaries/
 
       - name: Download built files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release_checker
           path: site/
@@ -114,4 +118,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-

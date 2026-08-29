@@ -208,7 +208,7 @@ lv_color_blend_to_rgb565_esp:
     // dest_w      (a4) - 4-byte multiple
 
 
-    ee.zero.q   q1                                      // clear q1 
+    ee.zero.q   q1                                      // clear q1
     ee.orq      q1,    q1,   q0                         // copy q0 to q1
     sub         a6,    a6,   a11                        // dest_stride = dest_stride - dest_w_bytes
     movi.n      a7,    0xf                              // 0xf alignment mask

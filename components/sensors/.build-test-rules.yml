@@ -1,0 +1,11 @@
+components/sensors/aht30:
+  depends_filepatterns:
+    - "components/sensors/aht30/**"
+
+components/sensors/bmi270:
+  depends_filepatterns:
+    - "components/sensors/bmi270/**"
+
+components/sensors/icm42670:
+  depends_filepatterns:
+    - "components/sensors/icm42670/**"

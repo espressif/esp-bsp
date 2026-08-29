@@ -59,7 +59,7 @@ esp_err_t bh1750_power_on(bh1750_handle_t sensor);
  * @param[in] cmd_measure the instruction to set measurement mode
  *
  * @note
- *        You should call this funtion to set measurement mode before call bh1750_get_data() to acquire data.
+ *        You should call this function to set measurement mode before call bh1750_get_data() to acquire data.
  *        If you set onetime mode, you just can get one measurement result.
  *        If you set continuous mode, you can call bh1750_get_data() to acquire data repeatedly.
  *

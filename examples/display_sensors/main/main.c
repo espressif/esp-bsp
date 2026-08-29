@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -7,299 +7,244 @@
 /**
  * @file
  * @brief BSP Sensors Example
- * @details Display sensor data on a monochrome screen (LVGL)
- * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sensors-
+ * @details Acquire sensor data using the sensor hub component
+ * @example https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sensors
  */
 
 #include <stdio.h>
-#include "hts221.h"
-#include "mpu6050.h"
-#include "fbm320.h"
-#include "mag3110.h"
-#include "bh1750.h"
 #include "bsp/esp-bsp.h"
 #include "esp_log.h"
-#include "esp_timer.h"
-#include "sdmmc_cmd.h" // for sdmmc_card_print_info
-#include "esp_idf_version.h" // for backward compatibility of esp-timer
 
-// Enable SD card test
-#define EXAMPLE_TEST_SD_CARD 0
+#define IMU_SAMPLING_PERIOD             300
+#define HUMITURE_SAMPLING_PERIOD        500
 
 static const char *TAG = "example";
 
-// Display
-static lv_disp_t *disp = NULL;
-static lv_obj_t *main_screen = NULL;
-static lv_obj_t *main_label = NULL;
+#if BSP_CAPS_IMU
+static sensor_handle_t imu_sensor_handle = NULL;
+#endif
+#if BSP_CAPS_HUMITURE
+static sensor_handle_t humiture_sensor_handle = NULL;
+#endif
 
-static bh1750_handle_t bh1750_dev = NULL;
-static hts221_handle_t hts221_dev = NULL;
-static mpu6050_handle_t mpu6050_dev = NULL;
-static fbm320_handle_t fbm320_dev = NULL;
-static mag3110_handle_t mag3110_dev = NULL;
+#if BSP_CAPS_DISPLAY
+static lv_obj_t *acc_x_bar, *acc_y_bar, * acc_z_bar;
+static lv_obj_t *gyr_x_bar, *gyr_y_bar, * gyr_z_bar;
+static lv_style_t bar_style;
 
-static QueueHandle_t q_page_num;
-static uint8_t g_page_num = 0;
+#if BSP_CAPS_HUMITURE
+static lv_obj_t *chart = NULL;
+static lv_chart_series_t *temp_series = NULL;
+static lv_chart_series_t *humid_series = NULL;
 
-static mpu6050_acce_value_t acce;
-static mpu6050_gyro_value_t gyro;
-static complimentary_angle_t complimentary_angle;
+static void chart_add_value(lv_chart_series_t *series, const int32_t value);
+#endif
+#endif
 
-static void display_show_signs(void)
+static void sensor_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data)
 {
-    bsp_display_lock(0);
-    lv_obj_clean(main_screen);
-    lv_obj_t *label = lv_label_create(main_screen);
-    lv_label_set_text_static(label,
-                             LV_SYMBOL_WIFI"   "LV_SYMBOL_USB"   "LV_SYMBOL_BELL"   "LV_SYMBOL_GPS"   "LV_SYMBOL_BATTERY_EMPTY);
-    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_width(label, lv_display_get_physical_horizontal_resolution(disp));
-    lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
-    bsp_display_unlock();
-}
+    sensor_data_t *sensor_data = (sensor_data_t *)event_data;
 
-static void bh1750_init()
-{
-    bh1750_dev = bh1750_create(BSP_I2C_NUM, BH1750_I2C_ADDRESS_DEFAULT);
-    bh1750_power_on(bh1750_dev);
-    bh1750_set_measure_mode(bh1750_dev, BH1750_CONTINUE_4LX_RES);
-}
-
-static void app_hts221_init()
-{
-    hts221_dev = hts221_create(BSP_I2C_NUM);
-
-    const hts221_config_t hts221_config = {
-        .avg_h = HTS221_AVGH_32, .avg_t = HTS221_AVGT_16, .odr = HTS221_ODR_1HZ, .bdu_status = true
-    };
-    hts221_init(hts221_dev, &hts221_config);
-}
-
-static void mpu6050_init()
-{
-    mpu6050_dev = mpu6050_create(BSP_I2C_NUM, MPU6050_I2C_ADDRESS);
-    mpu6050_config(mpu6050_dev, ACCE_FS_4G, GYRO_FS_500DPS);
-    mpu6050_wake_up(mpu6050_dev);
-}
-
-static void app_fbm320_init()
-{
-    fbm320_dev = fbm320_create(BSP_I2C_NUM, FBM320_I2C_ADDRESS_1);
-    fbm320_init(fbm320_dev);
-}
-
-static void app_mag3110_init()
-{
-    // MAG3110 is started after its calibration in app_main
-    mag3110_dev = mag3110_create(BSP_I2C_NUM);
-}
-
-static void display_show_env_data(void)
-{
-    int16_t temp;
-    int16_t humi;
-    float lumi;
-
-    hts221_get_temperature(hts221_dev, &temp);
-    hts221_get_humidity(hts221_dev, &humi);
-    bh1750_get_data(bh1750_dev, &lumi);
-    ESP_LOGI(TAG, "temperature: %.1f, humidity: %.1f, luminance: %.1f", (float)temp / 10, (float)humi / 10, lumi);
-
-    bsp_display_lock(0);
-    lv_label_set_text_fmt(main_label, "Temp: %.1f\nHumi: %.1f\nLumi: %.1f", (float)temp / 10, (float)humi / 10, lumi);
-    lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_LEFT, 0);
-    bsp_display_unlock();
-}
-
-static void display_show_acce_data(void)
-{
-    ESP_LOGI(TAG, "acce_x:%.2f, acce_y:%.2f, acce_z:%.2f", acce.acce_x, acce.acce_y, acce.acce_z);
-
-    bsp_display_lock(0);
-    lv_label_set_text_fmt(main_label, "Acce_x: %.2f\nAcce_y: %.2f\nAcce_z: %.2f", acce.acce_x, acce.acce_y, acce.acce_z);
-    lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_LEFT, 0);
-    bsp_display_unlock();
-}
-
-static void display_show_gyro_data(void)
-{
-    ESP_LOGI(TAG, "gyro_x:%.2f, gyro_y:%.2f, gyro_z:%.2f", gyro.gyro_x, gyro.gyro_y, gyro.gyro_z);
-
-    bsp_display_lock(0);
-    lv_label_set_text_fmt(main_label, "Gyro_x: %.2f\nGyro_y: %.2f\nGyro_z: %.2f", gyro.gyro_x, gyro.gyro_y, gyro.gyro_z);
-    lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_LEFT, 0);
-    bsp_display_unlock();
-}
-
-static void display_show_complimentary_angle(void)
-{
-    ESP_LOGI(TAG, "roll:%.2f, pitch:%.2f", complimentary_angle.roll, complimentary_angle.pitch);
-
-    bsp_display_lock(0);
-    lv_label_set_text_fmt(main_label, "Roll: %.2f\nPitch: %.2f", complimentary_angle.roll, complimentary_angle.pitch);
-    lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_LEFT, 0);
-    bsp_display_unlock();
-}
-
-static void display_show_barometer_data(void)
-{
-    int32_t real_p, real_t;
-    float pressure, temperature;
-
-    if (ESP_OK == fbm320_get_data(fbm320_dev, FBM320_MEAS_PRESS_OSR_1024, &real_t, &real_p)) {
-        pressure = (float)real_p / 1000;
-        temperature = (float)real_t / 100;
-        ESP_LOGI(TAG, "pressure: %.1f, temperature: %.1f", pressure, temperature);
-
-        bsp_display_lock(0);
-        lv_label_set_text_fmt(main_label, "Press: %.1f\nTemp: %.1f", pressure, temperature);
-        lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_LEFT, 0);
-        bsp_display_unlock();
+    switch (id) {
+    case SENSOR_STARTED:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x STARTED",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr);
+        break;
+    case SENSOR_STOPED:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x STOPPED",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr);
+        break;
+    case SENSOR_HUMI_DATA_READY:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x HUMI_DATA_READY - "
+                 "humidity=%.2f",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr,
+                 sensor_data->humidity);
+#if BSP_CAPS_DISPLAY & BSP_CAPS_HUMITURE
+        chart_add_value(humid_series, (int32_t)(sensor_data->humidity * 10.0f));
+#endif
+        break;
+    case SENSOR_TEMP_DATA_READY:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x TEMP_DATA_READY - "
+                 "temperature=%.2f",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr,
+                 sensor_data->temperature);
+#if BSP_CAPS_DISPLAY & BSP_CAPS_HUMITURE
+        chart_add_value(temp_series, (int32_t)(sensor_data->temperature * 10.0f));
+#endif
+        break;
+    case SENSOR_ACCE_DATA_READY:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x ACCE_DATA_READY - "
+                 "acce_x=%.2f, acce_y=%.2f, acce_z=%.2f",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr,
+                 sensor_data->acce.x, sensor_data->acce.y, sensor_data->acce.z);
+#if BSP_CAPS_DISPLAY & BSP_CAPS_IMU
+        lv_bar_set_value(acc_x_bar, (int32_t)(sensor_data->acce.x * 10.0f), LV_ANIM_OFF);
+        lv_bar_set_value(acc_y_bar, (int32_t)(sensor_data->acce.y * 10.0f), LV_ANIM_OFF);
+        lv_bar_set_value(acc_z_bar, (int32_t)(sensor_data->acce.z * 10.0f), LV_ANIM_OFF);
+#endif
+        break;
+    case SENSOR_GYRO_DATA_READY:
+        ESP_LOGI(TAG, "Timestamp = %llu - %s_0x%x GYRO_DATA_READY - "
+                 "gyro_x=%.2f, gyro_y=%.2f, gyro_z=%.2f",
+                 sensor_data->timestamp,
+                 sensor_data->sensor_name,
+                 sensor_data->sensor_addr,
+                 sensor_data->gyro.x, sensor_data->gyro.y, sensor_data->gyro.z);
+#if BSP_CAPS_DISPLAY & BSP_CAPS_IMU
+        lv_bar_set_value(gyr_x_bar, (int32_t)(sensor_data->gyro.x * 10.0f), LV_ANIM_OFF);
+        lv_bar_set_value(gyr_y_bar, (int32_t)(sensor_data->gyro.y * 10.0f), LV_ANIM_OFF);
+        lv_bar_set_value(gyr_z_bar, (int32_t)(sensor_data->gyro.z * 10.0f), LV_ANIM_OFF);
+#endif
+        break;
+    default:
+        ESP_LOGI(TAG, "Timestamp = %" PRIi64 " - event id = %" PRIi32, sensor_data->timestamp, id);
+        break;
     }
 }
 
-static void display_show_magmeter_data(void)
+#if BSP_CAPS_DISPLAY & BSP_CAPS_HUMITURE
+static void chart_add_value(lv_chart_series_t *series, const int32_t value)
 {
-    mag3110_result_t mag_induction;
-
-    mag3110_get_magnetic_induction(mag3110_dev, &mag_induction);
-    ESP_LOGI(TAG, "mag_x:%i, mag_y:%i, mag_z:%i", mag_induction.x, mag_induction.y, mag_induction.z);
-
-    bsp_display_lock(0);
-    lv_label_set_text_fmt(main_label, "Mag_x: %5i\nMag_y: %5i\nMag_z: %5i", mag_induction.x, mag_induction.y,
-                          mag_induction.z);
-    lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_LEFT, 0);
-    bsp_display_unlock();
+    assert(chart != NULL);
+    assert(series != NULL);
+    lv_chart_set_next_value(chart, series, value);
+    uint32_t p = lv_chart_get_point_count(chart);
+    uint32_t s = lv_chart_get_x_start_point(chart, series);
+    int32_t *a = lv_chart_get_series_y_array(chart, series);
+    a[(s + 1) % p] = LV_CHART_POINT_NONE;
+    a[(s + 2) % p] = LV_CHART_POINT_NONE;
+    lv_chart_refresh(chart);
 }
 
-static void display_show_task(void *pvParameters)
+static void chart_init(lv_obj_t *scr)
 {
-    uint8_t page_num = 0;
-    while (1) {
-        bsp_led_set(BSP_LED_AZURE, false);
-        bsp_buzzer_set(false);
+    chart = lv_chart_create(scr);
+    lv_chart_set_update_mode(chart, LV_CHART_UPDATE_MODE_CIRCULAR);
+    lv_obj_set_style_size(chart, 0, 0, LV_PART_INDICATOR);
+    lv_obj_set_size(chart, BSP_LCD_H_RES, (BSP_LCD_V_RES * 2) / 5);
+    lv_obj_align(chart, LV_ALIGN_TOP_MID, 0, BSP_LCD_V_RES / 10);
 
-        if (xQueueReceive(q_page_num, &page_num, 1000 / portTICK_PERIOD_MS) == pdTRUE) {
-            // Turn on LED and Buzzer when button is pressed
-            bsp_led_set(BSP_LED_AZURE, true);
-            bsp_buzzer_set(true);
-        }
+    lv_chart_set_point_count(chart, 250);
+    lv_chart_set_axis_range(chart, LV_CHART_AXIS_PRIMARY_Y, 100, 400);
+    lv_chart_set_axis_range(chart, LV_CHART_AXIS_SECONDARY_Y, 0, 1000);
+    lv_chart_set_div_line_count(chart, 5, 0);
 
-        switch (page_num) {
-        case 0:
-            display_show_env_data();
-            break;
-        case 1:
-            display_show_acce_data();
-            break;
-        case 2:
-            display_show_gyro_data();
-            break;
-        case 3:
-            display_show_complimentary_angle();
-            break;
-        case 4:
-            display_show_barometer_data();
-            break;
-        case 5:
-            display_show_magmeter_data();
-            break;
-        default:
-            break;
-        }
-    }
+    temp_series = lv_chart_add_series(chart, lv_palette_main(LV_PALETTE_RED), LV_CHART_AXIS_PRIMARY_Y);
+    humid_series = lv_chart_add_series(chart, lv_palette_main(LV_PALETTE_BLUE), LV_CHART_AXIS_SECONDARY_Y);
+
+    lv_obj_t *chart_label = lv_label_create(scr);
+    lv_label_set_recolor(chart_label, true);
+    lv_label_set_text_static(chart_label, "#ff0000 Temperature#");
+    lv_obj_align(chart_label, LV_ALIGN_TOP_LEFT, BSP_LCD_H_RES / 8, BSP_LCD_V_RES / 32);
+    chart_label = lv_label_create(scr);
+    lv_label_set_recolor(chart_label, true);
+    lv_label_set_text_static(chart_label, "#0000ff Humidity#");
+    lv_obj_align(chart_label, LV_ALIGN_TOP_RIGHT, -BSP_LCD_H_RES / 8, BSP_LCD_V_RES / 32);
+}
+#endif
+
+#if BSP_CAPS_DISPLAY & BSP_CAPS_IMU
+static lv_obj_t *imu_bars_new(lv_obj_t *scr, const lv_style_t *style, const uint32_t range)
+{
+    lv_obj_t *bar = lv_bar_create(scr);
+    lv_bar_set_range(bar, -range, range);
+    lv_bar_set_mode(bar, LV_BAR_MODE_SYMMETRICAL);
+    lv_obj_add_style(bar, style, 0);
+    return bar;
 }
 
-static void mpu6050_read(void *pvParameters)
+static void imu_create_axis_label(lv_obj_t *bar, const char *text)
 {
-    mpu6050_get_acce(mpu6050_dev, &acce);
-    mpu6050_get_gyro(mpu6050_dev, &gyro);
-    mpu6050_complimentory_filter(mpu6050_dev, &acce, &gyro, &complimentary_angle);
+    lv_obj_t *bar_label;
+    bar_label = lv_label_create(lv_obj_get_screen(bar));
+    lv_label_set_text_static(bar_label, text);
+    lv_obj_align_to(bar_label, bar, LV_ALIGN_OUT_LEFT_MID, -BSP_LCD_H_RES / 32, 0);
 }
 
-static void btn_handler(void *button_handle, void *usr_data)
+static void imu_bars_init(lv_obj_t *scr)
 {
-    if (++g_page_num >= 6) {
-        g_page_num = 0;
-    }
-    xQueueSend(q_page_num, &g_page_num, 0);
+    lv_obj_t *static_label;
+
+    lv_style_init(&bar_style);
+    lv_style_set_width(&bar_style, BSP_LCD_H_RES / 3);
+    lv_style_set_height(&bar_style, BSP_LCD_V_RES / 16);
+
+    acc_x_bar = imu_bars_new(scr, &bar_style, 15);
+    acc_y_bar = imu_bars_new(scr, &bar_style, 15);
+    acc_z_bar = imu_bars_new(scr, &bar_style, 15);
+    lv_obj_align(acc_z_bar, LV_ALIGN_BOTTOM_LEFT, BSP_LCD_H_RES / 8, -BSP_LCD_V_RES / 16);
+    lv_obj_align_to(acc_y_bar, acc_z_bar, LV_ALIGN_OUT_TOP_MID, 0, -BSP_LCD_V_RES / 16);
+    lv_obj_align_to(acc_x_bar, acc_y_bar, LV_ALIGN_OUT_TOP_MID, 0, -BSP_LCD_V_RES / 16);
+
+    static_label = lv_label_create(scr);
+    lv_label_set_text_static(static_label, "Accelerometer");
+    lv_obj_align_to(static_label, acc_x_bar, LV_ALIGN_OUT_TOP_MID, 0, -BSP_LCD_V_RES / 32);
+    imu_create_axis_label(acc_x_bar, "X");
+    imu_create_axis_label(acc_y_bar, "Y");
+    imu_create_axis_label(acc_z_bar, "Z");
+
+    gyr_x_bar = imu_bars_new(scr, &bar_style, 5000);
+    gyr_y_bar = imu_bars_new(scr, &bar_style, 5000);
+    gyr_z_bar = imu_bars_new(scr, &bar_style, 5000);
+    lv_obj_align(gyr_z_bar, LV_ALIGN_BOTTOM_RIGHT, -BSP_LCD_H_RES / 16, -BSP_LCD_V_RES / 16);
+    lv_obj_align_to(gyr_y_bar, gyr_z_bar, LV_ALIGN_OUT_TOP_MID, 0, -BSP_LCD_V_RES / 16);
+    lv_obj_align_to(gyr_x_bar, gyr_y_bar, LV_ALIGN_OUT_TOP_MID, 0, -BSP_LCD_V_RES / 16);
+
+    static_label = lv_label_create(scr);
+    lv_label_set_text_static(static_label, "Gyroscope");
+    lv_obj_align_to(static_label, gyr_x_bar, LV_ALIGN_OUT_TOP_MID, 0, -BSP_LCD_V_RES / 32);
+    imu_create_axis_label(gyr_x_bar, "X");
+    imu_create_axis_label(gyr_y_bar, "Y");
+    imu_create_axis_label(gyr_z_bar, "Z");
 }
+#endif
 
 void app_main(void)
 {
-    // Init all board components
-    bsp_i2c_init();
-    disp = bsp_display_start();
-    bh1750_init();
-    app_hts221_init();
-    mpu6050_init();
-    app_fbm320_init();
-    app_mag3110_init();
-    bsp_leds_init();
-    bsp_buzzer_init();
-
-#if EXAMPLE_TEST_SD_CARD
-    // Mount uSD card, light up WiFi LED on success
-    if (ESP_OK == bsp_sdcard_mount()) {
-        bsp_led_set(BSP_LED_WIFI, true); // Signal successful SD card access
-        sdmmc_card_t *sdcard = bsp_sdcard_get_handle();
-        sdmmc_card_print_info(stdout, sdcard);
-        FILE *f = fopen(BSP_SD_MOUNT_POINT "/hello.txt", "w");
-        fprintf(f, "Hello %s!\n", sdcard->cid.name);
-        fclose(f);
-        bsp_sdcard_unmount();
-    }
+#if BSP_CAPS_DISPLAY
+    bsp_display_start();
+    bsp_display_lock(0);
+    lv_obj_t *main_scr = lv_screen_active();
+#if BSP_CAPS_HUMITURE
+    chart_init(main_scr);
+#endif
+#if BSP_CAPS_IMU
+    imu_bars_init(main_scr);
+#endif
+    bsp_display_unlock();
+    bsp_display_backlight_on();
 #endif
 
-    main_screen = lv_disp_get_scr_act(NULL);
-
-    // Show icons
-    display_show_signs();
-
-    // Display text
-    bsp_display_lock(0);
-    main_label = lv_label_create(main_screen);
-    lv_label_set_text_static(main_label, "Magnetometer\ncalibration");
-    lv_obj_set_style_text_align(main_label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_width(main_label, lv_display_get_physical_horizontal_resolution(disp));
-    lv_obj_align(main_label, LV_ALIGN_TOP_MID, 0, 15);
-    bsp_display_unlock();
-
-    // Start magnetometer calibrating procedure
-    mag3110_calibrate(mag3110_dev, 10000);
-    bsp_display_lock(0);
-    lv_label_set_text_static(main_label, "Magnetometer\ncalibration\nDone!");
-    bsp_display_unlock();
-    mag3110_start(mag3110_dev, MAG3110_DR_OS_10_128); // Magnetometer is stopped after calibration; it must be started here
-
-    // Create FreeRTOS tasks and queues
-    q_page_num = xQueueCreate(10, sizeof(uint8_t));
-    xTaskCreate(display_show_task, "display_show_task", 2048 * 2, NULL, 5, NULL);
-
-    // In order to get accurate calculation of complimentary angle we need fast reading (5ms)
-    // FreeRTOS resolution is 10ms, so esp_timer is used
-    const esp_timer_create_args_t cal_timer_config = {
-        .callback = mpu6050_read,
-        .arg = NULL,
-        .name = "MPU6050 timer",
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0)
-        .skip_unhandled_events = true,
-#endif
-        .dispatch_method = ESP_TIMER_TASK
+#if BSP_CAPS_IMU
+    bsp_sensor_config_t imu_config = {
+        .type = IMU_ID,
+        .mode = MODE_POLLING,
+        .period = IMU_SAMPLING_PERIOD
     };
-    esp_timer_handle_t cal_timer = NULL;
-    esp_timer_create(&cal_timer_config, &cal_timer);
-    esp_timer_start_periodic(cal_timer, 5000); // 5ms
-
-    /* Init buttons */
-    button_handle_t btns[BSP_BUTTON_NUM];
-    ESP_ERROR_CHECK(bsp_iot_button_create(btns, NULL, BSP_BUTTON_NUM));
-    for (int i = 0; i < BSP_BUTTON_NUM; i++) {
-#if BUTTON_VER_MAJOR >= 4
-        ESP_ERROR_CHECK(iot_button_register_cb(btns[i], BUTTON_PRESS_DOWN, NULL, btn_handler, (void *) i));
-#else
-        ESP_ERROR_CHECK(iot_button_register_cb(btns[i], BUTTON_PRESS_DOWN, btn_handler, (void *) i));
+    ESP_ERROR_CHECK(bsp_sensor_init(&imu_config, &imu_sensor_handle));
+    iot_sensor_handler_register(imu_sensor_handle, sensor_event_handler, NULL);
+    iot_sensor_start(imu_sensor_handle);
 #endif
-    }
+
+#if BSP_CAPS_HUMITURE
+    bsp_sensor_config_t humiture_config = {
+        .type = HUMITURE_ID,
+        .mode = MODE_POLLING,
+        .period = HUMITURE_SAMPLING_PERIOD
+    };
+
+    ESP_ERROR_CHECK(bsp_sensor_init(&humiture_config, &humiture_sensor_handle));
+    iot_sensor_handler_register(humiture_sensor_handle, sensor_event_handler, NULL);
+    iot_sensor_start(humiture_sensor_handle);
+#endif
 }

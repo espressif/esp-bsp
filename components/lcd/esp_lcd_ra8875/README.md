@@ -2,7 +2,7 @@
 
 [![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_ra8875/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_ra8875)
 
-Implementation of the RA8875 LCD controller with esp_lcd component. 
+Implementation of the RA8875 LCD controller with esp_lcd component.
 
 | LCD controller | Communication interface | Component name | Link to datasheet |
 | :------------: | :---------------------: | :------------: | :---------------: |
@@ -11,7 +11,7 @@ Implementation of the RA8875 LCD controller with esp_lcd component.
 ## Add to project
 
 Packages from this repository are uploaded to [Espressif's component service](https://components.espressif.com/).
-You can add them to your project via `idf.py add-dependancy`, e.g. 
+You can add them to your project via `idf.py add-dependancy`, e.g.
 ```
     idf.py add-dependency esp_lcd_ra8875==1.0.0
 ```
@@ -33,7 +33,7 @@ Alternatively, you can create `idf_component.yml`. More is in [Espressif's docum
 
 For detailed usage, please go to [LCD documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html).
 
-## Example initialization 
+## Example initialization
 
 ```
 esp_lcd_i80_bus_handle_t i80_bus = NULL;

@@ -2,4 +2,4 @@ version: "1.0.1"
 description: ESP LCD RA8875
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_ra8875
 dependencies:
-  idf: ">=4.4"
+  idf: ">=5.2"

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -30,10 +30,10 @@ typedef enum {
 } mpu6050_acce_fs_t;
 
 typedef enum {
-    GYRO_FS_250DPS  = 0,     /*!< Gyroscope full scale range is +/- 250 degree per sencond */
-    GYRO_FS_500DPS  = 1,     /*!< Gyroscope full scale range is +/- 500 degree per sencond */
-    GYRO_FS_1000DPS = 2,     /*!< Gyroscope full scale range is +/- 1000 degree per sencond */
-    GYRO_FS_2000DPS = 3,     /*!< Gyroscope full scale range is +/- 2000 degree per sencond */
+    GYRO_FS_250DPS  = 0,     /*!< Gyroscope full scale range is +/- 250 degree per second */
+    GYRO_FS_500DPS  = 1,     /*!< Gyroscope full scale range is +/- 500 degree per second */
+    GYRO_FS_1000DPS = 2,     /*!< Gyroscope full scale range is +/- 1000 degree per second */
+    GYRO_FS_2000DPS = 3,     /*!< Gyroscope full scale range is +/- 2000 degree per second */
 } mpu6050_gyro_fs_t;
 
 typedef enum {

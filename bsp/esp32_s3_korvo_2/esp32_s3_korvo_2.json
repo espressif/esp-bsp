@@ -1,0 +1,388 @@
+{
+    "BSP_NAME": "ESP32-S3-Korvo-2",
+    "BSP_URL": "https://github.com/espressif/esp-bsp/tree/master/bsp/esp32_s3_korvo_2",
+    "BSP_HW_LINK": "https://espressif-docs.readthedocs-hosted.com/projects/esp-adf/en/latest/design-guide/dev-boards/user-guide-esp32-s3-korvo-2.html",
+    "BSP_DESC_LONG": "The ESP32-S3-Korvo-2 is a multimedia development board based on the ESP32-S3 chip. It is equipped with a two-microphone array which is suitable for voice recognition and near/far-field voice wake-up applications. The board integrates multiple peripherals such as LCD, camera, and microSD card. It also supports JPEG video stream processing. With all of its outstanding features, the board is an ideal choice for the development of low-cost and low-power network-connected audio and video products.",
+    "BSP_MCU": "esp32s3",
+    "BSP_GEN_NOGLIB": "true",
+    "BSP_FEATURES": [
+        {
+            "name": "I2C",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "pins": {
+                "BSP_I2C_SCL": "GPIO_NUM_18",
+                "BSP_I2C_SDA": "GPIO_NUM_17"
+            },
+            "BSP_I2C_PULLUP_EN": "true"
+        },
+        {
+            "name": "I2S",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_I2S_SAMPLE_RATE": "22050",
+            "BSP_I2S_MODE": "STD",
+            "BSP_I2S_SLOT_MODE": "I2S_SLOT_MODE_MONO",
+            "pins": {
+                "BSP_I2S_MCLK": "GPIO_NUM_16",
+                "BSP_I2S_SCLK": "GPIO_NUM_9",
+                "BSP_I2S_LCLK": "GPIO_NUM_45",
+                "BSP_I2S_DOUT": "GPIO_NUM_8",
+                "BSP_I2S_DSIN": "GPIO_NUM_10"
+            }
+        },
+        {
+            "name": "ADC",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_ADC_UNIT": "ADC_UNIT_1"
+        },
+        {
+            "name": "IO_EXPANDER",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "interface": "I2C",
+            "BSP_IO_EXPANDER_ADDRESS": "ESP_IO_EXPANDER_I2C_TCA9554A_ADDRESS_000",
+            "driver": "espressif/esp_io_expander_tca9554",
+            "BSP_IO_EXPANDER_MAP_GPIO": "true",
+            "DRIVER": "tca9554",
+            "DRIVER_NAMESPACE": "espressif"
+        },
+        {
+            "name": "SPIFFS",
+            "enabled": [
+                "true",
+                "true"
+            ]
+        },
+        {
+            "name": "SD",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "interface": "MMC",
+            "pins": {
+                "BSP_SD_D0": "GPIO_NUM_4",
+                "BSP_SD_D1": "GPIO_NUM_NC",
+                "BSP_SD_D2": "GPIO_NUM_NC",
+                "BSP_SD_D3": "GPIO_NUM_NC",
+                "BSP_SD_CMD": "GPIO_NUM_7",
+                "BSP_SD_CLK": "GPIO_NUM_15",
+                "BSP_SD_DET": "GPIO_NUM_NC"
+            },
+            "BSP_FEATURE_SD_TYPE": "",
+            "SPI_WIDTH": 1
+        },
+        {
+            "name": "DISPLAY",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "interface": "SPI",
+            "driver": "espressif/esp_lcd_ili9341",
+            "BSP_LCD_H_RES": "320",
+            "BSP_LCD_V_RES": "240",
+            "BSP_LCD_MIRROR_X": "true",
+            "BSP_LCD_MIRROR_Y": "true",
+            "BSP_LCD_PIXEL_CLOCK_MHZ": "40",
+            "BSP_LCD_BITS_PER_PIXEL": "16",
+            "BSP_LCD_BIGENDIAN": "true",
+            "BSP_LCD_COLOR_FORMAT": "ESP_LCD_COLOR_FORMAT_RGB565",
+            "BSP_LCD_COLOR_SPACE": "LCD_RGB_ELEMENT_ORDER_BGR",
+            "BSP_LCD_SPI_NUM": "SPI3_HOST",
+            "pins": {
+                "BSP_LCD_PCLK": "GPIO_NUM_1",
+                "BSP_LCD_DATA0": "GPIO_NUM_0",
+                "BSP_LCD_DC": "GPIO_NUM_2",
+                "BSP_LCD_CS": "GPIO_NUM_NC",
+                "BSP_LCD_RST": "51",
+                "BSP_LCD_BACKLIGHT": "50",
+                "BSP_LCD_EN": "IO_EXPANDER_PIN_NUM_3"
+            },
+            "BSP_LCD_BACKLIGHT_LEVEL": "true",
+            "BSP_LCD_INIT_CMDS": "",
+            "BSP_FEATURE_LCD_TYPE": "IO_Expander",
+            "DRIVER": "ili9341",
+            "DRIVER_NAMESPACE": "espressif"
+        },
+        {
+            "name": "SCREEN_TOUCH",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "interface": "I2C",
+            "driver": "espressif/esp_lcd_touch_tt21100",
+            "BSP_LCD_TOUCH_MIRROR_X": "true",
+            "pins": {
+                "BSP_LCD_TOUCH_INT": "GPIO_NUM_NC",
+                "BSP_TOUCH_EN": "IO_EXPANDER_PIN_NUM_3"
+            },
+            "BSP_FEATURE_TOUCH_TYPE": "IO_Expander",
+            "DRIVER": "tt21100",
+            "DRIVER_NAMESPACE": "espressif",
+            "CFG": "ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG()"
+        },
+        {
+            "name": "AUDIO_SPEAKER",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_AUDIO_SPEAKER_CODEC": "ES8311",
+            "pins": {
+                "BSP_POWER_AMP_IO": "GPIO_NUM_48"
+            },
+            "BSP_FEATURE_SPEAKER_TYPE": "",
+            "CODEC": "es8311"
+        },
+        {
+            "name": "AUDIO_MIC",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_AUDIO_MIC_CODEC": "ES7210",
+            "BSP_FEATURE_MIC_TYPE": "",
+            "CODEC": "es7210"
+        },
+        {
+            "name": "CAMERA",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "interface": "DVP",
+            "driver": "OV3660",
+            "BSP_CAMERA_XCLK_CLOCK_MHZ": "20",
+            "pins": {
+                "BSP_CAMERA_GPIO_XCLK": "GPIO_NUM_40",
+                "BSP_CAMERA_RST": "GPIO_NUM_NC",
+                "BSP_CAMERA_PCLK": "GPIO_NUM_11",
+                "BSP_CAMERA_VSYNC": "GPIO_NUM_21",
+                "BSP_CAMERA_HSYNC": "GPIO_NUM_38",
+                "BSP_CAMERA_D0": "GPIO_NUM_13",
+                "BSP_CAMERA_D1": "GPIO_NUM_47",
+                "BSP_CAMERA_D2": "GPIO_NUM_14",
+                "BSP_CAMERA_D3": "GPIO_NUM_3",
+                "BSP_CAMERA_D4": "GPIO_NUM_12",
+                "BSP_CAMERA_D5": "GPIO_NUM_42",
+                "BSP_CAMERA_D6": "GPIO_NUM_41",
+                "BSP_CAMERA_D7": "GPIO_NUM_39"
+            },
+            "BSP_FEATURE_CAMERA_TYPE": "",
+            "BSP_CAMERA_DEVICE": "ESP_VIDEO_DVP_DEVICE_NAME",
+            "DATA_WIDTH": 8
+        },
+        {
+            "name": "BUTTON",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_BUTTON_NUM": "6",
+            "BSP_BUTTON_ADC_CHANNEL": "ADC_CHANNEL_4",
+            "BSP_BUTTON_1_NAME": "REC",
+            "BSP_BUTTON_1_TYPE": "ADC",
+            "BSP_BUTTON_1_ADC_VALUE": "2410",
+            "BSP_BUTTON_2_NAME": "MUTE",
+            "BSP_BUTTON_2_TYPE": "ADC",
+            "BSP_BUTTON_2_ADC_VALUE": "1980",
+            "BSP_BUTTON_3_NAME": "PLAY",
+            "BSP_BUTTON_3_TYPE": "ADC",
+            "BSP_BUTTON_3_ADC_VALUE": "1650",
+            "BSP_BUTTON_4_NAME": "SET",
+            "BSP_BUTTON_4_TYPE": "ADC",
+            "BSP_BUTTON_4_ADC_VALUE": "1110",
+            "BSP_BUTTON_5_NAME": "VOLDOWN",
+            "BSP_BUTTON_5_TYPE": "ADC",
+            "BSP_BUTTON_5_ADC_VALUE": "820",
+            "BSP_BUTTON_6_NAME": "VOLUP",
+            "BSP_BUTTON_6_TYPE": "ADC",
+            "BSP_BUTTON_6_ADC_VALUE": "380"
+        },
+        {
+            "name": "LED",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_LEDS_TYPE": "GPIO",
+            "BSP_LEDS_NUM": "2",
+            "BSP_LED_1_NAME": "RED",
+            "pins": {
+                "BSP_LED_1_IO": "55",
+                "BSP_LED_2_IO": "56"
+            },
+            "BSP_LED_1_LEVEL": "true",
+            "BSP_LED_2_NAME": "BLUE",
+            "BSP_LED_2_LEVEL": "true"
+        },
+        {
+            "name": "BATTERY",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_BATTERY_VOLTAGE_CHANNEL": "ADC_CHANNEL_5",
+            "BSP_BATTERY_VOLTAGE_DIV": "4"
+        }
+    ],
+    "I2C_CNT": 2,
+    "I2S_CNT": 2,
+    "BSP_VALID_NAME": "esp32_s3_korvo_2",
+    "BSP_BOARDNAME": "BSP_BOARD_ESP32_S3_KORVO_2",
+    "BSP_CAPS": [
+        {
+            "name": "BSP_CAPS_DISPLAY",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_TOUCH",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_BUTTONS",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_KNOB",
+            "enabled": "0"
+        },
+        {
+            "name": "BSP_CAPS_AUDIO",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_AUDIO_SPEAKER",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_AUDIO_MIC",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_SDCARD",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_LED",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_CAMERA",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_BAT",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_IMU",
+            "enabled": "0"
+        }
+    ],
+    "BSP_DEPENDENCIES": [
+        {
+            "name": "esp_codec_dev",
+            "version": "~1.5",
+            "public": "true",
+            "min_idf": "4.0"
+        },
+        {
+            "name": "espressif/esp_io_expander_tca9554",
+            "version": "*",
+            "public": "true",
+            "min_idf": "0"
+        },
+        {
+            "name": "espressif/esp_lvgl_port",
+            "version": "^2",
+            "public": "true",
+            "min_idf": "5.1"
+        },
+        {
+            "name": "espressif/esp_lcd_ili9341",
+            "version": "*",
+            "public": "false",
+            "min_idf": "0"
+        },
+        {
+            "name": "espressif/esp_lcd_touch_tt21100",
+            "version": "*",
+            "public": "false",
+            "min_idf": "0"
+        },
+        {
+            "name": "esp_video",
+            "version": "~2.0",
+            "public": "true",
+            "min_idf": "5.4"
+        },
+        {
+            "name": "button",
+            "version": "^4",
+            "public": "true",
+            "min_idf": "4.0"
+        },
+        {
+            "name": "led_indicator",
+            "version": "^2",
+            "public": "true",
+            "min_idf": "5.0"
+        }
+    ],
+    "BSP_REQUIRES": [
+        "esp_driver_i2c",
+        "esp_driver_i2s",
+        "spiffs",
+        "fatfs",
+        "vfs",
+        "esp_driver_sdspi",
+        "esp_driver_sdmmc"
+    ],
+    "BSP_PRIV_REQUIRES": [
+        "esp_lcd",
+        "esp_driver_ledc"
+    ],
+    "MIN_IDF_VER": "5.4",
+    "BSP_FEATURE_EN": [
+        {
+            "name": "BSP_FEATURE_LCD",
+            "type": "IO_Expander",
+            "pin": "BSP_LCD_EN",
+            "level": null
+        },
+        {
+            "name": "BSP_FEATURE_TOUCH",
+            "type": "IO_Expander",
+            "pin": "BSP_TOUCH_EN",
+            "level": null
+        }
+    ],
+    "YEAR": 2026,
+    "BSP_SRC_FILES": [
+        "src/bsp_adc.c",
+        "src/bsp_audio.c",
+        "src/bsp_battery.c",
+        "src/bsp_button.c",
+        "src/bsp_camera.c",
+        "src/bsp_display.c",
+        "src/bsp_i2c.c",
+        "src/bsp_io_expander.c",
+        "src/bsp_led.c",
+        "src/bsp_storage.c",
+        "src/bsp_feature_en.c"
+    ],
+    "NOGLIB": 1
+}

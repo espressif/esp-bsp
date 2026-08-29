@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -42,16 +42,17 @@ esp_err_t esp_lcd_touch_new_i2c_tt21100(const esp_lcd_panel_io_handle_t io, cons
  * @brief Touch IO configuration structure
  *
  */
-#define ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG()           \
-    {                                       \
-        .dev_addr = ESP_LCD_TOUCH_IO_I2C_TT21100_ADDRESS, \
-        .control_phase_bytes = 1,           \
-        .dc_bit_offset = 0,                 \
-        .lcd_cmd_bits = 16,                  \
-        .flags =                            \
-        {                                   \
-            .disable_control_phase = 1,     \
-        }                                   \
+#define ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG()               \
+    {                                                       \
+        .dev_addr = ESP_LCD_TOUCH_IO_I2C_TT21100_ADDRESS,   \
+        .scl_speed_hz = 100000,                             \
+        .control_phase_bytes = 1,                           \
+        .dc_bit_offset = 0,                                 \
+        .lcd_cmd_bits = 16,                                 \
+        .flags =                                            \
+        {                                                   \
+            .disable_control_phase = 1,                     \
+        }                                                   \
     }
 
 #ifdef __cplusplus

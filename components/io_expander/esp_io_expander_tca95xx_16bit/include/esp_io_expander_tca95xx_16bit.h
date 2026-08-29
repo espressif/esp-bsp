@@ -39,7 +39,7 @@ esp_err_t esp_io_expander_new_i2c_tca95xx_16bit(i2c_master_bus_handle_t i2c_bus,
  *  |  1  |  1  |  1  |  0  |  1  | A1  | A0  | R/W |
  *  └─────┘─────┘─────┘─────┘─────┘─────┘─────┘─────┘
  *     └────────┯──────────────┘     └──┯──┘
- *           (Fixed)        (Hareware Selectable)
+ *           (Fixed)        (Hardware Selectable)
  *
  * The 8-bit address format for the TCA9555 is as follows:
  *
@@ -49,7 +49,7 @@ esp_err_t esp_io_expander_new_i2c_tca95xx_16bit(i2c_master_bus_handle_t i2c_bus,
  *  |  0  |  1  |  0  |  0  | A2  | A1  | A0  | R/W |
  *  └─────┘─────┘─────┘─────┘─────┘─────┘─────┘─────┘
  *     └────────┯────────┘     └─────┯──────┘
- *           (Fixed)        (Hareware Selectable)
+ *           (Fixed)        (Hardware Selectable)
  *
  * And the 7-bit slave address is the most important data for users.
  * For example, if a TCA9555 chip's A0,A1,A2 are connected to GND, it's 7-bit slave address is 0b0100000.

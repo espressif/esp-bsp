@@ -18,7 +18,7 @@ C driver for Invensense MPU6050 6-axis gyroscope and accelerometer based on I2C 
 ## Important Notes
 
 - Keep in mind that MPU6050 I2C address depends on the level of its AD0 pin (9) (0x68 when low, 0x69 when high).
-- In order to receive MPU6050 interrupts, its INT pin (12) must be conneced to a GPIO on the ESP32.
+- In order to receive MPU6050 interrupts, its INT pin (12) must be connected to a GPIO on the ESP32.
 
 ## Limitations
 
@@ -38,6 +38,5 @@ This driver, along with many other components from this repository, can be used 
 Another option is to manually create a `idf_component.yml` file. You can find more about using .yml files for components from [Espressif's documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html).
 
 ## See Also
-* [Sensors example, including the MPU6050 driver](https://github.com/espressif/esp-bsp/tree/master/examples/display_sensors)
 * [MPU6050 datasheet](https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf)
 * [MPU6000 and MPU6050 register map](https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Register-Map1.pdf)

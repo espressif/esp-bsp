@@ -28,7 +28,7 @@ repos:
           - 'check_copyright_config.yaml'
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 5.0.4
+    rev: 7.3.0
     hooks:
       - id: flake8
         types:
@@ -37,6 +37,7 @@ repos:
           - '--config=.flake8'
           - '--tee'
           - '--benchmark'
+          - '--verbose'
 
   - repo: local
     hooks:
@@ -76,10 +77,14 @@ repos:
         types_or:
           - c
           - c++
+          - text
+        exclude: ^bsp/.*/API\.md$
       - id: end-of-file-fixer
         types_or:
           - c
           - c++
+          - text
+        exclude: ^bsp/.*/API\.md$
       - id: check-merge-conflict
       - id: mixed-line-ending
         types_or:
@@ -91,7 +96,7 @@ repos:
         description: Forces to replace line ending by the UNIX 'lf' character
 
   - repo: https://github.com/espressif/doxybook
-    rev: v0.2.4
+    rev: v0.3.1
     hooks:
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp_wrover_kit", "-i", "bsp/esp_wrover_kit/doxygen/xml", "-o", "bsp/esp_wrover_kit/API.md"]
@@ -156,3 +161,21 @@ repos:
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/m5stack_tab5", "-i", "bsp/m5stack_tab5/doxygen/xml", "-o", "bsp/m5stack_tab5/API.md"]
         files: ^bsp/m5stack_tab5/
+      - id: doxygen-api-md
+        args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp_vocat", "-i", "bsp/esp_vocat/doxygen/xml", "-o", "bsp/esp_vocat/API.md"]
+        files: ^bsp/esp_vocat/
+      - id: doxygen-api-md
+        args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp32_s31_korvo_1", "-i", "bsp/esp32_s31_korvo_1/doxygen/xml", "-o", "bsp/esp32_s31_korvo_1/API.md"]
+        files: ^bsp/esp32_s31_korvo_1/
+      - id: doxygen-api-md
+        args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp_sensairshuttle", "-i", "bsp/esp_sensairshuttle/doxygen/xml", "-o", "bsp/esp_sensairshuttle/API.md"]
+        files: ^bsp/esp_sensairshuttle/
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        args: [--config=.codespellrc]
+        # Check docs and header comments, but skip generated API markdown files.
+        files: (?i)\.(md|rst|h)$
+        exclude: (^|/)API\.md$

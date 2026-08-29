@@ -5,7 +5,7 @@ menu "Board Support Package (ESP32-P4)"
         default y
         help
             Error check assert the application before returning the error code.
-            
+
     menu "I2C"
         config BSP_I2C_NUM
             int "I2C peripheral index"
@@ -100,7 +100,7 @@ menu "Board Support Package (ESP32-P4)"
             config BSP_DISPLAY_LVGL_DIRECT_MODE
                 bool "Direct mode"
         endchoice
-            
+
         config BSP_DISPLAY_BRIGHTNESS_LEDC_CH
         int "LEDC channel index"
         default 1
@@ -119,8 +119,8 @@ menu "Board Support Package (ESP32-P4)"
                 bool "RGB565"
             config BSP_LCD_COLOR_FORMAT_RGB888
                 bool "RGB888"
-        endchoice   
-            
+        endchoice
+
         config BSP_LCD_USE_DMA2D
             bool "Select whether to use DMA2D"
             default "y"
@@ -139,8 +139,8 @@ menu "Board Support Package (ESP32-P4)"
                 bool "LCD 1280x800 - ili9881c"
             config BSP_LCD_TYPE_HDMI
                 bool "HDMI - lt8912b"
-        endchoice    
-            
+        endchoice
+
         choice BSP_LCD_HDMI_RESOLUTION
             depends on BSP_LCD_TYPE_HDMI
             prompt "Select HDMI resolution"
@@ -156,8 +156,8 @@ menu "Board Support Package (ESP32-P4)"
                 bool "1280x800@60HZ"
             config BSP_LCD_HDMI_1920x1080_30HZ
                 bool "1920x1080@30HZ"
-        endchoice          
-        
+        endchoice
+
     endmenu
-    
+
 endmenu

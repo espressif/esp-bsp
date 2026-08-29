@@ -71,7 +71,7 @@ menu "Board Support Package(ESP32-P4-EYE)"
         help
             LEDC channel is used to generate PWM signal that controls display brightness.
             Set LEDC index that should be used.
-                
+
         config BSP_LCD_DRAW_BUF_HEIGHT
         int "LCD framebuf height"
         default 100

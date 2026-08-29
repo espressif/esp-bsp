@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -43,6 +43,19 @@ static size_t data_cache_line_size = 0;
 static lv_obj_t *camera_canvas = NULL;
 static uint8_t *cam_buff[NUM_BUFS];
 static uint32_t cam_buff_size = 0;
+static lv_color_format_t lvgl_cam_rgb565_fmt;
+
+static lv_color_format_t lvgl_rgb565_fmt_from_v4l2(uint32_t pixelformat)
+{
+    if (pixelformat == V4L2_PIX_FMT_RGB565X) {
+        return LV_COLOR_FORMAT_RGB565_SWAPPED;
+    }
+    if (pixelformat == V4L2_PIX_FMT_RGB565) {
+        return LV_COLOR_FORMAT_RGB565;
+    }
+    ESP_LOGW(TAG, "Unexpected RGB565 pixel format, using LV_COLOR_FORMAT_RGB565");
+    return LV_COLOR_FORMAT_RGB565;
+}
 
 #if SOC_PPA_SUPPORTED
 static void app_ppa_init(void)
@@ -156,7 +169,7 @@ static void camera_video_frame_operation(uint8_t *camera_buf, uint8_t camera_buf
 #endif
 
     bsp_display_lock(0);
-    lv_canvas_set_buffer(camera_canvas, out_buf, out_w, out_h, LV_COLOR_FORMAT_RGB565);
+    lv_canvas_set_buffer(camera_canvas, out_buf, out_w, out_h, lvgl_cam_rgb565_fmt);
     lv_obj_center(camera_canvas);
     lv_obj_invalidate(camera_canvas);
     bsp_display_unlock();
@@ -194,21 +207,22 @@ void app_main(void)
         }
     }
 
-    /* Create LVGL canvas for camera image */
-    bsp_display_lock(0);
-    camera_canvas = lv_canvas_create(lv_scr_act());
-    lv_canvas_set_buffer(camera_canvas, cam_buff[0], BSP_LCD_H_RES, BSP_LCD_V_RES, LV_COLOR_FORMAT_RGB565);
-    assert(camera_canvas);
-    lv_obj_center(camera_canvas);
-    bsp_display_unlock();
-
-    /* Open video device */
-    int fd = app_video_open(BSP_CAMERA_DEVICE, APP_VIDEO_FMT_RGB565);
+    /* Open video first: pixel format comes from menuconfig / driver (VIDIOC_G_FMT). */
+    int fd = app_video_open(BSP_CAMERA_DEVICE, APP_VIDEO_FMT_DRIVER_DEFAULT);
     if (fd < 0) {
         ESP_LOGE(TAG, "Failed to open video device");
         ESP_LOGW(TAG, "Please, try to select another camera sensor in menuconfig.");
         return;
     }
+    lvgl_cam_rgb565_fmt = lvgl_rgb565_fmt_from_v4l2(app_video_get_pixelformat());
+
+    /* Create LVGL canvas for camera image */
+    bsp_display_lock(0);
+    camera_canvas = lv_canvas_create(lv_scr_act());
+    lv_canvas_set_buffer(camera_canvas, cam_buff[0], BSP_LCD_H_RES, BSP_LCD_V_RES, lvgl_cam_rgb565_fmt);
+    assert(camera_canvas);
+    lv_obj_center(camera_canvas);
+    bsp_display_unlock();
 
     /* Initialize video capture device */
     ret = app_video_set_bufs(fd, NUM_BUFS, NULL);

@@ -5,7 +5,7 @@ menu "Board Support Package"
         default y
         help
             Error check assert the application before returning the error code.
-            
+
     menu "I2C"
         config BSP_I2C_NUM
             int "I2C peripheral index"
@@ -13,17 +13,6 @@ menu "Board Support Package"
             range 0 1
             help
                 ESP32S3 has two I2C peripherals, pick the one you want to use.
-
-        config BSP_I2C_FAST_MODE
-            bool "Enable I2C fast mode"
-            default n
-            help
-                I2C has two speed modes: normal (100kHz) and fast (400kHz).
-
-        config BSP_I2C_CLK_SPEED_HZ
-            int
-            default 400000 if BSP_I2C_FAST_MODE
-            default 100000
     endmenu
 
     menu "SPIFFS - Virtual File System"
@@ -61,5 +50,5 @@ menu "Board Support Package"
             LEDC channel is used to generate PWM signal that controls display brightness.
             Set LEDC index that should be used.
     endmenu
-    
+
 endmenu

@@ -2,4 +2,4 @@ version: "1.2.1"
 description: ESP LCD Touch - main component for using touch screen controllers
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd_touch/esp_lcd_touch
 dependencies:
-  idf: ">=4.4.2"
+  idf: ">=5.2"

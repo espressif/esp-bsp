@@ -35,15 +35,15 @@ Most of the ESP32 I/O pins are broken out to the board’s pin headers for easy 
 
 |     Available    |       Capability       |Controller/Codec|                                           Component                                          |Version|
 |------------------|------------------------|----------------|----------------------------------------------------------------------------------------------|-------|
-|:heavy_check_mark:|     :pager: DISPLAY    |     st7789     |                                              idf                                             |>=4.4.5|
+|:heavy_check_mark:|     :pager: DISPLAY    |     st7789     |                                              idf                                             | >=5.2 |
 |:heavy_check_mark:|:black_circle: LVGL_PORT|                |[espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)|   ^2  |
 |        :x:       |    :point_up: TOUCH    |                |                                                                                              |       |
 |:heavy_check_mark:| :radio_button: BUTTONS |                |       [espressif/button](https://components.espressif.com/components/espressif/button)       |   ^4  |
 |        :x:       |  :musical_note: AUDIO  |                |                                                                                              |       |
 |        :x:       | :speaker: AUDIO_SPEAKER|                |                                                                                              |       |
 |        :x:       | :microphone: AUDIO_MIC |                |                                                                                              |       |
-|:heavy_check_mark:|       :bulb: LED       |                |                                              idf                                             |>=4.4.5|
-|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                              idf                                             |>=4.4.5|
+|:heavy_check_mark:|       :bulb: LED       |                |                                              idf                                             | >=5.2 |
+|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                              idf                                             | >=5.2 |
 |        :x:       |    :video_game: IMU    |                |                                                                                              |       |
 |        :x:       |     :camera: CAMERA    |                |                                                                                              |       |
 

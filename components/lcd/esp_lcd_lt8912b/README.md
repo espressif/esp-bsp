@@ -9,7 +9,7 @@ Implementation of the LT8912B MIPI-DSI to HDMI bridge with esp_lcd component.
 | LT8912B        | I2C                     | esp_lcd_lt8912b | [Specification](http://www.lontiumsemi.com/UploadFiles/2022-03/LT8912B_Brief_R1.3.pdf) |
 
 > [!WARNING]
-> This controller suports only RGB888 color mode.
+> This controller supports only RGB888 color mode.
 
 ## Add to project
 
@@ -21,4 +21,3 @@ idf.py add-dependency esp_lcd_lt8912b
 ```
 
 Alternatively, you can create `idf_component.yml`. More is in [Espressif's documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html).
-

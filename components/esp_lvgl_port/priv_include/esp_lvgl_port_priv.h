@@ -28,6 +28,7 @@ typedef enum {
  * @brief Rotation configuration
  */
 typedef struct {
+    lvgl_port_disp_type_t disp_type;
     unsigned int avoid_tearing: 1;    /*!< Use internal RGB buffers as a LVGL draw buffers to avoid tearing effect */
 } lvgl_port_disp_priv_cfg_t;
 

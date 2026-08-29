@@ -35,6 +35,5 @@ dependencies:
 examples:
   - path: ../../examples/audio
   - path: ../../examples/display
-  - path: ../../examples/display_camera
   - path: ../../examples/display_lvgl_demos
   - path: ../../examples/display_lvgl_benchmark

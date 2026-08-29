@@ -2,8 +2,6 @@
 
 | [HW Reference](https://docs.m5stack.com/en/core/CoreS3) | [HOW TO USE API](API.md) | [EXAMPLES](#compatible-bsp-examples) | [![Component Registry](https://components.espressif.com/components/espressif/m5stack_core_s3/badge.svg)](https://components.espressif.com/components/espressif/m5stack_core_s3) | ![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg) |
 | --- | --- | --- | --- | -- |
-> [!WARNING]
-> The SD card is not working simultaneously with the LCD screen. We are working on a fix.
 
 ## Overview
 
@@ -30,18 +28,22 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 <div align="center">
 <!-- START_DEPENDENCIES -->
 
-|     Available    |       Capability       |Controller/Codec|                                                  Component                                                 |     Version    |
-|------------------|------------------------|----------------|------------------------------------------------------------------------------------------------------------|----------------|
-|:heavy_check_mark:|     :pager: DISPLAY    |     ili9341    | idf<br/>[espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341) |>=5.4<br/>^2.0.1|
-|:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |       ^2       |
-|:heavy_check_mark:|    :point_up: TOUCH    |     ft5x06     |[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|       ^1       |
-|        :x:       | :radio_button: BUTTONS |                |                                                                                                            |                |
-|:heavy_check_mark:|  :musical_note: AUDIO  |                |       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |      ~1.5      |
-|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     aw88298    |                                                                                                            |                |
-|:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                            |                |
-|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                     idf                                                    |      >=5.4     |
-|        :x:       |    :video_game: IMU    |                |                                                                                                            |                |
-|:heavy_check_mark:|     :camera: CAMERA    |                |        [espressif/esp32-camera](https://components.espressif.com/components/espressif/esp32-camera)        |     ^2.0.11    |
+|     Available    |       Capability       |Controller/Codec|                                                  Component                                                 |  Version  |
+|------------------|------------------------|----------------|------------------------------------------------------------------------------------------------------------|-----------|
+|:heavy_check_mark:|     :pager: DISPLAY    |     ili9341    | idf<br/>[espressif/esp_lcd_ili9341](https://components.espressif.com/components/espressif/esp_lcd_ili9341) |>=5.4<br/>*|
+|:heavy_check_mark:|:black_circle: LVGL_PORT|                |       [espressif/esp_lvgl_port](https://components.espressif.com/components/espressif/esp_lvgl_port)       |     ^2    |
+|:heavy_check_mark:|    :point_up: TOUCH    |     ft5x06     |[espressif/esp_lcd_touch_ft5x06](https://components.espressif.com/components/espressif/esp_lcd_touch_ft5x06)|     *     |
+|        :x:       | :radio_button: BUTTONS |                |                                                                                                            |           |
+|        :x:       |   :white_circle: KNOB  |                |                                                                                                            |           |
+|:heavy_check_mark:|  :musical_note: AUDIO  |                |       [espressif/esp_codec_dev](https://components.espressif.com/components/espressif/esp_codec_dev)       |    ~1.5   |
+|:heavy_check_mark:| :speaker: AUDIO_SPEAKER|     aw88298    |                                                                                                            |           |
+|:heavy_check_mark:| :microphone: AUDIO_MIC |     es7210     |                                                                                                            |           |
+|:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                     idf                                                    |   >=5.4   |
+|        :x:       |       :bulb: LED       |                |                                                                                                            |           |
+|:heavy_check_mark:|     :camera: CAMERA    |     GC0308     |           [espressif/esp_video](https://components.espressif.com/components/espressif/esp_video)           |    ~2.0   |
+|        :x:       |      :battery: BAT     |                |                                                                                                            |           |
+|:heavy_check_mark:|    :video_game: IMU    |                |                                                                                                            |           |
+|        :x:       | :thermometer: HUMITURE |                |                                                                                                            |           |
 
 <!-- END_DEPENDENCIES -->
 </div>
@@ -55,10 +57,11 @@ Sound output on CoreS3 is optimized with the high-fidelity 16-bit I2S power ampl
 | ------- | ----------- | ---------------------- |
 | [Display Example](https://github.com/espressif/esp-bsp/tree/master/examples/display) | Show an image on the screen with a simple startup animation (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display-) |
 | [Display, Audio and Photo Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_audio_photo) | Complex demo: browse files from filesystem and play/display JPEG, WAV, or TXT files (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_audio_photo-) |
-| [Camera Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_camera) | Stream camera output to display (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera-) |
+| [Camera Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_camera_video) | Stream camera output to display (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_camera_video) |
 | [LVGL Benchmark Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_benchmark) | Run LVGL benchmark tests | - |
 | [LVGL Demos Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_lvgl_demos) | Run the LVGL demo player - all LVGL examples are included (LVGL) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_lvgl_demos-) |
-| [Display Rotation Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_rotation) | Rotate screen using buttons or an accelerometer (`BSP_CAPS_IMU`, if available) | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_rotation-) |
+| [Display SD card Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_sdcard) | Example of mounting an SD card using SD-MMC/SPI with display interaction. This example is also supported on boards without a display. | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sdcard) |
+| [Sensors Example](https://github.com/espressif/esp-bsp/tree/master/examples/display_sensors) | Acquire sensor data using the sensor hub component | [Flash Example](https://espressif.github.io/esp-launchpad/?flashConfigURL=https://espressif.github.io/esp-bsp/config.toml&app=display_sensors) |
 
 <!-- END_EXAMPLES -->
 </div>

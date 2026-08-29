@@ -47,4 +47,3 @@ dependencies:
 
 examples:
   - path: ../../examples/mqtt_example
-  - path: ../../examples/display_sensors

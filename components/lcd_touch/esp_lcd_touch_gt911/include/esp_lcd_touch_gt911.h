@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -54,16 +54,17 @@ typedef struct {
  * @brief Touch IO configuration structure
  *
  */
-#define ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG()           \
-    {                                       \
+#define ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG()             \
+    {                                                   \
         .dev_addr = ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS, \
-        .control_phase_bytes = 1,           \
-        .dc_bit_offset = 0,                 \
-        .lcd_cmd_bits = 16,                 \
-        .flags =                            \
-        {                                   \
-            .disable_control_phase = 1,     \
-        }                                   \
+        .scl_speed_hz = 100000,                         \
+        .control_phase_bytes = 1,                       \
+        .dc_bit_offset = 0,                             \
+        .lcd_cmd_bits = 16,                             \
+        .flags =                                        \
+        {                                               \
+            .disable_control_phase = 1,                 \
+        }                                               \
     }
 
 #ifdef __cplusplus

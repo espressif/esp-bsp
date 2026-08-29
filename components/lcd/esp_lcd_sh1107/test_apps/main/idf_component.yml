@@ -1,0 +1,6 @@
+## IDF Component Manager Manifest File
+dependencies:
+  esp_lcd_sh1107:
+    version: "*"
+    path: "../../../esp_lcd_sh1107"
+  idf: ">=5.3"

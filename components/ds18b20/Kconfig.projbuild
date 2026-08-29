@@ -1,0 +1,10 @@
+menu "DS18B20 Configuration"
+
+    config DS18B20_SENSOR_HUB
+        bool "Enable sensor hub integration"
+        default n
+        help
+            Add sensor hub component and link the implementation layer.
+            NOTE: Only a single DS18B20 device is supported.
+
+endmenu

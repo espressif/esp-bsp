@@ -1,0 +1,127 @@
+title: BSP Benchmark Metrics
+type: object
+properties:
+  lvgl_benchmark:
+    type: object
+    title: LVGL Benchmark Results
+    description: One entry per benchmark scene per board run.
+    properties:
+      data:
+        type: array
+        minItems: 1
+        items:
+          type: object
+          properties:
+            board:
+              type: string
+              title: Board name
+              description: Target board identifier (InfluxDB tag).
+            idf_version:
+              type: string
+              title: ESP-IDF version
+              description: ESP-IDF release / branch identifier (InfluxDB tag).
+            lvgl_version:
+              type: string
+              title: LVGL version
+              description: LVGL library version string (InfluxDB tag).
+            scene:
+              type: string
+              title: Benchmark scene name
+              description: LVGL benchmark scene name (InfluxDB tag).
+            avg_cpu:
+              type: number
+              title: Average CPU usage
+              description: Average CPU utilisation during the scene.
+              unit: percent
+            avg_fps:
+              type: number
+              title: Average FPS
+              description: Average frames per second rendered.
+              unit: fps
+            avg_time_ms:
+              type: number
+              title: Average frame time
+              description: Average time to render one frame.
+              unit: ms
+            render_time_ms:
+              type: number
+              title: Render time
+              description: Average pure render time per frame.
+              unit: ms
+            flush_time_ms:
+              type: number
+              title: Flush time
+              description: Average display flush / transfer time per frame.
+              unit: ms
+          required:
+            - board
+            - idf_version
+            - scene
+            - avg_cpu
+            - avg_fps
+            - avg_time_ms
+            - render_time_ms
+            - flush_time_ms
+          additionalProperties: false
+    required:
+      - data
+    additionalProperties: false
+
+  bsp_binary_size:
+    type: object
+    title: Binary Size Results
+    description: One entry per memory region per board build.
+    properties:
+      data:
+        type: array
+        minItems: 1
+        items:
+          type: object
+          properties:
+            board:
+              type: string
+              title: Board name
+              description: Target board identifier (InfluxDB tag).
+            idf_version:
+              type: string
+              title: ESP-IDF version
+              description: ESP-IDF release / branch identifier (InfluxDB tag).
+            lvgl_version:
+              type: string
+              title: LVGL version
+              description: LVGL library version string (InfluxDB tag).
+            region:
+              type: string
+              title: Memory region
+              description: Memory region name, e.g. Flash Code, DRAM, IRAM (InfluxDB tag).
+            total:
+              type: integer
+              title: Total size
+              description: Total available bytes in this region.
+              unit: bytes
+            used:
+              type: integer
+              title: Used size
+              description: Bytes consumed by the firmware in this region.
+              unit: bytes
+            free:
+              type: integer
+              title: Free size
+              description: Remaining free bytes in this region.
+              unit: bytes
+          required:
+            - board
+            - idf_version
+            - region
+            - total
+            - used
+            - free
+          additionalProperties: false
+    required:
+      - data
+    additionalProperties: false
+
+required:
+  - lvgl_benchmark
+  - bsp_binary_size
+additionalProperties: false

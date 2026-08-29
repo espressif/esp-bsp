@@ -103,7 +103,7 @@ esp_err_t es8311_init(es8311_handle_t dev, const es8311_clock_config_t *const cl
 /**
  * @brief Set output volume
  *
- * Volume paramter out of <0, 100> interval will be truncated.
+ * Volume parameter out of <0, 100> interval will be truncated.
  *
  * @param dev ES8311 handle
  * @param[in] volume Set volume (0 ~ 100)

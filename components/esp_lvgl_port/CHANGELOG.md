@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.9.0
+
+### Features
+
+- Support for CherryUSB stack (input device)
+
+### Fixes
+
+- Fixed callbacks for DPI by IDF update (`on_refresh_done` --> `on_frame_buf_complete`)
+
+## 2.8.0
+
+### Features
+
+- Supported RGB/MIPI-DSI interfaces for chips by SOC_*
+- Added ESP32P4 support to RGB Example
+- Updated support for RGB565 swapped color format
+- Supported LCD_RGB_ISR_IRAM_SAFE for RGB panels
+
 ## 2.7.2
 
 ### Features
@@ -29,7 +48,7 @@
 ## 2.6.3
 
 ### Fixes
-- Improved and fixed deinit function (remove semaphor) - https://github.com/espressif/esp-bsp/issues/673
+- Improved and fixed deinit function (remove semaphore) - https://github.com/espressif/esp-bsp/issues/673
 
 ## 2.6.2
 

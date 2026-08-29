@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2025-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -14,6 +14,7 @@
 #include <sys/errno.h>
 #include "esp_err.h"
 #include "esp_log.h"
+#include <inttypes.h>
 #include "linux/videodev2.h"
 #include "esp_video_init.h"
 #include "app_video.h"
@@ -31,6 +32,7 @@ typedef struct {
     size_t camera_buf_size;
     uint32_t camera_buf_hes;
     uint32_t camera_buf_ves;
+    uint32_t camera_pixelformat;
     struct v4l2_buffer v4l2_buf;
     uint8_t camera_mem_mode;
     app_video_frame_operation_cb_t user_camera_video_frame_operation_cb;
@@ -40,6 +42,23 @@ typedef struct {
 } app_video_t;
 
 static app_video_t app_camera_video;
+
+uint32_t app_video_get_pixelformat(void)
+{
+    return app_camera_video.camera_pixelformat;
+}
+
+static void log_v4l2_fourcc(uint32_t f, const char *prefix)
+{
+    char s[5] = {
+        (char)(f & 0xff),
+        (char)((f >> 8) & 0xff),
+        (char)((f >> 16) & 0xff),
+        (char)((f >> 24) & 0xff),
+        0
+    };
+    ESP_LOGI(TAG, "%s: %s (0x%08" PRIx32 ")", prefix, s, f);
+}
 
 int app_video_open(char *dev, video_fmt_t init_fmt)
 {
@@ -73,11 +92,10 @@ int app_video_open(char *dev, video_fmt_t init_fmt)
     }
 
     ESP_LOGI(TAG, "width=%" PRIu32 " height=%" PRIu32, default_format.fmt.pix.width, default_format.fmt.pix.height);
+    log_v4l2_fourcc(default_format.fmt.pix.pixelformat, "initial pixel format");
 
-    app_camera_video.camera_buf_hes = default_format.fmt.pix.width;
-    app_camera_video.camera_buf_ves = default_format.fmt.pix.height;
-
-    if (default_format.fmt.pix.pixelformat != init_fmt) {
+    if (init_fmt != APP_VIDEO_FMT_DRIVER_DEFAULT &&
+            default_format.fmt.pix.pixelformat != (uint32_t)init_fmt) {
         struct v4l2_format format = {
             .type = type,
             .fmt.pix.width = default_format.fmt.pix.width,
@@ -115,6 +133,18 @@ int app_video_open(char *dev, video_fmt_t init_fmt)
         ESP_LOGE(TAG, "failed to set hflip");
     }
 #endif
+
+    memset(&default_format, 0, sizeof(struct v4l2_format));
+    default_format.type = type;
+    if (ioctl(fd, VIDIOC_G_FMT, &default_format) != 0) {
+        ESP_LOGE(TAG, "failed to get final format");
+        goto exit_0;
+    }
+
+    app_camera_video.camera_buf_hes = default_format.fmt.pix.width;
+    app_camera_video.camera_buf_ves = default_format.fmt.pix.height;
+    app_camera_video.camera_pixelformat = default_format.fmt.pix.pixelformat;
+    log_v4l2_fourcc(app_camera_video.camera_pixelformat, "capture pixel format");
 
     app_camera_video.video_stop_sem = xSemaphoreCreateBinary();
 

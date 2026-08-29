@@ -156,7 +156,7 @@ lv_rgb565_blend_normal_to_rgb565_esp:
         // in Xtensa Instruction Set Architecture (ISA) Reference Manual
 
         ssa8l       a7                                  // Set SAR_BYTE from src_buff a7 unalignment
-        extui       a4,  a7,  0,  2                     // Get last 2 bits of the src_buff,  a4 = src_buff_unalignment 
+        extui       a4,  a7,  0,  2                     // Get last 2 bits of the src_buff,  a4 = src_buff_unalignment
         sub         a7,  a7,  a4                        // "align" the src_buff a7, to 4-byte boundary by decreasing it's pointer to the nearest aligned boundary
 
         // First preload for the loopnez cycle

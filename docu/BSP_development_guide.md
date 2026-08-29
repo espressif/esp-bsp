@@ -146,4 +146,3 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void);
 
 ### README.md conventions
 > @todo tracked in BSP-362
-

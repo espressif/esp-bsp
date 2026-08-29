@@ -1,0 +1,4 @@
+[codespell]
+skip = */API.md,*.c
+ignore-words-list = laf,OT
+write-changes = true

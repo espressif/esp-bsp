@@ -46,7 +46,7 @@ The GPIO number used by this example can be changed in [main.c](main/main.c).
 
 ### Build and Flash
 
-Run `idf.py -p PORT build flash monitor` to build, flash and monitor the project. 
+Run `idf.py -p PORT build flash monitor` to build, flash and monitor the project.
 
 The first time you run `idf.py` for the example will cost extra time as the build system needs to address the component dependencies and downloads the missing components from registry into `managed_components` folder.
 
@@ -60,11 +60,11 @@ See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/l
 ...
 I (310) epaper_demo_plain: Initializing SPI Bus...
 I (320) epaper_demo_plain: Initializing panel IO...
-I (330) gpio: GPIO[9]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+I (330) gpio: GPIO[9]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0
 I (330) epaper_demo_plain: Creating SSD1681 panel...
-I (340) gpio: GPIO[4]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+I (340) gpio: GPIO[4]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0
 I (350) lcd_panel.epaper: Add handler for GPIO 18
-I (350) gpio: GPIO[18]| InputEn: 1| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 1| Intr:2 
+I (350) gpio: GPIO[18]| InputEn: 1| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 1| Intr:2
 I (360) epaper_demo_plain: Resetting e-Paper display...
 I (490) epaper_demo_plain: Initializing e-Paper display...
 I (610) epaper_demo_plain: Turning e-Paper display on...
@@ -100,4 +100,3 @@ Please make sure that the scan mode identical to the image above. Otherwise you 
 * Why the e-paper is not displaying properly?
     * Maybe your GPIO pin num is not correctly set, check in [main.c](main/main.c).
     * Maybe your waveform lut is incorrect, try stop using your custom waveform lut.
-

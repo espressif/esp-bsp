@@ -111,7 +111,7 @@ typedef struct es7210_dev_t *es7210_dev_handle_t;
  *
  */
 typedef struct {
-    i2c_port_t  i2c_port;           /*!< I2C port used to connecte ES7210 device */
+    i2c_port_t  i2c_port;           /*!< I2C port used to connected ES7210 device */
     uint8_t
     i2c_addr;           /*!< I2C address of ES7210 device, can be 0x40 0x41 0x42 or 0x43 according to A0 and A1 pin */
 } es7210_i2c_config_t;
@@ -125,7 +125,7 @@ typedef struct {
     uint32_t mclk_ratio;            /*!< MCLK-to-Sample-rate clock ratio, typically 256 */
     es7210_i2s_fmt_t i2s_format;    /*!< I2S format of ES7210's output, can be any value in es7210_i2s_fmt_t */
     es7210_i2s_bits_t bit_width;    /*!< I2S bit width of ES7210's output, can be any value in es7210_i2s_bits_t */
-    es7210_mic_bias_t mic_bias;     /*!< Bias volatge of analog MIC, please refer to your MIC's datasheet */
+    es7210_mic_bias_t mic_bias;     /*!< Bias voltage of analog MIC, please refer to your MIC's datasheet */
     es7210_mic_gain_t mic_gain;     /*!< Gain of analog MIC, please adjust according to your MIC's sensitivity */
     struct {
         uint32_t tdm_enable: 1;     /*!< Choose whether to enable TDM mode */

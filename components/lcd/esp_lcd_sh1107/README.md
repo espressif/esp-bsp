@@ -18,6 +18,29 @@ You can add them to your project via `idf.py add-dependancy`, e.g.
 
 Alternatively, you can create `idf_component.yml`. More is in [Espressif's documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-component-manager.html).
 
+### Hardware Connection
+
+The connection between ESP Board and the LCD is as follows:
+
+```
+      ESP Board                       OLED LCD (I2C)
++------------------+              +-------------------+
+|              GND +--------------+ GND               |
+|                  |              |                   |
+|              3V3 +--------------+ VCC               |
+|                  |              |                   |
+|          I2C SDA +--------------+ DIN               |
+|                  |              |                   |
+|          I2C SCL +--------------+ CLK               |
+|                  |              |                   |
+|              3V3 +--------------+ CS                |
+|                  |              |                   |
+|              GND +--------------+ DC                |
+|                  |              |                   |
+|       3V3 / GPIO +--------------+ RST               |
++------------------+              +-------------------+
+```
+
 ## Usage
 
 For detailed usage, please go to [LCD documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/peripherals/lcd.html).
@@ -39,9 +62,15 @@ esp_lcd_panel_io_i2c_config_t io_config = ESP_LCD_IO_I2C_SH1107_CONFIG();
 ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(i2c_handle, &io_config, &io_handle));
 
 esp_lcd_panel_handle_t lcd_panel_handle = NULL;
+/* Custom configuration */
+esp_lcd_panel_sh1107_config_t sh1107_config = {
+    .contrast = 128,
+    .offset = 0x60,
+};
 esp_lcd_panel_dev_config_t panel_config = {
     .bits_per_pixel = 1,
     .reset_gpio_num = BOARD_DISP_I2C_RST,
+    .vendor_config = &sh1107_config,
 };
 ESP_ERROR_CHECK(esp_lcd_new_panel_sh1107(io_handle, &panel_config, &lcd_panel_handle));
 

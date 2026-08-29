@@ -254,8 +254,6 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     switch (sub_board_type) {
     case SUB_BOARD_TYPE_2_480_480: {
         esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
-        tp_io_config.scl_speed_hz =
-            CONFIG_BSP_I2C_CLK_SPEED_HZ; // This parameter was introduced together with I2C Driver-NG in IDF v5.2
         const esp_lcd_touch_config_t tp_cfg = {
             .x_max = BSP_LCD_SUB_BOARD_2_H_RES,
             .y_max = BSP_LCD_SUB_BOARD_2_V_RES,
@@ -277,8 +275,6 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     }
     case SUB_BOARD_TYPE_3_800_480: {
         esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT1151_CONFIG();
-        tp_io_config.scl_speed_hz =
-            CONFIG_BSP_I2C_CLK_SPEED_HZ; // This parameter was introduced together with I2C Driver-NG in IDF v5.2
         const esp_lcd_touch_config_t tp_cfg = {
             .x_max = BSP_LCD_SUB_BOARD_3_H_RES,
             .y_max = BSP_LCD_SUB_BOARD_3_V_RES,

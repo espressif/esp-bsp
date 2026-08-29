@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2024-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: CC0-1.0
  */
@@ -101,6 +101,11 @@ void app_main(void)
     ESP_LOGI(TAG, "Install SSD1306 panel driver");
     ESP_ERROR_CHECK(esp_lcd_new_panel_ssd1306(io_handle, &panel_config, &panel_handle));
 #elif CONFIG_EXAMPLE_LCD_CONTROLLER_SH1107
+    esp_lcd_panel_sh1107_config_t sh1107_config = {
+        .contrast = 128,
+        .offset = 0x60,
+    };
+    panel_config.vendor_config = &sh1107_config;
     ESP_LOGI(TAG, "Install SH1107 panel driver");
     ESP_ERROR_CHECK(esp_lcd_new_panel_sh1107(io_handle, &panel_config, &panel_handle));
 #endif
@@ -126,7 +131,7 @@ void app_main(void)
         .vres = EXAMPLE_LCD_V_RES,
         .monochrome = true,
 #if LVGL_VERSION_MAJOR >= 9
-        .color_format = LV_COLOR_FORMAT_RGB565,
+        .color_format = LV_COLOR_FORMAT_I1,
 #endif
         .rotation = {
             .swap_xy = false,

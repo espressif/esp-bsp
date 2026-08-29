@@ -21,6 +21,8 @@ from pytest_embedded import Dut
 @pytest.mark.m5stack_core_s3_se
 @pytest.mark.m5_atom_s3
 @pytest.mark.esp32_p4_eye
+@pytest.mark.esp_vocat
+@pytest.mark.m5stack_tab5
 def test_example_display(dut: Dut) -> None:
     dut.expect_exact('example: Display LVGL animation')
     dut.expect_exact('main_task: Returned from app_main()')

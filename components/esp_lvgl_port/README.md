@@ -235,6 +235,40 @@ Keyboard special behavior (when objects are in group):
 > [!NOTE]
 > When you use keyboard for control LVGL objects, these objects must be added to LVGL groups. See [LVGL documentation](https://docs.lvgl.io/master/overview/indev.html?highlight=lv_indev_get_act#keypad-and-encoder) for more info.
 
+### Add USB HID keyboard and mouse input (CherryUSB)
+
+Add mouse and keyboard input to the LVGL. This feature is available only when the component [cherry-embedded/cherryusb](https://github.com/cherry-embedded/CherryUSB/) was added into the project.
+
+``` c
+    /* USB initialization */
+    usbh_initialize(0, ESP_USBH_BASE, NULL);
+
+    ...
+
+    /* Add mouse input device */
+    const lvgl_port_hid_mouse_cfg_t mouse_cfg = {
+        .disp = display,    /* Display selection is supported only in LVGL9 */
+        .sensitivity = 1,   /* Sensitivity of the mouse moving */
+    };
+    lvgl_port_add_usb_hid_mouse_input(&mouse_cfg);
+
+    /* Add keyboard input device */
+    const lvgl_port_hid_keyboard_cfg_t kb_cfg = {
+        .disp = display,    /* Display selection is supported only in LVGL9 */
+    };
+    kb_indev = lvgl_port_add_usb_hid_keyboard_input(&kb_cfg);
+```
+
+Keyboard special behavior (when objects are in group):
+- **TAB**: Select next object
+- **SHIFT** + **TAB**: Select previous object
+- **ENTER**: Control object (e.g. click to button)
+- **ARROWS** or **HOME** or **END**: Move in text area
+- **DEL** or **Backspace**: Remove character in textarea
+
+> [!NOTE]
+> When you use keyboard for control LVGL objects, these objects must be added to LVGL groups. See [LVGL documentation](https://docs.lvgl.io/master/overview/indev.html?highlight=lv_indev_get_act#keypad-and-encoder) for more info.
+
 ### LVGL API usage
 
 Every LVGL calls must be protected with these lock/unlock commands:

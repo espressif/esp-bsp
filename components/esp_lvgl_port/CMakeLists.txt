@@ -4,6 +4,13 @@ if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_LESS "4.4")
     return()
 endif()
 
+# Use the cmakev2-native build when running under cmakev2. The v1 code below
+# stays as is for legacy IDF builds.
+if(IDF_BUILD_V2)
+    include(CMakeLists_v2.txt)
+    return()
+endif()
+
 set(ADD_SRCS "")
 set(ADD_LIBS "")
 set(PRIV_REQ "")
@@ -76,11 +83,26 @@ if("knob" IN_LIST build_components)
     list(APPEND ADD_SRCS "${PORT_PATH}/esp_lvgl_port_knob.c")
     list(APPEND ADD_LIBS idf::knob)
 endif()
-if("espressif__usb_host_hid" IN_LIST build_components)
+if("cherry-embedded__cherryusb" IN_LIST build_components)
+    idf_component_get_property(cherryusb_dir cherry-embedded__cherryusb COMPONENT_DIR)
+    list(APPEND ADD_SRCS
+        "${cherryusb_dir}/platform/lvgl/usbh_hid_lvgl.c"
+        "${cherryusb_dir}/platform/lvgl/image_cursor.c"
+        "${PORT_PATH}/esp_lvgl_port_usbhid_cherryusb.c"
+    )
+    list(APPEND ADD_LIBS idf::cherry-embedded__cherryusb)
+elseif("cherryusb" IN_LIST build_components)
+    idf_component_get_property(cherryusb_dir cherryusb COMPONENT_DIR)
+    list(APPEND ADD_SRCS
+        "${cherryusb_dir}/platform/lvgl/usbh_hid_lvgl.c"
+        "${cherryusb_dir}/platform/lvgl/image_cursor.c"
+        "${PORT_PATH}/esp_lvgl_port_usbhid_cherryusb.c"
+    )
+    list(APPEND ADD_LIBS idf::cherryusb)
+elseif("espressif__usb_host_hid" IN_LIST build_components)
     list(APPEND ADD_SRCS "${PORT_PATH}/esp_lvgl_port_usbhid.c" "images/${PORT_FOLDER}/img_cursor.c")
     list(APPEND ADD_LIBS idf::espressif__usb_host_hid)
-endif()
-if("usb_host_hid" IN_LIST build_components)
+elseif("usb_host_hid" IN_LIST build_components)
     list(APPEND ADD_SRCS "${PORT_PATH}/esp_lvgl_port_usbhid.c" "images/${PORT_FOLDER}/img_cursor.c")
     list(APPEND ADD_LIBS idf::usb_host_hid)
 endif()

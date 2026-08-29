@@ -42,6 +42,8 @@ static esp_err_t panel_sh1107_disp_on_off(esp_lcd_panel_t *panel, bool off);
 typedef struct {
     esp_lcd_panel_t base;
     esp_lcd_panel_io_handle_t io;
+    uint8_t contrast;
+    uint8_t offset;
     int reset_gpio_num;
     bool reset_level;
     int x_gap;
@@ -57,6 +59,7 @@ esp_err_t esp_lcd_new_panel_sh1107(const esp_lcd_panel_io_handle_t io,
     sh1107_panel_t *sh1107 = NULL;
     ESP_GOTO_ON_FALSE(io && panel_dev_config && ret_panel, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
     ESP_GOTO_ON_FALSE(panel_dev_config->bits_per_pixel == 1, ESP_ERR_INVALID_ARG, err, TAG, "bpp must be 1");
+    esp_lcd_panel_sh1107_config_t *sh1107_spec_config = (esp_lcd_panel_sh1107_config_t *)panel_dev_config->vendor_config;
     sh1107 = calloc(1, sizeof(sh1107_panel_t));
     ESP_GOTO_ON_FALSE(sh1107, ESP_ERR_NO_MEM, err, TAG, "no mem for sh1107 panel");
 
@@ -72,6 +75,9 @@ esp_err_t esp_lcd_new_panel_sh1107(const esp_lcd_panel_io_handle_t io,
     sh1107->bits_per_pixel = panel_dev_config->bits_per_pixel;
     sh1107->reset_gpio_num = panel_dev_config->reset_gpio_num;
     sh1107->reset_level = panel_dev_config->flags.reset_active_high;
+    sh1107->contrast = (sh1107_spec_config != NULL
+                        && sh1107_spec_config->contrast != 0) ? sh1107_spec_config->contrast : 128;
+    sh1107->offset = (sh1107_spec_config != NULL) ? sh1107_spec_config->offset : 0x60;
     sh1107->base.del = panel_sh1107_del;
     sh1107->base.reset = panel_sh1107_reset;
     sh1107->base.init = panel_sh1107_init;
@@ -136,15 +142,13 @@ static const uint8_t vendor_specific_init[] = {
     0x2f,   /* 128 */
 
     0x20,   /* Set Memory addressing mode (0x20/0x21) */
+    0x00,
 
     0xA0,   /* Non-flipped horizontal */
     0xC7,   /* Non-flipped vertical */
 
     0xa8,   /* multiplex ratio */
     0x7f,   /* duty = 1/64 */
-
-    0xd3,   /* set display offset */
-    0x60,
 
     0xd5,   /* set osc division */
     0x51,
@@ -155,16 +159,12 @@ static const uint8_t vendor_specific_init[] = {
     0xdb,   /* set vcomh */
     0x35,
 
-    0xB0,   /* Set page address */
-
     0xDA,   /* Set com pins */
     0x12,
 
     0xa4,   /* output ram to display */
 
     0xa6,   /* normal / inverted colors */
-
-    0xFF, //END
 };
 
 static esp_err_t panel_sh1107_init(esp_lcd_panel_t *panel)
@@ -173,14 +173,20 @@ static esp_err_t panel_sh1107_init(esp_lcd_panel_t *panel)
     esp_lcd_panel_io_handle_t io = sh1107->io;
 
     // vendor specific initialization, it can be different between manufacturers
-    // should consult the LCD supplier for initialization sequence code
-    int cmd = 0;
-    while (vendor_specific_init[cmd] != 0xff) {
-        esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
-            vendor_specific_init[cmd]
-        }, 1);
-        cmd++;
-    }
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, vendor_specific_init,
+                        sizeof(vendor_specific_init)), TAG, "io tx param init commands failed");
+
+    /* contrast control */
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
+        0x81, sh1107->contrast
+    }, 2), TAG, "io tx param contrast control failed");
+
+    /* offset control */
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
+        0xD3, sh1107->offset
+    }, 2), TAG, "io tx param offset control failed");
+
+    vTaskDelay(pdMS_TO_TICKS(200));
 
     return ESP_OK;
 }
@@ -223,19 +229,19 @@ static esp_err_t panel_sh1107_draw_bitmap(esp_lcd_panel_t *panel, int x_start, i
 
     for (int i = row_start; i < row_end; i++) {
         /* Start column */
-        esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
+        ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
             0x10 | column_high
-        }, 1);
-        esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
+        }, 1), TAG, "io tx param column set failed");
+        ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
             0x00 | column_low
-        }, 1);
+        }, 1), TAG, "io tx param column set failed");
         /* Page */
-        esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
+        ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
             0xB0 | i
-        }, 1);
+        }, 1), TAG, "io tx param page set failed");
 
         ptr = color_data + i * x_end;
-        esp_lcd_panel_io_tx_color(io, LCD_SH1107_I2C_RAM, (uint8_t *)ptr, size);
+        ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_color(io, LCD_SH1107_I2C_RAM, (uint8_t *)ptr, size), TAG, "io tx color failed");
     }
 
     return ESP_OK;
@@ -247,13 +253,13 @@ static esp_err_t panel_sh1107_invert_color(esp_lcd_panel_t *panel, bool invert_c
     esp_lcd_panel_io_handle_t io = sh1107->io;
 
     if (invert_color_data) {
-        esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
+        ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
             (LCD_SH1107_PARAM_INVERT_COLOR)
-        }, 1);
+        }, 1), TAG, "io tx param LCD_SH1107_PARAM_INVERT_COLOR failed");
     } else {
-        esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
+        ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
             (LCD_SH1107_PARAM_INVERT_COLOR | 0x01)
-        }, 1);
+        }, 1), TAG, "io tx param LCD_SH1107_PARAM_INVERT_COLOR failed");
     }
     return ESP_OK;
 }
@@ -272,12 +278,12 @@ static esp_err_t panel_sh1107_mirror(esp_lcd_panel_t *panel, bool mirror_x, bool
         param_y = (LCD_SH1107_PARAM_MIRROR_Y | 0x08);
     }
 
-    esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
         param_x
-    }, 1);
-    esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
+    }, 1), TAG, "io tx param mirror failed");
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
         param_y
-    }, 1);
+    }, 1), TAG, "io tx param mirror failed");
 
     return ESP_OK;
 }
@@ -314,9 +320,9 @@ static esp_err_t panel_sh1107_disp_on_off(esp_lcd_panel_t *panel, bool on_off)
         param = LCD_SH1107_PARAM_ONOFF;
     }
 
-    esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
         param
-    }, 1);
+    }, 1), TAG, "io tx param disp on/off failed");
 
     return ESP_OK;
 }

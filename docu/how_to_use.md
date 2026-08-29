@@ -484,4 +484,3 @@ Instead, the BSP includes selected sensor components via the `idf_component.yml`
 For practical usage examples and supported sensors on your board, refer to the relevant examples in the BSP repository, such as:
 - `display_rotation` (for IMU setup and orientation control)
 - `display_sensors` (for reading sensor data)
-

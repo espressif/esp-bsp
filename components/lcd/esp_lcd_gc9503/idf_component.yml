@@ -4,5 +4,5 @@ targets:
 description: ESP LCD GC9503
 url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_gc9503
 dependencies:
-  idf: ">5.0.4,!=5.1.1"
+  idf: ">=5.2"
   cmake_utilities: "0.*"

@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        * Before reporting a new issue please check and search in [List of existing issues](https://github.com/espressif/esp-bsp/issues?q=is%3Aissue) 
+        * Before reporting a new issue please check and search in [List of existing issues](https://github.com/espressif/esp-bsp/issues?q=is%3Aissue)
         * Please check [README.md](https://github.com/espressif/esp-bsp/blob/master/README.md)
         * If still experiencing the issue, please provide as many details as possible below about your hardware, computer setup and code.
   - type: input

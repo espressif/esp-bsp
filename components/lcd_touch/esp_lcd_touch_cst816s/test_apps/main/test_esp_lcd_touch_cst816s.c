@@ -56,7 +56,6 @@ TEST_CASE("test cst816s to initialize touch", "[cst816s][i2c]")
     esp_lcd_touch_handle_t touch_handle;
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_CST816S_CONFIG();
-    tp_io_config.scl_speed_hz = TEST_TOUCH_I2C_CLK_HZ;
     TEST_ESP_OK(esp_lcd_new_panel_io_i2c(i2c_handle, &tp_io_config, &tp_io_handle));
     TEST_ESP_OK(esp_lcd_touch_new_i2c_cst816s(tp_io_handle, &tp_cfg, &touch_handle));
 }

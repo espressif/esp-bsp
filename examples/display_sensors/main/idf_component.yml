@@ -1,5 +1,4 @@
-description: BSP ESP32-Azure-IoT-Kit sensor example
-
+description: BSP sensor hub example
 dependencies:
   bsp_selector:
     version: '*'

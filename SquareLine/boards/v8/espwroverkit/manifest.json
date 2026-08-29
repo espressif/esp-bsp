@@ -5,6 +5,7 @@
 
     "screen_width":"240",
     "screen_height":"320",
+    "screen_circle": false,
     "screen_color_swap":true,
 
     "supported_lvgl_version":"8.2.0, 8.3.*",

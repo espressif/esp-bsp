@@ -2,7 +2,7 @@
 
 [![Component Registry](https://components.espressif.com/components/espressif/esp_lcd_touch_tt21100/badge.svg)](https://components.espressif.com/components/espressif/esp_lcd_touch_tt21100)
 
-Implementation of the TT21100 touch controller with esp_lcd_touch component. 
+Implementation of the TT21100 touch controller with esp_lcd_touch component.
 
 | Touch controller | Communication interface | Component name | Link to datasheet |
 | :--------------: | :---------------------: | :------------: | :---------------: |
@@ -11,7 +11,7 @@ Implementation of the TT21100 touch controller with esp_lcd_touch component.
 ## Add to project
 
 Packages from this repository are uploaded to [Espressif's component service](https://components.espressif.com/).
-You can add them to your project via `idf.py add-dependancy`, e.g. 
+You can add them to your project via `idf.py add-dependancy`, e.g.
 ```
     idf.py add-dependency esp_lcd_touch_tt21100==1.0.0
 ```
@@ -40,7 +40,7 @@ Initialization of the touch component.
             .mirror_y = 0,
         },
     };
-    
+
     esp_lcd_touch_handle_t tp;
     esp_lcd_touch_new_i2c_tt21100(io_config, &tp_cfg, &tp);
 ```
@@ -59,4 +59,3 @@ Get attributes of a single touch point.
 
     ESP_ERROR_CHECK(esp_lcd_touch_get_data(tp, touch_point_data, &touch_cnt, 1));
 ```
-

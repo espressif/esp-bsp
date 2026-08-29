@@ -422,7 +422,7 @@ void bsp_display_rotate(lv_display_t *disp, lv_disp_rotation_t rotation);
  * Button
  *
  * There are three buttons on ESP-BOX:
- *  - Reset:  Not programable
+ *  - Reset:  Not programmable
  *  - Config: Controls boot mode during reset. Can be programmed after application starts
  *  - Mute:   This button is wired to Logic Gates and its result is mapped to GPIO_NUM_1
  **************************************************************************************************/
@@ -465,7 +465,7 @@ __attribute__((deprecated("use espressif/button API instead")));
  * @return
  *     - ESP_OK               All buttons initialized
  *     - ESP_ERR_INVALID_ARG  btn_array is too small or NULL
- *     - ESP_FAIL             Underlaying iot_button_create failed
+ *     - ESP_FAIL             Underlying iot_button_create failed
  */
 esp_err_t bsp_iot_button_create(button_handle_t btn_array[], int *btn_cnt, int btn_array_size);
 

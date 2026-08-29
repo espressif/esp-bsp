@@ -9,6 +9,8 @@ Any board with MIPI-CSI / DVP camera.
 
 - ESP32-S3-EYE
     - Camera sensor: OV2640
+- M5Stack CoreS3
+    - Camera sensor: GC0308
 - ESP32-P4-EYE
     - Camera sensor: OV2710
 - ESP32-P4-Function-EV-Board

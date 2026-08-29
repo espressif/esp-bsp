@@ -48,7 +48,7 @@ static lvgl_port_ctx_t lvgl_port_ctx;
 static void lvgl_port_task(void *arg);
 static esp_err_t lvgl_port_tick_init(void);
 static void lvgl_port_task_deinit(void);
-static inline bool indev_matches_event(const lv_indev_t *indev, EventBits_t event);
+static inline bool indev_matches_event(const lv_indev_t *indev, const EventBits_t event);
 
 /*******************************************************************************
 * Public API functions
@@ -306,7 +306,7 @@ static esp_err_t lvgl_port_tick_init(void)
     return esp_timer_start_periodic(lvgl_port_ctx.tick_timer, lvgl_port_ctx.timer_period_ms * 1000);
 }
 
-static inline bool indev_matches_event(const lv_indev_t *indev, EventBits_t event)
+static inline bool indev_matches_event(const lv_indev_t *indev, const EventBits_t event)
 {
     assert(indev != NULL);
 

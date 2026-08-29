@@ -181,6 +181,13 @@ esp_err_t ds18b20_get_temperature(ds18b20_device_handle_t ds18b20, float *ret_te
     ESP_RETURN_ON_FALSE(onewire_crc8(0, (uint8_t *)&scratchpad, 8) == scratchpad.crc_value, ESP_ERR_INVALID_CRC, TAG,
                         "scratchpad crc error");
 
+    // detect uninitialized power-on state
+    // https://github.com/cpetrich/counterfeit_DS18B20#solution-to-the-85-c-problem
+    if (scratchpad._reserved2 == 0x0c && scratchpad.temp_msb == 0x05 && scratchpad.temp_lsb == 0x50) {
+        ESP_LOGW(TAG, "read power-on value (85.0)");
+        return ESP_ERR_INVALID_STATE;
+    }
+
     const uint8_t lsb_mask[4] = {0x07, 0x03, 0x01, 0x00}; // mask bits not used in low resolution
     uint8_t lsb_masked = scratchpad.temp_lsb & (~lsb_mask[scratchpad.configuration >> 5]);
     // Combine the MSB and masked LSB into a signed 16-bit integer

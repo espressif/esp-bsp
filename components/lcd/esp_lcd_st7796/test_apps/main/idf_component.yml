@@ -1,6 +1,6 @@
 ## IDF Component Manager Manifest File
 dependencies:
-  idf: ">=4.4"
+  idf: ">=5.2"
   esp_lcd_st7796:
     version: "*"
     override_path: "../../../esp_lcd_st7796"

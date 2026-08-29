@@ -303,7 +303,7 @@ esp_err_t icm42670_get_gyro_value(icm42670_handle_t sensor, icm42670_value_t *va
 esp_err_t icm42670_get_temp_value(icm42670_handle_t sensor, float *value);
 
 /**
- * @brief use complimentory filter to caculate roll and pitch
+ * @brief use complimentory filter to calculate roll and pitch
  *
  * @param acce_value accelerometer measurements
  * @param gyro_value gyroscope measurements

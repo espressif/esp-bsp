@@ -124,7 +124,7 @@ For button handling is used component [iot_button](https://components.espressif.
     - `BSP_LEDS_NUM` (max 5)
 
 2. Set type for all LEDs in `menuconfig`
-    - `BSP_LED_TYPE` (GPIO / Adressable RGB LED / Classic RGB)
+    - `BSP_LED_TYPE` (GPIO / Addressable RGB LED / Classic RGB)
 
 3. For GPIO LEDs set pin and level for each LED in `menuconfig`
     - `BSP_LED_x_GPIO`

@@ -1,4 +1,4 @@
-version: 3.1.0
+version: 3.2.0
 description: Board Support Package (BSP) for ESP32-S3-BOX-3
 url: https://github.com/espressif/esp-bsp/tree/master/bsp/esp-box-3
 
@@ -49,4 +49,4 @@ examples:
 - path: ../../examples/display_lvgl_demos
 - path: ../../examples/display_lvgl_benchmark
 - path: ../../examples/display_sdcard
-- path: ../../examples/sensors
+- path: ../../examples/display_sensors
