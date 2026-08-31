@@ -19,6 +19,7 @@
 #include "esp_lcd_st7123.h"
 #include "disp_init_data.h"
 #include "disp_init_data_1.h"
+#include "disp_init_data_st7121.h"
 #include "esp_lcd_touch_gt911.h"
 #include "esp_lcd_touch_st7123.h"
 #include "bsp/display.h"
@@ -41,6 +42,14 @@ static esp_lcd_touch_handle_t tp;   // LCD touch handle
 #define LCD_CMD_BITS           8
 #define LCD_PARAM_BITS         8
 #define LCD_LEDC_CH            CONFIG_BSP_DISPLAY_BRIGHTNESS_LEDC_CH
+#define BSP_LCD_ST712X_MIPI_DSI_LANE_BITRATE_MBPS 965
+
+typedef enum {
+    BSP_TAB5_BOARD_VERSION_UNKNOWN = 0,
+    BSP_TAB5_BOARD_VERSION_ILI9881C_GT911,
+    BSP_TAB5_BOARD_VERSION_ST7123,
+    BSP_TAB5_BOARD_VERSION_ST7121,
+} bsp_tab5_board_version_t;
 
 esp_err_t bsp_display_brightness_init(void)
 {
@@ -123,28 +132,58 @@ static esp_err_t bsp_enable_dsi_phy_power(void)
 /*
  * !!! This function was manually added to generated code !!!
  * It selects board version by LCD touch I2C driver probing
- * Returns
- * 1: LCD ILI9881C, Touch GT911
- * 2: LCD ST7123, Touch ST7123
+ * Returns:
+ * BSP_TAB5_BOARD_VERSION_ILI9881C_GT911: LCD ILI9881C, Touch GT911
+ * BSP_TAB5_BOARD_VERSION_ST7123: LCD ST7123, Touch ST7123
+ * BSP_TAB5_BOARD_VERSION_ST7121: LCD ST7121, Touch ST712x-compatible
  */
-static int bsp_get_board_version(void)
+static bsp_tab5_board_version_t bsp_get_board_version(void)
 {
-    static int board_ver = 0;
-    if (board_ver > 0) {
+    static bsp_tab5_board_version_t board_ver = BSP_TAB5_BOARD_VERSION_UNKNOWN;
+    if (board_ver != BSP_TAB5_BOARD_VERSION_UNKNOWN) {
         return board_ver;
     }
 
     /* Enable Feature */
-    BSP_ERROR_CHECK_RETURN_NULL(bsp_feature_enable(BSP_FEATURE_TOUCH, true));
+    esp_err_t ret = bsp_feature_enable(BSP_FEATURE_TOUCH, true);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to enable touch feature: %s", esp_err_to_name(ret));
+        return BSP_TAB5_BOARD_VERSION_UNKNOWN;
+    }
 
     vTaskDelay(pdMS_TO_TICKS(500));
 
     if (i2c_master_probe(bsp_i2c_get_handle(), ESP_LCD_TOUCH_IO_I2C_ST7123_ADDRESS, 100) == ESP_OK) {
-        ESP_LOGI(TAG, "Discovered board version 2 (LCD ST7123, Touch ST7123)");
-        board_ver = 2;
+        esp_lcd_panel_io_handle_t tp_io_handle = NULL;
+        esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_ST7123_CONFIG();
+        uint8_t fw_version = 0;
+
+        ret = esp_lcd_new_panel_io_i2c(bsp_i2c_get_handle(), &tp_io_config, &tp_io_handle);
+        if (ret != ESP_OK) {
+            ESP_LOGW(TAG, "Failed to create ST712x touch IO: %s", esp_err_to_name(ret));
+            return BSP_TAB5_BOARD_VERSION_UNKNOWN;
+        }
+
+        ret = esp_lcd_panel_io_rx_param(tp_io_handle, 0x0000, &fw_version, sizeof(fw_version));
+        esp_lcd_panel_io_del(tp_io_handle);
+        if (ret != ESP_OK) {
+            ESP_LOGW(TAG, "Failed to read ST712x firmware version: %s", esp_err_to_name(ret));
+            return BSP_TAB5_BOARD_VERSION_UNKNOWN;
+        }
+
+        if (fw_version == 1) {
+            ESP_LOGI(TAG, "Discovered board version 3 (LCD ST7121, Touch ST712x, FW %u)", fw_version);
+            board_ver = BSP_TAB5_BOARD_VERSION_ST7121;
+        } else if (fw_version == 3) {
+            ESP_LOGI(TAG, "Discovered board version 2 (LCD ST7123, Touch ST7123, FW %u)", fw_version);
+            board_ver = BSP_TAB5_BOARD_VERSION_ST7123;
+        } else {
+            ESP_LOGW(TAG, "Unsupported ST712x firmware version: %u", fw_version);
+            return BSP_TAB5_BOARD_VERSION_UNKNOWN;
+        }
     } else if (i2c_master_probe(bsp_i2c_get_handle(), ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS_BACKUP, 100) == ESP_OK) {
         ESP_LOGI(TAG, "Discovered board version 1 (LCD ILI9881C, Touch GT911)");
-        board_ver = 1;
+        board_ver = BSP_TAB5_BOARD_VERSION_ILI9881C_GT911;
     } else {
         ESP_LOGE(TAG, "Unsupported board version!");
         assert(NULL);
@@ -174,6 +213,10 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_LCD, true));
     ESP_RETURN_ON_ERROR(bsp_display_brightness_init(), TAG, "Brightness init failed");
     ESP_RETURN_ON_ERROR(bsp_enable_dsi_phy_power(), TAG, "DSI PHY power failed");
+
+    bsp_tab5_board_version_t board_version = bsp_get_board_version();
+    ESP_GOTO_ON_FALSE(board_version != BSP_TAB5_BOARD_VERSION_UNKNOWN, ESP_ERR_NOT_SUPPORTED, err, TAG,
+                      "Unsupported board version");
 
     /* create MIPI DSI bus first, it will initialize the DSI PHY as well */
     esp_lcd_dsi_bus_config_t bus_config = {
@@ -238,6 +281,27 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
         .flags.use_dma2d = true,
 #endif
     };
+    const esp_lcd_dpi_panel_config_t dpi_config_st7121 = {
+        .virtual_channel    = 0,
+        .dpi_clk_src        = MIPI_DSI_DPI_CLK_SRC_DEFAULT,
+        .dpi_clock_freq_mhz = 70,
+        .in_color_format    = LCD_COLOR_FMT_RGB565,
+        .num_fbs            = CONFIG_BSP_LCD_DPI_BUFFER_NUMS,
+        .video_timing =
+        {
+            .h_size            = BSP_LCD_H_RES,
+            .v_size            = BSP_LCD_V_RES,
+            .hsync_back_porch  = 40,
+            .hsync_pulse_width = 2,
+            .hsync_front_porch = 40,
+            .vsync_back_porch  = 24,
+            .vsync_pulse_width = 20,
+            .vsync_front_porch = 200,
+        },
+#if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0))
+        .flags.use_dma2d = true,
+#endif
+    };
 
     const void *vendor_config = NULL;
     const ili9881c_vendor_config_t vendor_config_ili9881c = {
@@ -257,13 +321,24 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
             .dpi_config = &dpi_config_st7123,
         },
     };
+    const st7123_vendor_config_t vendor_config_st7121 = {
+        .init_cmds      = disp_init_data_st7121,
+        .init_cmds_size = sizeof(disp_init_data_st7121) / sizeof(disp_init_data_st7121[0]),
+        .mipi_config = {
+            .dsi_bus = ret_handles->mipi_dsi_bus,
+            .dpi_config = &dpi_config_st7121,
+        },
+    };
 
     /* Select vendor config by board version */
-    if (bsp_get_board_version() == 1) {
+    if (board_version == BSP_TAB5_BOARD_VERSION_ILI9881C_GT911) {
         vendor_config = &vendor_config_ili9881c;
-    } else if (bsp_get_board_version() == 2) {
+    } else if (board_version == BSP_TAB5_BOARD_VERSION_ST7123) {
         vendor_config = &vendor_config_st7123;
+    } else if (board_version == BSP_TAB5_BOARD_VERSION_ST7121) {
+        vendor_config = &vendor_config_st7121;
     }
+    ESP_GOTO_ON_FALSE(vendor_config, ESP_ERR_NOT_SUPPORTED, err, TAG, "Unsupported board version");
 
     ESP_LOGD(TAG, "Install LCD driver");
     const esp_lcd_panel_dev_config_t panel_config = {
@@ -275,10 +350,11 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
     };
 
     /* Select LCD panel by board version */
-    if (bsp_get_board_version() == 1) {
+    if (board_version == BSP_TAB5_BOARD_VERSION_ILI9881C_GT911) {
         ESP_GOTO_ON_ERROR(esp_lcd_new_panel_ili9881c(ret_handles->io, &panel_config, &ret_handles->panel),
                           err, TAG, "New panel failed");
-    } else if (bsp_get_board_version() == 2) {
+    } else if (board_version == BSP_TAB5_BOARD_VERSION_ST7123 ||
+               board_version == BSP_TAB5_BOARD_VERSION_ST7121) {
         ESP_GOTO_ON_ERROR(esp_lcd_new_panel_st7123(ret_handles->io, &panel_config, &ret_handles->panel),
                           err, TAG, "New panel failed");
     }
@@ -328,12 +404,15 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
 {
     assert(cfg != NULL);
     esp_lcd_panel_io_handle_t io_handle = NULL;
-    const bsp_display_config_t bsp_disp_cfg = {
+    bsp_display_config_t bsp_disp_cfg = {
         .dsi_bus = {
             .phy_clk_src = 0, // let the driver to choose the default clock source
             .lane_bit_rate_mbps = BSP_LCD_MIPI_DSI_LANE_BITRATE_MBPS,
         }
     };
+    if (bsp_get_board_version() == BSP_TAB5_BOARD_VERSION_ST7121) {
+        bsp_disp_cfg.dsi_bus.lane_bit_rate_mbps = BSP_LCD_ST712X_MIPI_DSI_LANE_BITRATE_MBPS;
+    }
     BSP_ERROR_CHECK_RETURN_NULL(bsp_display_new(&bsp_disp_cfg, &disp_handles.panel, &io_handle));
 
     esp_lcd_panel_disp_on_off(disp_handles.panel, true);
@@ -411,8 +490,9 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
     };
 
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
+    bsp_tab5_board_version_t board_version = bsp_get_board_version();
     /* Select LCD Touch by board version */
-    if (bsp_get_board_version() == 1) {
+    if (board_version == BSP_TAB5_BOARD_VERSION_ILI9881C_GT911) {
 
         /*
         * Keep LCD touch interrupt pin in low for working touch
@@ -435,11 +515,14 @@ esp_err_t bsp_touch_new(const bsp_touch_config_t *config, esp_lcd_touch_handle_t
         ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(bsp_i2c_get_handle(), &tp_io_config, &tp_io_handle), TAG, "");
         ESP_RETURN_ON_ERROR(esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, ret_touch),
                             TAG, "New touch driver initialization failed");
-    } else if (bsp_get_board_version() == 2) {
+    } else if (board_version == BSP_TAB5_BOARD_VERSION_ST7123 ||
+               board_version == BSP_TAB5_BOARD_VERSION_ST7121) {
         const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_ST7123_CONFIG();
         ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(bsp_i2c_get_handle(), &tp_io_config, &tp_io_handle), TAG, "");
         ESP_RETURN_ON_ERROR(esp_lcd_touch_new_i2c_st7123(tp_io_handle, &tp_cfg, ret_touch),
                             TAG, "New touch driver initialization failed");
+    } else {
+        return ESP_ERR_NOT_SUPPORTED;
     }
 
     return ESP_OK;
