@@ -31,6 +31,7 @@ static esp_err_t panel_ili9341_mirror(esp_lcd_panel_t *panel, bool mirror_x, boo
 static esp_err_t panel_ili9341_swap_xy(esp_lcd_panel_t *panel, bool swap_axes);
 static esp_err_t panel_ili9341_set_gap(esp_lcd_panel_t *panel, int x_gap, int y_gap);
 static esp_err_t panel_ili9341_disp_on_off(esp_lcd_panel_t *panel, bool off);
+static esp_err_t panel_ili9341_disp_sleep(esp_lcd_panel_t *panel, bool sleep);
 
 typedef struct {
     esp_lcd_panel_t base;
@@ -136,6 +137,7 @@ esp_err_t esp_lcd_new_panel_ili9341(const esp_lcd_panel_io_handle_t io,
 #else
     ili9341->base.disp_on_off = panel_ili9341_disp_on_off;
 #endif
+    ili9341->base.disp_sleep = panel_ili9341_disp_sleep;
     *ret_panel = &(ili9341->base);
     ESP_LOGD(TAG, "new ili9341 panel @%p", ili9341);
 
@@ -394,5 +396,21 @@ static esp_err_t panel_ili9341_disp_on_off(esp_lcd_panel_t *panel, bool on_off)
         command = LCD_CMD_DISPOFF;
     }
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, command, NULL, 0), TAG, "send command failed");
+    return ESP_OK;
+}
+
+static esp_err_t panel_ili9341_disp_sleep(esp_lcd_panel_t *panel, bool sleep)
+{
+    ili9341_panel_t *ili9341 = __containerof(panel, ili9341_panel_t, base);
+    esp_lcd_panel_io_handle_t io = ili9341->io;
+    int command = 0;
+    if (sleep) {
+        command = LCD_CMD_SLPIN;
+    } else {
+        command = LCD_CMD_SLPOUT;
+    }
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, command, NULL, 0), TAG, "send command failed");
+    vTaskDelay(pdMS_TO_TICKS(120));
+
     return ESP_OK;
 }
