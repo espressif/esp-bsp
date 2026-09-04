@@ -50,3 +50,9 @@ components/bh1750:
     - "components/bh1750/**"
   disable:
     - if: IDF_VERSION < "5.3.0"
+
+components/fusb303b:
+  depends_filepatterns:
+    - "components/fusb303b/**"
+  disable:
+    - if: IDF_VERSION < "5.3.0"

@@ -1,0 +1,4 @@
+dependencies:
+  espressif/fusb303b:
+    version: "*"
+    override_path: "../.."
