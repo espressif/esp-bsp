@@ -24,6 +24,15 @@ components/lcd/esp_lcd_lt8912b:
   depends_filepatterns:
     - "components/lcd/esp_lcd_lt8912b/**"
 
+components/lcd/esp_lcd_lt9611:
+  depends_filepatterns:
+    - "components/lcd/esp_lcd_lt9611/**"
+  disable:
+    - if: IDF_VERSION < "6.0.0"
+      reason: Component is supported only for IDF >= 6.0
+    - if: IDF_TARGET not in ["esp32p4"]
+      reason: Component is supported only for esp32p4 target
+
 components/lcd/esp_lcd_nt35510:
   depends_filepatterns:
     - "components/lcd/esp_lcd_nt35510/**"
