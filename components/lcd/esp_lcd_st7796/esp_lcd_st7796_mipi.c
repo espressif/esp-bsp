@@ -143,6 +143,7 @@ esp_err_t esp_lcd_new_panel_st7796_mipi(const esp_lcd_panel_io_handle_t io,
     panel_handle->mirror = panel_st7796_mirror;
     panel_handle->invert_color = panel_st7796_invert_color;
     panel_handle->disp_on_off = panel_st7796_disp_on_off;
+    panel_handle->disp_sleep = panel_st7796_disp_sleep;
     panel_handle->user_data = st7796;
     *ret_panel = panel_handle;
     ESP_LOGD(TAG, "new st7796 panel @%p", st7796);
@@ -323,4 +324,23 @@ static esp_err_t panel_st7796_disp_on_off(esp_lcd_panel_t *panel, bool on_off)
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, command, NULL, 0), TAG, "send command failed");
     return ESP_OK;
 }
+
+static esp_err_t panel_st7796_disp_sleep(esp_lcd_panel_t *panel, bool sleep)
+{
+    st7796_panel_t *st7796 = __containerof(panel, st7796_panel_t, base);
+    esp_lcd_panel_io_handle_t io = st7796->io;
+    int command;
+
+    if (sleep) {
+        command = LCD_CMD_SLPIN;
+    } else {
+        command = LCD_CMD_SLPOUT;
+    }
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, command, NULL, 0), TAG, "send command failed");
+
+    /* According to the ST7796 datasheet, a delay of at least 120ms is required after sleep in/out commands */
+    vTaskDelay(pdMS_TO_TICKS(120));
+    return ESP_OK;
+}
+
 #endif
