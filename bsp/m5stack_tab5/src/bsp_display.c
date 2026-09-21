@@ -411,7 +411,7 @@ static lv_display_t *bsp_display_lcd_init(const bsp_display_cfg_t *cfg)
         }
     };
 
-    BSP_ERROR_CHECK_RETURN_ERR(bsp_feature_enable(BSP_FEATURE_LCD, true));
+    BSP_ERROR_CHECK_RETURN_NULL(bsp_feature_enable(BSP_FEATURE_LCD, true));
     if (bsp_get_board_version() == BSP_TAB5_BOARD_VERSION_ST7121) {
         bsp_disp_cfg.dsi_bus.lane_bit_rate_mbps = BSP_LCD_ST712X_MIPI_DSI_LANE_BITRATE_MBPS;
     }
