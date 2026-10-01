@@ -44,6 +44,10 @@ static lv_obj_t *camera_canvas = NULL;
 static uint8_t *cam_buff[NUM_BUFS];
 static uint32_t cam_buff_size = 0;
 static lv_color_format_t lvgl_cam_rgb565_fmt;
+#if SOC_PPA_SUPPORTED
+static ppa_srm_color_mode_t camera_input_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+static int camera_rotation = BSP_CAMERA_ROTATION;
+#endif
 
 static lv_color_format_t lvgl_rgb565_fmt_from_v4l2(uint32_t pixelformat)
 {
@@ -92,7 +96,9 @@ static esp_err_t app_image_process_scale_crop(
         .in.block_h = in_height,
         .in.block_offset_x = 0,
         .in.block_offset_y = 0,
-        .in.srm_cm = PPA_SRM_COLOR_MODE_RGB565,
+        .in.srm_cm = camera_input_color_mode,
+        .in.yuv_range = PPA_COLOR_RANGE_FULL,
+        .in.yuv_std = PPA_COLOR_CONV_STD_RGB_YUV_BT601,
         .out.buffer = out_buf,
         .out.buffer_size = out_buf_size,
         .out.pic_w = out_width,
@@ -137,7 +143,7 @@ static void camera_video_frame_operation(uint8_t *camera_buf, uint8_t camera_buf
 #if SOC_PPA_SUPPORTED
     ppa_srm_rotation_angle_t rotation = PPA_SRM_ROTATION_ANGLE_0;
 
-    switch (BSP_CAMERA_ROTATION) {
+    switch (camera_rotation) {
     case 0:
         rotation = PPA_SRM_ROTATION_ANGLE_0;
         break;
@@ -153,7 +159,7 @@ static void camera_video_frame_operation(uint8_t *camera_buf, uint8_t camera_buf
     }
 
     /* Get size of camera for screen (by aspect ratio)  */
-    if (BSP_CAMERA_ROTATION == 90 || BSP_CAMERA_ROTATION == 270) {
+    if (camera_rotation == 90 || camera_rotation == 270) {
         calc_aspect_fit(camera_buf_ves, camera_buf_hes, BSP_LCD_H_RES, BSP_LCD_V_RES, &out_w, &out_h);
     } else {
         calc_aspect_fit(camera_buf_hes, camera_buf_ves, BSP_LCD_H_RES, BSP_LCD_V_RES, &out_w, &out_h);
@@ -214,7 +220,20 @@ void app_main(void)
         ESP_LOGW(TAG, "Please, try to select another camera sensor in menuconfig.");
         return;
     }
-    lvgl_cam_rgb565_fmt = lvgl_rgb565_fmt_from_v4l2(app_video_get_pixelformat());
+    uint32_t camera_pixelformat = app_video_get_pixelformat();
+#if SOC_PPA_SUPPORTED
+    if (camera_pixelformat == V4L2_PIX_FMT_UYVY) {
+        camera_input_color_mode = PPA_SRM_COLOR_MODE_YUV422_UYVY;
+        camera_rotation = 0;
+        lvgl_cam_rgb565_fmt = LV_COLOR_FORMAT_RGB565;
+    } else {
+        camera_input_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+        camera_rotation = BSP_CAMERA_ROTATION;
+        lvgl_cam_rgb565_fmt = lvgl_rgb565_fmt_from_v4l2(camera_pixelformat);
+    }
+#else
+    lvgl_cam_rgb565_fmt = lvgl_rgb565_fmt_from_v4l2(camera_pixelformat);
+#endif
 
     /* Create LVGL canvas for camera image */
     bsp_display_lock(0);

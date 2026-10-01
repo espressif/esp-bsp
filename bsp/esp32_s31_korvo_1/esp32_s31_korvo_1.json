@@ -321,7 +321,7 @@
         },
         {
             "name": "esp_video",
-            "version": "~2.2",
+            "version": "2.4.1",
             "public": "true",
             "min_idf": "5.4"
         },
