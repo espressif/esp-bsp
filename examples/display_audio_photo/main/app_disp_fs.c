@@ -79,6 +79,14 @@ static void app_disp_lvgl_show_filesystem(lv_obj_t *screen, lv_group_t *group);
 static void app_disp_lvgl_show_files(const char *path);
 static void tab_changed_event(lv_event_t *e);
 static void set_tab_group(void);
+static lv_obj_t *app_list_create(lv_obj_t *parent);
+static lv_obj_t *app_list_add_text(lv_obj_t *list, const char *text);
+static lv_obj_t *app_list_add_button(lv_obj_t *list, const char *icon, const char *text);
+static const char *app_list_get_button_text(lv_obj_t *btn);
+static lv_obj_t *app_win_create(lv_obj_t *parent);
+static lv_obj_t *app_win_get_content(lv_obj_t *win);
+static void app_win_add_title(lv_obj_t *win, const char *text);
+static lv_obj_t *app_win_add_button(lv_obj_t *win, const char *icon, int32_t btn_w);
 
 /*******************************************************************************
 * Local variables
@@ -114,7 +122,7 @@ void app_disp_lvgl_show(void)
     bsp_display_lock(0);
 
     /* Tabview */
-    tabview = lv_tabview_create(lv_scr_act()); //, LV_DIR_TOP, 40
+    tabview = lv_tabview_create(lv_screen_active());
     lv_tabview_set_tab_bar_size(tabview, 40);
     lv_obj_set_size(tabview, BSP_LCD_H_RES, BSP_LCD_V_RES);
     lv_obj_align(tabview, LV_ALIGN_BOTTOM_MID, 0, 0);
@@ -122,7 +130,7 @@ void app_disp_lvgl_show(void)
     lv_obj_add_event_cb(tabview, tab_changed_event, LV_EVENT_VALUE_CHANGED, NULL);
 
     /* Tabview buttons style */
-    tab_btns = lv_tabview_get_tab_btns(tabview);
+    tab_btns = lv_tabview_get_tab_bar(tabview);
     lv_obj_set_style_bg_color(tab_btns, lv_palette_darken(LV_PALETTE_GREY, 3), 0);
     lv_obj_set_style_text_color(tab_btns, lv_palette_lighten(LV_PALETTE_GREEN, 5), 0);
     lv_obj_set_style_border_side(tab_btns, LV_BORDER_SIDE_BOTTOM, LV_PART_ITEMS | LV_STATE_CHECKED);
@@ -189,9 +197,138 @@ void app_disp_fs_init(void)
 * Private API function
 *******************************************************************************/
 
+/* lv_list and lv_win are deprecated in LVGL 9.6. Build both from flex containers. */
+
+static lv_obj_t *app_list_create(lv_obj_t *parent)
+{
+    lv_obj_t *list = lv_obj_create(parent);
+    lv_obj_set_flex_flow(list, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_all(list, 0, 0);
+    lv_obj_set_style_pad_gap(list, 0, 0);
+    lv_obj_set_style_radius(list, 0, 0);
+    lv_obj_set_style_border_width(list, 0, 0);
+    return list;
+}
+
+static lv_obj_t *app_list_add_text(lv_obj_t *list, const char *text)
+{
+    lv_obj_t *label = lv_label_create(list);
+    lv_obj_set_width(label, LV_PCT(100));
+    lv_obj_set_style_bg_opa(label, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(label, lv_palette_darken(LV_PALETTE_GREY, 3), 0);
+    lv_obj_set_style_pad_all(label, 8, 0);
+    lv_label_set_text(label, text);
+    return label;
+}
+
+static lv_obj_t *app_list_add_button(lv_obj_t *list, const char *icon, const char *text)
+{
+    lv_obj_t *btn = lv_button_create(list);
+    lv_obj_set_width(btn, LV_PCT(100));
+    lv_obj_set_height(btn, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(btn, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(btn, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_radius(btn, 0, 0);
+    lv_obj_set_style_shadow_width(btn, 0, 0);
+
+    if (icon) {
+        lv_obj_t *img = lv_image_create(btn);
+        lv_image_set_src(img, icon);
+    }
+
+    if (text) {
+        lv_obj_t *label = lv_label_create(btn);
+        lv_label_set_text(label, text);
+        lv_label_set_long_mode(label, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+        lv_obj_set_flex_grow(label, 1);
+    }
+
+    return btn;
+}
+
+static const char *app_list_get_button_text(lv_obj_t *btn)
+{
+    uint32_t i;
+
+    for (i = 0; i < lv_obj_get_child_count(btn); i++) {
+        lv_obj_t *child = lv_obj_get_child(btn, i);
+        if (lv_obj_check_type(child, &lv_label_class)) {
+            return lv_label_get_text(child);
+        }
+    }
+
+    return "";
+}
+
+static lv_obj_t *app_win_create(lv_obj_t *parent)
+{
+    lv_obj_t *win = lv_obj_create(parent);
+    lv_obj_set_size(win, lv_obj_get_width(parent), lv_obj_get_height(parent));
+    lv_obj_set_flex_flow(win, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_scrollable(win, false);
+    lv_obj_set_style_pad_all(win, 0, 0);
+    lv_obj_set_style_pad_gap(win, 0, 0);
+    lv_obj_set_style_border_width(win, 0, 0);
+    lv_obj_set_style_radius(win, 0, 0);
+    lv_obj_set_style_shadow_width(win, 0, 0);
+
+    lv_obj_t *header = lv_obj_create(win);
+    lv_obj_set_size(header, LV_PCT(100), lv_display_get_dpi(lv_obj_get_display(win)) / 2);
+    lv_obj_set_flex_flow(header, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(header, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_scrollable(header, false);
+    lv_obj_set_style_pad_all(header, 2, 0);
+    lv_obj_set_style_pad_gap(header, 2, 0);
+    lv_obj_set_style_border_width(header, 0, 0);
+    lv_obj_set_style_radius(header, 0, 0);
+    lv_obj_set_style_bg_opa(header, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(header, lv_palette_lighten(LV_PALETTE_GREY, 2), 0);
+
+    lv_obj_t *content = lv_obj_create(win);
+    lv_obj_set_width(content, LV_PCT(100));
+    lv_obj_set_flex_grow(content, 1);
+    lv_obj_set_style_border_width(content, 0, 0);
+    lv_obj_set_style_radius(content, 0, 0);
+    lv_obj_set_style_shadow_width(content, 0, 0);
+
+    return win;
+}
+
+static lv_obj_t *app_win_get_header(lv_obj_t *win)
+{
+    return lv_obj_get_child(win, 0);
+}
+
+static lv_obj_t *app_win_get_content(lv_obj_t *win)
+{
+    return lv_obj_get_child(win, 1);
+}
+
+static void app_win_add_title(lv_obj_t *win, const char *text)
+{
+    lv_obj_t *title = lv_label_create(app_win_get_header(win));
+    lv_label_set_long_mode(title, LV_LABEL_LONG_MODE_DOTS);
+    lv_label_set_text(title, text);
+    lv_obj_set_flex_grow(title, 1);
+}
+
+static lv_obj_t *app_win_add_button(lv_obj_t *win, const char *icon, int32_t btn_w)
+{
+    lv_obj_t *btn = lv_button_create(app_win_get_header(win));
+    lv_obj_set_size(btn, btn_w, LV_PCT(100));
+
+    if (icon) {
+        lv_obj_t *img = lv_image_create(btn);
+        lv_image_set_src(img, icon);
+        lv_obj_center(img);
+    }
+
+    return btn;
+}
+
 static void app_lvgl_add_text(const char *text)
 {
-    lv_list_add_text(fs_list, text);
+    app_list_add_text(fs_list, text);
 }
 
 static void folder_handler(lv_event_t *e)
@@ -200,7 +337,7 @@ static void folder_handler(lv_event_t *e)
     lv_obj_t *obj = lv_event_get_target(e);
 
     if (code == LV_EVENT_CLICKED) {
-        const char *foldername = lv_list_get_btn_text(fs_list, obj);
+        const char *foldername = app_list_get_button_text(obj);
         if (foldername != NULL) {
             strcat(fs_current_path, "/");
             strcat(fs_current_path, foldername);
@@ -217,7 +354,7 @@ static void close_window_handler(lv_event_t *e)
 
     if (code == LV_EVENT_CLICKED) {
         memset(file_buffer, 0, file_buffer_size);
-        lv_obj_del(lv_event_get_user_data(e));
+        lv_obj_delete(lv_event_get_user_data(e));
 
         /* Re-set the TAB group */
         set_tab_group();
@@ -229,18 +366,18 @@ static void show_window(const char *path, app_file_type_t type)
     struct stat st;
     lv_obj_t *label = NULL;
     lv_obj_t *btn;
-    lv_obj_t *win = lv_win_create(lv_scr_act()); //, 40
-    lv_win_add_title(win, path);
+    lv_obj_t *win = app_win_create(lv_screen_active());
+    app_win_add_title(win, path);
 
     /* Close button */
-    btn = lv_win_add_button(win, LV_SYMBOL_CLOSE, 60);
+    btn = app_win_add_button(win, LV_SYMBOL_CLOSE, 60);
     lv_obj_add_event_cb(btn, close_window_handler, LV_EVENT_CLICKED, win);
 
-    lv_obj_t *cont = lv_win_get_content(win);   /*Content can be added here*/
+    lv_obj_t *cont = app_win_get_content(win);   /*Content can be added here*/
 
     label = lv_label_create(cont);
     lv_obj_set_width(label, 290);
-    lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
+    lv_label_set_long_mode(label, LV_LABEL_LONG_MODE_WRAP);
     lv_label_set_text(label, "");
     lv_obj_center(label);
 
@@ -427,13 +564,13 @@ END:
 
     if (play_btn) {
         bsp_display_lock(0);
-        lv_obj_clear_state(play_btn, LV_STATE_DISABLED);
+        lv_obj_remove_state(play_btn, LV_STATE_DISABLED);
         bsp_display_unlock();
     }
 
     if (play1_btn) {
         bsp_display_lock(0);
-        lv_obj_clear_state(play1_btn, LV_STATE_DISABLED);
+        lv_obj_remove_state(play1_btn, LV_STATE_DISABLED);
         bsp_display_unlock();
     }
 
@@ -470,7 +607,7 @@ static void repeat_event_cb(lv_event_t *e)
     lv_obj_t *obj = lv_event_get_target(e);
 
     if (code == LV_EVENT_VALUE_CHANGED) {
-        play_file_repeat = ( (lv_obj_get_state(obj) & LV_STATE_CHECKED) ? true : false);
+        play_file_repeat = lv_obj_has_state(obj, LV_STATE_CHECKED);
     }
 }
 
@@ -492,7 +629,7 @@ static void close_window_wav_handler(lv_event_t *e)
 
     if (code == LV_EVENT_CLICKED) {
         memset(file_buffer, 0, file_buffer_size);
-        lv_obj_del(lv_event_get_user_data(e));
+        lv_obj_delete(lv_event_get_user_data(e));
         play_file_stop = true;
 
         xSemaphoreTake(audio_mux, portMAX_DELAY);
@@ -507,8 +644,8 @@ static void show_window_wav(const char *path)
 {
     lv_obj_t *label;
     lv_obj_t *btn, *stop_btn, *repeat_btn;
-    lv_obj_t *win = lv_win_create(lv_scr_act()); //, 40
-    lv_win_add_title(win, path);
+    lv_obj_t *win = app_win_create(lv_screen_active());
+    app_win_add_title(win, path);
 
     strcpy(usb_drive_play_file, path);
 
@@ -518,10 +655,10 @@ static void show_window_wav(const char *path)
     assert(audio_mux);
 
     /* Close button */
-    btn = lv_win_add_button(win, LV_SYMBOL_CLOSE, 60);
+    btn = app_win_add_button(win, LV_SYMBOL_CLOSE, 60);
     lv_obj_add_event_cb(btn, close_window_wav_handler, LV_EVENT_CLICKED, win);
 
-    lv_obj_t *cont = lv_win_get_content(win);   /*Content can be added here*/
+    lv_obj_t *cont = app_win_get_content(win);   /*Content can be added here*/
 
     lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(cont, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -535,21 +672,21 @@ static void show_window_wav(const char *path)
     lv_obj_set_flex_align(cont_row, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
     /* Play button */
-    play_btn = lv_btn_create(cont_row);
+    play_btn = lv_button_create(cont_row);
     label = lv_label_create(play_btn);
     lv_label_set_text_static(label, LV_SYMBOL_PLAY);
     lv_obj_add_event_cb(play_btn, play_event_cb, LV_EVENT_CLICKED, (char *)usb_drive_play_file);
 
     /* Stop button */
-    stop_btn = lv_btn_create(cont_row);
+    stop_btn = lv_button_create(cont_row);
     label = lv_label_create(stop_btn);
     lv_label_set_text_static(label, LV_SYMBOL_STOP);
     lv_obj_add_event_cb(stop_btn, stop_event_cb, LV_EVENT_CLICKED, NULL);
 
     /* Repeat button */
-    repeat_btn = lv_btn_create(cont_row);
+    repeat_btn = lv_button_create(cont_row);
     label = lv_label_create(repeat_btn);
-    lv_obj_add_flag(repeat_btn, LV_OBJ_FLAG_CHECKABLE);
+    lv_obj_set_checkable(repeat_btn, true);
     lv_label_set_text_static(label, LV_SYMBOL_LOOP);
     lv_obj_add_event_cb(repeat_btn, repeat_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
@@ -569,7 +706,7 @@ static void show_window_wav(const char *path)
     lv_obj_t *slider = lv_slider_create(cont_row);
     lv_obj_set_width(slider, BSP_LCD_H_RES - 180);
     lv_slider_set_range(slider, 0, 90);
-    lv_slider_set_value(slider, DEFAULT_VOLUME, false);
+    lv_slider_set_value(slider, DEFAULT_VOLUME, LV_ANIM_OFF);
     lv_obj_center(slider);
     lv_obj_add_event_cb(slider, volume_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
@@ -618,14 +755,14 @@ static void file_handler(lv_event_t *e)
 
     if (code == LV_EVENT_CLICKED) {
         char filepath[250];
-        const char *filename = lv_list_get_btn_text(fs_list, obj);
+        const char *filename = app_list_get_button_text(obj);
 
         strcpy(filepath, fs_current_path);
         strcat(filepath, "/");
         strcat(filepath, filename);
 
         /* Open window by file type (Image, text or music) */
-        ESP_LOGI(TAG, "Clicked: %s", lv_list_get_btn_text(fs_list, obj));
+        ESP_LOGI(TAG, "Clicked: %s", app_list_get_button_text(obj));
         app_file_type_t filetype = get_file_type(filepath);
         if (filetype == APP_FILE_TYPE_WAV) {
             show_window_wav(filepath);
@@ -664,7 +801,7 @@ static void app_lvgl_add_back(void)
     lv_obj_t *btn;
 
     /* Back button */
-    btn = lv_list_add_btn(fs_list, LV_SYMBOL_LEFT, "Back");
+    btn = app_list_add_button(fs_list, LV_SYMBOL_LEFT, "Back");
     lv_obj_set_style_bg_color(btn, lv_color_make(0x00, 0x00, 0x00), 0);
     lv_obj_set_style_text_color(btn, lv_color_make(0xFF, 0xFF, 0xFF), 0);
     lv_obj_add_event_cb(btn, back_handler, LV_EVENT_CLICKED, NULL);
@@ -689,7 +826,7 @@ static void app_lvgl_add_file(const char *filename)
     }
 
     /* File button */
-    btn = lv_list_add_btn(fs_list, icon, filename);
+    btn = app_list_add_button(fs_list, icon, filename);
     lv_obj_set_style_bg_color(btn, lv_color_make(0x00, 0x00, 0x00), 0);
     lv_obj_set_style_text_color(btn, lv_color_make(0xFF, 0xFF, 0xFF), 0);
     lv_obj_add_event_cb(btn, file_handler, LV_EVENT_CLICKED, NULL);
@@ -704,7 +841,7 @@ static void app_lvgl_add_folder(const char *filename)
     lv_obj_t *btn;
 
     /* Directory button */
-    btn = lv_list_add_btn(fs_list, LV_SYMBOL_DIRECTORY, filename);
+    btn = app_list_add_button(fs_list, LV_SYMBOL_DIRECTORY, filename);
     lv_obj_set_style_bg_color(btn, lv_color_make(0x00, 0x00, 0x00), 0);
     lv_obj_set_style_text_color(btn, lv_color_make(0xFF, 0xFF, 0xFF), 0);
     lv_obj_add_event_cb(btn, folder_handler, LV_EVENT_CLICKED, NULL);
@@ -753,7 +890,7 @@ static void app_disp_lvgl_show_files(const char *path)
 static void app_disp_lvgl_show_filesystem(lv_obj_t *screen, lv_group_t *group)
 {
     /* Disable scrolling in this TAB */
-    lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(screen, false);
 
     /* TAB style */
     lv_obj_set_style_border_width(screen, 0, 0);
@@ -763,7 +900,7 @@ static void app_disp_lvgl_show_filesystem(lv_obj_t *screen, lv_group_t *group)
     lv_obj_set_style_bg_opa(screen, 255, 0);
 
     /* File list */
-    fs_list = lv_list_create(screen);
+    fs_list = app_list_create(screen);
     lv_obj_set_size(fs_list, BSP_LCD_H_RES, BSP_LCD_V_RES - 40);
     lv_obj_set_style_bg_color(fs_list, lv_color_make(0x00, 0x00, 0x00), 0);
     lv_obj_set_style_text_color(fs_list, lv_color_make(0xFF, 0xFF, 0xFF), 0);
@@ -869,9 +1006,9 @@ END:
 
     if (rec_btn && play1_btn && rec_stop_btn) {
         bsp_display_lock(0);
-        lv_obj_clear_state(rec_btn, LV_STATE_DISABLED);
-        lv_obj_clear_state(play1_btn, LV_STATE_DISABLED);
-        lv_obj_clear_state(rec_stop_btn, LV_STATE_DISABLED);
+        lv_obj_remove_state(rec_btn, LV_STATE_DISABLED);
+        lv_obj_remove_state(play1_btn, LV_STATE_DISABLED);
+        lv_obj_remove_state(rec_stop_btn, LV_STATE_DISABLED);
         bsp_display_unlock();
     }
 
@@ -902,7 +1039,7 @@ static void app_disp_lvgl_show_record(lv_obj_t *screen, lv_group_t *group)
     lv_obj_t *label;
 
     /* Disable scrolling in this TAB */
-    lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(screen, false);
 
     /* TAB style */
     lv_obj_set_style_border_width(screen, 0, 0);
@@ -924,19 +1061,19 @@ static void app_disp_lvgl_show_record(lv_obj_t *screen, lv_group_t *group)
     lv_obj_set_flex_align(cont_row, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
     /* Rec button */
-    rec_btn = lv_btn_create(cont_row);
+    rec_btn = lv_button_create(cont_row);
     label = lv_label_create(rec_btn);
     lv_label_set_text_static(label, "REC");
     lv_obj_add_event_cb(rec_btn, rec_event_cb, LV_EVENT_CLICKED, (char *)REC_FILENAME);
 
     /* Play button */
-    play1_btn = lv_btn_create(cont_row);
+    play1_btn = lv_button_create(cont_row);
     label = lv_label_create(play1_btn);
     lv_label_set_text_static(label, LV_SYMBOL_PLAY);
     lv_obj_add_event_cb(play1_btn, rec_play_event_cb, LV_EVENT_CLICKED, (char *)REC_FILENAME);
 
     /* Stop button */
-    rec_stop_btn = lv_btn_create(cont_row);
+    rec_stop_btn = lv_button_create(cont_row);
     label = lv_label_create(rec_stop_btn);
     lv_label_set_text_static(label, LV_SYMBOL_STOP);
     lv_obj_add_event_cb(rec_stop_btn, rec_stop_event_cb, LV_EVENT_CLICKED, NULL);
@@ -954,7 +1091,7 @@ static void app_disp_lvgl_show_settings(lv_obj_t *screen, lv_group_t *group)
     lv_obj_t *slider;
 
     /* Disable scrolling in this TAB */
-    lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(screen, false);
 
     /* TAB style */
     lv_obj_set_style_border_width(screen, 0, 0);
@@ -985,7 +1122,7 @@ static void app_disp_lvgl_show_settings(lv_obj_t *screen, lv_group_t *group)
     slider = lv_slider_create(cont_row);
     lv_obj_set_width(slider, BSP_LCD_H_RES - 180);
     lv_slider_set_range(slider, 10, 100);
-    lv_slider_set_value(slider, APP_DISP_DEFAULT_BRIGHTNESS, false);
+    lv_slider_set_value(slider, APP_DISP_DEFAULT_BRIGHTNESS, LV_ANIM_OFF);
     lv_obj_center(slider);
     lv_obj_add_event_cb(slider, slider_brightness_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
@@ -998,7 +1135,7 @@ static void set_tab_group(void)
 {
     lv_indev_t *indev = bsp_display_get_input_dev();
     if (indev && filesystem_group && recording_group && settings_group) {
-        uint16_t tab = lv_tabview_get_tab_act(tabview);
+        uint32_t tab = lv_tabview_get_tab_active(tabview);
         lv_group_set_editing(filesystem_group, false);
         lv_group_set_editing(recording_group, false);
         lv_group_set_editing(settings_group, false);
@@ -1018,7 +1155,7 @@ static void set_tab_group(void)
             break;
         }
 
-        lv_tabview_set_act(tabview, tab, false);
+        lv_tabview_set_active(tabview, tab, LV_ANIM_OFF);
     }
 }
 
