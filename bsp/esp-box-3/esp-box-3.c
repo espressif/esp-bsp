@@ -399,9 +399,9 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     const audio_codec_data_if_t *i2s_data_if = bsp_audio_get_codec_itf();
     if (i2s_data_if == NULL) {
         /* Initilize I2C */
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_i2c_init());
         /* Configure I2S peripheral and Power Amplifier */
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL));
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_audio_init(NULL));
         i2s_data_if = bsp_audio_get_codec_itf();
     }
     assert(i2s_data_if);
@@ -450,9 +450,9 @@ esp_codec_dev_handle_t bsp_audio_codec_microphone_init(void)
     const audio_codec_data_if_t *i2s_data_if = bsp_audio_get_codec_itf();
     if (i2s_data_if == NULL) {
         /* Initilize I2C */
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_i2c_init());
         /* Configure I2S peripheral and Power Amplifier */
-        BSP_ERROR_CHECK_RETURN_ERR(bsp_audio_init(NULL));
+        BSP_ERROR_CHECK_RETURN_NULL(bsp_audio_init(NULL));
         i2s_data_if = bsp_audio_get_codec_itf();
     }
     assert(i2s_data_if);
