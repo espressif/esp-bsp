@@ -1,5 +1,5 @@
 if("${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}" VERSION_GREATER_EQUAL "5.3")
-    set(REQ esp_driver_i2c)
+    set(REQ esp_driver_i2c esp_driver_spi)
 else()
     set(REQ driver)
 endif()

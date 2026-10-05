@@ -3,7 +3,7 @@
 [![Component Registry](https://components.espressif.com/components/espressif/icm42670/badge.svg)](https://components.espressif.com/components/espressif/icm42670)
 ![maintenance-status](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen.svg)
 
-C driver for Invensense ICM42607/ICM42670 6-axis gyroscope and accelerometer based on I2C communication.
+C driver for Invensense ICM42607/ICM42670 6-axis gyroscope and accelerometer based on I2C/SPI communication.
 
 ## Features
 
@@ -11,10 +11,6 @@ C driver for Invensense ICM42607/ICM42670 6-axis gyroscope and accelerometer bas
 - Read temperature from ICM42607/ICM42670 internal temperature sensor.
 - Configure gyroscope and accelerometer sensitivity.
 - ICM42607/ICM42670 power down mode.
-
-## Limitations
-
-- Only I2C communication is supported.
 
 ## Get Started
 
