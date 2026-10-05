@@ -31,6 +31,110 @@ static lv_obj_t *confirm_mbox;
 
 static TaskHandle_t main_task_handle = {0};
 
+/* lv_list and lv_win are deprecated in LVGL 9.6. Build both from flex containers. */
+
+static void example_obj_set_scrollable(lv_obj_t *obj, bool en)
+{
+#if LV_VERSION_CHECK(9, 6, 0)
+    lv_obj_set_scrollable(obj, en);
+#else
+    if (en) {
+        lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    } else {
+        lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    }
+#endif
+}
+
+static lv_obj_t *example_list_create(lv_obj_t *parent)
+{
+    lv_obj_t *list = lv_obj_create(parent);
+    lv_obj_set_flex_flow(list, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_all(list, 0, 0);
+    lv_obj_set_style_pad_gap(list, 0, 0);
+    lv_obj_set_style_radius(list, 0, 0);
+    lv_obj_set_style_border_width(list, 0, 0);
+    return list;
+}
+
+static lv_obj_t *example_list_add_text(lv_obj_t *list, const char *text)
+{
+    lv_obj_t *label = lv_label_create(list);
+    lv_obj_set_width(label, LV_PCT(100));
+    lv_obj_set_style_bg_opa(label, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(label, lv_palette_lighten(LV_PALETTE_GREY, 2), 0);
+    lv_obj_set_style_text_color(label, lv_palette_darken(LV_PALETTE_GREY, 4), 0);
+    lv_obj_set_style_pad_all(label, 8, 0);
+    lv_label_set_text(label, text);
+    return label;
+}
+
+static lv_obj_t *example_win_create(lv_obj_t *parent)
+{
+    lv_obj_t *win = lv_obj_create(parent);
+    lv_obj_set_size(win, lv_obj_get_width(parent), lv_obj_get_height(parent));
+    lv_obj_set_flex_flow(win, LV_FLEX_FLOW_COLUMN);
+    example_obj_set_scrollable(win, false);
+    lv_obj_set_style_pad_all(win, 0, 0);
+    lv_obj_set_style_pad_gap(win, 0, 0);
+    lv_obj_set_style_border_width(win, 0, 0);
+    lv_obj_set_style_radius(win, 0, 0);
+    lv_obj_set_style_shadow_width(win, 0, 0);
+
+    lv_obj_t *header = lv_obj_create(win);
+    lv_obj_set_size(header, LV_PCT(100), lv_display_get_dpi(lv_obj_get_display(win)) / 2);
+    lv_obj_set_flex_flow(header, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(header, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    example_obj_set_scrollable(header, false);
+    lv_obj_set_style_pad_all(header, 2, 0);
+    lv_obj_set_style_pad_gap(header, 2, 0);
+    lv_obj_set_style_border_width(header, 0, 0);
+    lv_obj_set_style_radius(header, 0, 0);
+    lv_obj_set_style_bg_opa(header, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(header, lv_palette_lighten(LV_PALETTE_GREY, 2), 0);
+
+    lv_obj_t *content = lv_obj_create(win);
+    lv_obj_set_width(content, LV_PCT(100));
+    lv_obj_set_flex_grow(content, 1);
+    lv_obj_set_style_border_width(content, 0, 0);
+    lv_obj_set_style_radius(content, 0, 0);
+    lv_obj_set_style_shadow_width(content, 0, 0);
+
+    return win;
+}
+
+static lv_obj_t *example_win_get_header(lv_obj_t *win)
+{
+    return lv_obj_get_child(win, 0);
+}
+
+static lv_obj_t *example_win_get_content(lv_obj_t *win)
+{
+    return lv_obj_get_child(win, 1);
+}
+
+static void example_win_add_title(lv_obj_t *win, const char *text)
+{
+    lv_obj_t *title = lv_label_create(example_win_get_header(win));
+    lv_label_set_long_mode(title, LV_LABEL_LONG_MODE_DOTS);
+    lv_label_set_text(title, text);
+    lv_obj_set_flex_grow(title, 1);
+}
+
+static lv_obj_t *example_win_add_button(lv_obj_t *win, const char *icon, int32_t btn_w)
+{
+    lv_obj_t *btn = lv_button_create(example_win_get_header(win));
+    lv_obj_set_size(btn, btn_w, LV_PCT(100));
+
+    if (icon) {
+        lv_obj_t *img = lv_image_create(btn);
+        lv_image_set_src(img, icon);
+        lv_obj_center(img);
+    }
+
+    return btn;
+}
+
 // Callback for close buttons
 static void example_close_btn_cb (lv_event_t *evt)
 {
@@ -78,14 +182,14 @@ static void example_files_btn_cb (lv_event_t *evt)
     lv_obj_t *dir_list;
 
     // Create and show a window for a list of files
-    files_window = lv_win_create(lv_screen_active());
-    lv_win_add_title(files_window, "  List of files");
-    close_button = lv_win_add_button(files_window, LV_SYMBOL_CLOSE, 60);
+    files_window = example_win_create(lv_screen_active());
+    example_win_add_title(files_window, "  List of files");
+    close_button = example_win_add_button(files_window, LV_SYMBOL_CLOSE, 60);
     lv_obj_add_event_cb(close_button, example_close_btn_cb, LV_EVENT_CLICKED, files_window);
 
     // Create the list of files
-    window_content = lv_win_get_content(files_window);
-    dir_list = lv_list_create(window_content);
+    window_content = example_win_get_content(files_window);
+    dir_list = example_list_create(window_content);
     lv_obj_set_size(dir_list, 280, 120);
     lv_obj_center(dir_list);
 
@@ -93,7 +197,7 @@ static void example_files_btn_cb (lv_event_t *evt)
     directory = opendir(BSP_SD_MOUNT_POINT);
     if (directory) {
         while ((entry = readdir(directory)) != NULL) {
-            lv_list_add_text(dir_list, entry->d_name);
+            example_list_add_text(dir_list, entry->d_name);
         }
         closedir(directory);
     }
@@ -134,11 +238,11 @@ static void example_info_btn_cb (lv_event_t *evt)
     }
 
     // Create and show window with a table of information
-    info_window = lv_win_create(lv_screen_active());
-    lv_win_add_title(info_window, "  SD card information");
-    close_button = lv_win_add_button(info_window, LV_SYMBOL_CLOSE, 60);
+    info_window = example_win_create(lv_screen_active());
+    example_win_add_title(info_window, "  SD card information");
+    close_button = example_win_add_button(info_window, LV_SYMBOL_CLOSE, 60);
     lv_obj_add_event_cb(close_button, example_close_btn_cb, LV_EVENT_CLICKED, info_window);
-    window_content = lv_win_get_content(info_window);
+    window_content = example_win_get_content(info_window);
     info_table = lv_table_create(window_content);
     lv_obj_center(info_table);
 
@@ -175,7 +279,7 @@ static void example_display_progress_screen(const char *message)
     lv_obj_align(spinner, LV_ALIGN_CENTER, 0, 30);
     lv_spinner_set_anim_params(spinner, 750, 200);
 
-    lv_scr_load(progress_screen);
+    lv_screen_load(progress_screen);
 }
 
 // Initialize the display and show the initial screen
@@ -232,7 +336,7 @@ void example_display_main_screen(bool show_test_box)
     main_screen = lv_obj_create(NULL);
 
     // Create a button to request formatting
-    button = lv_btn_create(main_screen);
+    button = lv_button_create(main_screen);
     lv_obj_add_event_cb(button, example_format_btn_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_align(button, LV_ALIGN_TOP_MID, 0, 20);
     lv_obj_set_size(button, 280, 60);
@@ -242,7 +346,7 @@ void example_display_main_screen(bool show_test_box)
     lv_obj_center(label);
 
     // Create a button to display information about the SD card
-    button = lv_btn_create(main_screen);
+    button = lv_button_create(main_screen);
     lv_obj_add_event_cb(button, example_info_btn_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_align(button, LV_ALIGN_BOTTOM_RIGHT, -20, -20);
     lv_obj_set_size(button, 130, 120);
@@ -251,7 +355,7 @@ void example_display_main_screen(bool show_test_box)
     lv_obj_center(label);
 
     // Create a button to show a list of files
-    button = lv_btn_create(main_screen);
+    button = lv_button_create(main_screen);
     lv_obj_add_event_cb(button, example_files_btn_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_align(button, LV_ALIGN_BOTTOM_LEFT, 20, -20);
     lv_obj_set_size(button, 130, 120);
@@ -269,7 +373,7 @@ void example_display_main_screen(bool show_test_box)
         lv_label_set_text(label, "\n"LV_SYMBOL_OK LV_SYMBOL_OK " SD card testing passed " LV_SYMBOL_OK LV_SYMBOL_OK "\n");
     }
 
-    lv_scr_load(main_screen);
+    lv_screen_load(main_screen);
     lv_obj_delete(progress_screen);
     bsp_display_unlock();
 }
@@ -293,7 +397,7 @@ void example_display_failed_test_screen(const esp_err_t err)
     lv_label_set_text_fmt(label, "Failed to mount and test.\nthe SD card\n%s", esp_err_to_name(err));
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
 
-    lv_scr_load(fail_screen);
+    lv_screen_load(fail_screen);
     lv_obj_delete(progress_screen);
     bsp_display_unlock();
 }
