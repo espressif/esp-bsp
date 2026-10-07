@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #include "sdkconfig.h"
 #include "bsp/esp-bsp.h"
 #include "esp_err.h"
@@ -44,8 +45,10 @@ static lv_obj_t *camera_canvas = NULL;
 static uint8_t *cam_buff[NUM_BUFS];
 static uint32_t cam_buff_size = 0;
 static lv_color_format_t lvgl_cam_rgb565_fmt;
+static bool camera_first_frame_received = false;
 #if SOC_PPA_SUPPORTED
 static ppa_srm_color_mode_t camera_input_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+static bool camera_input_byte_swap = false;
 static int camera_rotation = BSP_CAMERA_ROTATION;
 #endif
 
@@ -110,7 +113,7 @@ static esp_err_t app_image_process_scale_crop(
         .scale_x = scale_x,
         .scale_y = scale_y,
         .rgb_swap = 0,
-        .byte_swap = 0,
+        .byte_swap = camera_input_byte_swap,
         .mode = PPA_TRANS_MODE_BLOCKING,
     };
 
@@ -140,6 +143,11 @@ static void camera_video_frame_operation(uint8_t *camera_buf, uint8_t camera_buf
     uint32_t out_w = camera_buf_hes;
     uint32_t out_h = camera_buf_ves ;
     uint8_t *out_buf = camera_buf;
+    if (!camera_first_frame_received) {
+        ESP_LOGI(TAG, "First camera frame received: %" PRIu32 "x%" PRIu32 ", %" PRIu32 " bytes",
+                 camera_buf_hes, camera_buf_ves, camera_buf_len);
+        camera_first_frame_received = true;
+    }
 #if SOC_PPA_SUPPORTED
     ppa_srm_rotation_angle_t rotation = PPA_SRM_ROTATION_ANGLE_0;
 
@@ -166,11 +174,15 @@ static void camera_video_frame_operation(uint8_t *camera_buf, uint8_t camera_buf
     }
 
     /* Scale camera picture for the screen + rotation */
-    app_image_process_scale_crop(
-        camera_buf, camera_buf_hes, camera_buf_ves,
-        cam_buff[camera_buf_index], out_w, out_h, cam_buff_size,
-        rotation
-    );
+    esp_err_t ret = app_image_process_scale_crop(
+                        camera_buf, camera_buf_hes, camera_buf_ves,
+                        cam_buff[camera_buf_index], out_w, out_h, cam_buff_size,
+                        rotation
+                    );
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "PPA image processing failed: %s", esp_err_to_name(ret));
+        return;
+    }
     out_buf = cam_buff[camera_buf_index];
 #endif
 
@@ -224,13 +236,23 @@ void app_main(void)
 #if SOC_PPA_SUPPORTED
     if (camera_pixelformat == V4L2_PIX_FMT_UYVY) {
         camera_input_color_mode = PPA_SRM_COLOR_MODE_YUV422_UYVY;
+        camera_input_byte_swap = false;
         camera_rotation = 0;
-        lvgl_cam_rgb565_fmt = LV_COLOR_FORMAT_RGB565;
-    } else {
+    } else if (camera_pixelformat == V4L2_PIX_FMT_RGB565X) {
         camera_input_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+        camera_input_byte_swap = true;
         camera_rotation = BSP_CAMERA_ROTATION;
-        lvgl_cam_rgb565_fmt = lvgl_rgb565_fmt_from_v4l2(camera_pixelformat);
+    } else if (camera_pixelformat == V4L2_PIX_FMT_RGB565) {
+        camera_input_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+        camera_input_byte_swap = false;
+        camera_rotation = BSP_CAMERA_ROTATION;
+    } else {
+        ESP_LOGW(TAG, "Unsupported camera pixel format for PPA, treating as RGB565");
+        camera_input_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+        camera_input_byte_swap = false;
+        camera_rotation = BSP_CAMERA_ROTATION;
     }
+    lvgl_cam_rgb565_fmt = LV_COLOR_FORMAT_RGB565;
 #else
     lvgl_cam_rgb565_fmt = lvgl_rgb565_fmt_from_v4l2(camera_pixelformat);
 #endif
