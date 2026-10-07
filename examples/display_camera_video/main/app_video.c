@@ -17,6 +17,7 @@
 #include <inttypes.h>
 #include "linux/videodev2.h"
 #include "esp_video_init.h"
+#include "esp_video_ioctl.h"
 #include "app_video.h"
 #include "bsp/esp-bsp.h"
 
@@ -93,6 +94,23 @@ int app_video_open(char *dev, video_fmt_t init_fmt)
 
     ESP_LOGI(TAG, "width=%" PRIu32 " height=%" PRIu32, default_format.fmt.pix.width, default_format.fmt.pix.height);
     log_v4l2_fourcc(default_format.fmt.pix.pixelformat, "initial pixel format");
+
+#if defined(BSP_BOARD_ESP32_S31_KORVO_1)
+    if (default_format.fmt.pix.pixelformat == V4L2_PIX_FMT_RGB565X) {
+        /*
+         * On a cold power-on, OV3660 may need additional time before its
+         * initialization sequence produces DVP frames. Reapply the selected
+         * sensor format after the delay to rerun its reset and register setup.
+         */
+        vTaskDelay(pdMS_TO_TICKS(200));
+        esp_cam_sensor_format_t sensor_format = {0};
+        if (ioctl(fd, VIDIOC_G_SENSOR_FMT, &sensor_format) != 0 ||
+                ioctl(fd, VIDIOC_S_SENSOR_FMT, &sensor_format) != 0) {
+            ESP_LOGE(TAG, "failed to reinitialize OV3660 sensor format");
+            goto exit_0;
+        }
+    }
+#endif
 
     if (init_fmt != APP_VIDEO_FMT_DRIVER_DEFAULT &&
             default_format.fmt.pix.pixelformat != (uint32_t)init_fmt) {
@@ -350,7 +368,10 @@ static void video_stream_task(void *arg)
 
 esp_err_t app_video_stream_task_start(int video_fd, int core_id)
 {
-    video_stream_start(video_fd);
+    esp_err_t ret = video_stream_start(video_fd);
+    if (ret != ESP_OK) {
+        goto errout;
+    }
 
     BaseType_t result = xTaskCreatePinnedToCore(video_stream_task, "video stream task", VIDEO_TASK_STACK_SIZE, &video_fd,
                         VIDEO_TASK_PRIORITY, &app_camera_video.video_stream_task_handle, core_id);
