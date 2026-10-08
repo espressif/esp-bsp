@@ -1031,7 +1031,16 @@ lv_display_t *bsp_display_start_with_config(const bsp_display_cfg_t *cfg)
 
     BSP_NULL_CHECK(disp = bsp_display_lcd_init(cfg), NULL);
 #if !CONFIG_BSP_LCD_TYPE_HDMI
-    BSP_NULL_CHECK(disp_indev = bsp_display_indev_init(disp), NULL);
+    /* Touch initialization is best-effort: some board variants ship the
+     * EK79007 / ILI9881C display without a wired GT911 touch controller,
+     * and the I2C probe will fail in that case. Treat this as a warning
+     * rather than tearing down the whole display path — applications that
+     * only need the display (e.g. video preview) can still use it. */
+    disp_indev = bsp_display_indev_init(disp);
+    if (disp_indev == NULL) {
+        ESP_LOGW(TAG, "Touch input init failed; continuing with display-only "
+                 "(GT911 not detected or I2C probe failed)");
+    }
 #endif
     return disp;
 }
