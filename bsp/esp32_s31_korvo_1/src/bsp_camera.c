@@ -8,6 +8,8 @@
 #include "esp_cam_sensor_xclk.h"
 #include "esp_video_device.h"
 #include "esp_video_init.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #include "bsp/esp32_s31_korvo_1.h"
 
@@ -36,6 +38,8 @@ esp_err_t bsp_camera_start(const bsp_camera_cfg_t *cfg)
         esp_cam_sensor_xclk_free(xclk_handle);
         return ret;
     }
+    /* Allow the sensor clock to stabilize before SCCB detection after power-on. */
+    vTaskDelay(pdMS_TO_TICKS(20));
 
     const esp_video_init_dvp_config_t base_dvp_config = {
         .sccb_config = {
