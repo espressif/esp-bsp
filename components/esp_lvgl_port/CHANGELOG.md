@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- LVGL9 direct/full_refresh: dirty-area RGB565 swap and last-flush full-screen draw for all panel types
+
 ## 2.9.0
 
 ### Features
