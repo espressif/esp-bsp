@@ -275,7 +275,7 @@ esp_err_t bsp_display_new_with_handles(const bsp_display_config_t *config, bsp_l
             .hsync_front_porch = 40,
             .vsync_back_porch  = 8,
             .vsync_pulse_width = 2,
-            .vsync_front_porch = 220,
+            .vsync_front_porch = CONFIG_BSP_LCD_ST7123_VSYNC_FRONT_PORCH,
         },
 #if CONFIG_BSP_LCD_USE_DMA2D && (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0))
         .flags.use_dma2d = true,
