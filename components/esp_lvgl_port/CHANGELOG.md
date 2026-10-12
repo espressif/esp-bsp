@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.9.1
+
+### Fixes
+
+- Touch: a failed touch read no longer aborts the application (LVGL 9), it is reported as released - https://github.com/espressif/esp-bsp/issues/836
+
 ## 2.9.0
 
 ### Features
