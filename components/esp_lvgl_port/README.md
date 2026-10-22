@@ -157,7 +157,7 @@ Add buttons input to the LVGL. It can be called more times for adding more butto
     lvgl_port_remove_navigation_buttons(buttons_handle);
 ```
 > [!NOTE]
-> When you use navigation buttons for control LVGL objects, these objects must be added to LVGL groups. See [LVGL documentation](https://docs.lvgl.io/master/overview/indev.html?highlight=lv_indev_get_act#keypad-and-encoder) for more info.
+> When you use navigation buttons for control LVGL objects, these objects must be added to LVGL groups. See [LVGL documentation](https://lvgl.io/docs/open/main-modules/indev/groups) for more info.
 
 ### Add encoder input
 
@@ -195,7 +195,7 @@ Add encoder input to the LVGL. It can be called more times for adding more encod
     lvgl_port_remove_encoder(encoder_handle);
 ```
 > [!NOTE]
-> When you use encoder for control LVGL objects, these objects must be added to LVGL groups. See [LVGL documentation](https://docs.lvgl.io/master/overview/indev.html?highlight=lv_indev_get_act#keypad-and-encoder) for more info.
+> When you use encoder for control LVGL objects, these objects must be added to LVGL groups. See [LVGL documentation](https://lvgl.io/docs/open/main-modules/indev/groups) for more info.
 
 ### Add USB HID keyboard and mouse input
 
@@ -233,7 +233,7 @@ Keyboard special behavior (when objects are in group):
 - **DEL** or **Backspace**: Remove character in textarea
 
 > [!NOTE]
-> When you use keyboard for control LVGL objects, these objects must be added to LVGL groups. See [LVGL documentation](https://docs.lvgl.io/master/overview/indev.html?highlight=lv_indev_get_act#keypad-and-encoder) for more info.
+> When you use keyboard for control LVGL objects, these objects must be added to LVGL groups. See [LVGL documentation](https://lvgl.io/docs/open/main-modules/indev/groups) for more info.
 
 ### Add USB HID keyboard and mouse input (CherryUSB)
 
@@ -267,7 +267,7 @@ Keyboard special behavior (when objects are in group):
 - **DEL** or **Backspace**: Remove character in textarea
 
 > [!NOTE]
-> When you use keyboard for control LVGL objects, these objects must be added to LVGL groups. See [LVGL documentation](https://docs.lvgl.io/master/overview/indev.html?highlight=lv_indev_get_act#keypad-and-encoder) for more info.
+> When you use keyboard for control LVGL objects, these objects must be added to LVGL groups. See [LVGL documentation](https://lvgl.io/docs/open/main-modules/indev/groups) for more info.
 
 ### LVGL API usage
 
@@ -314,7 +314,7 @@ Display rotation can be changed at runtime.
 
 LVGL (version 9.4 and higher) includes support for software detection of multi-touch gestures.
 This detection can be enabled by setting the `LV_USE_GESTURE_RECOGNITION` config and having `ESP_LCD_TOUCH_MAX_POINTS` > 1.
-Example usage of the gesture callback can be found in LVGL [documentation](https://docs.lvgl.io/master/details/main-modules/indev/gestures.html).
+Example usage of the gesture callback can be found in LVGL [documentation](https://lvgl.io/docs/open/main-modules/indev/gestures).
 
 The LVGL port task is responsible for passing the touch coordinates to the gesture recognizers and calling the registered callback when a gesture is detected.
 
