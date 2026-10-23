@@ -45,7 +45,7 @@ esp_err_t bsp_camera_start(const bsp_camera_cfg_t *cfg)
         .sccb_config = {
             .init_sccb = false,
             .i2c_handle = bsp_i2c_get_handle(),
-            .freq = 100000,
+            .freq = 10000,
         },
         .reset_pin = BSP_CAMERA_RST,
         .pwdn_pin  = -1,
