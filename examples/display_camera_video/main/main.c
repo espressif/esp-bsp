@@ -146,7 +146,7 @@ static void camera_video_frame_operation(uint8_t *camera_buf, uint8_t camera_buf
     uint32_t out_h = camera_buf_ves ;
     uint8_t *out_buf = camera_buf;
     if (!camera_first_frame_received) {
-        ESP_LOGI(TAG, "First camera frame received: %" PRIu32 "x%" PRIu32 ", %" PRIu32 " bytes",
+        ESP_LOGI(TAG, "First camera frame received: %" PRIu32 "x%" PRIu32 ", %zu bytes",
                  camera_buf_hes, camera_buf_ves, camera_buf_len);
         camera_first_frame_received = true;
     }
