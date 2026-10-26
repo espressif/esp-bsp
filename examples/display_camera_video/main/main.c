@@ -52,6 +52,7 @@ static bool camera_input_byte_swap = false;
 static int camera_rotation = BSP_CAMERA_ROTATION;
 #endif
 
+#if !SOC_PPA_SUPPORTED
 static lv_color_format_t lvgl_rgb565_fmt_from_v4l2(uint32_t pixelformat)
 {
     if (pixelformat == V4L2_PIX_FMT_RGB565X) {
@@ -63,6 +64,7 @@ static lv_color_format_t lvgl_rgb565_fmt_from_v4l2(uint32_t pixelformat)
     ESP_LOGW(TAG, "Unexpected RGB565 pixel format, using LV_COLOR_FORMAT_RGB565");
     return LV_COLOR_FORMAT_RGB565;
 }
+#endif
 
 #if SOC_PPA_SUPPORTED
 static void app_ppa_init(void)
