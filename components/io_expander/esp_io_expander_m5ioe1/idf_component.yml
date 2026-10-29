@@ -1,0 +1,9 @@
+version: "1.0.0"
+description: ESP IO Expander - M5IOE1
+url: https://github.com/espressif/esp-bsp/tree/master/components/io_expander/esp_io_expander_m5ioe1
+dependencies:
+  idf: ">=5.2"
+  esp_io_expander:
+    version: "^1.2.0"
+    public: true
+    override_path: "../esp_io_expander"
