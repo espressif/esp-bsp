@@ -479,7 +479,7 @@ esp_err_t bsp_sdcard_sdspi_mount(bsp_sdcard_cfg_t *cfg);
  *
  * LCD interface
  *
- * ESP-BOX is shipped with 2.4inch ST7789 display controller.
+ * ESP-BOX-3 is shipped with a 2.4-inch display using an ILI9342C or ST7789 controller.
  * It features 16-bit colors, 320x240 resolution and capacitive touch controller.
  *
  * LVGL is used as graphics library. LVGL is NOT thread safe, therefore the user must take LVGL mutex
