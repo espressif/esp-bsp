@@ -170,6 +170,9 @@ repos:
       - id: doxygen-api-md
         args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/esp_sensairshuttle", "-i", "bsp/esp_sensairshuttle/doxygen/xml", "-o", "bsp/esp_sensairshuttle/API.md"]
         files: ^bsp/esp_sensairshuttle/
+      - id: doxygen-api-md
+        args: ["--template-dir", "docu/doxyfiles/templates", "--doxygen-extra-args", "docu/doxyfiles/m5stack_stopwatch", "-i", "bsp/m5stack_stopwatch/doxygen/xml", "-o", "bsp/m5stack_stopwatch/API.md"]
+        files: ^bsp/m5stack_stopwatch/
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1

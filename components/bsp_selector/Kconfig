@@ -112,6 +112,11 @@ menu "BSP Selector"
         default 1 if BSP_SELECT_ESP_VOCAT
         default 0
 
+    config M5STACK_STOPWATCH
+        int
+        default 1 if BSP_SELECT_M5STACK_STOPWATCH
+        default 0
+
     config BSP_SELECT_GLIB_SEL
         int
         default 1 if BSP_SELECT_GLIB
@@ -222,6 +227,10 @@ menu "BSP Selector"
         config BSP_SELECT_ESP_VOCAT
             depends on IDF_TARGET_ESP32S3
             bool "ESP_VOCAT"
+
+        config BSP_SELECT_M5STACK_STOPWATCH
+            depends on IDF_TARGET_ESP32S3
+            bool "M5STACK_STOPWATCH"
 
    endchoice
 
