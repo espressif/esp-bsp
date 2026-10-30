@@ -246,5 +246,18 @@ dependencies:
     matches:
       - if: $CONFIG{ESP_VOCAT} == 1 && $CONFIG{BSP_SELECT_GLIB_SEL} != 1
 
+  m5stack_stopwatch:
+    version: "*"
+    public: true
+    override_path: "../../bsp/m5stack_stopwatch"
+    matches:
+      - if: $CONFIG{M5STACK_STOPWATCH} == 1 && $CONFIG{BSP_SELECT_GLIB_SEL} == 1
+
+  m5stack_stopwatch_noglib:
+    version: "*"
+    public: true
+    matches:
+      - if: $CONFIG{M5STACK_STOPWATCH} == 1 && $CONFIG{BSP_SELECT_GLIB_SEL} != 1
+
 examples:
   - path: ../../examples/display

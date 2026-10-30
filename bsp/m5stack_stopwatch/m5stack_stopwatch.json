@@ -1,0 +1,326 @@
+{
+    "BSP_NAME": "M5Stack StopWatch",
+    "BSP_URL": "https://github.com/espressif/esp-bsp/tree/master/bsp/m5stack_stopwatch",
+    "BSP_HW_LINK": "https://docs.m5stack.com/en/core/StopWatch",
+    "BSP_DESC_LONG": "StopWatch is a round AMOLED touch development board designed for portable and interactive scenarios. It features an ESP32-S3R8 main controller with 16MB Flash and 8MB PSRAM, supporting 2.4GHz Wi-Fi wireless communication. The device integrates a 1.75\" AMOLED touch round screen, programmable buttons, and vibration feedback for an intuitive human-machine interaction experience. It also features audio input/output, IMU attitude sensing, RTC timekeeping, and multiple expansion interfaces. Combined with the M5PM1 multi-level power management system and a 450mAh battery, it meets diverse development needs including portable smart control, wearable human-machine interaction, and lightweight IoT terminals.",
+    "BSP_PHOTO_KEEP": "gen/output/574bd9b0-da78-4795-80ae-3e10c4c4f7e6/m5stack_stopwatch/doc/m5stack_stopwatch.webp",
+    "BSP_MCU": "esp32s3",
+    "BSP_GEN_NOGLIB": "true",
+    "BSP_GEN_SQUARELINE": "true",
+    "BSP_FEATURES": [
+        {
+            "name": "I2C",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "pins": {
+                "BSP_I2C_SCL": "GPIO_NUM_48",
+                "BSP_I2C_SDA": "GPIO_NUM_47"
+            },
+            "BSP_I2C_PULLUP_EN": "true"
+        },
+        {
+            "name": "I2S",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_I2S_SAMPLE_RATE": "48000",
+            "BSP_I2S_MODE": "STD",
+            "BSP_I2S_SLOT_MODE": "I2S_SLOT_MODE_MONO",
+            "pins": {
+                "BSP_I2S_MCLK": "GPIO_NUM_18",
+                "BSP_I2S_SCLK": "GPIO_NUM_17",
+                "BSP_I2S_LCLK": "GPIO_NUM_15",
+                "BSP_I2S_DOUT": "GPIO_NUM_21",
+                "BSP_I2S_DSIN": "GPIO_NUM_16"
+            }
+        },
+        {
+            "name": "IO_EXPANDER",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "interface": "I2C",
+            "BSP_IO_EXPANDER_ADDRESS": "0x4F",
+            "driver": "espressif/esp_io_expander_m5ioe1",
+            "BSP_IO_EXPANDER_MAP_GPIO": "true",
+            "DRIVER": "m5ioe1",
+            "DRIVER_NAMESPACE": "espressif"
+        },
+        {
+            "name": "SPIFFS",
+            "enabled": [
+                "true",
+                "true"
+            ]
+        },
+        {
+            "name": "DISPLAY",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "interface": "QSPI",
+            "driver": "espressif/esp_lcd_co5300",
+            "BSP_LCD_H_RES": "480",
+            "BSP_LCD_V_RES": "466",
+            "BSP_LCD_PIXEL_CLOCK_MHZ": "80",
+            "BSP_LCD_BITS_PER_PIXEL": "16",
+            "BSP_LCD_BIGENDIAN": "true",
+            "BSP_LCD_COLOR_FORMAT": "ESP_LCD_COLOR_FORMAT_RGB565",
+            "BSP_LCD_COLOR_SPACE": "LCD_RGB_ELEMENT_ORDER_RGB",
+            "BSP_LCD_SPI_NUM": "SPI2_HOST",
+            "pins": {
+                "BSP_LCD_PCLK": "GPIO_NUM_40",
+                "BSP_LCD_DATA0": "GPIO_NUM_41",
+                "BSP_LCD_DATA1": "GPIO_NUM_42",
+                "BSP_LCD_DATA2": "GPIO_NUM_46",
+                "BSP_LCD_DATA3": "GPIO_NUM_45",
+                "BSP_LCD_DC": "GPIO_NUM_38",
+                "BSP_LCD_CS": "GPIO_NUM_39",
+                "BSP_LCD_RST": "53",
+                "BSP_LCD_BACKLIGHT": "GPIO_NUM_NC",
+                "BSP_LCD_EN": "IO_EXPANDER_PIN_NUM_7"
+            },
+            "BSP_LCD_INIT_CMDS": "",
+            "BSP_FEATURE_LCD_TYPE": "IO_Expander",
+            "BSP_FEATURE_LCD_LEVEL": "true",
+            "DRIVER": "co5300",
+            "DRIVER_NAMESPACE": "espressif"
+        },
+        {
+            "name": "SCREEN_TOUCH",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "interface": "I2C",
+            "driver": "espressif/esp_lcd_touch_cst816s",
+            "pins": {
+                "BSP_LCD_TOUCH_INT": "GPIO_NUM_13",
+                "BSP_TOUCH_EN": "IO_EXPANDER_PIN_NUM_3"
+            },
+            "BSP_FEATURE_TOUCH_TYPE": "IO_Expander",
+            "DRIVER": "cst816s",
+            "DRIVER_NAMESPACE": "espressif",
+            "CFG": "ESP_LCD_TOUCH_IO_I2C_CST816S_CONFIG()"
+        },
+        {
+            "name": "AUDIO_SPEAKER",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_AUDIO_SPEAKER_CODEC": "ES8311",
+            "BSP_AUDIO_SPEAKER_CODEC_ADDRESS": "ES8311_CODEC_DEFAULT_ADDR",
+            "pins": {
+                "BSP_POWER_AMP_IO": "GPIO_NUM_NC",
+                "BSP_SPEAKER_EN": "IO_EXPANDER_PIN_NUM_9"
+            },
+            "BSP_FEATURE_SPEAKER_TYPE": "IO_Expander",
+            "BSP_FEATURE_SPEAKER_LEVEL": "true",
+            "CODEC": "es8311"
+        },
+        {
+            "name": "AUDIO_MIC",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_AUDIO_MIC_CODEC": "ES8311",
+            "BSP_AUDIO_MIC_CODEC_ADDRESS": "ES8311_CODEC_DEFAULT_ADDR",
+            "BSP_FEATURE_MIC_TYPE": "IO_Expander",
+            "pins": {
+                "BSP_MIC_EN": "IO_EXPANDER_PIN_NUM_2"
+            },
+            "BSP_FEATURE_MIC_LEVEL": "true",
+            "CODEC": "es8311"
+        },
+        {
+            "name": "BUTTON",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_BUTTON_NUM": "2",
+            "BSP_BUTTON_1_NAME": "KEYA_YELLOW",
+            "BSP_BUTTON_1_TYPE": "GPIO",
+            "pins": {
+                "BSP_BUTTON_1_IO": "GPIO_NUM_2",
+                "BSP_BUTTON_2_IO": "GPIO_NUM_1"
+            },
+            "BSP_BUTTON_2_NAME": "KEYB_BLUE",
+            "BSP_BUTTON_2_TYPE": "GPIO"
+        },
+        {
+            "name": "SENSORS",
+            "enabled": [
+                "true",
+                "true"
+            ],
+            "BSP_SENSOR_IMU_EN": "true",
+            "BSP_SENSOR_IMU": "espressif/bmi270",
+            "BSP_SENSOR_IMU_ADDRESS": "0x68",
+            "BSP_FEATURE_SENSOR_TYPE": "",
+            "BSP_SENSOR_IMU_DRIVER": "bmi270",
+            "BSP_SENSOR_IMU_SENSOR_HUB_NAME": "sensor_hub_bmi270",
+            "BSP_SENSOR_IMU_DRIVER_NAMESPACE": "espressif"
+        }
+    ],
+    "I2C_CNT": 2,
+    "I2S_CNT": 2,
+    "BSP_VALID_NAME": "m5stack_stopwatch",
+    "BSP_BOARDNAME": "BSP_BOARD_M5STACK_STOPWATCH",
+    "BSP_CAPS": [
+        {
+            "name": "BSP_CAPS_DISPLAY",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_TOUCH",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_BUTTONS",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_KNOB",
+            "enabled": "0"
+        },
+        {
+            "name": "BSP_CAPS_AUDIO",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_AUDIO_SPEAKER",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_AUDIO_MIC",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_SDCARD",
+            "enabled": "0"
+        },
+        {
+            "name": "BSP_CAPS_LED",
+            "enabled": "0"
+        },
+        {
+            "name": "BSP_CAPS_CAMERA",
+            "enabled": "0"
+        },
+        {
+            "name": "BSP_CAPS_BAT",
+            "enabled": "0"
+        },
+        {
+            "name": "BSP_CAPS_IMU",
+            "enabled": "1"
+        },
+        {
+            "name": "BSP_CAPS_HUMITURE",
+            "enabled": "0"
+        }
+    ],
+    "BSP_DEPENDENCIES": [
+        {
+            "name": "esp_codec_dev",
+            "version": "~1.5",
+            "public": "true",
+            "min_idf": "4.0"
+        },
+        {
+            "name": "espressif/esp_io_expander_tca95xx_16bit",
+            "version": "*",
+            "public": "true",
+            "min_idf": "0"
+        },
+        {
+            "name": "espressif/esp_lvgl_port",
+            "version": "^2",
+            "public": "true",
+            "min_idf": "5.1"
+        },
+        {
+            "name": "espressif/esp_lcd_co5300",
+            "version": "*",
+            "public": "false",
+            "min_idf": "0"
+        },
+        {
+            "name": "espressif/esp_lcd_touch_cst816s",
+            "version": "*",
+            "public": "false",
+            "min_idf": "0"
+        },
+        {
+            "name": "button",
+            "version": "^4",
+            "public": "true",
+            "min_idf": "4.0"
+        },
+        {
+            "name": "espressif/bmi270",
+            "version": "*",
+            "public": "true",
+            "min_idf": "0"
+        }
+    ],
+    "BSP_REQUIRES": [
+        "esp_driver_i2c",
+        "esp_driver_i2s",
+        "spiffs",
+        "fatfs",
+        "vfs"
+    ],
+    "BSP_PRIV_REQUIRES": [
+        "esp_lcd",
+        "esp_driver_ledc"
+    ],
+    "MIN_IDF_VER": "5.2",
+    "BSP_FEATURE_EN": [
+        {
+            "name": "BSP_FEATURE_LCD",
+            "type": "IO_Expander",
+            "pin": "BSP_LCD_EN",
+            "level": "true"
+        },
+        {
+            "name": "BSP_FEATURE_TOUCH",
+            "type": "IO_Expander",
+            "pin": "BSP_TOUCH_EN",
+            "level": null
+        },
+        {
+            "name": "BSP_FEATURE_SPEAKER",
+            "type": "IO_Expander",
+            "pin": "BSP_SPEAKER_EN",
+            "level": "true"
+        },
+        {
+            "name": "BSP_FEATURE_MIC",
+            "type": "IO_Expander",
+            "pin": "BSP_MIC_EN",
+            "level": "true"
+        }
+    ],
+    "YEAR": 2026,
+    "BSP_SRC_FILES": [
+        "src/bsp_audio.c",
+        "src/bsp_button.c",
+        "src/bsp_display.c",
+        "src/bsp_i2c.c",
+        "src/bsp_io_expander.c",
+        "src/bsp_storage.c",
+        "src/bsp_sensors.c",
+        "src/bsp_feature_en.c"
+    ],
+    "BSP_PHOTO_FILENAME": "m5stack_stopwatch.webp",
+    "NOGLIB": 1
+}
