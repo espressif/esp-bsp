@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
-// This demo UI is adapted from LVGL official example: https://docs.lvgl.io/master/widgets/extra/meter.html#simple-meter
+// This demo UI is adapted from LVGL official example: https://lvgl.io/docs/open/8.3/widgets/extra/meter#simple-meter
 
 #include "lvgl.h"
 

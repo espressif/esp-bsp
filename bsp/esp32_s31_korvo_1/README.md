@@ -37,7 +37,7 @@ The ESP32-S31-Korvo-1 V1.1 is a multimedia development board based on the ESP32-
 |:heavy_check_mark:| :microphone: AUDIO_MIC |     es8389     |                                                                                                            |            |
 |:heavy_check_mark:|  :floppy_disk: SDCARD  |                |                                                     idf                                                    |    >=5.4   |
 |:heavy_check_mark:|       :bulb: LED       |                |   idf<br/>[espressif/led_indicator](https://components.espressif.com/components/espressif/led_indicator)   |>=5.4<br/>^2|
-|:heavy_check_mark:|     :camera: CAMERA    |     OV3660     |           [espressif/esp_video](https://components.espressif.com/components/espressif/esp_video)           |    ~2.2    |
+|:heavy_check_mark:|     :camera: CAMERA    |     OV3660     |           [espressif/esp_video](https://components.espressif.com/components/espressif/esp_video)           |   ~2.4.1   |
 |        :x:       |      :battery: BAT     |                |                                                                                                            |            |
 |        :x:       |    :video_game: IMU    |                |                                                                                                            |            |
 |        :x:       | :thermometer: HUMITURE |                |                                                                                                            |            |
