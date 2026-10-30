@@ -49,6 +49,35 @@ static const char *TAG = "example";
 
 extern void example_lvgl_demo_ui(lv_disp_t *disp);
 
+#if LVGL_VERSION_MAJOR >= 9
+#define EXAMPLE_BUFFER_LINES   16
+#define EXAMPLE_ROUNDER_CB     rounder_cb
+
+/* These panels take one byte per 8 vertically stacked pixels, so a flush must cover whole
+ * pages. Both axes are aligned because the page axis follows the x axis after a 90 or 270
+ * degree rotation, and the limits come from the current, possibly rotated, resolution. */
+static void rounder_cb(lv_area_t *area)
+{
+    lv_coord_t last_col = lv_display_get_horizontal_resolution(NULL) - 1;
+    lv_coord_t last_line = lv_display_get_vertical_resolution(NULL) - 1;
+
+    area->x1 &= ~0x7;
+    area->x2 |= 0x7;
+    area->y1 &= ~0x7;
+    area->y2 |= 0x7;
+    if (area->x2 > last_col) {
+        area->x2 = last_col;
+    }
+    if (area->y2 > last_line) {
+        area->y2 = last_line;
+    }
+}
+#else
+/* LVGL 8 only renders monochrome displays into a full screen buffer. */
+#define EXAMPLE_BUFFER_LINES   EXAMPLE_LCD_V_RES
+#define EXAMPLE_ROUNDER_CB     NULL
+#endif
+
 void app_main(void)
 {
     ESP_LOGI(TAG, "Initialize I2C bus");
@@ -125,11 +154,13 @@ void app_main(void)
     const lvgl_port_display_cfg_t disp_cfg = {
         .io_handle = io_handle,
         .panel_handle = panel_handle,
-        .buffer_size = EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES,
+        /* Only a strip is needed in partial mode; the panel is refreshed page by page. */
+        .buffer_size = EXAMPLE_LCD_H_RES * EXAMPLE_BUFFER_LINES,
         .double_buffer = true,
         .hres = EXAMPLE_LCD_H_RES,
         .vres = EXAMPLE_LCD_V_RES,
         .monochrome = true,
+        .rounder_cb = EXAMPLE_ROUNDER_CB,
 #if LVGL_VERSION_MAJOR >= 9
         .color_format = LV_COLOR_FORMAT_I1,
 #endif
@@ -141,6 +172,7 @@ void app_main(void)
         .flags = {
 #if LVGL_VERSION_MAJOR >= 9
             .swap_bytes = false,
+            .monochrome_partial = true,
 #endif
             .sw_rotate = false,
         }

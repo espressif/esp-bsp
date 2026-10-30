@@ -67,6 +67,11 @@ typedef struct {
         unsigned int sw_rotate: 1;   /*!< Use software rotation (slower) or PPA if available */
 #if LVGL_VERSION_MAJOR >= 9
         unsigned int swap_bytes: 1;  /*!< Swap bytes in RGB565 (16-bit) color format before send to LCD driver */
+        unsigned int monochrome_partial: 1; /*!< Monochrome: render partial areas instead of the whole screen.
+                                                 Requires rounder_cb, which must align both area axes to 8 pixel
+                                                 boundaries (page granularity, independently of the rotation).
+                                                 Only the changed pages are sent.
+                                                 Takes precedence over full_refresh on monochrome displays. */
 #endif
         unsigned int full_refresh: 1;/*!< 1: Always make the whole screen redrawn */
         unsigned int direct_mode: 1; /*!< 1: Use screen-sized buffers and draw to absolute coordinates */
