@@ -87,6 +87,17 @@ menu "Board Support Package (M5Stack Tab5)"
             help
                 Let DPI LCD driver create a specified number of frame-size buffers. Only when it is set to multiple can the avoiding tearing be turned on.
 
+        config BSP_LCD_ST7123_VSYNC_FRONT_PORCH
+            int "ST7123 vertical front porch (lines)"
+            default 180
+            range 160 400
+            help
+                Vertical front porch of the DPI timing for the ST7123 panel. The ST7123
+                (display and touch in one chip) appears to scan touch during the vertical
+                blanking. With 220 lines (the previous value) mid-tone areas flicker
+                visibly; from 200 lines down the image is calm. Below about 160 lines the
+                touch controller stops reporting touches.
+
         config BSP_DISPLAY_LVGL_AVOID_TEAR
             bool "Avoid tearing effect"
             depends on BSP_LCD_DPI_BUFFER_NUMS > 1
