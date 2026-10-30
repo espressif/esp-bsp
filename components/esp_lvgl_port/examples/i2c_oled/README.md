@@ -7,12 +7,11 @@
 
 This example shows how to make use of the SSD1306 panel driver from `esp_lcd` component to facilitate the porting of LVGL library. In the end, example will display a scrolling text on the OLED screen.
 
+On LVGL 9 the display is configured for partial rendering: these panels store one byte per 8 vertically stacked pixels, so a flush must cover whole pages. `rounder_cb` aligns both axes of the flush area to that grid and only the changed pages are sent to the panel, instead of a full frame for every update. The buffer holds a single 16 line strip. LVGL 8 uses a full screen buffer, since partial rendering for monochrome displays is only available in LVGL 9.
+
 ## LVGL Version
 
-This example is using the **LVGL8** version. For use it with LVGL9 version, please delete file [sdkconfig.defaults](sdkconfig.defaults) and change version to `"^9"` on this line in [idf_component.yml](main/idf_component.yml) file:
-```
-lvgl/lvgl: "^8"
-```
+This example builds with both LVGL8 and LVGL9, and uses the newest by default. To pin LVGL8, add `lvgl/lvgl: "^8"` to [idf_component.yml](main/idf_component.yml); monochrome partial rendering then falls back to a full screen buffer.
 
 NOTE: When you are changing LVGL versions, please remove these files and folders before new build:
 - build/

@@ -306,6 +306,9 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
     lv_color_format_t display_color_format = (disp_cfg->color_format != 0 ? disp_cfg->color_format :
             LV_COLOR_FORMAT_RGB565);
     uint8_t color_bytes = lv_color_format_get_size(display_color_format);
+    /* Indexed formats keep a palette in front of the pixel data of every buffer */
+    uint32_t palette_bytes = LV_COLOR_FORMAT_IS_INDEXED(display_color_format) ?
+                             LV_COLOR_INDEXED_PALETTE_SIZE(display_color_format) * sizeof(lv_color32_t) : 0;
     if (disp_cfg->flags.swap_bytes) {
         /* Swap bytes can be used only in RGB565 color format */
         ESP_RETURN_ON_FALSE(display_color_format == LV_COLOR_FORMAT_RGB565
@@ -382,10 +385,10 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
     } else {
         /* alloc draw buffers used by LVGL */
         /* it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized */
-        buf1 = heap_caps_aligned_alloc(CONFIG_LV_DRAW_BUF_ALIGN, buffer_size * color_bytes, buff_caps);
+        buf1 = heap_caps_aligned_alloc(CONFIG_LV_DRAW_BUF_ALIGN, buffer_size * color_bytes + palette_bytes, buff_caps);
         ESP_GOTO_ON_FALSE(buf1, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf1) allocation!");
         if (disp_cfg->double_buffer) {
-            buf2 = heap_caps_aligned_alloc(CONFIG_LV_DRAW_BUF_ALIGN, buffer_size * color_bytes, buff_caps);
+            buf2 = heap_caps_aligned_alloc(CONFIG_LV_DRAW_BUF_ALIGN, buffer_size * color_bytes + palette_bytes, buff_caps);
             ESP_GOTO_ON_FALSE(buf2, ESP_ERR_NO_MEM, err, TAG, "Not enough memory for LVGL buffer (buf2) allocation!");
         }
 
@@ -409,12 +412,23 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
                             || display_color_format == LV_COLOR_FORMAT_I1, NULL, TAG,
                             "Monochrome can be used only in display color format RGB565 or I1!");
 
-        /* When using monochromatic display, there must be used full bufer! */
-        ESP_GOTO_ON_FALSE((disp_cfg->hres * disp_cfg->vres == buffer_size), ESP_ERR_INVALID_ARG, err, TAG,
-                          "Monochromatic display must using full buffer!");
+        lv_display_render_mode_t render_mode = LV_DISPLAY_RENDER_MODE_FULL;
+
+        if (disp_cfg->flags.monochrome_partial) {
+            /* Partial rendering sends only the changed pages, but the areas must be page aligned. */
+            ESP_GOTO_ON_FALSE(disp_cfg->rounder_cb != NULL, ESP_ERR_INVALID_ARG, err, TAG,
+                              "Monochrome partial rendering requires a rounder callback!");
+            ESP_GOTO_ON_FALSE(buffer_size <= disp_cfg->hres * disp_cfg->vres, ESP_ERR_INVALID_ARG, err, TAG,
+                              "Monochrome partial rendering buffer must fit the screen!");
+            render_mode = LV_DISPLAY_RENDER_MODE_PARTIAL;
+        } else {
+            /* When using monochromatic display, there must be used full bufer! */
+            ESP_GOTO_ON_FALSE((disp_cfg->hres * disp_cfg->vres == buffer_size), ESP_ERR_INVALID_ARG, err, TAG,
+                              "Monochromatic display must using full buffer!");
+        }
 
         disp_ctx->flags.monochrome = 1;
-        lv_display_set_buffers(disp, buf1, buf2, buffer_size * color_bytes, LV_DISPLAY_RENDER_MODE_FULL);
+        lv_display_set_buffers(disp, buf1, buf2, buffer_size * color_bytes, render_mode);
 
         if (display_color_format == LV_COLOR_FORMAT_I1) {
             /* OLED monochrome buffer */
@@ -572,9 +586,7 @@ static void _lvgl_port_transform_monochrome(lv_display_t *display, const lv_area
     uint8_t *src = *color_map;
     lv_color16_t *color = (lv_color16_t *)*color_map;
     lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_display_get_driver_data(display);
-    uint16_t hor_res = lv_display_get_physical_horizontal_resolution(display);
-    uint16_t ver_res = lv_display_get_physical_vertical_resolution(display);
-    uint16_t res = hor_res;
+    lv_color_format_t color_format = lv_display_get_color_format(display);
     bool swap_xy = (lv_display_get_rotation(display) == LV_DISPLAY_ROTATION_90
                     || lv_display_get_rotation(display) == LV_DISPLAY_ROTATION_270);
 
@@ -583,7 +595,15 @@ static void _lvgl_port_transform_monochrome(lv_display_t *display, const lv_area
     int y1 = area->y1;
     int y2 = area->y2;
 
-    lv_color_format_t color_format = lv_display_get_color_format(display);
+    /* The buffer holds only this area, so both the read and the write are relative to
+     * the area origin. Its stride follows the area width, not the display width. The output
+     * is packed for the area as well: its page width is the area width, or its height when
+     * the axes are swapped. */
+    int area_width = x2 - x1 + 1;
+    int area_height = y2 - y1 + 1;
+    int out_page_width = swap_xy ? area_height : area_width;
+    int src_stride = lv_draw_buf_width_to_stride(area_width, color_format);
+
     if (color_format == LV_COLOR_FORMAT_I1) {
         // This is necessary because LVGL reserves 2 x 4 bytes in the buffer, as these are assumed to be used as a palette. Skip the palette here
         // More information about the monochrome, please refer to https://docs.lvgl.io/9.2/porting/display.html#monochrome-displays
@@ -592,30 +612,28 @@ static void _lvgl_port_transform_monochrome(lv_display_t *display, const lv_area
         *color_map = disp_ctx->oled_buffer;
     }
 
-    int out_x, out_y;
     for (int y = y1; y <= y2; y++) {
         for (int x = x1; x <= x2; x++) {
             bool chroma_color = 0;
             if (color_format == LV_COLOR_FORMAT_I1) {
-                chroma_color = (src[(hor_res >> 3) * y  + (x >> 3)] & 1 << (7 - x % 8));
+                chroma_color = (src[src_stride * (y - y1) + ((x - x1) >> 3)] & (1 << (7 - (x - x1) % 8)));
             } else {
-                chroma_color = (color[hor_res * y + x].blue > 16);
+                chroma_color = (color[(src_stride >> 1) * (y - y1) + (x - x1)].blue > 16);
             }
 
+            int out_x, out_y;
             if (swap_xy) {
-                out_x = y;
-                out_y = x;
-                res = ver_res;
+                out_x = y - y1;
+                out_y = x - x1;
             } else {
-                out_x = x;
-                out_y = y;
-                res = hor_res;
+                out_x = x - x1;
+                out_y = y - y1;
             }
 
             /* Write to the buffer as required for the display.
             * It writes only 1-bit for monochrome displays mapped vertically.*/
             uint8_t *outbuf = NULL;
-            outbuf = *color_map + res * (out_y >> 3) + (out_x);
+            outbuf = *color_map + out_page_width * (out_y >> 3) + out_x;
             if (chroma_color) {
                 (*outbuf) &= ~(1 << (out_y % 8));
             } else {

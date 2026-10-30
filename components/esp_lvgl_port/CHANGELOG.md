@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Added `flags.monochrome_partial` to render monochrome displays in partial mode. Only the changed pages are sent to the panel, but `rounder_cb` must align the areas to pages on both axes
+
+### Fixes
+
+- Monochrome transform now supports flushed areas that do not start at the screen origin
+- Indexed draw buffers reserve space for their palette
+
 ## 2.9.0
 
 ### Features
