@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.9.1
+
+### Fixes
+
+- Fixed build of DPI displays with `avoid_tearing` on IDF v5.5.0 - v5.5.4 and v6.0.0 - v6.0.2, which have no `on_frame_buf_complete` callback for DPI panels
+
 ## 2.9.0
 
 ### Features
