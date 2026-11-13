@@ -1,0 +1,45 @@
+
+version: "1.0.0"
+description: Board Support Package (BSP) for M5Stack StopWatch
+url: https://github.com/espressif/esp-bsp/tree/master/bsp/m5stack_stopwatch
+
+targets:
+  - esp32s3
+
+tags:
+  - bsp
+  - M5Stack
+
+dependencies:
+  idf: ">=5.4"
+
+  esp_codec_dev:
+    version: "~1.5"
+    public: true
+
+  espressif/esp_io_expander_m5ioe1:
+    version: "*"
+    public: true
+    override_path: "../../components/io_expander/esp_io_expander_m5ioe1"
+
+  espressif/esp_lvgl_port:
+    version: "^2"
+    public: true
+    override_path: "../../components/esp_lvgl_port"
+
+  espressif/esp_lcd_co5300:
+    version: "*"
+    public: false
+
+  espressif/esp_lcd_touch_cst816s:
+    version: "*"
+    public: false
+
+  button:
+    version: "^4"
+    public: true
+
+  espressif/bmi270:
+    version: "*"
+    public: true
+    override_path: "../../components/sensors/bmi270"

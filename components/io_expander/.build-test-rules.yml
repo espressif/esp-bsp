@@ -8,6 +8,11 @@ components/io_expander/esp_io_expander_ht8574:
     - "components/io_expander/esp_io_expander/**"
     - "components/io_expander/esp_io_expander_ht8574/**"
 
+components/io_expander/esp_io_expander_m5ioe1:
+  depends_filepatterns:
+    - "components/io_expander/esp_io_expander/**"
+    - "components/io_expander/esp_io_expander_m5ioe1/**"
+
 components/io_expander/esp_io_expander_pi4ioe5v6408:
   depends_filepatterns:
     - "components/io_expander/esp_io_expander/**"

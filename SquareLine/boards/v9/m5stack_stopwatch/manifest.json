@@ -1,0 +1,20 @@
+{
+ "name": "M5Stack StopWatch",
+ "version": "1.0.0",
+ "mcu": "ESP32S3",
+
+ "screen_width": "466",
+ "screen_height": "466",
+ "screen_circle": true,
+ "screen_color_swap": false,
+
+ "supported_lvgl_version": "9.1.*, 9.2.*, 9.3.*",
+
+ "short_description": "M5Stack StopWatch BSP for SquareLine Studio.",
+ "long_description": "StopWatch is a round AMOLED touch development board designed for portable and interactive scenarios. It features an ESP32-S3R8 main controller with 16MB Flash and 8MB PSRAM, supporting 2.4GHz Wi-Fi wireless communication. The device integrates a 1.75\" AMOLED touch round screen, programmable buttons, and vibration feedback for an intuitive human-machine interaction experience. It also features audio input/output, IMU attitude sensing, RTC timekeeping, and multiple expansion interfaces. Combined with the M5PM1 multi-level power management system and a 450mAh battery, it meets diverse development needs including portable smart control, wearable human-machine interaction, and lightweight IoT terminals.",
+
+ "placeholders": {
+  "__ESP_BOARD_INCLUDE__": "bsp/esp-bsp.h",
+  "__ESP_BOARD_I2C_INIT__": ""
+ }
+}

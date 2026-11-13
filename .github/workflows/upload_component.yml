@@ -47,6 +47,7 @@ jobs:
           - esp_vocat
           - esp32_s31_korvo_1
           - esp_sensairshuttle
+          - m5stack_stopwatch
     steps:
       - uses: actions/checkout@v6
 
