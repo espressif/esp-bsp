@@ -63,6 +63,8 @@ typedef struct {
     lvgl_port_rotation_cfg_t  rotation;       /* Default values of the screen rotation */
     lv_color_t                *draw_buffs[3]; /* Display draw buffers */
     uint8_t                   *oled_buffer;
+    uint8_t                   *trans_buf;     /* DMA-capable SRAM bounce buffer (chunked transfer) */
+    uint32_t                  trans_size;     /* Maximum size (in pixels) for one transport */
     lv_display_t              *disp_drv;      /* LVGL display driver */
     lv_display_rotation_t     current_rotation;
     SemaphoreHandle_t         trans_sem;      /* Idle transfer mutex */
@@ -255,6 +257,10 @@ esp_err_t lvgl_port_remove_disp(lv_display_t *disp)
         free(disp_ctx->oled_buffer);
     }
 
+    if (disp_ctx->trans_buf) {
+        free(disp_ctx->trans_buf);
+    }
+
     if (disp_ctx->trans_sem) {
         vSemaphoreDelete(disp_ctx->trans_sem);
     }
@@ -380,6 +386,23 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
         ESP_GOTO_ON_FALSE(trans_sem, ESP_ERR_NO_MEM, err, TAG, "Failed to create transport counting Semaphore");
         disp_ctx->trans_sem = trans_sem;
     } else {
+        /* Allocate a small DMA-capable SRAM bounce buffer for chunked framebuffer
+         * transfers. Required when the LVGL draw buffers reside in PSRAM
+         * (buff_spiram) and the display is driven over SPI/I80, because the SPI
+         * DMA engine cannot read PSRAM directly. */
+        if (priv_cfg == NULL && disp_cfg->trans_size > 0) {
+            disp_ctx->trans_buf = heap_caps_aligned_alloc(CONFIG_LV_DRAW_BUF_ALIGN,
+                                                           disp_cfg->trans_size * color_bytes,
+                                                           MALLOC_CAP_DMA);
+            ESP_GOTO_ON_FALSE(disp_ctx->trans_buf, ESP_ERR_NO_MEM, err, TAG,
+                              "Not enough memory for buffer(transport) allocation!");
+            disp_ctx->trans_size = disp_cfg->trans_size;
+
+            trans_sem = xSemaphoreCreateCounting(1, 0);
+            ESP_GOTO_ON_FALSE(trans_sem, ESP_ERR_NO_MEM, err, TAG, "Failed to create transport counting Semaphore");
+            disp_ctx->trans_sem = trans_sem;
+        }
+
         /* alloc draw buffers used by LVGL */
         /* it's recommended to choose the size of the draw buffer(s) to be at least 1/10 screen sized */
         buf1 = heap_caps_aligned_alloc(CONFIG_LV_DRAW_BUF_ALIGN, buffer_size * color_bytes, buff_caps);
@@ -493,6 +516,9 @@ err:
         if (disp_ctx->oled_buffer) {
             free(disp_ctx->oled_buffer);
         }
+        if (disp_ctx->trans_buf) {
+            free(disp_ctx->trans_buf);
+        }
         if (disp_ctx) {
             free(disp_ctx);
         }
@@ -508,10 +534,18 @@ err:
 static bool lvgl_port_flush_io_ready_callback(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata,
         void *user_ctx)
 {
+    BaseType_t need_yield = pdFALSE;
+
     lv_display_t *disp_drv = (lv_display_t *)user_ctx;
     assert(disp_drv != NULL);
     lv_disp_flush_ready(disp_drv);
-    return false;
+
+    lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_display_get_driver_data(disp_drv);
+    if (disp_ctx->trans_size && disp_ctx->trans_sem) {
+        xSemaphoreGiveFromISR(disp_ctx->trans_sem, &need_yield);
+    }
+
+    return (need_yield == pdTRUE);
 }
 
 #if (SOC_MIPI_DSI_SUPPORTED && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 3, 0))
@@ -745,7 +779,34 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
         _lvgl_port_transform_monochrome(drv, area, &color_map);
     }
 
-    if ((disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI)
+    if (disp_ctx->trans_size > 0) {
+        /* Chunked transfer: the draw buffer may reside in PSRAM, which the SPI DMA
+         * engine cannot read directly. Copy it into the DMA-capable SRAM bounce
+         * buffer in pieces and flush each piece, synchronizing on the transfer
+         * semaphore so the next piece is not overwritten before it is sent. */
+        int width = offsetx2 - offsetx1 + 1;
+        int height = offsety2 - offsety1 + 1;
+        int max_line = ((disp_ctx->trans_size / width) > height) ? height : (disp_ctx->trans_size / width);
+        int trans_count = height / max_line + (height % max_line ? 1 : 0);
+        uint32_t src_stride = lv_draw_buf_width_to_stride(lv_display_get_horizontal_resolution(drv),
+                                                         lv_display_get_color_format(drv));
+        size_t row_bytes = (size_t)width * lv_color_format_get_size(lv_display_get_color_format(drv));
+
+        for (int i = 0; i < trans_count; i++) {
+            int trans_line = (height - i * max_line) > max_line ? max_line : (height - i * max_line);
+            int y_draw_start = offsety1 + i * max_line;
+            int y_draw_end = y_draw_start + trans_line - 1;
+
+            uint8_t *from = color_map + (size_t)(i * max_line) * src_stride;
+            uint8_t *to = disp_ctx->trans_buf;
+            for (int y = 0; y < trans_line; y++) {
+                memcpy(to + y * row_bytes, from + y * src_stride, row_bytes);
+            }
+
+            esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, offsetx1, y_draw_start, offsetx2 + 1, y_draw_end + 1, to);
+            xSemaphoreTake(disp_ctx->trans_sem, portMAX_DELAY);
+        }
+    } else if ((disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI)
             && (disp_ctx->flags.direct_mode || disp_ctx->flags.full_refresh)) {
         if (lv_disp_flush_is_last(drv)) {
             /* If the interface is I80 or SPI, this step cannot be used for drawing. */
