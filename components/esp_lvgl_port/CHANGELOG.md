@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Added `flags.monochrome_partial` to render monochrome displays in partial mode. Only the changed pages are sent to the panel, but `rounder_cb` must align the areas to pages on both axes
+
+### Fixes
+
+- Monochrome transform now supports flushed areas that do not start at the screen origin
+- Indexed draw buffers reserve space for their palette
+- Display creation errors after the LVGL display was created no longer return a half initialized display
+- Monochrome partial rendering rejects draw buffers smaller than one page
+
 ## 2.9.0
 
 ### Features

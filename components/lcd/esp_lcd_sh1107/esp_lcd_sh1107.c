@@ -220,14 +220,14 @@ static esp_err_t panel_sh1107_draw_bitmap(esp_lcd_panel_t *panel, int x_start, i
     }
 
     row_start = y_start >> 3;
-    row_end = y_end >> 3;
+    row_end = (y_end - 1) >> 3;
 
     column_low = x_start & 0x0F;
     column_high = (x_start >> 4) & 0x0F;
 
     size = (x_end - x_start);
 
-    for (int i = row_start; i < row_end; i++) {
+    for (int i = row_start; i <= row_end; i++) {
         /* Start column */
         ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, LCD_SH1107_I2C_CMD, (uint8_t[]) {
             0x10 | column_high
@@ -240,7 +240,8 @@ static esp_err_t panel_sh1107_draw_bitmap(esp_lcd_panel_t *panel, int x_start, i
             0xB0 | i
         }, 1), TAG, "io tx param page set failed");
 
-        ptr = color_data + i * x_end;
+        /* Data is packed for the requested area, so the stride is the area width. */
+        ptr = color_data + (i - row_start) * size;
         ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_color(io, LCD_SH1107_I2C_RAM, (uint8_t *)ptr, size), TAG, "io tx color failed");
     }
 
