@@ -123,11 +123,17 @@ static void lvgl_port_touchpad_read(lv_indev_t *indev_drv, lv_indev_data_t *data
     uint8_t touch_cnt = 0;
     esp_lcd_touch_point_data_t touch_data[CONFIG_ESP_LCD_TOUCH_MAX_POINTS] = {0};
 
-    /* Read data from touch controller into memory */
-    ESP_ERROR_CHECK(esp_lcd_touch_read_data(touch_ctx->handle));
-
-    /* Read data from touch controller */
-    ESP_ERROR_CHECK(esp_lcd_touch_get_data(touch_ctx->handle, touch_data, &touch_cnt, CONFIG_ESP_LCD_TOUCH_MAX_POINTS));
+    /* Read data from touch controller into memory and get the touch points.
+     * A failed read (e.g. an I2C error while the panel is reset) counts as "no touch"
+     * instead of aborting the application from inside the LVGL task. */
+    esp_err_t err = esp_lcd_touch_read_data(touch_ctx->handle);
+    if (err == ESP_OK) {
+        err = esp_lcd_touch_get_data(touch_ctx->handle, touch_data, &touch_cnt, CONFIG_ESP_LCD_TOUCH_MAX_POINTS);
+    }
+    if (err != ESP_OK) {
+        ESP_LOGD(TAG, "Touch read failed: %s", esp_err_to_name(err));
+        touch_cnt = 0;
+    }
 
 #if (CONFIG_ESP_LCD_TOUCH_MAX_POINTS > 1 && CONFIG_LV_USE_GESTURE_RECOGNITION)
     // Number of touch points which need to be constantly updated inside gesture recognizers
