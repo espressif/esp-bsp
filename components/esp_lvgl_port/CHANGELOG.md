@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.9.1
+
+### Fixes
+
+- Replaced LVGL v8 API names in the LVGL9 port with the LVGL 9 names (the v8 names are deprecated aliases in LVGL 9)
+
 ## 2.9.0
 
 ### Features

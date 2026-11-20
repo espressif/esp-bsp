@@ -110,7 +110,7 @@ static void lvgl_port_display_invalidate_callback(lv_event_t *e);
 lv_display_t *lvgl_port_add_disp(const lvgl_port_display_cfg_t *disp_cfg)
 {
     lvgl_port_lock(0);
-    lv_disp_t *disp = lvgl_port_add_disp_priv(disp_cfg, NULL);
+    lv_display_t *disp = lvgl_port_add_disp_priv(disp_cfg, NULL);
 
     if (disp != NULL) {
         lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_display_get_driver_data(disp);
@@ -146,7 +146,7 @@ lv_display_t *lvgl_port_add_disp_dsi(const lvgl_port_display_cfg_t *disp_cfg,
         .avoid_tearing = dsi_cfg->flags.avoid_tearing,
     };
     lvgl_port_lock(0);
-    lv_disp_t *disp = lvgl_port_add_disp_priv(disp_cfg, &priv_cfg);
+    lv_display_t *disp = lvgl_port_add_disp_priv(disp_cfg, &priv_cfg);
 
     if (disp != NULL) {
         lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_display_get_driver_data(disp);
@@ -189,7 +189,7 @@ lv_display_t *lvgl_port_add_disp_rgb(const lvgl_port_display_cfg_t *disp_cfg,
         .disp_type = LVGL_PORT_DISP_TYPE_RGB,
         .avoid_tearing = rgb_cfg->flags.avoid_tearing,
     };
-    lv_disp_t *disp = lvgl_port_add_disp_priv(disp_cfg, &priv_cfg);
+    lv_display_t *disp = lvgl_port_add_disp_priv(disp_cfg, &priv_cfg);
 
     if (disp != NULL) {
         lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_display_get_driver_data(disp);
@@ -236,7 +236,7 @@ esp_err_t lvgl_port_remove_disp(lv_display_t *disp)
     lvgl_port_display_ctx_t *disp_ctx = (lvgl_port_display_ctx_t *)lv_display_get_driver_data(disp);
 
     lvgl_port_lock(0);
-    lv_disp_remove(disp);
+    lv_display_delete(disp);
     lvgl_port_unlock();
 
     if (disp_ctx->draw_buffs[0]) {
@@ -272,7 +272,7 @@ esp_err_t lvgl_port_remove_disp(lv_display_t *disp)
 void lvgl_port_flush_ready(lv_display_t *disp)
 {
     assert(disp);
-    lv_disp_flush_ready(disp);
+    lv_display_flush_ready(disp);
 }
 
 /*******************************************************************************
@@ -510,7 +510,7 @@ static bool lvgl_port_flush_io_ready_callback(esp_lcd_panel_io_handle_t panel_io
 {
     lv_display_t *disp_drv = (lv_display_t *)user_ctx;
     assert(disp_drv != NULL);
-    lv_disp_flush_ready(disp_drv);
+    lv_display_flush_ready(disp_drv);
     return false;
 }
 
@@ -520,7 +520,7 @@ static bool lvgl_port_flush_dpi_panel_ready_callback(esp_lcd_panel_handle_t pane
 {
     lv_display_t *disp_drv = (lv_display_t *)user_ctx;
     assert(disp_drv != NULL);
-    lv_disp_flush_ready(disp_drv);
+    lv_display_flush_ready(disp_drv);
     return false;
 }
 
@@ -747,9 +747,10 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
 
     if ((disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI)
             && (disp_ctx->flags.direct_mode || disp_ctx->flags.full_refresh)) {
-        if (lv_disp_flush_is_last(drv)) {
+        if (lv_display_flush_is_last(drv)) {
             /* If the interface is I80 or SPI, this step cannot be used for drawing. */
-            esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, 0, 0, lv_disp_get_hor_res(drv), lv_disp_get_ver_res(drv), color_map);
+            esp_lcd_panel_draw_bitmap(disp_ctx->panel_handle, 0, 0, lv_display_get_horizontal_resolution(drv),
+                                      lv_display_get_vertical_resolution(drv), color_map);
             /* Waiting for the last frame buffer to complete transmission */
             xSemaphoreTake(disp_ctx->trans_sem, 0);
             xSemaphoreTake(disp_ctx->trans_sem, portMAX_DELAY);
@@ -760,7 +761,7 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
 
     if (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_RGB || (disp_ctx->disp_type == LVGL_PORT_DISP_TYPE_DSI
             && (disp_ctx->flags.direct_mode || disp_ctx->flags.full_refresh))) {
-        lv_disp_flush_ready(drv);
+        lv_display_flush_ready(drv);
     }
 }
 

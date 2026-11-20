@@ -72,7 +72,7 @@ lv_indev_t *lvgl_port_add_touch(const lvgl_port_touch_cfg_t *touch_cfg)
         lv_indev_set_mode(indev, LV_INDEV_MODE_EVENT);
     }
     lv_indev_set_read_cb(indev, lvgl_port_touchpad_read);
-    lv_indev_set_disp(indev, touch_cfg->disp);
+    lv_indev_set_display(indev, touch_cfg->disp);
     lv_indev_set_driver_data(indev, touch_ctx);
     touch_ctx->indev = indev;
     lvgl_port_unlock();
