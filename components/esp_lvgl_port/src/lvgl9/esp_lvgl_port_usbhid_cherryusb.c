@@ -28,7 +28,7 @@ lv_indev_t *lvgl_port_add_usb_hid_mouse_input(const lvgl_port_hid_mouse_cfg_t *m
     lvgl_port_lock(0);
     /* Register a mouse input device */
     indev = usbh_hid_lvgl_add_mouse(mouse_cfg->sensitivity);
-    lv_indev_set_disp(indev, mouse_cfg->disp);
+    lv_indev_set_display(indev, mouse_cfg->disp);
 
     /* Set image of cursor */
     lv_obj_t *cursor = mouse_cfg->cursor_img;
@@ -46,7 +46,7 @@ lv_indev_t *lvgl_port_add_usb_hid_keyboard_input(const lvgl_port_hid_keyboard_cf
 
     lvgl_port_lock(0);
     indev = usbh_hid_lvgl_add_keyboard();
-    lv_indev_set_disp(indev, keyboard_cfg->disp);
+    lv_indev_set_display(indev, keyboard_cfg->disp);
     lvgl_port_unlock();
 
     return indev;

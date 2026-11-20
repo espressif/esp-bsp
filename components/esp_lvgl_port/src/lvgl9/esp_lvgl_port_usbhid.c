@@ -18,7 +18,7 @@
 #include "usb/hid_usage_mouse.h"
 
 /* LVGL image of cursor */
-LV_IMG_DECLARE(img_cursor)
+LV_IMAGE_DECLARE(img_cursor);
 
 static const char *TAG = "LVGL";
 
@@ -98,7 +98,7 @@ lv_indev_t *lvgl_port_add_usb_hid_mouse_input(const lvgl_port_hid_mouse_cfg_t *m
     lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
     lv_indev_set_mode(indev, LV_INDEV_MODE_EVENT);
     lv_indev_set_read_cb(indev, lvgl_port_usb_hid_read_mouse);
-    lv_indev_set_disp(indev, mouse_cfg->disp);
+    lv_indev_set_display(indev, mouse_cfg->disp);
     lv_indev_set_driver_data(indev, hid_ctx);
     hid_ctx->mouse.indev = indev;
     lvgl_port_unlock();
@@ -106,8 +106,8 @@ lv_indev_t *lvgl_port_add_usb_hid_mouse_input(const lvgl_port_hid_mouse_cfg_t *m
     /* Set image of cursor */
     lv_obj_t *cursor = mouse_cfg->cursor_img;
     if (cursor == NULL) {
-        cursor = lv_img_create(lv_scr_act());
-        lv_img_set_src(cursor, &img_cursor);
+        cursor = lv_image_create(lv_screen_active());
+        lv_image_set_src(cursor, &img_cursor);
     }
     lv_indev_set_cursor(indev, cursor);
 
@@ -132,7 +132,7 @@ lv_indev_t *lvgl_port_add_usb_hid_keyboard_input(const lvgl_port_hid_keyboard_cf
     lv_indev_set_type(indev, LV_INDEV_TYPE_KEYPAD);
     lv_indev_set_mode(indev, LV_INDEV_MODE_EVENT);
     lv_indev_set_read_cb(indev, lvgl_port_usb_hid_read_kb);
-    lv_indev_set_disp(indev, keyboard_cfg->disp);
+    lv_indev_set_display(indev, keyboard_cfg->disp);
     lv_indev_set_driver_data(indev, hid_ctx);
     hid_ctx->kb.indev = indev;
     lvgl_port_unlock();
