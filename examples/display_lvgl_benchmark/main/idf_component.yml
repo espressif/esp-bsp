@@ -1,4 +1,4 @@
-description: BSP Display rotation example
+description: BSP LVGL benchmark example
 
 dependencies:
   bsp_selector:
