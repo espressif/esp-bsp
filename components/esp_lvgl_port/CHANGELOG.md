@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.9.1
+
+### Fixes
+
+- Fixed build with `CONFIG_LVGL_PORT_ENABLE_PPA` on ESP32-S31
+
 ## 2.9.0
 
 ### Features
