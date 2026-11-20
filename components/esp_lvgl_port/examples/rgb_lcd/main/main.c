@@ -137,7 +137,9 @@ static const char *TAG = "EXAMPLE";
 
 /* LCD IO and panel */
 static esp_lcd_panel_handle_t lcd_panel = NULL;
+#if !CONFIG_IDF_TARGET_ESP32P4
 static esp_lcd_touch_handle_t touch_handle = NULL;
+#endif
 
 /* LVGL display and touch */
 static lv_display_t *lvgl_disp = NULL;
