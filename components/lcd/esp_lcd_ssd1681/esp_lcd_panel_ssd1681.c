@@ -134,7 +134,7 @@ static esp_err_t epaper_set_lut(esp_lcd_panel_io_handle_t io, const uint8_t *lut
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SET_LUT_REG, lut, 153), TAG,
                         "SSD1681_CMD_OUTPUT_CTRL err");
 
-    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SET_DISP_UPDATE_CTRL, (uint8_t[]) {
+    ESP_RETURN_ON_ERROR(esp_lcd_panel_io_tx_param(io, SSD1681_CMD_SET_END_OPTION, (uint8_t[]) {
         lut[153]
     }, 1), TAG, "SSD1681_CMD_SET_END_OPTION err");
 
