@@ -1,10 +1,16 @@
 # Changelog
 
-## 2.9.1
+## Next release
 
 ### Fixes
 
 - Fixed build with LVGL 9.0 - 9.2 (`LV_COLOR_FORMAT_RGB565_SWAPPED` needs LVGL 9.3)
+
+## 2.9.1
+
+### Fixes
+
+- Fixed double RGB565 byte swap when PPA rotation and `swap_bytes` are both enabled
 
 ## 2.9.0
 

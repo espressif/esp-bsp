@@ -680,6 +680,7 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
     int offsetx2 = area->x2;
     int offsety1 = area->y1;
     int offsety2 = area->y2;
+    bool bytes_swapped = false;
 
     /* SW rotation enabled */
     if (disp_ctx->flags.sw_rotate && (disp_ctx->current_rotation > LV_DISPLAY_ROTATION_0)) {
@@ -713,6 +714,8 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
                 offsetx2 = rotate_cfg.area.x2;
                 offsety1 = rotate_cfg.area.y1;
                 offsety2 = rotate_cfg.area.y2;
+                /* PPA already swapped the bytes */
+                bytes_swapped = rotate_cfg.swap_bytes;
             }
         }
 #else
@@ -740,7 +743,7 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
 #endif //LVGL_PORT_PPA
     }
 
-    if (disp_ctx->flags.swap_bytes) {
+    if (disp_ctx->flags.swap_bytes && !bytes_swapped) {
         size_t len = lv_area_get_size(area);
         lv_draw_sw_rgb565_swap(color_map, len);
     }
