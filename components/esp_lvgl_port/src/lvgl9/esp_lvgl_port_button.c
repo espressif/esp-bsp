@@ -110,7 +110,7 @@ lv_indev_t *lvgl_port_add_navigation_buttons(const lvgl_port_nav_btns_cfg_t *but
     lv_indev_set_type(indev, LV_INDEV_TYPE_ENCODER);
     lv_indev_set_mode(indev, LV_INDEV_MODE_EVENT);
     lv_indev_set_read_cb(indev, lvgl_port_navigation_buttons_read);
-    lv_indev_set_disp(indev, buttons_cfg->disp);
+    lv_indev_set_display(indev, buttons_cfg->disp);
     lv_indev_set_driver_data(indev, buttons_ctx);
     //buttons_ctx->indev->long_press_repeat_time = 300;
     buttons_ctx->indev = indev;
