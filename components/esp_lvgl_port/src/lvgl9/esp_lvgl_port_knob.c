@@ -93,7 +93,7 @@ lv_indev_t *lvgl_port_add_encoder(const lvgl_port_encoder_cfg_t *encoder_cfg)
     lv_indev_set_type(indev, LV_INDEV_TYPE_ENCODER);
     lv_indev_set_mode(indev, LV_INDEV_MODE_EVENT);
     lv_indev_set_read_cb(indev, lvgl_port_encoder_read);
-    lv_indev_set_disp(indev, encoder_cfg->disp);
+    lv_indev_set_display(indev, encoder_cfg->disp);
     lv_indev_set_driver_data(indev, encoder_ctx);
     encoder_ctx->indev = indev;
     lvgl_port_unlock();
