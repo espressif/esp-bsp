@@ -1,10 +1,17 @@
 # Changelog
 
+## Next release
+
+### Fixes
+
+- Fixed build with LVGL 9.0 - 9.2 (`LV_COLOR_FORMAT_RGB565_SWAPPED` needs LVGL 9.3)
+- Replaced LVGL v8 API names in the LVGL9 port with the LVGL 9 names (the v8 names are deprecated aliases in LVGL 9)
+
 ## 2.9.1
 
 ### Fixes
 
-- Replaced LVGL v8 API names in the LVGL9 port with the LVGL 9 names (the v8 names are deprecated aliases in LVGL 9)
+- Fixed double RGB565 byte swap when PPA rotation and `swap_bytes` are both enabled
 
 ## 2.9.0
 

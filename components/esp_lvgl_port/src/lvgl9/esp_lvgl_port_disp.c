@@ -21,6 +21,13 @@
 
 #define LVGL_PORT_PPA   (CONFIG_LVGL_PORT_ENABLE_PPA)
 
+/* LV_COLOR_FORMAT_RGB565_SWAPPED was added in LVGL 9.3 */
+#if LVGL_VERSION_MAJOR > 9 || LVGL_VERSION_MINOR >= 3
+#define LVGL_PORT_IS_RGB565(cf) ((cf) == LV_COLOR_FORMAT_RGB565 || (cf) == LV_COLOR_FORMAT_RGB565_SWAPPED)
+#else
+#define LVGL_PORT_IS_RGB565(cf) ((cf) == LV_COLOR_FORMAT_RGB565)
+#endif
+
 #if LVGL_PORT_PPA
 #include "../common/ppa/lcd_ppa.h"
 #endif
@@ -297,8 +304,7 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
     buffer_size = disp_cfg->buffer_size;
 
     /* Check supported display color formats */
-    ESP_RETURN_ON_FALSE(disp_cfg->color_format == 0 || disp_cfg->color_format == LV_COLOR_FORMAT_RGB565
-                        || disp_cfg->color_format == LV_COLOR_FORMAT_RGB565_SWAPPED
+    ESP_RETURN_ON_FALSE(disp_cfg->color_format == 0 || LVGL_PORT_IS_RGB565(disp_cfg->color_format)
                         || disp_cfg->color_format == LV_COLOR_FORMAT_RGB888 || disp_cfg->color_format == LV_COLOR_FORMAT_XRGB8888
                         || disp_cfg->color_format == LV_COLOR_FORMAT_ARGB8888
                         || disp_cfg->color_format == LV_COLOR_FORMAT_I1, NULL, TAG, "Not supported display color format!");
@@ -308,15 +314,13 @@ static lv_display_t *lvgl_port_add_disp_priv(const lvgl_port_display_cfg_t *disp
     uint8_t color_bytes = lv_color_format_get_size(display_color_format);
     if (disp_cfg->flags.swap_bytes) {
         /* Swap bytes can be used only in RGB565 color format */
-        ESP_RETURN_ON_FALSE(display_color_format == LV_COLOR_FORMAT_RGB565
-                            || display_color_format == LV_COLOR_FORMAT_RGB565_SWAPPED,
+        ESP_RETURN_ON_FALSE(LVGL_PORT_IS_RGB565(display_color_format),
                             NULL, TAG, "Swap bytes can be used only in display color format RGB565!");
     }
 
     if (disp_cfg->flags.buff_dma) {
         /* DMA buffer can be used only in RGB565 color format */
-        ESP_RETURN_ON_FALSE(display_color_format == LV_COLOR_FORMAT_RGB565
-                            || display_color_format == LV_COLOR_FORMAT_RGB565_SWAPPED,
+        ESP_RETURN_ON_FALSE(LVGL_PORT_IS_RGB565(display_color_format),
                             NULL, TAG, "DMA buffer can be used only in display color format RGB565 (not aligned copy)!");
     }
 
@@ -676,6 +680,7 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
     int offsetx2 = area->x2;
     int offsety1 = area->y1;
     int offsety2 = area->y2;
+    bool bytes_swapped = false;
 
     /* SW rotation enabled */
     if (disp_ctx->flags.sw_rotate && (disp_ctx->current_rotation > LV_DISPLAY_ROTATION_0)) {
@@ -709,6 +714,8 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
                 offsetx2 = rotate_cfg.area.x2;
                 offsety1 = rotate_cfg.area.y1;
                 offsety2 = rotate_cfg.area.y2;
+                /* PPA already swapped the bytes */
+                bytes_swapped = rotate_cfg.swap_bytes;
             }
         }
 #else
@@ -736,7 +743,7 @@ static void lvgl_port_flush_callback(lv_display_t *drv, const lv_area_t *area, u
 #endif //LVGL_PORT_PPA
     }
 
-    if (disp_ctx->flags.swap_bytes) {
+    if (disp_ctx->flags.swap_bytes && !bytes_swapped) {
         size_t len = lv_area_get_size(area);
         lv_draw_sw_rgb565_swap(color_map, len);
     }
