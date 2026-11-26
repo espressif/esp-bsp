@@ -74,9 +74,8 @@ target_link_libraries(${COMPONENT_TARGET} PUBLIC idf::esp_lcd ${lvgl_iface})
 idf_component_include(esp_timer)
 target_link_libraries(${COMPONENT_TARGET} PRIVATE idf::esp_timer)
 
-# Target-specific: ESP32-P4 picks up the PPA driver.
-idf_build_get_property(target IDF_TARGET)
-if(${target} STREQUAL "esp32p4")
+# The PPA driver exists on every target since ESP-IDF 5.3 (empty without a PPA)
+if(EXISTS "${IDF_PATH}/components/esp_driver_ppa")
     idf_component_include(esp_driver_ppa)
     target_sources(${COMPONENT_TARGET} PRIVATE "src/common/ppa/lcd_ppa.c")
     target_link_libraries(${COMPONENT_TARGET} PRIVATE idf::esp_driver_ppa)

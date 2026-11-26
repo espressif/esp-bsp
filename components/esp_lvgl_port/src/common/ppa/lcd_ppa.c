@@ -6,6 +6,7 @@
 
 
 #include <string.h>
+#include "sdkconfig.h"
 #include "esp_err.h"
 #include "esp_check.h"
 #include "esp_heap_caps.h"
@@ -16,6 +17,12 @@
 
 #if SOC_PPA_SUPPORTED
 #define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
+/* ESP32-P4 has L2 cache, ESP32-S31 only L1 */
+#ifdef CONFIG_CACHE_L2_CACHE_LINE_SIZE
+#define PPA_LCD_CACHE_LINE_SIZE CONFIG_CACHE_L2_CACHE_LINE_SIZE
+#else
+#define PPA_LCD_CACHE_LINE_SIZE CONFIG_CACHE_L1_DCACHE_LINE_SIZE
+#endif
 
 struct lvgl_port_ppa_t {
     uint8_t              *buffer;
@@ -55,8 +62,8 @@ lvgl_port_ppa_handle_t lvgl_port_ppa_create(const lvgl_port_ppa_cfg_t *cfg)
         buffer_caps |= MALLOC_CAP_DEFAULT;
     }
 
-    ppa_ctx->buffer_size = ALIGN_UP(cfg->buffer_size, CONFIG_CACHE_L2_CACHE_LINE_SIZE);
-    ppa_ctx->buffer = heap_caps_aligned_calloc(CONFIG_CACHE_L2_CACHE_LINE_SIZE, ppa_ctx->buffer_size, sizeof(uint8_t),
+    ppa_ctx->buffer_size = ALIGN_UP(cfg->buffer_size, PPA_LCD_CACHE_LINE_SIZE);
+    ppa_ctx->buffer = heap_caps_aligned_calloc(PPA_LCD_CACHE_LINE_SIZE, ppa_ctx->buffer_size, sizeof(uint8_t),
                       buffer_caps);
     assert(ppa_ctx->buffer != NULL);
 
