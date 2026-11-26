@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.9.1
+
+### Fixes
+
+- Fixed double RGB565 byte swap when PPA rotation and `swap_bytes` are both enabled
+
 ## 2.9.0
 
 ### Features
