@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -121,7 +122,7 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
         ESP_RETURN_ON_ERROR(gpio_set_level(esp_lcd_touch_gt911->config.rst_gpio_num, esp_lcd_touch_gt911->config.levels.reset),
                             TAG, "GPIO set level error!");
         ESP_RETURN_ON_ERROR(gpio_set_level(esp_lcd_touch_gt911->config.int_gpio_num, 0), TAG, "GPIO set level error!");
-        vTaskDelay(pdMS_TO_TICKS(10));
+        usleep(10 * 1000);
 
         /* Select I2C addr, set output high or low */
         uint32_t gpio_level;
@@ -134,13 +135,13 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
             ESP_LOGE(TAG, "Addr (0x%X) is invalid", gt911_config->dev_addr);
         }
         ESP_RETURN_ON_ERROR(gpio_set_level(esp_lcd_touch_gt911->config.int_gpio_num, gpio_level), TAG, "GPIO set level error!");
-        vTaskDelay(pdMS_TO_TICKS(1));
+        usleep(1 * 1000);
 
         ESP_RETURN_ON_ERROR(gpio_set_level(esp_lcd_touch_gt911->config.rst_gpio_num, !esp_lcd_touch_gt911->config.levels.reset),
                             TAG, "GPIO set level error!");
-        vTaskDelay(pdMS_TO_TICKS(10));
+        usleep(10 * 1000);
 
-        vTaskDelay(pdMS_TO_TICKS(50));
+        usleep(50 * 1000);
     } else {
         ESP_LOGI(TAG, "I2C address initialization procedure skipped - using default GT9xx setup");
         /* Reset controller */
@@ -205,7 +206,8 @@ static esp_err_t esp_lcd_touch_gt911_exit_sleep(esp_lcd_touch_handle_t tp)
         ESP_RETURN_ON_ERROR(ret, TAG, "High GPIO config failed");
         gpio_set_level(esp_lcd_touch_gt911->config.int_gpio_num, 1);
 
-        vTaskDelay(pdMS_TO_TICKS(5));
+        /* The GT911 wants this pulse to last 2 to 5 ms */
+        usleep(3 * 1000);
 
         const gpio_config_t int_gpio_config_float = {
             .mode = GPIO_MODE_OUTPUT_OD,
@@ -402,9 +404,9 @@ static esp_err_t touch_gt911_reset(esp_lcd_touch_handle_t tp)
 
     if (tp->config.rst_gpio_num != GPIO_NUM_NC) {
         ESP_RETURN_ON_ERROR(gpio_set_level(tp->config.rst_gpio_num, tp->config.levels.reset), TAG, "GPIO set level error!");
-        vTaskDelay(pdMS_TO_TICKS(10));
+        usleep(10 * 1000);
         ESP_RETURN_ON_ERROR(gpio_set_level(tp->config.rst_gpio_num, !tp->config.levels.reset), TAG, "GPIO set level error!");
-        vTaskDelay(pdMS_TO_TICKS(10));
+        usleep(10 * 1000);
     }
 
     return ESP_OK;
