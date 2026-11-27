@@ -34,8 +34,16 @@ static const char *TAG = "M5Stack";
 #if defined(CONFIG_BSP_PMU_AXP2101)
 /* AXP2101 register map differs from the AXP192 - these are AXP2101-only. */
 #define BSP_AXP2101_REG_ALDO_EN  0x90   // ALDO1~4 / BLDO1~2 enable
+#define BSP_AXP2101_ALDO1_BIT    0x01
 #define BSP_AXP2101_ALDO2_BIT    0x02   // ALDO2 = LCD/touch reset rail (Core2 v1.1)
+#define BSP_AXP2101_ALDO3_BIT    0x04   // ALDO3 = speaker amp rail (Core2 v1.1)
+#define BSP_AXP2101_ALDO4_BIT    0x08   // ALDO4 = LCD/touch/SD 3V3 rail (Core2 v1.1)
 #define BSP_AXP2101_BLDO1_BIT    0x10   // BLDO1 = LCD backlight rail (Core2 v1.1)
+#define BSP_AXP2101_BLDO2_BIT    0x20   // BLDO2 = PORT 5V enable (Core2 v1.1)
+#define BSP_AXP2101_MANAGED_BITS 0x3F
+#define BSP_AXP2101_DEFAULT_BITS \
+    (BSP_AXP2101_ALDO1_BIT | BSP_AXP2101_ALDO2_BIT | BSP_AXP2101_ALDO4_BIT | BSP_AXP2101_BLDO1_BIT | \
+     BSP_AXP2101_BLDO2_BIT)
 #endif
 
 #if (BSP_CONFIG_NO_GRAPHIC_LIB == 0)
@@ -58,6 +66,8 @@ static bool spi_initialized = false;
 static i2c_master_bus_handle_t i2c_handle = NULL;
 #if defined(CONFIG_BSP_PMU_AXP2101)
 static i2c_master_dev_handle_t axp2101_h = NULL;
+// Preserve an explicitly enabled speaker rail when display initialization sets the other rails.
+static bool speaker_power_enabled = false;
 #elif defined(CONFIG_BSP_PMU_AXP192)
 static i2c_master_dev_handle_t axp192_h = NULL;
 #endif
@@ -138,6 +148,39 @@ static esp_err_t read8bit_checked(uint8_t sub_addr, uint8_t *out)
 {
     return i2c_master_transmit_receive(axp2101_h, &sub_addr, 1, out, 1, 1000);
 }
+
+static esp_err_t set_speaker_power(bool enable)
+{
+    const uint8_t aldo3_value = enable ? 0x1C : 0x00;
+
+    // Program a valid voltage before enabling the rail. When disabling, cut
+    // the rail first so a voltage-write failure cannot leave the amp powered.
+    if (enable) {
+        const uint8_t spk_voltage[] = {0x94, aldo3_value};
+        ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, spk_voltage, sizeof(spk_voltage), 1000),
+                            TAG, "I2C write failed");
+    }
+
+    uint8_t aldo_ctrl = 0;
+    ESP_RETURN_ON_ERROR(read8bit_checked(BSP_AXP2101_REG_ALDO_EN, &aldo_ctrl), TAG,
+                        "Failed to read PMU reg 0x%02X", BSP_AXP2101_REG_ALDO_EN);
+    const uint8_t speaker_power = enable
+                                  ? (uint8_t)(aldo_ctrl | BSP_AXP2101_ALDO3_BIT)
+                                  : (uint8_t)(aldo_ctrl & (uint8_t)(~BSP_AXP2101_ALDO3_BIT));
+    if (speaker_power != aldo_ctrl) {
+        const uint8_t spk_enable[] = {BSP_AXP2101_REG_ALDO_EN, speaker_power};
+        ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, spk_enable, sizeof(spk_enable), 1000),
+                            TAG, "I2C write failed");
+    }
+    speaker_power_enabled = enable;
+
+    if (!enable) {
+        const uint8_t spk_voltage[] = {0x94, aldo3_value};
+        ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, spk_voltage, sizeof(spk_voltage), 1000),
+                            TAG, "I2C write failed");
+    }
+    return ESP_OK;
+}
 #endif
 
 esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
@@ -167,10 +210,7 @@ esp_err_t bsp_feature_enable(bsp_feature_t feature, bool enable)
         break;
     case BSP_FEATURE_SPEAKER:
 #if defined(CONFIG_BSP_PMU_AXP2101)
-        /* AXP ALDO3 voltage / Codec+Mic / 3V3 */
-        const uint8_t aldo3_value = enable ? 0x1C : 0x00;
-        const uint8_t spk_ctr[] = {0x94, aldo3_value};  // axp: lcd logic and sdcard voltage preset to 3.3v
-        err |= i2c_master_transmit(axp2101_h, spk_ctr, sizeof(spk_ctr), 1000);
+        err |= set_speaker_power(enable);
 #elif defined(CONFIG_BSP_PMU_AXP192)
         const uint8_t led_gpio_value = enable ? (read8bit(0x94) | 0x04) | 0xf0 : (read8bit(0x94) & ~0x04);
         const uint8_t led_gpio_set[] = {0x94, led_gpio_value};
@@ -404,7 +444,15 @@ esp_err_t bsp_display_brightness_init(void)
     /* Initilize I2C */
     BSP_ERROR_CHECK_RETURN_ERR(bsp_i2c_init());
 #if defined(CONFIG_BSP_PMU_AXP2101)
-    const uint8_t lcd_bl_en[] = {0x90, 0x3F};  // AXP ALDO1~4 BLDO1~2 Enable
+    // Preserve the legacy 0x3F rail defaults except for the speaker amp, which
+    // stays off unless audio was explicitly initialized before the display.
+    uint8_t aldo_ctrl = 0;
+    ESP_RETURN_ON_ERROR(read8bit_checked(BSP_AXP2101_REG_ALDO_EN, &aldo_ctrl), TAG,
+                        "Failed to read PMU reg 0x%02X", BSP_AXP2101_REG_ALDO_EN);
+    const uint8_t display_power = (aldo_ctrl & (uint8_t)(~BSP_AXP2101_MANAGED_BITS)) |
+                                  BSP_AXP2101_DEFAULT_BITS |
+                                  (speaker_power_enabled ? BSP_AXP2101_ALDO3_BIT : 0);
+    const uint8_t lcd_bl_en[] = {BSP_AXP2101_REG_ALDO_EN, display_power};
     ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, lcd_bl_en, sizeof(lcd_bl_en), 1000),
                         TAG, "I2C write failed");
 
@@ -438,14 +486,12 @@ esp_err_t bsp_display_brightness_init(void)
     // init in bsp_display_new(). This mirrors the reset pulse the AXP192 path
     // performs via GPIO4 (reg 0x96 bit1) further below.
     //
-    // Read the current ALDO control register once with error checking: a failed
-    // read must not be treated as 0, otherwise the read-modify-write below would
-    // clear every ALDO/BLDO enable bit and power down rails we depend on.
-    const uint8_t aldo_en_reg = BSP_AXP2101_REG_ALDO_EN;
-    uint8_t aldo_ctrl = 0;
-    ESP_RETURN_ON_ERROR(read8bit_checked(aldo_en_reg, &aldo_ctrl), TAG,
-                        "Failed to read PMU reg 0x%02X", aldo_en_reg);
-    const uint8_t lcd_rst_low[] = {aldo_en_reg, aldo_ctrl &(uint8_t)(~BSP_AXP2101_ALDO2_BIT)};   // ALDO2 off: assert reset
+    // The checked value read above also makes the reset pulse preserve every
+    // unrelated ALDO/BLDO enable bit.
+    const uint8_t lcd_rst_low[] = {
+        BSP_AXP2101_REG_ALDO_EN,
+        display_power &(uint8_t)(~BSP_AXP2101_ALDO2_BIT)
+    };   // ALDO2 off: assert reset
     ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, lcd_rst_low, sizeof(lcd_rst_low), 1000),
                         TAG, "I2C write failed");
     // ALDO2 is a power rail, not a RESX pin, so this is a power-down: hold it
@@ -454,7 +500,10 @@ esp_err_t bsp_display_brightness_init(void)
     // datasheet a disabled LDO is actively discharged "through an internal
     // resistor," collapsing the rail in a few ms; 20 ms is ample POR margin.
     vTaskDelay(pdMS_TO_TICKS(20));
-    const uint8_t lcd_rst_high[] = {aldo_en_reg, aldo_ctrl | BSP_AXP2101_ALDO2_BIT};  // ALDO2 on: release reset
+    const uint8_t lcd_rst_high[] = {
+        BSP_AXP2101_REG_ALDO_EN,
+        display_power
+    };  // ALDO2 on: release reset
     ESP_RETURN_ON_ERROR(i2c_master_transmit(axp2101_h, lcd_rst_high, sizeof(lcd_rst_high), 1000),
                         TAG, "I2C write failed");
     // Panel is powered again. The ILI9342 needs ~5 ms (datasheet: hardware
